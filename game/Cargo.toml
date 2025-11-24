@@ -1,0 +1,24 @@
+[package]
+name = "game"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+engine_core = { path = "../engine_core" }
+ecs = { path = "../ecs" }
+script = { path = "../script" }
+physics = { path = "../physics" }
+render = { path = "../render" }
+editor = { path = "../editor" }
+anyhow = "1.0"
+log = "0.4"
+env_logger = "0.11"
+winit = "0.29"
+pollster = "0.3"
+egui = "0.27"
+egui-wgpu = "0.27"
+egui-winit = "0.27"
+wgpu = "0.19"
+
+[features]
+default = []
