@@ -36,6 +36,7 @@ impl EditorUI {
         console: &mut Console,
         bottom_panel_tab: &mut usize,
         current_tool: &TransformTool,
+        show_project_settings: &mut bool,
     ) {
         // Top Menu Bar
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
@@ -54,6 +55,12 @@ impl EditorUI {
                     ui.separator();
                     if ui.button("Load Scene...").clicked() {
                         *load_request = true;
+                    }
+                });
+                ui.menu_button("Edit", |ui| {
+                    if ui.button("⚙ Project Settings").clicked() {
+                        *show_project_settings = true;
+                        ui.close_menu();
                     }
                 });
                 ui.menu_button("View", |ui| {
@@ -939,6 +946,148 @@ impl EditorUI {
                 _ => {}
             }
         });
+
+        // Project Settings Dialog
+        if *show_project_settings {
+            egui::Window::new("⚙ Project Settings")
+                .collapsible(false)
+                .resizable(true)
+                .default_width(500.0)
+                .show(ctx, |ui| {
+                    if let Some(path) = project_path {
+                        use engine_core::project::ProjectManager;
+
+                        ui.heading("Project Configuration");
+                        ui.separator();
+
+                        // General Section
+                        ui.collapsing("📁 General", |ui| {
+                            ui.add_space(5.0);
+                            ui.horizontal(|ui| {
+                                ui.label("Project Name:");
+                                ui.label(egui::RichText::new(
+                                    path.file_name().unwrap_or_default().to_string_lossy().to_string()
+                                ).strong());
+                            });
+                            ui.horizontal(|ui| {
+                                ui.label("Project Path:");
+                                ui.label(path.display().to_string());
+                            });
+                            ui.add_space(5.0);
+                        });
+
+                        ui.add_space(10.0);
+
+                        // Play Mode Section
+                        ui.collapsing("🎮 Play Mode", |ui| {
+                            ui.add_space(5.0);
+                            ui.label(egui::RichText::new("Configure startup scenes:").strong());
+                            ui.add_space(10.0);
+
+                            // Editor Startup Scene
+                            ui.label(egui::RichText::new("Editor Startup Scene").strong());
+                            ui.label("Scene to load when opening project in Editor");
+                            ui.add_space(5.0);
+
+                            let mut current_editor_scene = String::new();
+                            if let Ok(pm) = ProjectManager::new() {
+                                if let Ok(Some(scene)) = pm.get_editor_startup_scene(path) {
+                                    current_editor_scene = scene.to_string_lossy().to_string();
+                                }
+                            }
+
+                            let mut new_editor_scene = current_editor_scene.clone();
+                            ui.horizontal(|ui| {
+                                ui.text_edit_singleline(&mut new_editor_scene);
+                                if ui.button("📁 Browse...").clicked() {
+                                    let mut dialog = rfd::FileDialog::new()
+                                        .add_filter("Scene", &["json"]);
+                                    let scenes_folder = path.join("scenes");
+                                    if scenes_folder.exists() {
+                                        dialog = dialog.set_directory(&scenes_folder);
+                                    }
+                                    if let Some(file) = dialog.pick_file() {
+                                        if let Ok(relative) = file.strip_prefix(path) {
+                                            new_editor_scene = relative.to_string_lossy().to_string();
+                                        }
+                                    }
+                                }
+                                if ui.button("❌ Clear").clicked() {
+                                    new_editor_scene.clear();
+                                }
+                            });
+
+                            if new_editor_scene != current_editor_scene {
+                                if let Ok(pm) = ProjectManager::new() {
+                                    let scene_path = if new_editor_scene.is_empty() {
+                                        None
+                                    } else {
+                                        Some(std::path::PathBuf::from(&new_editor_scene))
+                                    };
+                                    let _ = pm.set_editor_startup_scene(path, scene_path);
+                                }
+                            }
+
+                            ui.add_space(15.0);
+
+                            // Game Startup Scene
+                            ui.label(egui::RichText::new("Game Startup Scene").strong());
+                            ui.label("Scene to load when running exported game");
+                            ui.add_space(5.0);
+
+                            let mut current_game_scene = String::new();
+                            if let Ok(pm) = ProjectManager::new() {
+                                if let Ok(Some(scene)) = pm.get_game_startup_scene(path) {
+                                    current_game_scene = scene.to_string_lossy().to_string();
+                                }
+                            }
+
+                            let mut new_game_scene = current_game_scene.clone();
+                            ui.horizontal(|ui| {
+                                ui.text_edit_singleline(&mut new_game_scene);
+                                if ui.button("📁 Browse...").clicked() {
+                                    let mut dialog = rfd::FileDialog::new()
+                                        .add_filter("Scene", &["json"]);
+                                    let scenes_folder = path.join("scenes");
+                                    if scenes_folder.exists() {
+                                        dialog = dialog.set_directory(&scenes_folder);
+                                    }
+                                    if let Some(file) = dialog.pick_file() {
+                                        if let Ok(relative) = file.strip_prefix(path) {
+                                            new_game_scene = relative.to_string_lossy().to_string();
+                                        }
+                                    }
+                                }
+                                if ui.button("❌ Clear").clicked() {
+                                    new_game_scene.clear();
+                                }
+                            });
+
+                            if new_game_scene != current_game_scene {
+                                if let Ok(pm) = ProjectManager::new() {
+                                    let scene_path = if new_game_scene.is_empty() {
+                                        None
+                                    } else {
+                                        Some(std::path::PathBuf::from(&new_game_scene))
+                                    };
+                                    let _ = pm.set_game_startup_scene(path, scene_path);
+                                }
+                            }
+
+                            ui.add_space(10.0);
+                        });
+
+                    } else {
+                        ui.label("No project open.");
+                    }
+
+                    ui.add_space(20.0);
+                    ui.separator();
+                    if ui.button("Close").clicked() {
+                        *show_project_settings = false;
+                    }
+                });
+        }
     }
 
     /// Get icon for entity based on its components

@@ -1,121 +1,12 @@
 {
-  "entity_names": {
-    "0": "GameObject",
-    "1": "Camera",
-    "2": "Player"
-  },
+  "entity_names": {},
   "world": {
-    "colliders": [
-      [
-        2,
-        {
-          "height": 40.0,
-          "width": 40.0
-        }
-      ]
-    ],
-    "next_entity": 3,
-    "scripts": [
-      [
-        2,
-        {
-          "enabled": true,
-          "script_name": "Script_0"
-        }
-      ]
-    ],
-    "sprites": [
-      [
-        2,
-        {
-          "color": [
-            0.2,
-            0.6,
-            1.0,
-            1.0
-          ],
-          "height": 40.0,
-          "texture_id": "player",
-          "width": 40.0
-        }
-      ]
-    ],
-    "tags": [
-      [
-        2,
-        "Player"
-      ]
-    ],
-    "transforms": [
-      [
-        2,
-        {
-          "position": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "rotation": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "scale": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        }
-      ],
-      [
-        1,
-        {
-          "position": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "rotation": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "scale": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        }
-      ],
-      [
-        0,
-        {
-          "position": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "rotation": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "scale": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        }
-      ]
-    ],
-    "velocities": [
-      [
-        2,
-        [
-          0.0,
-          0.0
-        ]
-      ]
-    ]
+    "colliders": [],
+    "next_entity": 0,
+    "scripts": [],
+    "sprites": [],
+    "tags": [],
+    "transforms": [],
+    "velocities": []
   }
 }

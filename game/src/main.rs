@@ -878,6 +878,7 @@ fn main() -> Result<()> {
                                     &mut editor_state.console,
                                     &mut editor_state.bottom_panel_tab,
                                     &editor_state.current_tool,
+                                    &mut editor_state.show_project_settings,
                                 );
 
                                 // Handle new scene request
