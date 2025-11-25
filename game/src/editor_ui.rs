@@ -89,23 +89,111 @@ impl EditorUI {
             ui.separator();
 
             egui::ScrollArea::vertical().show(ui, |ui| {
-                let entities: Vec<Entity> = entity_names.keys().cloned().collect();
+                // Scene root node
+                let scene_name = if let Some(path) = current_scene_path {
+                    path.file_stem()
+                        .and_then(|s| s.to_str())
+                        .unwrap_or("Untitled")
+                        .to_string()
+                } else {
+                    "Untitled Scene".to_string()
+                };
 
-                for entity in entities {
-                    let name = entity_names.get(&entity).cloned().unwrap_or(format!("Entity {}", entity));
-                    let is_selected = *selected_entity == Some(entity);
+                // Scene root is always expanded (collapsing API with default_open)
+                egui::CollapsingHeader::new(format!("📁 {}", scene_name))
+                    .default_open(true)
+                    .show(ui, |ui| {
+                        let entities: Vec<Entity> = entity_names.keys().cloned().collect();
 
-                    if ui.selectable_label(is_selected, &name).clicked() {
-                        *selected_entity = Some(entity);
-                    }
-                }
+                        // Track entity to delete (for right-click menu)
+                        let mut entity_to_delete: Option<Entity> = None;
+
+                        for entity in entities {
+                            let name = entity_names.get(&entity).cloned().unwrap_or(format!("Entity {}", entity));
+                            let is_selected = *selected_entity == Some(entity);
+
+                            // Get icon based on entity type
+                            let icon = Self::get_entity_icon(world, entity);
+
+                            ui.horizontal(|ui| {
+                                // Selectable label with icon
+                                let response = ui.selectable_label(is_selected, format!("{} {}", icon, name));
+
+                                if response.clicked() {
+                                    *selected_entity = Some(entity);
+                                }
+
+                                // Right-click context menu
+                                response.context_menu(|ui| {
+                                    ui.label(format!("📝 {}", name));
+                                    ui.separator();
+
+                                    if ui.button("🔄 Duplicate").clicked() {
+                                        // TODO: Implement duplicate
+                                        ui.close_menu();
+                                    }
+
+                                    if ui.button("📋 Rename").clicked() {
+                                        // Already editable in Inspector
+                                        ui.close_menu();
+                                    }
+
+                                    ui.separator();
+
+                                    if ui.button("❌ Delete").clicked() {
+                                        entity_to_delete = Some(entity);
+                                        ui.close_menu();
+                                    }
+                                });
+                            });
+                        }
+
+                        // Delete entity if requested
+                        if let Some(entity) = entity_to_delete {
+                            world.despawn(entity);
+                            entity_names.remove(&entity);
+                            if *selected_entity == Some(entity) {
+                                *selected_entity = None;
+                            }
+                        }
+                    });
             });
 
             ui.separator();
-            if ui.button("➕ Create Empty GameObject").clicked() {
-                let entity = Prefab::new("GameObject").spawn(world);
-                entity_names.insert(entity, format!("GameObject {}", entity));
-            }
+
+            // Create menu button with dropdown
+            ui.menu_button("➕ Create", |ui| {
+                ui.label("🎮 2D Objects");
+                ui.separator();
+
+                if ui.button("📦 Empty GameObject").clicked() {
+                    let entity = Prefab::new("GameObject").spawn(world);
+                    entity_names.insert(entity, format!("GameObject"));
+                    *selected_entity = Some(entity);
+                    ui.close_menu();
+                }
+
+                if ui.button("🎮 Sprite").clicked() {
+                    let entity = world.spawn();
+                    world.transforms.insert(entity, ecs::Transform::default());
+                    world.sprites.insert(entity, ecs::Sprite {
+                        texture_id: "sprite".to_string(),
+                        width: 32.0,
+                        height: 32.0,
+                        color: [1.0, 1.0, 1.0, 1.0],
+                    });
+                    entity_names.insert(entity, "Sprite".to_string());
+                    *selected_entity = Some(entity);
+                    ui.close_menu();
+                }
+
+                if ui.button("📷 Camera").clicked() {
+                    let entity = Prefab::new("Camera").spawn(world);
+                    entity_names.insert(entity, "Camera".to_string());
+                    *selected_entity = Some(entity);
+                    ui.close_menu();
+                }
+            });
         });
 
         // Inspector Panel (Right)
@@ -774,5 +862,37 @@ impl EditorUI {
                 _ => {}
             }
         });
+    }
+
+    /// Get icon for entity based on its components
+    fn get_entity_icon(world: &World, entity: Entity) -> &'static str {
+        // Check for specific entity types
+        if let Some(tag) = world.tags.get(&entity) {
+            return match tag {
+                EntityTag::Player => "🎮",
+                EntityTag::Item => "💎",
+            };
+        }
+
+        // Check for components
+        let has_sprite = world.sprites.contains_key(&entity);
+        let has_collider = world.colliders.contains_key(&entity);
+        let has_velocity = world.velocities.contains_key(&entity);
+        let has_script = world.scripts.contains_key(&entity);
+
+        // Determine icon based on component combination
+        if has_script {
+            "📜" // Script
+        } else if has_velocity && has_collider {
+            "🏃" // Physics object (moving + collision)
+        } else if has_sprite && has_collider {
+            "📦" // Sprite with collision
+        } else if has_sprite {
+            "🖼️" // Sprite only
+        } else if has_collider {
+            "⬜" // Collider only (invisible)
+        } else {
+            "📍" // Empty GameObject
+        }
     }
 }
