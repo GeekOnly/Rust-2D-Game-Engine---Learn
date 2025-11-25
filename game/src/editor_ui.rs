@@ -86,6 +86,48 @@ impl EditorUI {
 
                 ui.separator();
 
+                // Scene dropdown in toolbar (if project is open)
+                if let Some(proj_path) = project_path {
+                    let scene_files = Self::get_scene_files(proj_path);
+
+                    if !scene_files.is_empty() {
+                        let current_scene_name = if let Some(current) = current_scene_path {
+                            current.file_stem()
+                                .and_then(|s| s.to_str())
+                                .unwrap_or("Untitled")
+                                .to_string()
+                        } else {
+                            "No Scene".to_string()
+                        };
+
+                        egui::ComboBox::from_label("Scene:")
+                            .selected_text(&current_scene_name)
+                            .width(150.0)
+                            .show_ui(ui, |ui| {
+                                for scene_file in scene_files {
+                                    let scene_name = std::path::Path::new(&scene_file)
+                                        .file_stem()
+                                        .and_then(|s| s.to_str())
+                                        .unwrap_or(&scene_file);
+
+                                    let scene_path = proj_path.join(&scene_file);
+
+                                    let is_current = if let Some(current) = current_scene_path {
+                                        current == &scene_path
+                                    } else {
+                                        false
+                                    };
+
+                                    if ui.selectable_label(is_current, scene_name).clicked() && !is_current {
+                                        *load_file_request = Some(scene_path);
+                                    }
+                                }
+                            });
+
+                        ui.separator();
+                    }
+                }
+
                 // Play/Stop buttons in menu bar
                 if !is_playing {
                     if ui.button("▶ Play").clicked() {
@@ -176,6 +218,79 @@ impl EditorUI {
             });
 
             ui.separator();
+
+            // Scenes section (if project is open)
+            if let Some(proj_path) = project_path {
+                ui.heading("📁 Scenes");
+                ui.separator();
+
+                egui::ScrollArea::vertical().max_height(200.0).show(ui, |ui| {
+                    let scene_files = Self::get_scene_files(proj_path);
+
+                    if scene_files.is_empty() {
+                        ui.label("No scenes found");
+                        ui.label("Create a scene with File → Save Scene");
+                    } else {
+                        for scene_file in scene_files {
+                            // Check if this is the current scene
+                            let is_current = if let Some(current) = current_scene_path {
+                                if let Ok(relative) = current.strip_prefix(proj_path) {
+                                    relative.to_string_lossy() == scene_file
+                                } else {
+                                    false
+                                }
+                            } else {
+                                false
+                            };
+
+                            let scene_name = std::path::Path::new(&scene_file)
+                                .file_stem()
+                                .and_then(|s| s.to_str())
+                                .unwrap_or(&scene_file);
+
+                            ui.horizontal(|ui| {
+                                let label = if is_current {
+                                    format!("▶ {}", scene_name)
+                                } else {
+                                    format!("  {}", scene_name)
+                                };
+
+                                let response = ui.selectable_label(is_current, label);
+
+                                if response.clicked() && !is_current {
+                                    // Load this scene
+                                    let scene_path = proj_path.join(&scene_file);
+                                    *load_file_request = Some(scene_path);
+                                }
+
+                                // Right-click context menu
+                                response.context_menu(|ui| {
+                                    ui.label(format!("📝 {}", scene_name));
+                                    ui.separator();
+
+                                    if ui.button("📂 Open").clicked() {
+                                        let scene_path = proj_path.join(&scene_file);
+                                        *load_file_request = Some(scene_path);
+                                        ui.close_menu();
+                                    }
+
+                                    if ui.button("🗑 Delete Scene").clicked() {
+                                        let scene_path = proj_path.join(&scene_file);
+                                        if let Err(e) = std::fs::remove_file(&scene_path) {
+                                            console.error(format!("Failed to delete scene: {}", e));
+                                        } else {
+                                            console.info(format!("Deleted scene: {}", scene_name));
+                                        }
+                                        ui.close_menu();
+                                    }
+                                });
+                            });
+                        }
+                    }
+                });
+
+                ui.separator();
+            }
 
             // Create menu button with dropdown
             ui.menu_button("➕ Create", |ui| {
@@ -997,25 +1112,33 @@ impl EditorUI {
                             }
 
                             let mut new_editor_scene = current_editor_scene.clone();
-                            ui.horizontal(|ui| {
-                                ui.text_edit_singleline(&mut new_editor_scene);
-                                if ui.button("📁 Browse...").clicked() {
-                                    let mut dialog = rfd::FileDialog::new()
-                                        .add_filter("Scene", &["scene"]);
-                                    let scenes_folder = path.join("scenes");
-                                    if scenes_folder.exists() {
-                                        dialog = dialog.set_directory(&scenes_folder);
+
+                            // Get all .scene files in project
+                            let scene_files = Self::get_scene_files(path);
+
+                            // Dropdown to select scene
+                            let selected_text = if new_editor_scene.is_empty() {
+                                "(None)".to_string()
+                            } else {
+                                new_editor_scene.clone()
+                            };
+
+                            egui::ComboBox::from_label("")
+                                .selected_text(&selected_text)
+                                .width(400.0)
+                                .show_ui(ui, |ui| {
+                                    // None option
+                                    if ui.selectable_value(&mut new_editor_scene, String::new(), "(None)").clicked() {
+                                        new_editor_scene.clear();
                                     }
-                                    if let Some(file) = dialog.pick_file() {
-                                        if let Ok(relative) = file.strip_prefix(path) {
-                                            new_editor_scene = relative.to_string_lossy().to_string();
-                                        }
+
+                                    ui.separator();
+
+                                    // All .scene files
+                                    for scene_file in scene_files {
+                                        ui.selectable_value(&mut new_editor_scene, scene_file.clone(), &scene_file);
                                     }
-                                }
-                                if ui.button("❌ Clear").clicked() {
-                                    new_editor_scene.clear();
-                                }
-                            });
+                                });
 
                             if new_editor_scene != current_editor_scene {
                                 if let Ok(pm) = ProjectManager::new() {
@@ -1043,25 +1166,33 @@ impl EditorUI {
                             }
 
                             let mut new_game_scene = current_game_scene.clone();
-                            ui.horizontal(|ui| {
-                                ui.text_edit_singleline(&mut new_game_scene);
-                                if ui.button("📁 Browse...").clicked() {
-                                    let mut dialog = rfd::FileDialog::new()
-                                        .add_filter("Scene", &["scene"]);
-                                    let scenes_folder = path.join("scenes");
-                                    if scenes_folder.exists() {
-                                        dialog = dialog.set_directory(&scenes_folder);
+
+                            // Get all .scene files in project
+                            let scene_files = Self::get_scene_files(path);
+
+                            // Dropdown to select scene
+                            let selected_text = if new_game_scene.is_empty() {
+                                "(None)".to_string()
+                            } else {
+                                new_game_scene.clone()
+                            };
+
+                            egui::ComboBox::from_label("")
+                                .selected_text(&selected_text)
+                                .width(400.0)
+                                .show_ui(ui, |ui| {
+                                    // None option
+                                    if ui.selectable_value(&mut new_game_scene, String::new(), "(None)").clicked() {
+                                        new_game_scene.clear();
                                     }
-                                    if let Some(file) = dialog.pick_file() {
-                                        if let Ok(relative) = file.strip_prefix(path) {
-                                            new_game_scene = relative.to_string_lossy().to_string();
-                                        }
+
+                                    ui.separator();
+
+                                    // All .scene files
+                                    for scene_file in scene_files {
+                                        ui.selectable_value(&mut new_game_scene, scene_file.clone(), &scene_file);
                                     }
-                                }
-                                if ui.button("❌ Clear").clicked() {
-                                    new_game_scene.clear();
-                                }
-                            });
+                                });
 
                             if new_game_scene != current_game_scene {
                                 if let Ok(pm) = ProjectManager::new() {
@@ -1088,6 +1219,34 @@ impl EditorUI {
                     }
                 });
         }
+    }
+
+    /// Get all .scene files in project scenes folder
+    fn get_scene_files(project_path: &std::path::Path) -> Vec<String> {
+        let scenes_folder = project_path.join("scenes");
+        let mut scene_files = Vec::new();
+
+        if scenes_folder.exists() {
+            if let Ok(entries) = std::fs::read_dir(&scenes_folder) {
+                for entry in entries.flatten() {
+                    if let Ok(file_type) = entry.file_type() {
+                        if file_type.is_file() {
+                            if let Some(path) = entry.path().to_str() {
+                                if path.ends_with(".scene") {
+                                    // Get relative path from project root
+                                    if let Ok(relative) = entry.path().strip_prefix(project_path) {
+                                        scene_files.push(relative.to_string_lossy().to_string());
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        scene_files.sort();
+        scene_files
     }
 
     /// Get icon for entity based on its components

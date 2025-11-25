@@ -1002,6 +1002,7 @@ fn main() -> Result<()> {
                                             log::error!("Failed to load scene: {}", e);
                                             editor_state.console.error(format!("Failed to load scene: {}", e));
                                         } else {
+                                            editor_state.current_scene_path = Some(path.clone());
                                             editor_state.console.info(format!("Scene loaded: {}", path.display()));
                                         }
                                     }
