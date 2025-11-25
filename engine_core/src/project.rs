@@ -19,6 +19,11 @@ pub struct ProjectConfig {
     pub description: String,
     pub version: String,
     #[serde(default)]
+    pub editor_startup_scene: Option<PathBuf>,  // Scene to load when opening project in Editor
+    #[serde(default)]
+    pub game_startup_scene: Option<PathBuf>,    // Scene to load when running exported game
+    // Legacy field for backward compatibility
+    #[serde(default)]
     pub startup_scene: Option<PathBuf>,
 }
 
@@ -53,6 +58,8 @@ impl ProjectManager {
             name: name.to_string(),
             description: description.to_string(),
             version: "0.1.0".to_string(),
+            editor_startup_scene: None,
+            game_startup_scene: None,
             startup_scene: None,
         };
 
@@ -164,7 +171,12 @@ impl ProjectManager {
         self.current_project = None;
     }
 
+    // Legacy method - uses editor_startup_scene or falls back to startup_scene
     pub fn get_startup_scene(&self, project_path: &Path) -> Result<Option<PathBuf>> {
+        self.get_editor_startup_scene(project_path)
+    }
+
+    pub fn get_editor_startup_scene(&self, project_path: &Path) -> Result<Option<PathBuf>> {
         let config_path = project_path.join("project.json");
         if !config_path.exists() {
             return Ok(None);
@@ -172,10 +184,12 @@ impl ProjectManager {
 
         let config_str = fs::read_to_string(&config_path)?;
         let config: ProjectConfig = serde_json::from_str(&config_str)?;
-        Ok(config.startup_scene)
+
+        // Try new field first, then fall back to legacy field
+        Ok(config.editor_startup_scene.or(config.startup_scene))
     }
 
-    pub fn set_startup_scene(&self, project_path: &Path, scene_path: Option<PathBuf>) -> Result<()> {
+    pub fn set_editor_startup_scene(&self, project_path: &Path, scene_path: Option<PathBuf>) -> Result<()> {
         let config_path = project_path.join("project.json");
         if !config_path.exists() {
             return Err(anyhow::anyhow!("Project config not found"));
@@ -183,11 +197,42 @@ impl ProjectManager {
 
         let config_str = fs::read_to_string(&config_path)?;
         let mut config: ProjectConfig = serde_json::from_str(&config_str)?;
-        config.startup_scene = scene_path;
+        config.editor_startup_scene = scene_path;
 
         let config_json = serde_json::to_string_pretty(&config)?;
         fs::write(config_path, config_json)?;
         Ok(())
+    }
+
+    pub fn get_game_startup_scene(&self, project_path: &Path) -> Result<Option<PathBuf>> {
+        let config_path = project_path.join("project.json");
+        if !config_path.exists() {
+            return Ok(None);
+        }
+
+        let config_str = fs::read_to_string(&config_path)?;
+        let config: ProjectConfig = serde_json::from_str(&config_str)?;
+        Ok(config.game_startup_scene)
+    }
+
+    pub fn set_game_startup_scene(&self, project_path: &Path, scene_path: Option<PathBuf>) -> Result<()> {
+        let config_path = project_path.join("project.json");
+        if !config_path.exists() {
+            return Err(anyhow::anyhow!("Project config not found"));
+        }
+
+        let config_str = fs::read_to_string(&config_path)?;
+        let mut config: ProjectConfig = serde_json::from_str(&config_str)?;
+        config.game_startup_scene = scene_path;
+
+        let config_json = serde_json::to_string_pretty(&config)?;
+        fs::write(config_path, config_json)?;
+        Ok(())
+    }
+
+    // Legacy method - sets editor_startup_scene
+    pub fn set_startup_scene(&self, project_path: &Path, scene_path: Option<PathBuf>) -> Result<()> {
+        self.set_editor_startup_scene(project_path, scene_path)
     }
 
     pub fn get_example_projects() -> Vec<(&'static str, &'static str)> {
