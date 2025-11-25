@@ -163,6 +163,16 @@ pub enum EntityTag {
 pub struct Script {
     pub script_name: String,
     pub enabled: bool,
+    #[serde(default)]
+    pub parameters: std::collections::HashMap<String, ScriptParameter>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub enum ScriptParameter {
+    Float(f32),
+    Int(i32),
+    String(String),
+    Bool(bool),
 }
 
 /// Camera for view control (Unity-like)

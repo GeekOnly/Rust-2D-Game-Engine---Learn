@@ -1,4 +1,4 @@
-use ecs::{World, Entity, Sprite, Collider, EntityTag, Script, Prefab};
+use ecs::{World, Entity, Sprite, Collider, EntityTag, Script, Prefab, ScriptParameter};
 use egui;
 use std::collections::HashMap;
 use crate::console::Console;
@@ -605,6 +605,53 @@ impl EditorUI {
                                     ui.checkbox(&mut script.enabled, "");
                                 });
 
+                                ui.add_space(10.0);
+
+                                // Parse script parameters from Lua file (Unity-like)
+                                if let Some(proj_path) = project_path {
+                                    let script_file = proj_path.join("scripts").join(format!("{}.lua", script.script_name));
+                                    if script_file.exists() {
+                                        let parsed_params = Self::parse_lua_script_parameters(&script_file);
+
+                                        // Merge parsed parameters with existing ones (keep user-modified values)
+                                        for (key, default_value) in parsed_params {
+                                            script.parameters.entry(key).or_insert(default_value);
+                                        }
+
+                                        // Display all parameters
+                                        if !script.parameters.is_empty() {
+                                            ui.separator();
+                                            ui.label(egui::RichText::new("Script Parameters:").strong());
+
+                                            let param_keys: Vec<String> = script.parameters.keys().cloned().collect();
+                                            for key in param_keys {
+                                                if let Some(value) = script.parameters.get_mut(&key) {
+                                                    ui.horizontal(|ui| {
+                                                        ui.label(format!("{}:", key));
+
+                                                        match value {
+                                                            ScriptParameter::Float(f) => {
+                                                                ui.add(egui::DragValue::new(f).speed(0.1));
+                                                            }
+                                                            ScriptParameter::Int(i) => {
+                                                                ui.add(egui::DragValue::new(i).speed(1));
+                                                            }
+                                                            ScriptParameter::String(s) => {
+                                                                ui.text_edit_singleline(s);
+                                                            }
+                                                            ScriptParameter::Bool(b) => {
+                                                                ui.checkbox(b, "");
+                                                            }
+                                                        }
+                                                    });
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                ui.add_space(10.0);
+
                                 let script_name = script.script_name.clone();
                                 ui.horizontal(|ui| {
                                     if ui.button("📝 Edit Script").clicked() {
@@ -642,6 +689,7 @@ impl EditorUI {
                                 world.scripts.insert(entity, Script {
                                     script_name: script_name.clone(),
                                     enabled: true,
+                                    parameters: HashMap::new(),
                                 });
 
                                 // Create file if it doesn't exist
@@ -731,6 +779,7 @@ impl EditorUI {
                                 world.scripts.insert(entity, Script {
                                     script_name: script_name.clone(),
                                     enabled: true,
+                                    parameters: HashMap::new(),
                                 });
                                 ui.close_menu();
                             }
@@ -1441,5 +1490,71 @@ impl EditorUI {
         } else {
             "📍" // Empty GameObject
         }
+    }
+
+    /// Parse Lua script file to extract variable declarations (Unity-like parameters)
+    /// Looks for patterns like: `local speed = 10`, `jumpForce = 5.0`, `name = "Player"`
+    fn parse_lua_script_parameters(script_path: &std::path::Path) -> HashMap<String, ScriptParameter> {
+        let mut parameters = HashMap::new();
+
+        if let Ok(content) = std::fs::read_to_string(script_path) {
+            for line in content.lines() {
+                let trimmed = line.trim();
+
+                // Skip comments
+                if trimmed.starts_with("--") {
+                    continue;
+                }
+
+                // Match patterns: "local name = value" or "name = value"
+                if let Some(equals_pos) = trimmed.find('=') {
+                    let var_part = &trimmed[..equals_pos].trim();
+                    let value_part = trimmed[equals_pos + 1..].trim();
+
+                    // Remove "local" keyword if present
+                    let var_name = var_part
+                        .strip_prefix("local")
+                        .unwrap_or(var_part)
+                        .trim()
+                        .to_string();
+
+                    // Skip if variable name is empty or contains spaces (not a simple variable)
+                    if var_name.is_empty() || var_name.contains(' ') {
+                        continue;
+                    }
+
+                    // Parse value type
+                    let param = if value_part.starts_with('"') || value_part.starts_with('\'') {
+                        // String value
+                        let str_value = value_part
+                            .trim_matches('"')
+                            .trim_matches('\'')
+                            .trim_end_matches(',')
+                            .to_string();
+                        Some(ScriptParameter::String(str_value))
+                    } else if value_part == "true" || value_part == "false" {
+                        // Boolean value
+                        let bool_value = value_part == "true";
+                        Some(ScriptParameter::Bool(bool_value))
+                    } else if let Ok(float_value) = value_part.trim_end_matches(',').parse::<f32>() {
+                        // Try parsing as float first
+                        if value_part.contains('.') {
+                            Some(ScriptParameter::Float(float_value))
+                        } else {
+                            // Integer (no decimal point)
+                            Some(ScriptParameter::Int(float_value as i32))
+                        }
+                    } else {
+                        None
+                    };
+
+                    if let Some(p) = param {
+                        parameters.insert(var_name, p);
+                    }
+                }
+            }
+        }
+
+        parameters
     }
 }
