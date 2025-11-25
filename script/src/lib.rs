@@ -380,4 +380,56 @@ impl ScriptEngine {
 
         Ok(())
     }
+
+    /// Call on_collision callback for a script
+    pub fn call_collision(
+        &mut self,
+        _script_path: &std::path::Path,
+        entity: Entity,
+        other_entity: Entity,
+        world: &mut World,
+    ) -> Result<()> {
+        // Use RefCell to work around borrow checker in scope
+        let world_cell = RefCell::new(&mut *world);
+
+        self.lua.scope(|scope| {
+            let globals = self.lua.globals();
+
+            // ================================================================
+            // ENTITY QUERY API (for collision callback)
+            // ================================================================
+
+            let get_tag = scope.create_function(|_, query_entity: Entity| {
+                if let Some(tag) = world_cell.borrow().tags.get(&query_entity) {
+                    let tag_str = match tag {
+                        EntityTag::Player => "Player",
+                        EntityTag::Item => "Item",
+                    };
+                    Ok(Some(tag_str.to_string()))
+                } else {
+                    Ok(None)
+                }
+            })?;
+            globals.set("get_tag", get_tag)?;
+
+            let destroy_entity = scope.create_function_mut(|_, target_entity: Entity| {
+                world_cell.borrow_mut().despawn(target_entity);
+                Ok(())
+            })?;
+            globals.set("destroy_entity", destroy_entity)?;
+
+            // ================================================================
+            // CALL ON_COLLISION
+            // ================================================================
+
+            // Call on_collision if it exists
+            if let Ok(on_collision) = globals.get::<_, Function>("on_collision") {
+                on_collision.call::<_, ()>(other_entity)?;
+            }
+
+            Ok(())
+        })?;
+
+        Ok(())
+    }
 }

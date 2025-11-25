@@ -1214,6 +1214,49 @@ fn main() -> Result<()> {
                                     // Update physics
                                     physics.step(dt, &mut editor_state.world);
 
+                                    // Check collisions and call collision callbacks
+                                    let entities_with_colliders: Vec<_> = editor_state.world.colliders.keys().cloned().collect();
+                                    for i in 0..entities_with_colliders.len() {
+                                        for j in (i + 1)..entities_with_colliders.len() {
+                                            let e1 = entities_with_colliders[i];
+                                            let e2 = entities_with_colliders[j];
+
+                                            if physics::PhysicsWorld::check_collision(&editor_state.world, e1, e2) {
+                                                // Call on_collision for e1's script
+                                                let script1_info = editor_state.world.scripts.get(&e1)
+                                                    .filter(|s| s.enabled)
+                                                    .map(|s| s.script_name.clone());
+
+                                                if let Some(script1_name) = script1_info {
+                                                    if let Some(scripts_folder) = editor_state.get_scripts_folder() {
+                                                        let script_path = scripts_folder.join(format!("{}.lua", script1_name));
+                                                        if script_path.exists() {
+                                                            if let Err(e) = script_engine.call_collision(&script_path, e1, e2, &mut editor_state.world) {
+                                                                log::error!("Collision callback error for {}: {}", script1_name, e);
+                                                            }
+                                                        }
+                                                    }
+                                                }
+
+                                                // Call on_collision for e2's script
+                                                let script2_info = editor_state.world.scripts.get(&e2)
+                                                    .filter(|s| s.enabled)
+                                                    .map(|s| s.script_name.clone());
+
+                                                if let Some(script2_name) = script2_info {
+                                                    if let Some(scripts_folder) = editor_state.get_scripts_folder() {
+                                                        let script_path = scripts_folder.join(format!("{}.lua", script2_name));
+                                                        if script_path.exists() {
+                                                            if let Err(e) = script_engine.call_collision(&script_path, e2, e1, &mut editor_state.world) {
+                                                                log::error!("Collision callback error for {}: {}", script2_name, e);
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+
                                     // Run scripts
                                     let entities_with_scripts: Vec<_> = editor_state.world.scripts.keys().cloned().collect();
                                     for entity in entities_with_scripts {
