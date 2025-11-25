@@ -192,6 +192,8 @@ pub struct World {
     pub colliders: HashMap<Entity, Collider>,
     pub tags: HashMap<Entity, EntityTag>,
     pub scripts: HashMap<Entity, Script>,
+    pub active: HashMap<Entity, bool>,      // Active state (Unity-like)
+    pub layers: HashMap<Entity, u8>,        // Layer (0-31, Unity has 32 layers)
 }
 
 impl World {
@@ -200,6 +202,10 @@ impl World {
     pub fn spawn(&mut self) -> Entity {
         let id = self.next_entity;
         self.next_entity += 1;
+        // New entities are active by default (Unity behavior)
+        self.active.insert(id, true);
+        // New entities start on layer 0 (Default layer)
+        self.layers.insert(id, 0);
         id
     }
 
@@ -210,6 +216,8 @@ impl World {
         self.colliders.remove(&e);
         self.tags.remove(&e);
         self.scripts.remove(&e);
+        self.active.remove(&e);
+        self.layers.remove(&e);
     }
 
     pub fn clear(&mut self) {
@@ -219,6 +227,8 @@ impl World {
         self.colliders.clear();
         self.tags.clear();
         self.scripts.clear();
+        self.active.clear();
+        self.layers.clear();
         self.next_entity = 0;
     }
 
@@ -232,6 +242,8 @@ impl World {
             colliders: Vec<(Entity, Collider)>,
             tags: Vec<(Entity, EntityTag)>,
             scripts: Vec<(Entity, Script)>,
+            active: Vec<(Entity, bool)>,
+            layers: Vec<(Entity, u8)>,
         }
 
         let data = SceneData {
@@ -242,6 +254,8 @@ impl World {
             colliders: self.colliders.iter().map(|(k, v)| (*k, v.clone())).collect(),
             tags: self.tags.iter().map(|(k, v)| (*k, v.clone())).collect(),
             scripts: self.scripts.iter().map(|(k, v)| (*k, v.clone())).collect(),
+            active: self.active.iter().map(|(k, v)| (*k, *v)).collect(),
+            layers: self.layers.iter().map(|(k, v)| (*k, *v)).collect(),
         };
 
         serde_json::to_string_pretty(&data)
@@ -257,6 +271,10 @@ impl World {
             colliders: Vec<(Entity, Collider)>,
             tags: Vec<(Entity, EntityTag)>,
             scripts: Vec<(Entity, Script)>,
+            #[serde(default)]
+            active: Vec<(Entity, bool)>,
+            #[serde(default)]
+            layers: Vec<(Entity, u8)>,
         }
 
         let data: SceneData = serde_json::from_str(json)?;
@@ -281,6 +299,18 @@ impl World {
         }
         for (entity, script) in data.scripts {
             self.scripts.insert(entity, script);
+        }
+        for (entity, is_active) in data.active {
+            self.active.insert(entity, is_active);
+        }
+        for (entity, layer) in data.layers {
+            self.layers.insert(entity, layer);
+        }
+
+        // Ensure all entities have active and layer (backward compatibility)
+        for &entity in self.transforms.keys() {
+            self.active.entry(entity).or_insert(true);
+            self.layers.entry(entity).or_insert(0);
         }
 
         Ok(())

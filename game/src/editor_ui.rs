@@ -298,8 +298,10 @@ impl EditorUI {
                 ui.separator();
 
                 if ui.button("📦 Empty GameObject").clicked() {
-                    let entity = Prefab::new("GameObject").spawn(world);
-                    entity_names.insert(entity, format!("GameObject"));
+                    // Create GameObject with only Transform (Unity behavior)
+                    let entity = world.spawn();
+                    world.transforms.insert(entity, ecs::Transform::default());
+                    entity_names.insert(entity, "GameObject".to_string());
                     *selected_entity = Some(entity);
                     ui.close_menu();
                 }
@@ -334,62 +336,169 @@ impl EditorUI {
 
             if let Some(entity) = *selected_entity {
                 egui::ScrollArea::vertical().show(ui, |ui| {
-                    // Entity name
-                    if let Some(name) = entity_names.get_mut(&entity) {
-                        ui.horizontal(|ui| {
-                            ui.label("Name:");
-                            ui.text_edit_singleline(name);
+                    // ===== Unity-style Inspector Header (Gray bar) =====
+                    egui::Frame::none()
+                        .fill(egui::Color32::from_rgb(60, 60, 60))
+                        .inner_margin(egui::Margin::same(5.0))
+                        .show(ui, |ui| {
+                            ui.horizontal(|ui| {
+                                // Active checkbox
+                                let mut is_active = world.active.get(&entity).copied().unwrap_or(true);
+                                if ui.checkbox(&mut is_active, "").changed() {
+                                    world.active.insert(entity, is_active);
+                                }
+
+                                // GameObject icon (cube)
+                                ui.label("🎲");
+
+                                // Entity name
+                                if let Some(name) = entity_names.get_mut(&entity) {
+                                    ui.add(egui::TextEdit::singleline(name)
+                                        .desired_width(120.0)
+                                        .frame(false));
+                                }
+
+                                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                                    // Static dropdown (Unity has this)
+                                    egui::ComboBox::from_id_source("static_dropdown")
+                                        .selected_text("Static")
+                                        .width(60.0)
+                                        .show_ui(ui, |ui| {
+                                            ui.label("Nothing");
+                                            ui.label("Everything");
+                                        });
+                                });
+                            });
                         });
-                    }
+
+                    ui.add_space(5.0);
+
+                    // Tag and Layer in same row (Unity layout)
+                    ui.horizontal(|ui| {
+                        ui.label("Tag");
+
+                        let current_tag = world.tags.get(&entity).cloned();
+                        let tag_text = match &current_tag {
+                            Some(EntityTag::Player) => "Player",
+                            Some(EntityTag::Item) => "Item",
+                            None => "Untagged",
+                        };
+
+                        let mut new_tag = current_tag.clone();
+                        let mut tag_changed = false;
+
+                        egui::ComboBox::from_id_source("tag_dropdown")
+                            .selected_text(tag_text)
+                            .width(70.0)
+                            .show_ui(ui, |ui| {
+                                if ui.selectable_label(current_tag.is_none(), "Untagged").clicked() {
+                                    new_tag = None;
+                                    tag_changed = true;
+                                }
+                                if ui.selectable_label(matches!(current_tag, Some(EntityTag::Player)), "Player").clicked() {
+                                    new_tag = Some(EntityTag::Player);
+                                    tag_changed = true;
+                                }
+                                if ui.selectable_label(matches!(current_tag, Some(EntityTag::Item)), "Item").clicked() {
+                                    new_tag = Some(EntityTag::Item);
+                                    tag_changed = true;
+                                }
+                            });
+
+                        if tag_changed {
+                            if let Some(tag) = new_tag {
+                                world.tags.insert(entity, tag);
+                            } else {
+                                world.tags.remove(&entity);
+                            }
+                        }
+
+                        ui.add_space(10.0);
+                        ui.label("Layer");
+
+                        let current_layer = world.layers.get(&entity).copied().unwrap_or(0);
+                        let layer_names = ["Default", "TransparentFX", "Ignore Raycast", "Water", "UI"];
+                        let layer_text = if (current_layer as usize) < layer_names.len() {
+                            layer_names[current_layer as usize]
+                        } else {
+                            "Custom"
+                        };
+
+                        egui::ComboBox::from_id_source("layer_dropdown")
+                            .selected_text(layer_text)
+                            .width(90.0)
+                            .show_ui(ui, |ui| {
+                                for (idx, &name) in layer_names.iter().enumerate() {
+                                    if ui.selectable_label(current_layer == idx as u8, name).clicked() {
+                                        world.layers.insert(entity, idx as u8);
+                                    }
+                                }
+                            });
+                    });
 
                     ui.add_space(10.0);
 
-                    // Transform Component
+                    // Transform Component (Unity-like: always visible, no collapsing)
                     if let Some(transform) = world.transforms.get_mut(&entity) {
-                        ui.collapsing("Transform", |ui| {
-                            ui.horizontal(|ui| {
-                                ui.label("Position X:");
-                                ui.add(egui::DragValue::new(&mut transform.position[0]).speed(1.0));
+                        // Transform header (gray bar like Unity)
+                        egui::Frame::none()
+                            .fill(egui::Color32::from_rgb(56, 56, 56))
+                            .inner_margin(egui::Margin::same(5.0))
+                            .show(ui, |ui| {
+                                ui.horizontal(|ui| {
+                                    ui.label("⚙️");
+                                    ui.strong("Transform");
+
+                                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                                        // Unity has gear icon and three-dot menu here
+                                        ui.label("⚙️");
+                                    });
+                                });
                             });
-                            ui.horizontal(|ui| {
-                                ui.label("Position Y:");
-                                ui.add(egui::DragValue::new(&mut transform.position[1]).speed(1.0));
-                            });
-                            ui.horizontal(|ui| {
-                                ui.label("Position Z:");
-                                ui.add(egui::DragValue::new(&mut transform.position[2]).speed(1.0));
-                            });
-                            ui.horizontal(|ui| {
-                                ui.label("Rotation X:");
-                                ui.add(egui::DragValue::new(&mut transform.rotation[0]).speed(0.1));
-                            });
-                            ui.horizontal(|ui| {
-                                ui.label("Rotation Y:");
-                                ui.add(egui::DragValue::new(&mut transform.rotation[1]).speed(0.1));
-                            });
-                            ui.horizontal(|ui| {
-                                ui.label("Rotation Z:");
-                                ui.add(egui::DragValue::new(&mut transform.rotation[2]).speed(0.1));
-                            });
-                            ui.horizontal(|ui| {
-                                ui.label("Scale X:");
-                                ui.add(egui::DragValue::new(&mut transform.scale[0]).speed(0.1));
-                            });
-                            ui.horizontal(|ui| {
-                                ui.label("Scale Y:");
-                                ui.add(egui::DragValue::new(&mut transform.scale[1]).speed(0.1));
-                            });
-                            ui.horizontal(|ui| {
-                                ui.label("Scale Z:");
-                                ui.add(egui::DragValue::new(&mut transform.scale[2]).speed(0.1));
-                            });
+
+                        // Transform fields (always visible)
+                        ui.add_space(5.0);
+
+                        // Position (grouped in one row)
+                        ui.horizontal(|ui| {
+                            ui.label("Position");
+                            ui.label("X");
+                            ui.add(egui::DragValue::new(&mut transform.position[0]).speed(1.0).max_decimals(2));
+                            ui.label("Y");
+                            ui.add(egui::DragValue::new(&mut transform.position[1]).speed(1.0).max_decimals(2));
+                            ui.label("Z");
+                            ui.add(egui::DragValue::new(&mut transform.position[2]).speed(1.0).max_decimals(2));
                         });
+
+                        // Rotation (grouped in one row)
+                        ui.horizontal(|ui| {
+                            ui.label("Rotation");
+                            ui.label("X");
+                            ui.add(egui::DragValue::new(&mut transform.rotation[0]).speed(0.1).max_decimals(2));
+                            ui.label("Y");
+                            ui.add(egui::DragValue::new(&mut transform.rotation[1]).speed(0.1).max_decimals(2));
+                            ui.label("Z");
+                            ui.add(egui::DragValue::new(&mut transform.rotation[2]).speed(0.1).max_decimals(2));
+                        });
+
+                        // Scale (grouped in one row)
+                        ui.horizontal(|ui| {
+                            ui.label("Scale    ");
+                            ui.label("X");
+                            ui.add(egui::DragValue::new(&mut transform.scale[0]).speed(0.1).max_decimals(2));
+                            ui.label("Y");
+                            ui.add(egui::DragValue::new(&mut transform.scale[1]).speed(0.1).max_decimals(2));
+                            ui.label("Z");
+                            ui.add(egui::DragValue::new(&mut transform.scale[2]).speed(0.1).max_decimals(2));
+                        });
+
+                        ui.add_space(10.0);
                     }
 
-                    // Sprite Component
+                    // Sprite Component (only show if has sprite)
                     let has_sprite = world.sprites.contains_key(&entity);
-                    ui.collapsing("Sprite Renderer", |ui| {
-                        if has_sprite {
+                    if has_sprite {
+                        ui.collapsing("Sprite Renderer", |ui| {
                             if let Some(sprite) = world.sprites.get_mut(&entity) {
                                 ui.text_edit_singleline(&mut sprite.texture_id);
                                 ui.horizontal(|ui| {
@@ -409,22 +518,13 @@ impl EditorUI {
                                     world.sprites.remove(&entity);
                                 }
                             }
-                        } else {
-                            if ui.button("Add Sprite Renderer").clicked() {
-                                world.sprites.insert(entity, Sprite {
-                                    texture_id: "sprite".to_string(),
-                                    width: 32.0,
-                                    height: 32.0,
-                                    color: [1.0, 1.0, 1.0, 1.0],
-                                });
-                            }
-                        }
-                    });
+                        });
+                    }
 
-                    // Collider Component
+                    // Collider Component (only show if has collider)
                     let has_collider = world.colliders.contains_key(&entity);
-                    ui.collapsing("Box Collider", |ui| {
-                        if has_collider {
+                    if has_collider {
+                        ui.collapsing("Box Collider", |ui| {
                             if let Some(collider) = world.colliders.get_mut(&entity) {
                                 ui.horizontal(|ui| {
                                     ui.label("Width:");
@@ -439,49 +539,30 @@ impl EditorUI {
                                     world.colliders.remove(&entity);
                                 }
                             }
-                        } else {
-                            if ui.button("Add Box Collider").clicked() {
-                                world.colliders.insert(entity, Collider {
-                                    width: 32.0,
-                                    height: 32.0,
+                        });
+                    }
+
+                    // Velocity Component (Rigidbody) - only show if has velocity
+                    let has_velocity = world.velocities.contains_key(&entity);
+                    if has_velocity {
+                        ui.collapsing("Rigidbody 2D", |ui| {
+                            if let Some(velocity) = world.velocities.get_mut(&entity) {
+                                ui.horizontal(|ui| {
+                                    ui.label("Velocity X:");
+                                    ui.add(egui::DragValue::new(&mut velocity.0).speed(1.0));
                                 });
-                            }
-                        }
-                    });
-
-                    // Tag Component
-                    let has_tag = world.tags.contains_key(&entity);
-                    ui.collapsing("Tag", |ui| {
-                        if has_tag {
-                            if let Some(tag) = world.tags.get_mut(&entity) {
-                                let mut tag_index = match tag {
-                                    EntityTag::Player => 0,
-                                    EntityTag::Item => 1,
-                                };
-
-                                egui::ComboBox::from_label("Tag Type")
-                                    .selected_text(format!("{:?}", tag))
-                                    .show_ui(ui, |ui| {
-                                        ui.selectable_value(&mut tag_index, 0, "Player");
-                                        ui.selectable_value(&mut tag_index, 1, "Item");
-                                    });
-
-                                *tag = match tag_index {
-                                    0 => EntityTag::Player,
-                                    1 => EntityTag::Item,
-                                    _ => EntityTag::Player,
-                                };
+                                ui.horizontal(|ui| {
+                                    ui.label("Velocity Y:");
+                                    ui.add(egui::DragValue::new(&mut velocity.1).speed(1.0));
+                                });
 
                                 if ui.button("Remove Component").clicked() {
-                                    world.tags.remove(&entity);
+                                    world.velocities.remove(&entity);
                                 }
                             }
-                        } else {
-                            if ui.button("Add Tag").clicked() {
-                                world.tags.insert(entity, EntityTag::Player);
-                            }
-                        }
-                    });
+                        });
+                    }
+
 
                     // Script Component
                     let has_script = world.scripts.contains_key(&entity);
@@ -576,6 +657,87 @@ impl EditorUI {
                     }
 
                     ui.add_space(20.0);
+
+                    // ===== Add Component Button (Unity-like) =====
+                    ui.menu_button("➕ Add Component", |ui| {
+                        ui.label("🎨 Rendering");
+                        ui.separator();
+
+                        // Add Sprite Renderer
+                        if !world.sprites.contains_key(&entity) {
+                            if ui.button("Sprite Renderer").clicked() {
+                                world.sprites.insert(entity, ecs::Sprite {
+                                    texture_id: "sprite".to_string(),
+                                    width: 32.0,
+                                    height: 32.0,
+                                    color: [1.0, 1.0, 1.0, 1.0],
+                                });
+                                ui.close_menu();
+                            }
+                        }
+
+                        ui.add_space(5.0);
+                        ui.label("⚙️ Physics");
+                        ui.separator();
+
+                        // Add Collider
+                        if !world.colliders.contains_key(&entity) {
+                            if ui.button("Box Collider 2D").clicked() {
+                                world.colliders.insert(entity, ecs::Collider {
+                                    width: 32.0,
+                                    height: 32.0,
+                                });
+                                ui.close_menu();
+                            }
+                        }
+
+                        // Add Velocity
+                        if !world.velocities.contains_key(&entity) {
+                            if ui.button("Rigidbody 2D").clicked() {
+                                world.velocities.insert(entity, (0.0, 0.0));
+                                ui.close_menu();
+                            }
+                        }
+
+                        ui.add_space(5.0);
+                        ui.label("📜 Scripting");
+                        ui.separator();
+
+                        // Add Script
+                        if !world.scripts.contains_key(&entity) {
+                            if ui.button("Script").clicked() {
+                                // Check for available scripts
+                                let mut available_scripts = Vec::new();
+                                if let Some(proj_path) = project_path {
+                                    let scripts_path = proj_path.join("scripts");
+                                    if let Ok(entries) = std::fs::read_dir(&scripts_path) {
+                                        for entry in entries.flatten() {
+                                            if let Some(name) = entry.file_name().to_str() {
+                                                if name.ends_with(".lua") {
+                                                    available_scripts.push(name.trim_end_matches(".lua").to_string());
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // Use first available script or create new one
+                                let script_name = if !available_scripts.is_empty() {
+                                    available_scripts[0].clone()
+                                } else {
+                                    format!("Script_{}", entity)
+                                };
+
+                                world.scripts.insert(entity, Script {
+                                    script_name: script_name.clone(),
+                                    enabled: true,
+                                });
+                                ui.close_menu();
+                            }
+                        }
+                    });
+
+                    ui.add_space(10.0);
 
                     if ui.button("🗑 Delete GameObject").clicked() {
                         world.despawn(entity);
