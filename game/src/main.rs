@@ -79,6 +79,12 @@ struct EditorState {
     pending_action: Option<EditorAction>,
     asset_browser_path: Option<std::path::PathBuf>,
     current_tool: TransformTool, // Q/W/E/R - Transform tool selection
+    // Resource Manager state
+    resource_current_folder: Option<std::path::PathBuf>,
+    resource_selected_item: Option<std::path::PathBuf>,
+    show_create_menu: bool,
+    show_rename_dialog: bool,
+    rename_buffer: String,
 }
 
 impl EditorState {
@@ -105,6 +111,11 @@ impl EditorState {
             pending_action: None,
             asset_browser_path: None,
             current_tool: TransformTool::Move, // Default to Move tool (W)
+            resource_current_folder: None,
+            resource_selected_item: None,
+            show_create_menu: false,
+            show_rename_dialog: false,
+            rename_buffer: String::new(),
         }
     }
 
