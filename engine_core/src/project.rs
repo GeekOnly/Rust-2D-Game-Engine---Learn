@@ -18,6 +18,8 @@ pub struct ProjectConfig {
     pub name: String,
     pub description: String,
     pub version: String,
+    #[serde(default)]
+    pub startup_scene: Option<PathBuf>,
 }
 
 pub struct ProjectManager {
@@ -51,6 +53,7 @@ impl ProjectManager {
             name: name.to_string(),
             description: description.to_string(),
             version: "0.1.0".to_string(),
+            startup_scene: None,
         };
 
         let config_path = project_path.join("project.json");
@@ -159,6 +162,32 @@ impl ProjectManager {
 
     pub fn close_project(&mut self) {
         self.current_project = None;
+    }
+
+    pub fn get_startup_scene(&self, project_path: &Path) -> Result<Option<PathBuf>> {
+        let config_path = project_path.join("project.json");
+        if !config_path.exists() {
+            return Ok(None);
+        }
+
+        let config_str = fs::read_to_string(&config_path)?;
+        let config: ProjectConfig = serde_json::from_str(&config_str)?;
+        Ok(config.startup_scene)
+    }
+
+    pub fn set_startup_scene(&self, project_path: &Path, scene_path: Option<PathBuf>) -> Result<()> {
+        let config_path = project_path.join("project.json");
+        if !config_path.exists() {
+            return Err(anyhow::anyhow!("Project config not found"));
+        }
+
+        let config_str = fs::read_to_string(&config_path)?;
+        let mut config: ProjectConfig = serde_json::from_str(&config_str)?;
+        config.startup_scene = scene_path;
+
+        let config_json = serde_json::to_string_pretty(&config)?;
+        fs::write(config_path, config_json)?;
+        Ok(())
     }
 
     pub fn get_example_projects() -> Vec<(&'static str, &'static str)> {

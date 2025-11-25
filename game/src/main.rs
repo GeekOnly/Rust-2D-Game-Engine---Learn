@@ -558,6 +558,19 @@ fn main() -> Result<()> {
                                                         // Log to console
                                                         editor_state.console.info(format!("Project opened: {}", folder.display()));
                                                         editor_state.console.info("Welcome to Rust 2D Game Engine!");
+
+                                                        // Load startup scene if configured
+                                                        if let Ok(Some(startup_scene)) = launcher_state.project_manager.get_startup_scene(&folder) {
+                                                            let scene_path = folder.join(&startup_scene);
+                                                            if scene_path.exists() {
+                                                                if let Err(e) = editor_state.load_scene(&scene_path) {
+                                                                    editor_state.console.error(format!("Failed to load startup scene: {}", e));
+                                                                } else {
+                                                                    editor_state.current_scene_path = Some(scene_path.clone());
+                                                                    editor_state.console.info(format!("Loaded startup scene: {}", startup_scene.display()));
+                                                                }
+                                                            }
+                                                        }
                                                     }
                                                     Err(e) => {
                                                         launcher_state.error_message = Some(format!("Error: {}", e));
