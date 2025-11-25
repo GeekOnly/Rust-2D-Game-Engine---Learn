@@ -852,6 +852,7 @@ fn main() -> Result<()> {
                                     &mut stop_request,
                                     &mut edit_script_request,
                                     &editor_state.current_project_path,
+                                    &editor_state.current_scene_path,
                                     &mut editor_state.scene_view_tab,
                                     editor_state.is_playing,
                                     &mut editor_state.show_colliders,

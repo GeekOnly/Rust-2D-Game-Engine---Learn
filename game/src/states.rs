@@ -242,10 +242,9 @@ impl GameState {
         // Initialize player
         let player = world.spawn();
         world.transforms.insert(player, ecs::Transform {
-            x: 0.0,
-            y: 0.0,
-            rotation: 0.0,
-            scale: 1.0,
+            position: [0.0, 0.0, 0.0],
+            rotation: [0.0, 0.0, 0.0],
+            scale: [1.0, 1.0, 1.0],
         });
         world.velocities.insert(player, (0.0, 0.0));
         world.sprites.insert(player, ecs::Sprite {

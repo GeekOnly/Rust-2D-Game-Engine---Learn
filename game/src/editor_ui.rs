@@ -20,6 +20,7 @@ impl EditorUI {
         stop_request: &mut bool,
         edit_script_request: &mut Option<String>,
         project_path: &Option<std::path::PathBuf>,
+        current_scene_path: &Option<std::path::PathBuf>,
         scene_view_tab: &mut usize,
         is_playing: bool,
         show_colliders: &mut bool,
@@ -569,21 +570,22 @@ impl EditorUI {
                         if let Some(transform) = world.transforms.get(&sel_entity) {
                             let screen_x = center_x + transform.x();
                             let screen_y = center_y + transform.y();
-                            let gizmo_size = 50.0;
-                            let handle_size = 8.0;
 
-                            // Check which handle is being hovered
-                            let x_handle_pos = egui::pos2(screen_x + gizmo_size, screen_y);
-                            let y_handle_pos = egui::pos2(screen_x, screen_y + gizmo_size);
-                            let center_handle_pos = egui::pos2(screen_x, screen_y);
-
-                            // Determine drag axis on hover
-                            let mut drag_axis = None;
                             if let Some(hover_pos) = response.hover_pos() {
+                                let gizmo_size = 50.0;
+                                let handle_size = 8.0;
+
+                                // Check which handle is being hovered
+                                let x_handle_pos = egui::pos2(screen_x + gizmo_size, screen_y);
+                                let y_handle_pos = egui::pos2(screen_x, screen_y + gizmo_size);
+                                let center_handle_pos = egui::pos2(screen_x, screen_y);
+
                                 let dist_to_x = hover_pos.distance(x_handle_pos);
                                 let dist_to_y = hover_pos.distance(y_handle_pos);
                                 let dist_to_center = hover_pos.distance(center_handle_pos);
 
+                                // Determine which axis to drag
+                                let mut drag_axis = None;
                                 if dist_to_center < handle_size * 1.5 {
                                     drag_axis = Some(2); // Both axes
                                 } else if dist_to_x < handle_size * 1.5 {
@@ -591,29 +593,19 @@ impl EditorUI {
                                 } else if dist_to_y < handle_size * 1.5 {
                                     drag_axis = Some(1); // Y axis
                                 }
-                            }
 
-                            // Handle dragging - use absolute mouse position for smooth tracking
-                            if response.dragged() && drag_axis.is_some() {
-                                if let Some(interact_pos) = response.interact_pointer_pos() {
-                                    // Convert screen to world coordinates
-                                    let world_x = interact_pos.x - center_x;
-                                    let world_y = interact_pos.y - center_y;
+                                // Handle dragging
+                                if response.dragged() && drag_axis.is_some() {
+                                    let delta = response.drag_delta();
 
                                     if let Some(transform) = world.transforms.get_mut(&sel_entity) {
                                         match drag_axis.unwrap() {
-                                            0 => {
-                                                // X axis only - lock Y
-                                                transform.set_x(world_x);
-                                            }
-                                            1 => {
-                                                // Y axis only - lock X
-                                                transform.set_y(world_y);
-                                            }
+                                            0 => transform.position[0] += delta.x, // X only
+                                            1 => transform.position[1] += delta.y, // Y only
                                             2 => {
-                                                // Both axes - free movement
-                                                transform.set_x(world_x);
-                                                transform.set_y(world_y);
+                                                // Both axes
+                                                transform.position[0] += delta.x;
+                                                transform.position[1] += delta.y;
                                             }
                                             _ => {}
                                         }

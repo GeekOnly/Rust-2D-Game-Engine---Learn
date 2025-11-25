@@ -33,8 +33,8 @@ impl PhysicsWorld {
         for e in entities {
             if let Some(vel) = world.velocities.get(&e) {
                 if let Some(transform) = world.transforms.get_mut(&e) {
-                    transform.x += vel.0 * dt;
-                    transform.y += vel.1 * dt;
+                    transform.position[0] += vel.0 * dt;
+                    transform.position[1] += vel.1 * dt;
                 }
             }
         }
@@ -48,8 +48,8 @@ impl PhysicsWorld {
         let c2 = world.colliders.get(&e2);
 
         if let (Some(t1), Some(t2), Some(c1), Some(c2)) = (t1, t2, c1, c2) {
-            let aabb1 = AABB::new(t1.x - c1.width/2.0, t1.y - c1.height/2.0, c1.width, c1.height);
-            let aabb2 = AABB::new(t2.x - c2.width/2.0, t2.y - c2.height/2.0, c2.width, c2.height);
+            let aabb1 = AABB::new(t1.x() - c1.width/2.0, t1.y() - c1.height/2.0, c1.width, c1.height);
+            let aabb2 = AABB::new(t2.x() - c2.width/2.0, t2.y() - c2.height/2.0, c2.width, c2.height);
             return aabb1.intersects(&aabb2);
         }
         false

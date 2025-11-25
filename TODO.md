@@ -2,8 +2,8 @@
 
 ## 🔴 Critical Bugs (Fix First)
 
-### 1. ❌ Startup Scene Not Loading
-**Status:** Not Working
+### 1. ✅ Startup Scene Not Loading
+**Status:** Fixed
 **Priority:** 🔴 Critical
 **Effort:** 2 hours
 
@@ -30,8 +30,8 @@ if let Some(scene) = project_settings.startup_scene {
 
 ---
 
-### 2. ❌ Transform Gizmo Not Following Mouse
-**Status:** Partially Working
+### 2. ✅ Transform Gizmo Not Following Mouse
+**Status:** Fixed
 **Priority:** 🔴 Critical
 **Effort:** 3 hours
 

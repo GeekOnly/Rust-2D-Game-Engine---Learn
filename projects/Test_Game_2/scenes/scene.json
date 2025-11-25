@@ -1,34 +1,27 @@
 {
   "entity_names": {
-    "0": "Player"
+    "0": "GameObject 0",
+    "1": "Player"
   },
   "world": {
     "colliders": [
       [
-        0,
+        1,
         {
           "height": 40.0,
           "width": 40.0
         }
       ]
     ],
-    "next_entity": 1,
-    "scripts": [
-      [
-        0,
-        {
-          "enabled": true,
-          "script_name": "Script_0"
-        }
-      ]
-    ],
+    "next_entity": 2,
+    "scripts": [],
     "sprites": [
       [
-        0,
+        1,
         {
           "color": [
-            0.19999999,
-            0.5999998,
+            0.2,
+            0.6,
             1.0,
             1.0
           ],
@@ -40,24 +33,55 @@
     ],
     "tags": [
       [
-        0,
+        1,
         "Player"
       ]
     ],
     "transforms": [
       [
+        1,
+        {
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      ],
+      [
         0,
         {
-          "rotation": 0.0,
-          "scale": 1.0,
-          "x": 37.0,
-          "y": -29.0
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
         }
       ]
     ],
     "velocities": [
       [
-        0,
+        1,
         [
           0.0,
           0.0
