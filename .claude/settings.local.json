@@ -8,7 +8,12 @@
       "Bash(git add:*)",
       "Bash(if [ -f scene.json ])",
       "Bash(then cp scene.json scene.scene)",
-      "Bash(fi)"
+      "Bash(fi)",
+      "Bash(cargo run:*)",
+      "Bash(rustc:*)",
+      "Bash(awk:*)",
+      "Bash(rustfmt:*)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []

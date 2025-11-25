@@ -1,12 +1,157 @@
 {
-  "entity_names": {},
+  "entity_names": {
+    "1": "Item 1",
+    "2": "Player"
+  },
   "world": {
-    "colliders": [],
-    "next_entity": 0,
-    "scripts": [],
-    "sprites": [],
-    "tags": [],
-    "transforms": [],
-    "velocities": []
+    "active": [
+      [
+        2,
+        true
+      ],
+      [
+        1,
+        true
+      ]
+    ],
+    "colliders": [
+      [
+        1,
+        {
+          "height": 30.0,
+          "width": 30.0
+        }
+      ],
+      [
+        2,
+        {
+          "height": 40.0,
+          "width": 40.0
+        }
+      ]
+    ],
+    "layers": [
+      [
+        2,
+        0
+      ],
+      [
+        1,
+        0
+      ]
+    ],
+    "next_entity": 3,
+    "parents": [],
+    "scripts": [
+      [
+        2,
+        {
+          "enabled": true,
+          "parameters": {
+            "speed": {
+              "Float": 200.0
+            },
+            "vx": {
+              "Float": 0.0
+            },
+            "vy": {
+              "Float": 0.0
+            }
+          },
+          "script_name": "Script_0"
+        }
+      ]
+    ],
+    "sprites": [
+      [
+        2,
+        {
+          "color": [
+            0.2,
+            0.6,
+            1.0,
+            1.0
+          ],
+          "height": 40.0,
+          "texture_id": "player",
+          "width": 40.0
+        }
+      ],
+      [
+        1,
+        {
+          "color": [
+            1.0,
+            0.8,
+            0.2,
+            1.0
+          ],
+          "height": 30.0,
+          "texture_id": "item",
+          "width": 30.0
+        }
+      ]
+    ],
+    "tags": [
+      [
+        1,
+        "Item"
+      ],
+      [
+        2,
+        "Player"
+      ]
+    ],
+    "transforms": [
+      [
+        2,
+        {
+          "position": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      ],
+      [
+        1,
+        {
+          "position": [
+            3.0,
+            -56.0,
+            0.0
+          ],
+          "rotation": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        }
+      ]
+    ],
+    "velocities": [
+      [
+        2,
+        [
+          0.0,
+          0.0
+        ]
+      ]
+    ]
   }
 }

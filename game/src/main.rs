@@ -479,6 +479,17 @@ fn main() -> Result<()> {
                             if let winit::keyboard::PhysicalKey::Code(key_code) = key_event.physical_key {
                                 let key_name = format!("{:?}", key_code);
                                 let is_pressed = key_event.state == winit::event::ElementState::Pressed;
+
+                                // Update InputSystem for scripts
+                                if let Some(key) = Key::from_str(&key_name) {
+                                    if is_pressed {
+                                        editor_state.input_system.press_key(key);
+                                    } else {
+                                        editor_state.input_system.release_key(key);
+                                    }
+                                }
+
+                                // Track in legacy keyboard_state HashMap
                                 editor_state.keyboard_state.insert(key_name, is_pressed);
                             }
                         }
