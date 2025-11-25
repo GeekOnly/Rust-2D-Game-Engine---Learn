@@ -5,6 +5,7 @@ members = [
   "render",
   "physics",
   "script",
+  "input",
   "editor",
   "game",
 ]

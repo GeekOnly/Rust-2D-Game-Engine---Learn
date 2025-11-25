@@ -11,6 +11,7 @@ use physics::PhysicsWorld;
 use render::RenderModule;
 use editor::EditorModule;
 use editor_ui::{EditorUI, TransformTool};
+use input::{Key, MouseButton};
 
 use winit::{
     event::*,
@@ -276,15 +277,7 @@ struct GameState {
     items: Vec<Entity>,
     collected_items: usize,
     player_speed: f32,
-    input_state: InputState,
-}
-
-#[derive(Default)]
-struct InputState {
-    up: bool,
-    down: bool,
-    left: bool,
-    right: bool,
+    player_speed: f32,
 }
 
 impl GameState {
@@ -349,30 +342,16 @@ impl GameState {
             items,
             collected_items: 0,
             player_speed: 200.0,
-            input_state: InputState::default(),
         }
     }
 
-    fn update(&mut self, _dt: f32) {
+    fn update(&mut self, ctx: &EngineContext, _dt: f32) {
         // Update player velocity based on input
         if let Some(player) = self.player {
-            let mut vx: f32 = 0.0;
-            let mut vy: f32 = 0.0;
-
-            if self.input_state.up { vy -= 1.0; }
-            if self.input_state.down { vy += 1.0; }
-            if self.input_state.left { vx -= 1.0; }
-            if self.input_state.right { vx += 1.0; }
-
-            // Normalize diagonal movement
-            let len = (vx * vx + vy * vy).sqrt();
-            if len > 0.0 {
-                vx /= len;
-                vy /= len;
-            }
-
-            vx *= self.player_speed;
-            vy *= self.player_speed;
+            let input = ctx.input.get_movement_input(0); // Player 1
+            
+            let vx = input.x * self.player_speed;
+            let vy = input.y * self.player_speed;
 
             self.world.velocities.insert(player, (vx, vy));
         }
@@ -395,35 +374,7 @@ impl GameState {
         }
     }
 
-    fn handle_input(&mut self, event: &KeyEvent) {
-        let pressed = event.state == ElementState::Pressed;
 
-        match &event.logical_key {
-            winit::keyboard::Key::Named(winit::keyboard::NamedKey::ArrowUp) => {
-                self.input_state.up = pressed;
-            }
-            winit::keyboard::Key::Named(winit::keyboard::NamedKey::ArrowDown) => {
-                self.input_state.down = pressed;
-            }
-            winit::keyboard::Key::Named(winit::keyboard::NamedKey::ArrowLeft) => {
-                self.input_state.left = pressed;
-            }
-            winit::keyboard::Key::Named(winit::keyboard::NamedKey::ArrowRight) => {
-                self.input_state.right = pressed;
-            }
-            winit::keyboard::Key::Character(c) => {
-                match c.as_str() {
-                    "w" | "W" => self.input_state.up = pressed,
-                    "s" | "S" => self.input_state.down = pressed,
-                    "a" | "A" => self.input_state.left = pressed,
-                    "d" | "D" => self.input_state.right = pressed,
-                    _ => {}
-                }
-            }
-            _ => {}
-        }
-    }
-}
 
 struct SampleModule {
     game_state: GameState,
@@ -435,8 +386,8 @@ impl EngineModule for SampleModule {
         println!("Sample module loaded!");
         Ok(())
     }
-    fn on_update(&mut self, _ctx: &mut EngineContext, dt: f32) {
-        self.game_state.update(dt);
+    fn on_update(&mut self, ctx: &mut EngineContext, dt: f32) {
+        self.game_state.update(ctx, dt);
     }
     fn as_any(&mut self) -> &mut dyn std::any::Any {
         self
@@ -457,7 +408,7 @@ fn main() -> Result<()> {
     let mut launcher_state = LauncherState::new()?;
     let mut editor_state = EditorState::new();
 
-    let _ctx = EngineContext::new();
+    let mut ctx = EngineContext::new();
     let mut sample_module: Option<SampleModule> = None;
 
     let mut script_engine = ScriptEngine::new()?;
@@ -508,17 +459,46 @@ fn main() -> Result<()> {
                         ..
                     } => target.exit(),
                     WindowEvent::KeyboardInput { event: key_event, .. } => {
+                        // Update InputSystem
+                        if let winit::keyboard::PhysicalKey::Code(key_code) = key_event.physical_key {
+                            let key_str = format!("{:?}", key_code);
+                            if let Some(key) = Key::from_str(&key_str) {
+                                if key_event.state == ElementState::Pressed {
+                                    ctx.input.press_key(key);
+                                } else {
+                                    ctx.input.release_key(key);
+                                }
+                            }
+                        }
+
                         // Pass keyboard input to game state only in Playing mode
                         if app_state == AppState::Playing {
-                            if let Some(ref mut module) = sample_module {
-                                module.game_state.handle_input(key_event);
-                            }
+                            // Input is now handled via ctx.input in update()
                         } else if app_state == AppState::Editor && editor_state.is_playing {
                             // Track keyboard input in editor play mode
                             if let winit::keyboard::PhysicalKey::Code(key_code) = key_event.physical_key {
                                 let key_name = format!("{:?}", key_code);
                                 let is_pressed = key_event.state == winit::event::ElementState::Pressed;
                                 editor_state.keyboard_state.insert(key_name, is_pressed);
+                            }
+                        }
+                    }
+                    WindowEvent::CursorMoved { position, .. } => {
+                        ctx.input.set_mouse_position(position.x as f32, position.y as f32);
+                    }
+                    WindowEvent::MouseInput { state, button, .. } => {
+                        let mouse_button = match button {
+                            MouseButton::Left => Some(input::MouseButton::Left),
+                            MouseButton::Right => Some(input::MouseButton::Right),
+                            MouseButton::Middle => Some(input::MouseButton::Middle),
+                            MouseButton::Other(_) => None,
+                        };
+                        
+                        if let Some(mb) = mouse_button {
+                            if state == ElementState::Pressed {
+                                ctx.input.press_mouse_button(mb);
+                            } else {
+                                ctx.input.release_mouse_button(mb);
                             }
                         }
                     }
@@ -534,10 +514,13 @@ fn main() -> Result<()> {
                     WindowEvent::RedrawRequested => {
                         let dt = 1.0 / 60.0; // Fixed time step for now
 
+                        ctx.input.begin_frame();
+                        ctx.input.update_gamepads();
+
                         // Update based on app state
                         if app_state == AppState::Playing {
                             if let Some(ref mut module) = sample_module {
-                                module.game_state.update(dt);
+                                module.on_update(&mut ctx, dt);
                                 physics.step(dt, &mut module.game_state.world);
                             }
                         }
