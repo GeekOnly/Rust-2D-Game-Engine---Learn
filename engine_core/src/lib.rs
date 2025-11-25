@@ -1,7 +1,8 @@
 use std::collections::HashMap;
 use anyhow::Result;
-
 use std::any::Any;
+
+pub mod project;
 
 pub trait EngineModule: Any {
     fn name(&self) -> &str;

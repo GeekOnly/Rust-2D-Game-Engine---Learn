@@ -1,0 +1,68 @@
+{
+  "entity_names": {
+    "0": "Player"
+  },
+  "world": {
+    "colliders": [
+      [
+        0,
+        {
+          "height": 40.0,
+          "width": 40.0
+        }
+      ]
+    ],
+    "next_entity": 1,
+    "scripts": [
+      [
+        0,
+        {
+          "enabled": true,
+          "script_name": "Script_0"
+        }
+      ]
+    ],
+    "sprites": [
+      [
+        0,
+        {
+          "color": [
+            0.2,
+            0.6,
+            1.0,
+            1.0
+          ],
+          "height": 40.0,
+          "texture_id": "player",
+          "width": 40.0
+        }
+      ]
+    ],
+    "tags": [
+      [
+        0,
+        "Player"
+      ]
+    ],
+    "transforms": [
+      [
+        0,
+        {
+          "rotation": 0.0,
+          "scale": 1.0,
+          "x": -88.0,
+          "y": -20.0
+        }
+      ]
+    ],
+    "velocities": [
+      [
+        0,
+        [
+          0.0,
+          0.0
+        ]
+      ]
+    ]
+  }
+}

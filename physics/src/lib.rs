@@ -25,27 +25,33 @@ pub struct PhysicsWorld {
 
 impl PhysicsWorld {
     pub fn new() -> Self { Self { gravity: 980.0 } }
-    
+
     pub fn step(&mut self, dt: f32, world: &mut World) {
         // Simple Euler integration
-        // We need to iterate entities that have both Position (Transform) and Velocity
-        // Since our ECS is simple HashMaps, we can iterate one and check the other.
-        
-        let mut entities: Vec<Entity> = world.velocities.keys().cloned().collect();
-        
+        let entities: Vec<Entity> = world.velocities.keys().cloned().collect();
+
         for e in entities {
             if let Some(vel) = world.velocities.get(&e) {
                 if let Some(transform) = world.transforms.get_mut(&e) {
                     transform.x += vel.0 * dt;
                     transform.y += vel.1 * dt;
-                    
-                    // Gravity could be applied here to velocity if we had mass/rigid body component
-                    // For now, just kinematic movement
                 }
             }
         }
-        
-        // Collision detection (naive O(N^2))
-        // Placeholder for now as we don't have Collider components yet
+    }
+
+    /// Check collisions between two entities using AABB
+    pub fn check_collision(world: &World, e1: Entity, e2: Entity) -> bool {
+        let t1 = world.transforms.get(&e1);
+        let t2 = world.transforms.get(&e2);
+        let c1 = world.colliders.get(&e1);
+        let c2 = world.colliders.get(&e2);
+
+        if let (Some(t1), Some(t2), Some(c1), Some(c2)) = (t1, t2, c1, c2) {
+            let aabb1 = AABB::new(t1.x - c1.width/2.0, t1.y - c1.height/2.0, c1.width, c1.height);
+            let aabb2 = AABB::new(t2.x - c2.width/2.0, t2.y - c2.height/2.0, c2.width, c2.height);
+            return aabb1.intersects(&aabb2);
+        }
+        false
     }
 }

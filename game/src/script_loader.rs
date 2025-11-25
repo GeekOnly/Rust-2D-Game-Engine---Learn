@@ -1,0 +1,67 @@
+use ecs::World;
+use script::ScriptEngine;
+use std::path::PathBuf;
+use anyhow::Result;
+
+/// Load and initialize all scripts in the world
+#[allow(dead_code)]
+pub fn load_all_scripts(
+    world: &World,
+    script_engine: &ScriptEngine,
+    scripts_folder: &PathBuf,
+) -> Result<()> {
+    let entities_with_scripts: Vec<_> = world.scripts.keys().cloned().collect();
+
+    for entity in entities_with_scripts {
+        if let Some(script) = world.scripts.get(&entity) {
+            if script.enabled {
+                let script_name = script.script_name.clone();
+                let script_path = scripts_folder.join(format!("{}.lua", script_name));
+
+                if script_path.exists() {
+                    if let Ok(content) = std::fs::read_to_string(&script_path) {
+                        if let Err(e) = script_engine.load_script(&content) {
+                            log::error!("Failed to load script {}: {}", script_name, e);
+                        } else {
+                            log::info!("Loaded script: {}", script_name);
+                        }
+                    }
+                } else {
+                    log::warn!("Script file not found: {:?}", script_path);
+                }
+            }
+        }
+    }
+
+    Ok(())
+}
+
+/// Run all enabled scripts in the world
+#[allow(dead_code)]
+pub fn run_all_scripts(
+    world: &mut World,
+    script_engine: &mut ScriptEngine,
+    scripts_folder: &PathBuf,
+    keyboard_state: &std::collections::HashMap<String, bool>,
+) -> Result<()> {
+    let entities_with_scripts: Vec<_> = world.scripts.keys().cloned().collect();
+
+    for entity in entities_with_scripts {
+        if let Some(script) = world.scripts.get(&entity) {
+            if script.enabled {
+                let script_path = scripts_folder.join(format!("{}.lua", script.script_name));
+
+                if let Err(e) = script_engine.run_script(
+                    &script_path,
+                    entity,
+                    world,
+                    keyboard_state,
+                ) {
+                    log::error!("Script error for entity {}: {}", entity, e);
+                }
+            }
+        }
+    }
+
+    Ok(())
+}

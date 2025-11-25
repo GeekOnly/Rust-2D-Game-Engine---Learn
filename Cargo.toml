@@ -10,9 +10,20 @@ members = [
 ]
 resolver = "2"
 
+# Workspace dependencies for faster compilation and version consistency
+[workspace.dependencies]
+anyhow = "1.0"
+log = "0.4"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
 [profile.dev]
-opt-level = 0
+opt-level = 1  # Faster runtime during development, slightly slower compile
+incremental = true  # Enable incremental compilation
+split-debuginfo = "unpacked"  # Faster linking on Windows
 
 [profile.release]
 opt-level = 3
-lto = true
+lto = "thin"  # Thin LTO is faster than full LTO with similar performance
+codegen-units = 1  # Better optimization
+strip = true  # Strip symbols for smaller binary

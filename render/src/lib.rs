@@ -1,6 +1,5 @@
 use anyhow::{Context, Result};
 use winit::window::Window;
-use wgpu::util::DeviceExt;
 
 pub struct RenderModule {
     pub surface: wgpu::Surface<'static>,
@@ -146,16 +145,16 @@ impl RenderModule {
         });
         
         {
-            let mut _render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            let _render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("Render Pass"),
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                     view: &view,
                     resolve_target: None,
                     ops: wgpu::Operations {
                         load: wgpu::LoadOp::Clear(wgpu::Color {
-                            r: 0.1,
-                            g: 0.2,
-                            b: 0.3,
+                            r: 0.15,
+                            g: 0.15,
+                            b: 0.2,
                             a: 1.0,
                         }),
                         store: wgpu::StoreOp::Store,
@@ -165,9 +164,10 @@ impl RenderModule {
                 occlusion_query_set: None,
                 timestamp_writes: None,
             });
-            
-            _render_pass.set_pipeline(&self.render_pipeline);
-            _render_pass.draw(0..3, 0..1);
+
+            // Don't draw the triangle - we'll render game entities via egui
+            // _render_pass.set_pipeline(&self.render_pipeline);
+            // _render_pass.draw(0..3, 0..1);
         }
         
         // Callback for overlay (egui)
