@@ -42,7 +42,8 @@ pub fn run_all_scripts(
     world: &mut World,
     script_engine: &mut ScriptEngine,
     scripts_folder: &PathBuf,
-    keyboard_state: &std::collections::HashMap<String, bool>,
+    input: &input::InputSystem,
+    dt: f32,
 ) -> Result<()> {
     let entities_with_scripts: Vec<_> = world.scripts.keys().cloned().collect();
 
@@ -55,7 +56,8 @@ pub fn run_all_scripts(
                     &script_path,
                     entity,
                     world,
-                    keyboard_state,
+                    input,
+                    dt,
                 ) {
                     log::error!("Script error for entity {}: {}", entity, e);
                 }

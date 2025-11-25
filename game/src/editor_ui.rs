@@ -161,49 +161,39 @@ impl EditorUI {
                 egui::CollapsingHeader::new(format!("📁 {}", scene_name))
                     .default_open(true)
                     .show(ui, |ui| {
-                        let entities: Vec<Entity> = entity_names.keys().cloned().collect();
-
                         // Track entity to delete (for right-click menu)
                         let mut entity_to_delete: Option<Entity> = None;
+                        let mut entity_to_create_child: Option<Entity> = None;
 
-                        for entity in entities {
-                            let name = entity_names.get(&entity).cloned().unwrap_or(format!("Entity {}", entity));
-                            let is_selected = *selected_entity == Some(entity);
+                        // Collect roots (entities with no parent)
+                        let mut roots: Vec<Entity> = entity_names.keys()
+                            .filter(|&e| world.parents.get(e).is_none())
+                            .cloned()
+                            .collect();
+                        
+                        // Sort by ID for stability
+                        roots.sort();
 
-                            // Get icon based on entity type
-                            let icon = Self::get_entity_icon(world, entity);
+                        for root in roots {
+                            Self::draw_entity_node(
+                                ui, 
+                                root, 
+                                world, 
+                                entity_names, 
+                                selected_entity, 
+                                &mut entity_to_delete,
+                                &mut entity_to_create_child
+                            );
+                        }
 
-                            ui.horizontal(|ui| {
-                                // Selectable label with icon
-                                let response = ui.selectable_label(is_selected, format!("{} {}", icon, name));
-
-                                if response.clicked() {
-                                    *selected_entity = Some(entity);
-                                }
-
-                                // Right-click context menu
-                                response.context_menu(|ui| {
-                                    ui.label(format!("📝 {}", name));
-                                    ui.separator();
-
-                                    if ui.button("🔄 Duplicate").clicked() {
-                                        // TODO: Implement duplicate
-                                        ui.close_menu();
-                                    }
-
-                                    if ui.button("📋 Rename").clicked() {
-                                        // Already editable in Inspector
-                                        ui.close_menu();
-                                    }
-
-                                    ui.separator();
-
-                                    if ui.button("❌ Delete").clicked() {
-                                        entity_to_delete = Some(entity);
-                                        ui.close_menu();
-                                    }
-                                });
-                            });
+                        // Handle creation
+                        if let Some(parent) = entity_to_create_child {
+                            let child = Prefab::new("GameObject").spawn(world);
+                            world.set_parent(child, Some(parent));
+                            entity_names.insert(child, format!("GameObject {}", child));
+                            
+                            // Select the new child
+                            *selected_entity = Some(child);
                         }
 
                         // Delete entity if requested
@@ -1556,5 +1546,80 @@ impl EditorUI {
         }
 
         parameters
+    }
+
+    fn draw_entity_node(
+        ui: &mut egui::Ui,
+        entity: Entity,
+        world: &World,
+        entity_names: &HashMap<Entity, String>,
+        selected_entity: &mut Option<Entity>,
+        entity_to_delete: &mut Option<Entity>,
+        entity_to_create_child: &mut Option<Entity>,
+    ) {
+        let name = entity_names.get(&entity).cloned().unwrap_or(format!("Entity {}", entity));
+        let is_selected = *selected_entity == Some(entity);
+        let icon = Self::get_entity_icon(world, entity);
+        let children = world.get_children(entity);
+        let has_children = !children.is_empty();
+
+        let id = ui.make_persistent_id(entity);
+
+        if has_children {
+            egui::collapsing_header::CollapsingState::load_with_default_open(ui.ctx(), id, true)
+                .show_header(ui, |ui| {
+                    ui.horizontal(|ui| {
+                        let response = ui.selectable_label(is_selected, format!("{} {}", icon, name));
+                        if response.clicked() {
+                            *selected_entity = Some(entity);
+                        }
+                        
+                        // Context Menu
+                        response.context_menu(|ui| {
+                            ui.label(format!("📝 {}", name));
+                            ui.separator();
+                            if ui.button("➕ Create Child Empty").clicked() {
+                                *entity_to_create_child = Some(entity);
+                                ui.close_menu();
+                            }
+                            ui.separator();
+                            if ui.button("❌ Delete").clicked() {
+                                *entity_to_delete = Some(entity);
+                                ui.close_menu();
+                            }
+                        });
+                    });
+                })
+                .body(|ui| {
+                    for &child in children {
+                        Self::draw_entity_node(ui, child, world, entity_names, selected_entity, entity_to_delete, entity_to_create_child);
+                    }
+                });
+        } else {
+            // Leaf node
+            ui.horizontal(|ui| {
+                // Indent to match collapsing header text (approx 15-20px)
+                ui.add_space(20.0); 
+                let response = ui.selectable_label(is_selected, format!("{} {}", icon, name));
+                if response.clicked() {
+                    *selected_entity = Some(entity);
+                }
+                
+                // Context Menu
+                response.context_menu(|ui| {
+                    ui.label(format!("📝 {}", name));
+                    ui.separator();
+                    if ui.button("➕ Create Child Empty").clicked() {
+                        *entity_to_create_child = Some(entity);
+                        ui.close_menu();
+                    }
+                    ui.separator();
+                    if ui.button("❌ Delete").clicked() {
+                        *entity_to_delete = Some(entity);
+                        ui.close_menu();
+                    }
+                });
+            });
+        }
     }
 }

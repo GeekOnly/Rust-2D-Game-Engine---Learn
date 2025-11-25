@@ -69,6 +69,7 @@ struct EditorState {
     is_playing: bool,
     play_world: Option<World>, // Backup world for play mode
     keyboard_state: std::collections::HashMap<String, bool>,
+    input_system: input::InputSystem,  // Unified input system
     show_colliders: bool,  // Gizmo toggle
     show_velocities: bool, // Gizmo toggle
     console: console::Console,
@@ -94,6 +95,7 @@ impl EditorState {
             is_playing: false,
             play_world: None,
             keyboard_state: std::collections::HashMap::new(),
+            input_system: input::InputSystem::new(),
             show_colliders: true,   // Show colliders by default
             show_velocities: false, // Hide velocities by default
             console: console::Console::new(),
@@ -277,7 +279,6 @@ struct GameState {
     items: Vec<Entity>,
     collected_items: usize,
     player_speed: f32,
-    player_speed: f32,
 }
 
 impl GameState {
@@ -373,8 +374,7 @@ impl GameState {
             }
         }
     }
-
-
+}
 
 struct SampleModule {
     game_state: GameState,
@@ -488,14 +488,14 @@ fn main() -> Result<()> {
                     }
                     WindowEvent::MouseInput { state, button, .. } => {
                         let mouse_button = match button {
-                            MouseButton::Left => Some(input::MouseButton::Left),
-                            MouseButton::Right => Some(input::MouseButton::Right),
-                            MouseButton::Middle => Some(input::MouseButton::Middle),
-                            MouseButton::Other(_) => None,
+                            winit::event::MouseButton::Left => Some(input::MouseButton::Left),
+                            winit::event::MouseButton::Right => Some(input::MouseButton::Right),
+                            winit::event::MouseButton::Middle => Some(input::MouseButton::Middle),
+                            _ => None,
                         };
-                        
+
                         if let Some(mb) = mouse_button {
-                            if state == ElementState::Pressed {
+                            if *state == ElementState::Pressed {
                                 ctx.input.press_mouse_button(mb);
                             } else {
                                 ctx.input.release_mouse_button(mb);
@@ -1212,7 +1212,7 @@ fn main() -> Result<()> {
                                                 if let Some(scripts_folder) = editor_state.get_scripts_folder() {
                                                     let script_path = scripts_folder.join(format!("{}.lua", script_name));
                                                     if script_path.exists() {
-                                                        if let Err(e) = script_engine.run_script(&script_path, entity, &mut editor_state.world, &editor_state.keyboard_state) {
+                                                        if let Err(e) = script_engine.run_script(&script_path, entity, &mut editor_state.world, &editor_state.input_system, dt) {
                                                             log::error!("Script error for {}: {}", script_name, e);
                                                         }
                                                     }

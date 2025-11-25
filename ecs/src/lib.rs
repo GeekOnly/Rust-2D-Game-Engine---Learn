@@ -204,6 +204,8 @@ pub struct World {
     pub scripts: HashMap<Entity, Script>,
     pub active: HashMap<Entity, bool>,      // Active state (Unity-like)
     pub layers: HashMap<Entity, u8>,        // Layer (0-31, Unity has 32 layers)
+    pub parents: HashMap<Entity, Entity>,   // Parent entity
+    pub children: HashMap<Entity, Vec<Entity>>, // Children entities
 }
 
 impl World {
@@ -220,6 +222,20 @@ impl World {
     }
 
     pub fn despawn(&mut self, e: Entity) {
+        // Recursively despawn children
+        if let Some(children) = self.children.remove(&e) {
+            for child in children {
+                self.despawn(child);
+            }
+        }
+
+        // Remove from parent's children list
+        if let Some(parent) = self.parents.remove(&e) {
+            if let Some(siblings) = self.children.get_mut(&parent) {
+                siblings.retain(|&x| x != e);
+            }
+        }
+
         self.transforms.remove(&e);
         self.velocities.remove(&e);
         self.sprites.remove(&e);
@@ -239,7 +255,32 @@ impl World {
         self.scripts.clear();
         self.active.clear();
         self.layers.clear();
+        self.parents.clear();
+        self.children.clear();
         self.next_entity = 0;
+    }
+
+    pub fn set_parent(&mut self, child: Entity, parent: Option<Entity>) {
+        // Remove from old parent
+        if let Some(old_parent) = self.parents.remove(&child) {
+            if let Some(siblings) = self.children.get_mut(&old_parent) {
+                siblings.retain(|&x| x != child);
+            }
+        }
+
+        // Add to new parent
+        if let Some(new_parent) = parent {
+            self.parents.insert(child, new_parent);
+            self.children.entry(new_parent).or_default().push(child);
+        }
+    }
+
+    pub fn get_children(&self, entity: Entity) -> &[Entity] {
+        self.children.get(&entity).map(|v| v.as_slice()).unwrap_or(&[])
+    }
+
+    pub fn get_parent(&self, entity: Entity) -> Option<Entity> {
+        self.parents.get(&entity).copied()
     }
 
     pub fn save_to_json(&self) -> Result<String, serde_json::Error> {
@@ -254,6 +295,7 @@ impl World {
             scripts: Vec<(Entity, Script)>,
             active: Vec<(Entity, bool)>,
             layers: Vec<(Entity, u8)>,
+            parents: Vec<(Entity, Entity)>,
         }
 
         let data = SceneData {
@@ -266,6 +308,7 @@ impl World {
             scripts: self.scripts.iter().map(|(k, v)| (*k, v.clone())).collect(),
             active: self.active.iter().map(|(k, v)| (*k, *v)).collect(),
             layers: self.layers.iter().map(|(k, v)| (*k, *v)).collect(),
+            parents: self.parents.iter().map(|(k, v)| (*k, *v)).collect(),
         };
 
         serde_json::to_string_pretty(&data)
@@ -285,6 +328,8 @@ impl World {
             active: Vec<(Entity, bool)>,
             #[serde(default)]
             layers: Vec<(Entity, u8)>,
+            #[serde(default)]
+            parents: Vec<(Entity, Entity)>,
         }
 
         let data: SceneData = serde_json::from_str(json)?;
@@ -315,6 +360,12 @@ impl World {
         }
         for (entity, layer) in data.layers {
             self.layers.insert(entity, layer);
+        }
+        
+        // Reconstruct hierarchy
+        for (child, parent) in data.parents {
+            self.parents.insert(child, parent);
+            self.children.entry(parent).or_default().push(child);
         }
 
         // Ensure all entities have active and layer (backward compatibility)

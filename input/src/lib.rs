@@ -231,7 +231,7 @@ pub struct TouchState {
 // UNIFIED INPUT SYSTEM
 // ============================================================================
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Default)]
 pub struct InputSystem {
     // Keyboard
     keys: HashSet<Key>,
@@ -248,7 +248,6 @@ pub struct InputSystem {
     pub touch: TouchState,
 
     // Gilrs context for gamepad support
-    #[cfg(feature = "gamepad")]
     gilrs: Option<gilrs::Gilrs>,
 }
 
@@ -479,7 +478,7 @@ impl InputSystem {
         self.is_key_down(Key::Space) ||
         self.is_key_down(Key::Enter) ||
         self.is_gamepad_button_down(gamepad_id, GamepadButton::South) ||
-        self.touch.touch_count() > 0
+        self.touch_count() > 0
     }
 
     /// Get action button just pressed
@@ -521,7 +520,7 @@ impl InputSystem {
     pub fn update_gamepads(&mut self) {
         if let Some(ref mut gilrs) = self.gilrs {
             while let Some(event) = gilrs.next_event() {
-                let gamepad_id = event.id.into() as usize;
+                let gamepad_id: usize = event.id.into();
                 if gamepad_id >= 4 { continue; }
 
                 match event.event {

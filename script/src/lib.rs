@@ -1,7 +1,8 @@
 use mlua::{Lua, Function, Table};
 use anyhow::Result;
-use ecs::{World, Entity};
+use ecs::{World, Entity, EntityTag};
 use input::{InputSystem, Key, MouseButton, GamepadButton};
+use std::cell::RefCell;
 
 pub struct ScriptEngine {
     lua: Lua,
@@ -32,11 +33,12 @@ impl ScriptEngine {
     }
 
     pub fn call_update(&self, name: &str, dt: f32, world: &mut World) -> Result<()> {
+        let world_cell = RefCell::new(&mut *world);
         let globals = self.lua.globals();
         if let Ok(func) = globals.get::<_, Function>(name) {
             self.lua.scope(|scope| {
                 let spawn = scope.create_function_mut(move |_, ()| {
-                    Ok(world.spawn())
+                    Ok(world_cell.borrow_mut().spawn())
                 })?;
 
                 // Pass spawn directly
@@ -58,7 +60,9 @@ impl ScriptEngine {
         dt: f32,
     ) -> Result<()> {
         // Don't reload script - just call on_update with current state
-        // Use scope to safely pass world reference
+        // Use RefCell to work around borrow checker in scope
+        let world_cell = RefCell::new(&mut *world);
+
         self.lua.scope(|scope| {
             let globals = self.lua.globals();
 
@@ -222,11 +226,11 @@ impl ScriptEngine {
 
             let set_velocity = scope.create_function_mut(|_, (vx, vy): (f32, f32)| {
                 // Initialize velocity if it doesn't exist
-                if !world.velocities.contains_key(&entity) {
-                    world.velocities.insert(entity, (0.0, 0.0));
+                if !world_cell.borrow().velocities.contains_key(&entity) {
+                    world_cell.borrow_mut().velocities.insert(entity, (0.0, 0.0));
                 }
 
-                if let Some(velocity) = world.velocities.get_mut(&entity) {
+                if let Some(velocity) = world_cell.borrow_mut().velocities.get_mut(&entity) {
                     velocity.0 = vx;
                     velocity.1 = vy;
                 }
@@ -235,7 +239,7 @@ impl ScriptEngine {
             globals.set("set_velocity", set_velocity)?;
 
             let get_velocity = scope.create_function(|lua, ()| {
-                if let Some(velocity) = world.velocities.get(&entity) {
+                if let Some(velocity) = world_cell.borrow().velocities.get(&entity) {
                     let table = lua.create_table()?;
                     table.set("x", velocity.0)?;
                     table.set("y", velocity.1)?;
@@ -247,7 +251,7 @@ impl ScriptEngine {
             globals.set("get_velocity", get_velocity)?;
 
             let get_position = scope.create_function(|lua, ()| {
-                if let Some(transform) = world.transforms.get(&entity) {
+                if let Some(transform) = world_cell.borrow().transforms.get(&entity) {
                     let table = lua.create_table()?;
                     table.set("x", transform.position[0])?;
                     table.set("y", transform.position[1])?;
@@ -259,7 +263,7 @@ impl ScriptEngine {
             globals.set("get_position", get_position)?;
 
             let set_position = scope.create_function_mut(|_, (x, y): (f32, f32)| {
-                if let Some(transform) = world.transforms.get_mut(&entity) {
+                if let Some(transform) = world_cell.borrow_mut().transforms.get_mut(&entity) {
                     transform.position[0] = x;
                     transform.position[1] = y;
                 }
@@ -268,8 +272,8 @@ impl ScriptEngine {
             globals.set("set_position", set_position)?;
 
             let get_rotation = scope.create_function(|_, ()| {
-                if let Some(transform) = world.transforms.get(&entity) {
-                    Ok(Some(transform.rotation))
+                if let Some(transform) = world_cell.borrow().transforms.get(&entity) {
+                    Ok(Some(transform.rotation[2]))  // Z-axis rotation for 2D
                 } else {
                     Ok(None)
                 }
@@ -277,15 +281,15 @@ impl ScriptEngine {
             globals.set("get_rotation", get_rotation)?;
 
             let set_rotation = scope.create_function_mut(|_, rotation: f32| {
-                if let Some(transform) = world.transforms.get_mut(&entity) {
-                    transform.rotation = rotation;
+                if let Some(transform) = world_cell.borrow_mut().transforms.get_mut(&entity) {
+                    transform.rotation[2] = rotation;  // Z-axis rotation for 2D
                 }
                 Ok(())
             })?;
             globals.set("set_rotation", set_rotation)?;
 
             let get_scale = scope.create_function(|lua, ()| {
-                if let Some(transform) = world.transforms.get(&entity) {
+                if let Some(transform) = world_cell.borrow().transforms.get(&entity) {
                     let table = lua.create_table()?;
                     table.set("x", transform.scale[0])?;
                     table.set("y", transform.scale[1])?;
@@ -297,7 +301,7 @@ impl ScriptEngine {
             globals.set("get_scale", get_scale)?;
 
             let set_scale = scope.create_function_mut(|_, (x, y): (f32, f32)| {
-                if let Some(transform) = world.transforms.get_mut(&entity) {
+                if let Some(transform) = world_cell.borrow_mut().transforms.get_mut(&entity) {
                     transform.scale[0] = x;
                     transform.scale[1] = y;
                 }
@@ -310,8 +314,12 @@ impl ScriptEngine {
             // ================================================================
 
             let get_tag = scope.create_function(|_, query_entity: Entity| {
-                if let Some(tag) = world.tags.get(&query_entity) {
-                    Ok(Some(tag.clone()))
+                if let Some(tag) = world_cell.borrow().tags.get(&query_entity) {
+                    let tag_str = match tag {
+                        EntityTag::Player => "Player",
+                        EntityTag::Item => "Item",
+                    };
+                    Ok(Some(tag_str.to_string()))
                 } else {
                     Ok(None)
                 }
@@ -319,23 +327,26 @@ impl ScriptEngine {
             globals.set("get_tag", get_tag)?;
 
             let set_tag = scope.create_function_mut(|_, tag: String| {
-                world.tags.insert(entity, tag);
+                let entity_tag = match tag.as_str() {
+                    "Player" => Some(EntityTag::Player),
+                    "Item" => Some(EntityTag::Item),
+                    _ => None,
+                };
+                if let Some(t) = entity_tag {
+                    world_cell.borrow_mut().tags.insert(entity, t);
+                }
                 Ok(())
             })?;
             globals.set("set_tag", set_tag)?;
 
-            let get_name = scope.create_function(|_, query_entity: Entity| {
-                if let Some(name) = world.entity_names.get(&query_entity) {
-                    Ok(Some(name.clone()))
-                } else {
-                    Ok(None)
-                }
-            })?;
-            globals.set("get_name", get_name)?;
+            // TODO: get_name requires entity_names to be in World
+            // let get_name = scope.create_function(|_, query_entity: Entity| {
+            //     Ok(Some("GameObject".to_string()))
+            // })?;
+            // globals.set("get_name", get_name)?;
 
             let destroy_entity = scope.create_function_mut(|_, target_entity: Entity| {
-                // Mark for destruction (actual removal should happen after script execution)
-                world.destroy(target_entity);
+                world_cell.borrow_mut().despawn(target_entity);
                 Ok(())
             })?;
             globals.set("destroy_entity", destroy_entity)?;
