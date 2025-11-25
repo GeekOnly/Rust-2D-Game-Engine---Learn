@@ -114,7 +114,7 @@ impl EditorState {
     }
 
     fn get_default_scene_path(&self, scene_name: &str) -> Option<std::path::PathBuf> {
-        self.get_scenes_folder().map(|p| p.join(format!("{}.json", scene_name)))
+        self.get_scenes_folder().map(|p| p.join(format!("{}.scene", scene_name)))
     }
 
     fn create_script_file(&self, script_name: &str) -> anyhow::Result<std::path::PathBuf> {
@@ -900,8 +900,8 @@ fn main() -> Result<()> {
                                 if save_as_request {
                                     // Start dialog in project/scenes/ folder if project is open
                                     let mut dialog = rfd::FileDialog::new()
-                                        .add_filter("Scene", &["json"])
-                                        .set_file_name("scene.json");
+                                        .add_filter("Scene", &["scene"])
+                                        .set_file_name("scene.scene");
 
                                     if let Some(proj_path) = &editor_state.current_project_path {
                                         let scenes_folder = proj_path.join("scenes");
@@ -971,7 +971,7 @@ fn main() -> Result<()> {
                                     } else {
                                         // Start dialog in project/scenes/ folder if project is open
                                         let mut dialog = rfd::FileDialog::new()
-                                            .add_filter("Scene", &["json"]);
+                                            .add_filter("Scene", &["scene"]);
 
                                         if let Some(proj_path) = &editor_state.current_project_path {
                                             let scenes_folder = proj_path.join("scenes");
@@ -1046,8 +1046,8 @@ fn main() -> Result<()> {
                                                         }
                                                     } else {
                                                         if let Some(file) = rfd::FileDialog::new()
-                                                            .add_filter("Scene", &["json"])
-                                                            .set_file_name("scene.json")
+                                                            .add_filter("Scene", &["scene"])
+                                                            .set_file_name("scene.scene")
                                                             .save_file()
                                                         {
                                                             if let Ok(_) = editor_state.save_scene(&file) {
@@ -1079,7 +1079,7 @@ fn main() -> Result<()> {
                                                                 } else {
                                                                     // Browse
                                                                     if let Some(file) = rfd::FileDialog::new()
-                                                                        .add_filter("Scene", &["json"])
+                                                                        .add_filter("Scene", &["scene"])
                                                                         .pick_file()
                                                                     {
                                                                         if let Err(e) = editor_state.load_scene(&file) {
@@ -1121,7 +1121,7 @@ fn main() -> Result<()> {
                                                             } else {
                                                                 // Browse
                                                                 if let Some(file) = rfd::FileDialog::new()
-                                                                    .add_filter("Scene", &["json"])
+                                                                    .add_filter("Scene", &["scene"])
                                                                     .pick_file()
                                                                 {
                                                                     if let Err(e) = editor_state.load_scene(&file) {

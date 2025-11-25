@@ -5,7 +5,10 @@
       "Bash(tee:*)",
       "Bash(cat:*)",
       "Bash(cargo tree:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(if [ -f scene.json ])",
+      "Bash(then cp scene.json scene.scene)",
+      "Bash(fi)"
     ],
     "deny": [],
     "ask": []

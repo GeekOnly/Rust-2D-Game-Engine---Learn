@@ -1001,7 +1001,7 @@ impl EditorUI {
                                 ui.text_edit_singleline(&mut new_editor_scene);
                                 if ui.button("📁 Browse...").clicked() {
                                     let mut dialog = rfd::FileDialog::new()
-                                        .add_filter("Scene", &["json"]);
+                                        .add_filter("Scene", &["scene"]);
                                     let scenes_folder = path.join("scenes");
                                     if scenes_folder.exists() {
                                         dialog = dialog.set_directory(&scenes_folder);
@@ -1047,7 +1047,7 @@ impl EditorUI {
                                 ui.text_edit_singleline(&mut new_game_scene);
                                 if ui.button("📁 Browse...").clicked() {
                                     let mut dialog = rfd::FileDialog::new()
-                                        .add_filter("Scene", &["json"]);
+                                        .add_filter("Scene", &["scene"]);
                                     let scenes_folder = path.join("scenes");
                                     if scenes_folder.exists() {
                                         dialog = dialog.set_directory(&scenes_folder);

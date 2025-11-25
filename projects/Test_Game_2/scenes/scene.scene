@@ -1,0 +1,12 @@
+{
+  "entity_names": {},
+  "world": {
+    "colliders": [],
+    "next_entity": 0,
+    "scripts": [],
+    "sprites": [],
+    "tags": [],
+    "transforms": [],
+    "velocities": []
+  }
+}
