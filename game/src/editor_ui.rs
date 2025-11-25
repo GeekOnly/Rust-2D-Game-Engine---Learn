@@ -37,6 +37,7 @@ impl EditorUI {
         bottom_panel_tab: &mut usize,
         current_tool: &TransformTool,
         show_project_settings: &mut bool,
+        resource_current_folder: &mut String,
     ) {
         // Top Menu Bar
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
@@ -1208,11 +1209,48 @@ impl EditorUI {
                             .inner_margin(egui::Margin::symmetric(10.0, 8.0))
                             .show(ui, |ui| {
                                 ui.horizontal(|ui| {
+                                    // Back button
+                                    if !resource_current_folder.is_empty() {
+                                        if ui.button("◀").on_hover_text("Back").clicked() {
+                                            // Navigate to parent folder
+                                            if let Some(pos) = resource_current_folder.rfind('/') {
+                                                *resource_current_folder = resource_current_folder[..pos].to_string();
+                                            } else {
+                                                resource_current_folder.clear();
+                                            }
+                                        }
+                                        ui.add_space(5.0);
+                                    }
+
                                     // Breadcrumb navigation
                                     ui.label(egui::RichText::new("📁").size(16.0));
-                                    ui.label(egui::RichText::new("Project").strong().size(13.0));
-                                    ui.label(egui::RichText::new("/").color(egui::Color32::GRAY));
-                                    ui.label(egui::RichText::new("All Resources").size(13.0));
+
+                                    if ui.link(egui::RichText::new("Project").strong().size(13.0)).clicked() {
+                                        resource_current_folder.clear();
+                                    }
+
+                                    if !resource_current_folder.is_empty() {
+                                        ui.label(egui::RichText::new("/").color(egui::Color32::GRAY));
+
+                                        // Display current path
+                                        let path_parts: Vec<String> = resource_current_folder.split('/').map(|s| s.to_string()).collect();
+                                        for (i, part) in path_parts.iter().enumerate() {
+                                            if i > 0 {
+                                                ui.label(egui::RichText::new("/").color(egui::Color32::GRAY));
+                                            }
+
+                                            if i == path_parts.len() - 1 {
+                                                // Current folder (not clickable)
+                                                ui.label(egui::RichText::new(part).size(13.0));
+                                            } else {
+                                                // Parent folders (clickable)
+                                                let partial_path = path_parts[..=i].join("/");
+                                                if ui.link(egui::RichText::new(part).size(13.0)).clicked() {
+                                                    *resource_current_folder = partial_path;
+                                                }
+                                            }
+                                        }
+                                    }
 
                                     ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                                         // View options
@@ -1231,19 +1269,28 @@ impl EditorUI {
                         egui::ScrollArea::vertical()
                             .auto_shrink([false, false])
                             .show(ui, |ui| {
+                                // Get current folder path
+                                let current_path = if resource_current_folder.is_empty() {
+                                    proj_path.clone()
+                                } else {
+                                    proj_path.join(&*resource_current_folder)
+                                };
+
                                 ui.horizontal_wrapped(|ui| {
                                     ui.style_mut().spacing.item_spacing = egui::vec2(12.0, 12.0);
                                     ui.set_min_width(ui.available_width());
 
-                                    // Folders Section
-                                    let folders = vec![
-                                        ("scenes", "🎬", "Scenes", egui::Color32::from_rgb(100, 150, 255)),
-                                        ("scripts", "📜", "Scripts", egui::Color32::from_rgb(255, 200, 100)),
-                                        ("sprites", "🖼️", "Sprites", egui::Color32::from_rgb(150, 255, 150)),
-                                        ("audio", "🔊", "Audio", egui::Color32::from_rgb(255, 150, 200)),
-                                    ];
+                                    // Show folders and files in current directory
+                                    if resource_current_folder.is_empty() {
+                                        // Root level - show main folders
+                                        let folders = vec![
+                                            ("scenes", "🎬", "Scenes", egui::Color32::from_rgb(100, 150, 255)),
+                                            ("scripts", "📜", "Scripts", egui::Color32::from_rgb(255, 200, 100)),
+                                            ("sprites", "🖼️", "Sprites", egui::Color32::from_rgb(150, 255, 150)),
+                                            ("audio", "🔊", "Audio", egui::Color32::from_rgb(255, 150, 200)),
+                                        ];
 
-                                    for (folder_name, icon, display_name, accent_color) in folders {
+                                        for (folder_name, icon, display_name, accent_color) in folders {
                                         let folder_path = proj_path.join(folder_name);
                                         let exists = folder_path.exists();
 
@@ -1297,7 +1344,12 @@ impl EditorUI {
                                         }
 
                                         if card_response.response.clicked() && exists {
-                                            // Future: Navigate into folder
+                                            // Navigate into folder
+                                            if resource_current_folder.is_empty() {
+                                                *resource_current_folder = folder_name.to_string();
+                                            } else {
+                                                *resource_current_folder = format!("{}/{}", resource_current_folder, folder_name);
+                                            }
                                         }
 
                                         // Right-click context menu for folders
@@ -1393,6 +1445,7 @@ impl EditorUI {
                                                 ui.close_menu();
                                             }
                                         });
+                                        }
                                     }
                                 });
 
