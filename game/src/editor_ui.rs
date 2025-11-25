@@ -3,6 +3,14 @@ use egui;
 use std::collections::HashMap;
 use crate::console::Console;
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum TransformTool {
+    View,   // Q - No gizmo, just view
+    Move,   // W - Move gizmo
+    Rotate, // E - Rotation gizmo
+    Scale,  // R - Scale gizmo
+}
+
 pub struct EditorUI;
 
 impl EditorUI {
@@ -27,6 +35,7 @@ impl EditorUI {
         show_velocities: &mut bool,
         console: &mut Console,
         bottom_panel_tab: &mut usize,
+        current_tool: &TransformTool,
     ) {
         // Top Menu Bar
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
@@ -586,38 +595,106 @@ impl EditorUI {
                             }
                         }
 
-                        // TRANSFORM GIZMO: Draw move handles for selected entity
+                        // TRANSFORM GIZMO: Draw gizmo for selected entity based on current tool
                         if *selected_entity == Some(entity) {
                             let gizmo_size = 50.0;
                             let handle_size = 8.0;
 
-                            // X axis arrow (Red)
-                            let x_end = egui::pos2(screen_x + gizmo_size, screen_y);
-                            painter.line_segment(
-                                [egui::pos2(screen_x, screen_y), x_end],
-                                egui::Stroke::new(3.0, egui::Color32::from_rgb(255, 0, 0)),
-                            );
-                            painter.circle_filled(x_end, handle_size, egui::Color32::from_rgb(255, 0, 0));
+                            match current_tool {
+                                TransformTool::View => {
+                                    // No gizmo in View mode (Q)
+                                }
+                                TransformTool::Move => {
+                                    // Move Tool (W) - Arrows for X/Y axes
+                                    // X axis arrow (Red)
+                                    let x_end = egui::pos2(screen_x + gizmo_size, screen_y);
+                                    painter.line_segment(
+                                        [egui::pos2(screen_x, screen_y), x_end],
+                                        egui::Stroke::new(3.0, egui::Color32::from_rgb(255, 0, 0)),
+                                    );
+                                    painter.circle_filled(x_end, handle_size, egui::Color32::from_rgb(255, 0, 0));
 
-                            // Y axis arrow (Green)
-                            let y_end = egui::pos2(screen_x, screen_y + gizmo_size);
-                            painter.line_segment(
-                                [egui::pos2(screen_x, screen_y), y_end],
-                                egui::Stroke::new(3.0, egui::Color32::from_rgb(0, 255, 0)),
-                            );
-                            painter.circle_filled(y_end, handle_size, egui::Color32::from_rgb(0, 255, 0));
+                                    // Y axis arrow (Green)
+                                    let y_end = egui::pos2(screen_x, screen_y + gizmo_size);
+                                    painter.line_segment(
+                                        [egui::pos2(screen_x, screen_y), y_end],
+                                        egui::Stroke::new(3.0, egui::Color32::from_rgb(0, 255, 0)),
+                                    );
+                                    painter.circle_filled(y_end, handle_size, egui::Color32::from_rgb(0, 255, 0));
 
-                            // Center handle (Both axes - Yellow)
-                            painter.circle_filled(
-                                egui::pos2(screen_x, screen_y),
-                                handle_size,
-                                egui::Color32::from_rgb(255, 255, 0),
-                            );
-                            painter.circle_stroke(
-                                egui::pos2(screen_x, screen_y),
-                                handle_size,
-                                egui::Stroke::new(2.0, egui::Color32::from_rgb(200, 200, 0)),
-                            );
+                                    // Center handle (Both axes - Yellow)
+                                    painter.circle_filled(
+                                        egui::pos2(screen_x, screen_y),
+                                        handle_size,
+                                        egui::Color32::from_rgb(255, 255, 0),
+                                    );
+                                    painter.circle_stroke(
+                                        egui::pos2(screen_x, screen_y),
+                                        handle_size,
+                                        egui::Stroke::new(2.0, egui::Color32::from_rgb(200, 200, 0)),
+                                    );
+                                }
+                                TransformTool::Rotate => {
+                                    // Rotate Tool (E) - Circular ring
+                                    let radius = gizmo_size * 0.8;
+                                    painter.circle_stroke(
+                                        egui::pos2(screen_x, screen_y),
+                                        radius,
+                                        egui::Stroke::new(3.0, egui::Color32::from_rgb(0, 150, 255)),
+                                    );
+
+                                    // Rotation handles (4 points on circle)
+                                    let handle_positions = [
+                                        (radius, 0.0),           // Right
+                                        (0.0, radius),           // Bottom
+                                        (-radius, 0.0),          // Left
+                                        (0.0, -radius),          // Top
+                                    ];
+
+                                    for (dx, dy) in handle_positions.iter() {
+                                        painter.circle_filled(
+                                            egui::pos2(screen_x + dx, screen_y + dy),
+                                            handle_size,
+                                            egui::Color32::from_rgb(0, 150, 255),
+                                        );
+                                    }
+
+                                    // Center dot
+                                    painter.circle_filled(
+                                        egui::pos2(screen_x, screen_y),
+                                        handle_size * 0.5,
+                                        egui::Color32::from_rgb(0, 150, 255),
+                                    );
+                                }
+                                TransformTool::Scale => {
+                                    // Scale Tool (R) - Box with corner handles
+                                    let box_size = gizmo_size * 0.7;
+
+                                    // Box outline
+                                    let top_left = egui::pos2(screen_x - box_size, screen_y - box_size);
+                                    let top_right = egui::pos2(screen_x + box_size, screen_y - box_size);
+                                    let bottom_left = egui::pos2(screen_x - box_size, screen_y + box_size);
+                                    let bottom_right = egui::pos2(screen_x + box_size, screen_y + box_size);
+
+                                    painter.line_segment([top_left, top_right], egui::Stroke::new(2.0, egui::Color32::from_rgb(255, 150, 0)));
+                                    painter.line_segment([top_right, bottom_right], egui::Stroke::new(2.0, egui::Color32::from_rgb(255, 150, 0)));
+                                    painter.line_segment([bottom_right, bottom_left], egui::Stroke::new(2.0, egui::Color32::from_rgb(255, 150, 0)));
+                                    painter.line_segment([bottom_left, top_left], egui::Stroke::new(2.0, egui::Color32::from_rgb(255, 150, 0)));
+
+                                    // Corner handles
+                                    painter.circle_filled(top_left, handle_size, egui::Color32::from_rgb(255, 150, 0));
+                                    painter.circle_filled(top_right, handle_size, egui::Color32::from_rgb(255, 150, 0));
+                                    painter.circle_filled(bottom_left, handle_size, egui::Color32::from_rgb(255, 150, 0));
+                                    painter.circle_filled(bottom_right, handle_size, egui::Color32::from_rgb(255, 150, 0));
+
+                                    // Center handle (uniform scale)
+                                    painter.circle_filled(
+                                        egui::pos2(screen_x, screen_y),
+                                        handle_size,
+                                        egui::Color32::from_rgb(255, 200, 100),
+                                    );
+                                }
+                            }
                         }
                     }
 

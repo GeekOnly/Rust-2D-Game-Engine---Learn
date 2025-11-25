@@ -10,14 +10,13 @@ use script::ScriptEngine;
 use physics::PhysicsWorld;
 use render::RenderModule;
 use editor::EditorModule;
+use editor_ui::{EditorUI, TransformTool};
 
 use winit::{
     event::*,
     event_loop::{ControlFlow, EventLoop},
     window::WindowBuilder,
 };
-
-use editor_ui::EditorUI;
 
 // Moved to states module
 // pub use states::{AppState, LauncherState, EditorState, GameState};
@@ -77,6 +76,7 @@ struct EditorState {
     show_unsaved_changes_dialog: bool,
     pending_action: Option<EditorAction>,
     asset_browser_path: Option<std::path::PathBuf>,
+    current_tool: TransformTool, // Q/W/E/R - Transform tool selection
 }
 
 impl EditorState {
@@ -101,6 +101,7 @@ impl EditorState {
             show_unsaved_changes_dialog: false,
             pending_action: None,
             asset_browser_path: None,
+            current_tool: TransformTool::Move, // Default to Move tool (W)
         }
     }
 
@@ -837,6 +838,23 @@ fn main() -> Result<()> {
                                 let mut stop_request = false;
                                 let mut edit_script_request: Option<String> = None;
 
+                                // Handle Q/W/E/R keyboard shortcuts for transform tools
+                                egui_ctx.input(|i| {
+                                    if i.key_pressed(egui::Key::Q) {
+                                        editor_state.current_tool = TransformTool::View;
+                                        editor_state.console.info("Tool: View (Q)".to_string());
+                                    } else if i.key_pressed(egui::Key::W) {
+                                        editor_state.current_tool = TransformTool::Move;
+                                        editor_state.console.info("Tool: Move (W)".to_string());
+                                    } else if i.key_pressed(egui::Key::E) {
+                                        editor_state.current_tool = TransformTool::Rotate;
+                                        editor_state.console.info("Tool: Rotate (E)".to_string());
+                                    } else if i.key_pressed(egui::Key::R) {
+                                        editor_state.current_tool = TransformTool::Scale;
+                                        editor_state.console.info("Tool: Scale (R)".to_string());
+                                    }
+                                });
+
                                 // Editor UI
                                 EditorUI::render_editor(
                                     &egui_ctx,
@@ -859,6 +877,7 @@ fn main() -> Result<()> {
                                     &mut editor_state.show_velocities,
                                     &mut editor_state.console,
                                     &mut editor_state.bottom_panel_tab,
+                                    &editor_state.current_tool,
                                 );
 
                                 // Handle new scene request
