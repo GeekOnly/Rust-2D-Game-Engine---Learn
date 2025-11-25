@@ -33,7 +33,7 @@ impl Prefab {
     pub fn player() -> Self {
         Self {
             name: "Player".to_string(),
-            transform: Transform { x: 0.0, y: 0.0, rotation: 0.0, scale: 1.0 },
+            transform: Transform::with_position_2d(0.0, 0.0),
             sprite: Some(Sprite {
                 texture_id: "player".to_string(),
                 width: 40.0,
@@ -51,7 +51,7 @@ impl Prefab {
     pub fn item() -> Self {
         Self {
             name: "Item".to_string(),
-            transform: Transform { x: 0.0, y: 0.0, rotation: 0.0, scale: 1.0 },
+            transform: Transform::with_position_2d(0.0, 0.0),
             sprite: Some(Sprite {
                 texture_id: "item".to_string(),
                 width: 30.0,
@@ -90,12 +90,53 @@ impl Prefab {
     }
 }
 
-#[derive(Default, Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Transform {
-    pub x: f32,
-    pub y: f32,
-    pub rotation: f32,
-    pub scale: f32,
+    pub position: [f32; 3],  // X, Y, Z
+    pub rotation: [f32; 3],  // Euler angles: X, Y, Z (in degrees)
+    pub scale: [f32; 3],     // X, Y, Z
+}
+
+impl Default for Transform {
+    fn default() -> Self {
+        Self {
+            position: [0.0, 0.0, 0.0],
+            rotation: [0.0, 0.0, 0.0],
+            scale: [1.0, 1.0, 1.0],
+        }
+    }
+}
+
+// Helper methods for backward compatibility and convenience
+impl Transform {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn with_position(x: f32, y: f32, z: f32) -> Self {
+        Self {
+            position: [x, y, z],
+            rotation: [0.0, 0.0, 0.0],
+            scale: [1.0, 1.0, 1.0],
+        }
+    }
+
+    pub fn with_position_2d(x: f32, y: f32) -> Self {
+        Self::with_position(x, y, 0.0)
+    }
+
+    // Getters for convenience
+    pub fn x(&self) -> f32 { self.position[0] }
+    pub fn y(&self) -> f32 { self.position[1] }
+    pub fn z(&self) -> f32 { self.position[2] }
+
+    // Setters for convenience
+    pub fn set_x(&mut self, x: f32) { self.position[0] = x; }
+    pub fn set_y(&mut self, y: f32) { self.position[1] = y; }
+    pub fn set_z(&mut self, z: f32) { self.position[2] = z; }
+    pub fn set_position(&mut self, x: f32, y: f32, z: f32) {
+        self.position = [x, y, z];
+    }
 }
 
 #[derive(Default, Clone, Debug, Serialize, Deserialize)]

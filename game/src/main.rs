@@ -30,6 +30,13 @@ enum AppState {
     Playing,
 }
 
+#[derive(Debug, Clone, PartialEq)]
+enum EditorAction {
+    NewScene,
+    LoadScene(Option<std::path::PathBuf>), // None = Browse, Some = Direct load
+    Quit,
+}
+
 struct LauncherState {
     project_manager: ProjectManager,
     new_project_name: String,
@@ -66,6 +73,10 @@ struct EditorState {
     show_velocities: bool, // Gizmo toggle
     console: console::Console,
     bottom_panel_tab: usize, // 0 = Assets, 1 = Console
+    show_project_settings: bool,
+    show_unsaved_changes_dialog: bool,
+    pending_action: Option<EditorAction>,
+    asset_browser_path: Option<std::path::PathBuf>,
 }
 
 impl EditorState {
@@ -86,6 +97,10 @@ impl EditorState {
             show_velocities: false, // Hide velocities by default
             console: console::Console::new(),
             bottom_panel_tab: 1,    // Start with Console tab
+            show_project_settings: false,
+            show_unsaved_changes_dialog: false,
+            pending_action: None,
+            asset_browser_path: None,
         }
     }
 
@@ -278,10 +293,9 @@ impl GameState {
         // Spawn player
         let player = world.spawn();
         world.transforms.insert(player, Transform {
-            x: 400.0,
-            y: 300.0,
-            rotation: 0.0,
-            scale: 1.0,
+            position: [400.0, 300.0, 0.0],
+            rotation: [0.0, 0.0, 0.0],
+            scale: [1.0, 1.0, 1.0],
         });
         world.sprites.insert(player, Sprite {
             texture_id: "player".to_string(),
@@ -310,10 +324,9 @@ impl GameState {
         for (x, y) in item_positions.iter() {
             let item = world.spawn();
             world.transforms.insert(item, Transform {
-                x: *x,
-                y: *y,
-                rotation: 0.0,
-                scale: 1.0,
+                position: [*x, *y, 0.0],
+                rotation: [0.0, 0.0, 0.0],
+                scale: [1.0, 1.0, 1.0],
             });
             world.sprites.insert(item, Sprite {
                 texture_id: "item".to_string(),
@@ -656,6 +669,20 @@ fn main() -> Result<()> {
                                                                     app_state = AppState::Editor;
                                                                     editor_state = EditorState::new();
                                                                     editor_state.current_project_path = Some(project.path.clone());
+                                                                    editor_state.asset_browser_path = Some(project.path.clone());
+
+                                                                    // Load startup scene if configured
+                                                                    if let Ok(Some(startup_scene)) = launcher_state.project_manager.get_startup_scene(&project.path) {
+                                                                        let scene_path = project.path.join(&startup_scene);
+                                                                        if scene_path.exists() {
+                                                                            if let Err(e) = editor_state.load_scene(&scene_path) {
+                                                                                editor_state.console.error(format!("Failed to load startup scene: {}", e));
+                                                                            } else {
+                                                                                editor_state.current_scene_path = Some(scene_path.clone());
+                                                                                editor_state.console.info(format!("Loaded startup scene: {}", startup_scene.display()));
+                                                                            }
+                                                                        }
+                                                                    }
                                                                 }
                                                             });
                                                         });
@@ -721,7 +748,7 @@ fn main() -> Result<()> {
                                     let items_remaining = module.game_state.items.len();
                                     let player_pos = if let Some(player) = module.game_state.player {
                                         module.game_state.world.transforms.get(&player)
-                                            .map(|t| (t.x, t.y))
+                                            .map(|t| (t.x(), t.y()))
                                             .unwrap_or((0.0, 0.0))
                                     } else {
                                         (0.0, 0.0)
@@ -767,13 +794,12 @@ fn main() -> Result<()> {
                                             // Draw background
                                             painter.rect_filled(rect, 0.0, egui::Color32::from_rgb(30, 30, 40));
 
-                                            let world = &module.game_state.world;
-
                                             // Draw entities
+                                            let world = &module.game_state.world;
                                             for (&entity, transform) in &world.transforms {
                                                 if let Some(sprite) = world.sprites.get(&entity) {
-                                                    let screen_x = rect.min.x + transform.x * 0.7;
-                                                    let screen_y = rect.min.y + transform.y * 0.6;
+                                                    let screen_x = rect.min.x + transform.x() * 0.7;
+                                                    let screen_y = rect.min.y + transform.y() * 0.6;
                                                     let size = egui::vec2(sprite.width * 0.7, sprite.height * 0.6);
 
                                                     let color = egui::Color32::from_rgba_unmultiplied(
@@ -803,7 +829,10 @@ fn main() -> Result<()> {
                             }
                             AppState::Editor => {
                                 let mut save_request = false;
+                                let mut save_as_request = false;
                                 let mut load_request = false;
+                                let mut load_file_request: Option<std::path::PathBuf> = None;
+                                let mut new_scene_request = false;
                                 let mut play_request = false;
                                 let mut stop_request = false;
                                 let mut edit_script_request: Option<String> = None;
@@ -815,7 +844,10 @@ fn main() -> Result<()> {
                                     &mut editor_state.selected_entity,
                                     &mut editor_state.entity_names,
                                     &mut save_request,
+                                    &mut save_as_request,
                                     &mut load_request,
+                                    &mut load_file_request,
+                                    &mut new_scene_request,
                                     &mut play_request,
                                     &mut stop_request,
                                     &mut edit_script_request,
@@ -828,42 +860,128 @@ fn main() -> Result<()> {
                                     &mut editor_state.bottom_panel_tab,
                                 );
 
-                                // Handle save request
-                                if save_request {
-                                    let path_clone = editor_state.current_scene_path.clone();
-                                    if let Some(path) = path_clone {
-                                        if let Err(e) = editor_state.save_scene(&path) {
-                                            log::error!("Failed to save scene: {}", e);
-                                        }
+                                // Handle new scene request
+                                if new_scene_request {
+                                    if editor_state.scene_modified {
+                                        editor_state.show_unsaved_changes_dialog = true;
+                                        editor_state.pending_action = Some(EditorAction::NewScene);
                                     } else {
-                                        // No current path, use default path in project/scenes/
-                                        if let Some(default_path) = editor_state.get_default_scene_path("scene") {
-                                            if let Err(e) = editor_state.save_scene(&default_path) {
-                                                log::error!("Failed to save scene: {}", e);
-                                            }
-                                        } else {
-                                            // Fallback to file dialog if no project path
-                                            if let Some(file) = rfd::FileDialog::new()
-                                                .add_filter("Scene", &["json"])
-                                                .set_file_name("scene.json")
-                                                .save_file()
-                                            {
+                                        editor_state.world.clear();
+                                        editor_state.entity_names.clear();
+                                        editor_state.selected_entity = None;
+                                        editor_state.current_scene_path = None;
+                                        editor_state.scene_modified = false;
+                                        editor_state.console.info("New scene created");
+                                    }
+                                }
+
+                                // Handle save as request
+                                if save_as_request {
+                                    // Start dialog in project/scenes/ folder if project is open
+                                    let mut dialog = rfd::FileDialog::new()
+                                        .add_filter("Scene", &["json"])
+                                        .set_file_name("scene.json");
+
+                                    if let Some(proj_path) = &editor_state.current_project_path {
+                                        let scenes_folder = proj_path.join("scenes");
+                                        if scenes_folder.exists() {
+                                            dialog = dialog.set_directory(&scenes_folder);
+                                        }
+                                    }
+
+                                    if let Some(file) = dialog.save_file() {
+                                        // Validate that a project is open
+                                        if editor_state.current_project_path.is_none() {
+                                            editor_state.console.error("Cannot save scene: No project is open!".to_string());
+                                        } else if let Some(proj_path) = &editor_state.current_project_path {
+                                            // Validate that file is inside project/scenes/
+                                            let scenes_folder = proj_path.join("scenes");
+                                            if !file.starts_with(&scenes_folder) {
+                                                editor_state.console.error("Scene must be saved inside project/scenes/ folder!".to_string());
+                                            } else {
                                                 if let Err(e) = editor_state.save_scene(&file) {
                                                     log::error!("Failed to save scene: {}", e);
+                                                    editor_state.console.error(format!("Failed to save scene: {}", e));
+                                                } else {
+                                                    editor_state.current_scene_path = Some(file.clone());
+                                                    editor_state.console.info(format!("Scene saved as: {}", file.display()));
                                                 }
                                             }
                                         }
                                     }
                                 }
 
-                                // Handle load request
+                                // Handle save request
+                                if save_request {
+                                    // Check if project is open
+                                    if editor_state.current_project_path.is_none() {
+                                        editor_state.console.error("Cannot save scene: No project is open!".to_string());
+                                    } else {
+                                        let path_clone = editor_state.current_scene_path.clone();
+                                        if let Some(path) = path_clone {
+                                            if let Err(e) = editor_state.save_scene(&path) {
+                                                log::error!("Failed to save scene: {}", e);
+                                                editor_state.console.error(format!("Failed to save scene: {}", e));
+                                            } else {
+                                                editor_state.console.info(format!("Scene saved: {}", path.display()));
+                                            }
+                                        } else {
+                                            // No current path, use default path in project/scenes/
+                                            if let Some(default_path) = editor_state.get_default_scene_path("scene") {
+                                                if let Err(e) = editor_state.save_scene(&default_path) {
+                                                    log::error!("Failed to save scene: {}", e);
+                                                    editor_state.console.error(format!("Failed to save scene: {}", e));
+                                                } else {
+                                                    editor_state.current_scene_path = Some(default_path.clone());
+                                                    editor_state.console.info(format!("Scene saved: {}", default_path.display()));
+                                                }
+                                            } else {
+                                                editor_state.console.error("Cannot create default scene path: No project is open!".to_string());
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // Handle load request (Browse)
                                 if load_request {
-                                    if let Some(file) = rfd::FileDialog::new()
-                                        .add_filter("Scene", &["json"])
-                                        .pick_file()
-                                    {
-                                        if let Err(e) = editor_state.load_scene(&file) {
+                                    if editor_state.scene_modified {
+                                        editor_state.show_unsaved_changes_dialog = true;
+                                        editor_state.pending_action = Some(EditorAction::LoadScene(None));
+                                    } else {
+                                        // Start dialog in project/scenes/ folder if project is open
+                                        let mut dialog = rfd::FileDialog::new()
+                                            .add_filter("Scene", &["json"]);
+
+                                        if let Some(proj_path) = &editor_state.current_project_path {
+                                            let scenes_folder = proj_path.join("scenes");
+                                            if scenes_folder.exists() {
+                                                dialog = dialog.set_directory(&scenes_folder);
+                                            }
+                                        }
+
+                                        if let Some(file) = dialog.pick_file() {
+                                            if let Err(e) = editor_state.load_scene(&file) {
+                                                log::error!("Failed to load scene: {}", e);
+                                                editor_state.console.error(format!("Failed to load scene: {}", e));
+                                            } else {
+                                                editor_state.current_scene_path = Some(file.clone());
+                                                editor_state.console.info(format!("Scene loaded: {}", file.display()));
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // Handle load file request (Direct)
+                                if let Some(path) = load_file_request {
+                                    if editor_state.scene_modified {
+                                        editor_state.show_unsaved_changes_dialog = true;
+                                        editor_state.pending_action = Some(EditorAction::LoadScene(Some(path)));
+                                    } else {
+                                        if let Err(e) = editor_state.load_scene(&path) {
                                             log::error!("Failed to load scene: {}", e);
+                                            editor_state.console.error(format!("Failed to load scene: {}", e));
+                                        } else {
+                                            editor_state.console.info(format!("Scene loaded: {}", path.display()));
                                         }
                                     }
                                 }
@@ -885,6 +1003,126 @@ fn main() -> Result<()> {
                                             if ui.button("OK").clicked() {
                                                 editor_state.show_save_required_dialog = false;
                                             }
+                                        });
+                                }
+
+                                // Show unsaved changes dialog
+                                if editor_state.show_unsaved_changes_dialog {
+                                    egui::Window::new("Unsaved Changes")
+                                        .collapsible(false)
+                                        .resizable(false)
+                                        .anchor(egui::Align2::CENTER_CENTER, egui::vec2(0.0, 0.0))
+                                        .show(&egui_ctx, |ui| {
+                                            ui.label("You have unsaved changes. Do you want to save them?");
+                                            ui.add_space(10.0);
+                                            ui.horizontal(|ui| {
+                                                if ui.button("Save").clicked() {
+                                                    // Save logic
+                                                    let mut saved = false;
+                                                    if let Some(path) = editor_state.current_scene_path.clone() {
+                                                        if let Ok(_) = editor_state.save_scene(&path) {
+                                                            saved = true;
+                                                        }
+                                                    } else {
+                                                        if let Some(file) = rfd::FileDialog::new()
+                                                            .add_filter("Scene", &["json"])
+                                                            .set_file_name("scene.json")
+                                                            .save_file()
+                                                        {
+                                                            if let Ok(_) = editor_state.save_scene(&file) {
+                                                                saved = true;
+                                                            }
+                                                        }
+                                                    }
+
+                                                    if saved {
+                                                        editor_state.show_unsaved_changes_dialog = false;
+                                                        // Proceed with pending action
+                                                        match editor_state.pending_action.take() {
+                                                            Some(EditorAction::NewScene) => {
+                                                                editor_state.world.clear();
+                                                                editor_state.entity_names.clear();
+                                                                editor_state.selected_entity = None;
+                                                                editor_state.current_scene_path = None;
+                                                                editor_state.scene_modified = false;
+                                                                editor_state.console.info("New scene created");
+                                                            }
+                                                            Some(EditorAction::LoadScene(target_path)) => {
+                                                                if let Some(path) = target_path {
+                                                                    // Load specific file
+                                                                    if let Err(e) = editor_state.load_scene(&path) {
+                                                                        editor_state.console.error(format!("Failed to load scene: {}", e));
+                                                                    } else {
+                                                                        editor_state.console.info(format!("Scene loaded: {}", path.display()));
+                                                                    }
+                                                                } else {
+                                                                    // Browse
+                                                                    if let Some(file) = rfd::FileDialog::new()
+                                                                        .add_filter("Scene", &["json"])
+                                                                        .pick_file()
+                                                                    {
+                                                                        if let Err(e) = editor_state.load_scene(&file) {
+                                                                            editor_state.console.error(format!("Failed to load scene: {}", e));
+                                                                        } else {
+                                                                            editor_state.console.info(format!("Scene loaded: {}", file.display()));
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                            Some(EditorAction::Quit) => {
+                                                                target.exit();
+                                                            }
+                                                            None => {}
+                                                        }
+                                                    }
+                                                }
+
+                                                if ui.button("Don't Save").clicked() {
+                                                    editor_state.show_unsaved_changes_dialog = false;
+                                                    // Proceed with pending action without saving
+                                                    match editor_state.pending_action.take() {
+                                                        Some(EditorAction::NewScene) => {
+                                                            editor_state.world.clear();
+                                                            editor_state.entity_names.clear();
+                                                            editor_state.selected_entity = None;
+                                                            editor_state.current_scene_path = None;
+                                                            editor_state.scene_modified = false;
+                                                            editor_state.console.info("New scene created (unsaved changes discarded)");
+                                                        }
+                                                        Some(EditorAction::LoadScene(target_path)) => {
+                                                            if let Some(path) = target_path {
+                                                                // Load specific file
+                                                                if let Err(e) = editor_state.load_scene(&path) {
+                                                                    editor_state.console.error(format!("Failed to load scene: {}", e));
+                                                                } else {
+                                                                    editor_state.console.info(format!("Scene loaded: {}", path.display()));
+                                                                }
+                                                            } else {
+                                                                // Browse
+                                                                if let Some(file) = rfd::FileDialog::new()
+                                                                    .add_filter("Scene", &["json"])
+                                                                    .pick_file()
+                                                                {
+                                                                    if let Err(e) = editor_state.load_scene(&file) {
+                                                                        editor_state.console.error(format!("Failed to load scene: {}", e));
+                                                                    } else {
+                                                                        editor_state.console.info(format!("Scene loaded: {}", file.display()));
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                        Some(EditorAction::Quit) => {
+                                                            target.exit();
+                                                        }
+                                                        None => {}
+                                                    }
+                                                }
+
+                                                if ui.button("Cancel").clicked() {
+                                                    editor_state.show_unsaved_changes_dialog = false;
+                                                    editor_state.pending_action = None;
+                                                }
+                                            });
                                         });
                                 }
 

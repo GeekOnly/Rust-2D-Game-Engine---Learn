@@ -12,7 +12,10 @@ impl EditorUI {
         selected_entity: &mut Option<Entity>,
         entity_names: &mut HashMap<Entity, String>,
         save_request: &mut bool,
+        save_as_request: &mut bool,
         load_request: &mut bool,
+        load_file_request: &mut Option<std::path::PathBuf>,
+        new_scene_request: &mut bool,
         play_request: &mut bool,
         stop_request: &mut bool,
         edit_script_request: &mut Option<String>,
@@ -29,14 +32,17 @@ impl EditorUI {
             egui::menu::bar(ui, |ui| {
                 ui.menu_button("File", |ui| {
                     if ui.button("New Scene").clicked() {
-                        world.clear();
-                        entity_names.clear();
-                        *selected_entity = None;
+                        *new_scene_request = true;
                     }
+                    ui.separator();
                     if ui.button("Save Scene").clicked() {
                         *save_request = true;
                     }
-                    if ui.button("Load Scene").clicked() {
+                    if ui.button("Save Scene As...").clicked() {
+                        *save_as_request = true;
+                    }
+                    ui.separator();
+                    if ui.button("Load Scene...").clicked() {
                         *load_request = true;
                     }
                 });
@@ -123,19 +129,39 @@ impl EditorUI {
                         ui.collapsing("Transform", |ui| {
                             ui.horizontal(|ui| {
                                 ui.label("Position X:");
-                                ui.add(egui::DragValue::new(&mut transform.x).speed(1.0));
+                                ui.add(egui::DragValue::new(&mut transform.position[0]).speed(1.0));
                             });
                             ui.horizontal(|ui| {
                                 ui.label("Position Y:");
-                                ui.add(egui::DragValue::new(&mut transform.y).speed(1.0));
+                                ui.add(egui::DragValue::new(&mut transform.position[1]).speed(1.0));
                             });
                             ui.horizontal(|ui| {
-                                ui.label("Rotation:");
-                                ui.add(egui::DragValue::new(&mut transform.rotation).speed(0.1));
+                                ui.label("Position Z:");
+                                ui.add(egui::DragValue::new(&mut transform.position[2]).speed(1.0));
                             });
                             ui.horizontal(|ui| {
-                                ui.label("Scale:");
-                                ui.add(egui::DragValue::new(&mut transform.scale).speed(0.1));
+                                ui.label("Rotation X:");
+                                ui.add(egui::DragValue::new(&mut transform.rotation[0]).speed(0.1));
+                            });
+                            ui.horizontal(|ui| {
+                                ui.label("Rotation Y:");
+                                ui.add(egui::DragValue::new(&mut transform.rotation[1]).speed(0.1));
+                            });
+                            ui.horizontal(|ui| {
+                                ui.label("Rotation Z:");
+                                ui.add(egui::DragValue::new(&mut transform.rotation[2]).speed(0.1));
+                            });
+                            ui.horizontal(|ui| {
+                                ui.label("Scale X:");
+                                ui.add(egui::DragValue::new(&mut transform.scale[0]).speed(0.1));
+                            });
+                            ui.horizontal(|ui| {
+                                ui.label("Scale Y:");
+                                ui.add(egui::DragValue::new(&mut transform.scale[1]).speed(0.1));
+                            });
+                            ui.horizontal(|ui| {
+                                ui.label("Scale Z:");
+                                ui.add(egui::DragValue::new(&mut transform.scale[2]).speed(0.1));
                             });
                         });
                     }
@@ -384,8 +410,8 @@ impl EditorUI {
                     let center_y = rect.center().y;
 
                     for (&entity, transform) in &world.transforms {
-                        let screen_x = center_x + transform.x;
-                        let screen_y = center_y + transform.y;
+                        let screen_x = center_x + transform.x();
+                        let screen_y = center_y + transform.y();
 
                         if let Some(sprite) = world.sprites.get(&entity) {
                             let size = egui::vec2(sprite.width, sprite.height);
@@ -510,8 +536,8 @@ impl EditorUI {
                     if *show_velocities {
                         for (&entity, velocity) in &world.velocities {
                         if let Some(transform) = world.transforms.get(&entity) {
-                            let screen_x = center_x + transform.x;
-                            let screen_y = center_y + transform.y;
+                            let screen_x = center_x + transform.x();
+                            let screen_y = center_y + transform.y();
                             let (vx, vy) = velocity;
 
                             // Only draw if velocity is non-zero
@@ -541,8 +567,8 @@ impl EditorUI {
                     // INTERACTION: Handle transform gizmo dragging
                     if let Some(sel_entity) = *selected_entity {
                         if let Some(transform) = world.transforms.get(&sel_entity) {
-                            let screen_x = center_x + transform.x;
-                            let screen_y = center_y + transform.y;
+                            let screen_x = center_x + transform.x();
+                            let screen_y = center_y + transform.y();
                             let gizmo_size = 50.0;
                             let handle_size = 8.0;
 
@@ -578,16 +604,16 @@ impl EditorUI {
                                         match drag_axis.unwrap() {
                                             0 => {
                                                 // X axis only - lock Y
-                                                transform.x = world_x;
+                                                transform.set_x(world_x);
                                             }
                                             1 => {
                                                 // Y axis only - lock X
-                                                transform.y = world_y;
+                                                transform.set_y(world_y);
                                             }
                                             2 => {
                                                 // Both axes - free movement
-                                                transform.x = world_x;
-                                                transform.y = world_y;
+                                                transform.set_x(world_x);
+                                                transform.set_y(world_y);
                                             }
                                             _ => {}
                                         }
@@ -614,8 +640,8 @@ impl EditorUI {
                         let center_y = rect.center().y;
 
                         for (&entity, transform) in &world.transforms {
-                            let screen_x = center_x + transform.x;
-                            let screen_y = center_y + transform.y;
+                            let screen_x = center_x + transform.x();
+                            let screen_y = center_y + transform.y();
 
                             if let Some(sprite) = world.sprites.get(&entity) {
                                 let size = egui::vec2(sprite.width, sprite.height);
