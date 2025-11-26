@@ -194,7 +194,7 @@ pub fn render_scene_view(
         if world.meshes.contains_key(&entity) {
             render_mesh_entity(&painter, entity, transform, world, screen_x, screen_y, scene_camera, *selected_entity == Some(entity), scene_view_mode, projection_mode);
         } else {
-            render_entity(&painter, entity, transform, world, screen_x, screen_y, scene_camera, *selected_entity == Some(entity));
+            render_entity(&painter, entity, transform, world, screen_x, screen_y, scene_camera, *selected_entity == Some(entity), scene_view_mode);
         }
         
         // Draw gizmos
@@ -679,9 +679,39 @@ fn render_entity(
     screen_y: f32,
     scene_camera: &SceneCamera,
     is_selected: bool,
+    scene_view_mode: &SceneViewMode,
 ) {
     if let Some(sprite) = world.sprites.get(&entity) {
-        let size = egui::vec2(sprite.width * scene_camera.zoom, sprite.height * scene_camera.zoom);
+        // Calculate size based on view mode
+        let size = if *scene_view_mode == SceneViewMode::Mode3D {
+            // In 3D mode, calculate perspective-correct size
+            let pos_3d = Point3D::new(
+                transform.x() - scene_camera.position.x,
+                transform.y(),
+                transform.position[2] - scene_camera.position.y,
+            );
+
+            let yaw = scene_camera.rotation.to_radians();
+            let pitch = scene_camera.pitch.to_radians();
+            let rotated = pos_3d
+                .rotate_y(-yaw)
+                .rotate_x(pitch);
+
+            // Calculate perspective scale based on distance
+            let distance = 500.0;
+            let perspective_z = rotated.z + distance;
+            let scale = if perspective_z > 10.0 {
+                (distance / perspective_z) * scene_camera.zoom
+            } else {
+                scene_camera.zoom
+            };
+
+            egui::vec2(sprite.width * scale, sprite.height * scale)
+        } else {
+            // 2D mode - simple zoom-based size
+            egui::vec2(sprite.width * scene_camera.zoom, sprite.height * scene_camera.zoom)
+        };
+
         let color = egui::Color32::from_rgba_unmultiplied(
             (sprite.color[0] * 255.0) as u8,
             (sprite.color[1] * 255.0) as u8,
@@ -689,19 +719,21 @@ fn render_entity(
             (sprite.color[3] * 255.0) as u8,
         );
 
-        // Draw sprite as a billboard (always facing camera) in 3D space
+        // Draw sprite as a billboard (always facing camera)
         painter.rect_filled(
             egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), size),
             2.0,
             color,
         );
 
-        // Draw a subtle outline to show it's a sprite in 3D space
-        painter.rect_stroke(
-            egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), size),
-            2.0,
-            egui::Stroke::new(1.0, egui::Color32::from_rgba_premultiplied(255, 255, 255, 50)),
-        );
+        // In 3D mode, draw a subtle outline to show it's a sprite in 3D space
+        if *scene_view_mode == SceneViewMode::Mode3D {
+            painter.rect_stroke(
+                egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), size),
+                2.0,
+                egui::Stroke::new(1.0, egui::Color32::from_rgba_premultiplied(255, 255, 255, 50)),
+            );
+        }
 
         if is_selected {
             painter.rect_stroke(
