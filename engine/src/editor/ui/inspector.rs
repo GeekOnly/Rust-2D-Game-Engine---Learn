@@ -575,6 +575,7 @@ pub fn render_inspector(
                                     width: 32.0,
                                     height: 32.0,
                                     color: [1.0, 1.0, 1.0, 1.0],
+                                    billboard: false, // Default sprite, not billboard
                                 });
                                 ui.close_menu();
                             }

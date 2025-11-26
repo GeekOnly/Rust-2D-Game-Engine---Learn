@@ -39,6 +39,7 @@ impl Prefab {
                 width: 40.0,
                 height: 40.0,
                 color: [0.2, 0.6, 1.0, 1.0],
+                billboard: true, // Player sprite faces camera (good for 3D mode)
             }),
             collider: Some(Collider { width: 40.0, height: 40.0 }),
             velocity: Some((0.0, 0.0)),
@@ -57,6 +58,7 @@ impl Prefab {
                 width: 30.0,
                 height: 30.0,
                 color: [1.0, 0.8, 0.2, 1.0],
+                billboard: true, // Item sprite faces camera
             }),
             collider: Some(Collider { width: 30.0, height: 30.0 }),
             velocity: None,
@@ -139,12 +141,25 @@ impl Transform {
     }
 }
 
-#[derive(Default, Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Sprite {
     pub texture_id: String,
     pub width: f32,
     pub height: f32,
     pub color: [f32; 4], // RGBA
+    pub billboard: bool, // If true, sprite always faces camera (3D mode only)
+}
+
+impl Default for Sprite {
+    fn default() -> Self {
+        Self {
+            texture_id: String::new(),
+            width: 0.0,
+            height: 0.0,
+            color: [1.0, 1.0, 1.0, 1.0],
+            billboard: false, // Default: not a billboard
+        }
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

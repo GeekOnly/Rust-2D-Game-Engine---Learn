@@ -719,19 +719,30 @@ fn render_entity(
             (sprite.color[3] * 255.0) as u8,
         );
 
-        // Draw sprite as a billboard (always facing camera)
-        painter.rect_filled(
-            egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), size),
-            2.0,
-            color,
-        );
+        // Draw sprite
+        // In 3D mode with billboard enabled: sprite always faces camera (no rotation)
+        // In 2D mode or 3D mode with billboard disabled: sprite can be rotated
+        if *scene_view_mode == SceneViewMode::Mode3D && sprite.billboard {
+            // Billboard mode: draw sprite facing camera (no rotation applied)
+            painter.rect_filled(
+                egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), size),
+                2.0,
+                color,
+            );
 
-        // In 3D mode, draw a subtle outline to show it's a sprite in 3D space
-        if *scene_view_mode == SceneViewMode::Mode3D {
+            // Draw subtle outline for billboard sprites in 3D
             painter.rect_stroke(
                 egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), size),
                 2.0,
                 egui::Stroke::new(1.0, egui::Color32::from_rgba_premultiplied(255, 255, 255, 50)),
+            );
+        } else {
+            // Normal mode: draw sprite with rotation
+            // TODO: Apply sprite rotation based on transform.rotation[2] (Z-axis rotation)
+            painter.rect_filled(
+                egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), size),
+                2.0,
+                color,
             );
         }
 

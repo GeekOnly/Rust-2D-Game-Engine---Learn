@@ -41,6 +41,7 @@ impl GameState {
             width: 40.0,
             height: 40.0,
             color: [0.2, 0.6, 1.0, 1.0], // Blue
+            billboard: true, // Player sprite faces camera
         });
         world.colliders.insert(player, Collider {
             width: 40.0,
@@ -72,6 +73,7 @@ impl GameState {
                 width: 30.0,
                 height: 30.0,
                 color: [1.0, 0.8, 0.0, 1.0], // Gold
+                billboard: true, // Item sprite faces camera
             });
             world.colliders.insert(item, Collider {
                 width: 30.0,

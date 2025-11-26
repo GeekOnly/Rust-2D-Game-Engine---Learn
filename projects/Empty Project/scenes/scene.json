@@ -1,32 +1,12 @@
 {
-  "next_entity": 12,
+  "next_entity": 16,
   "transforms": [
     [
-      10,
+      15,
       {
         "position": [
-          23.924995,
-          -3.8000007,
-          0.0
-        ],
-        "rotation": [
           0.0,
           0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      11,
-      {
-        "position": [
-          -11.625,
-          -5.75,
           0.0
         ],
         "rotation": [
@@ -42,76 +22,28 @@
       }
     ]
   ],
-  "velocities": [
-    [
-      11,
-      [
-        0.0,
-        0.0
-      ]
-    ]
-  ],
-  "sprites": [
-    [
-      11,
-      {
-        "texture_id": "player",
-        "width": 40.0,
-        "height": 40.0,
-        "color": [
-          0.19999999,
-          0.5999998,
-          1.0,
-          1.0
-        ]
-      }
-    ]
-  ],
-  "colliders": [
-    [
-      11,
-      {
-        "width": 40.0,
-        "height": 40.0
-      }
-    ]
-  ],
-  "tags": [
-    [
-      11,
-      "Player"
-    ]
-  ],
+  "velocities": [],
+  "sprites": [],
+  "colliders": [],
+  "tags": [],
   "scripts": [],
   "active": [
     [
-      10,
-      true
-    ],
-    [
-      11,
+      15,
       true
     ]
   ],
   "layers": [
     [
-      11,
-      0
-    ],
-    [
-      10,
+      15,
       0
     ]
   ],
   "parents": [],
   "names": [
     [
-      10,
+      15,
       "Cube"
-    ],
-    [
-      11,
-      "Player"
     ]
   ]
 }

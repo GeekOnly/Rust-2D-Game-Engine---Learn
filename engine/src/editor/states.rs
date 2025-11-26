@@ -384,6 +384,7 @@ impl GameState {
             width: 40.0,
             height: 40.0,
             color: [0.2, 0.6, 1.0, 1.0],
+            billboard: true, // Player sprite faces camera
         });
 
         Self {
