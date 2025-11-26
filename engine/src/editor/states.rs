@@ -87,6 +87,11 @@ pub struct EditorState {
     pub drag_drop: super::drag_drop::DragDropState,  // Drag & drop state
     pub dock_state: egui_dock::DockState<super::ui::EditorTab>,  // Docking system
     pub use_docking: bool,               // Toggle between old and new layout
+    pub layout_request: Option<String>,  // Layout change request
+    pub current_layout_name: String,     // Current layout name (display name)
+    pub current_layout_type: String,     // Current layout type (base type: default, 2column, tall, wide)
+    pub show_save_layout_dialog: bool,   // Show save layout dialog
+    pub save_layout_name: String,        // Name for saving layout
 }
 
 #[allow(dead_code)]
@@ -133,11 +138,36 @@ impl EditorState {
             drag_drop: super::drag_drop::DragDropState::new(),
             dock_state: super::ui::create_default_layout(),
             use_docking: true, // Use new docking layout by default
+            layout_request: None,
+            current_layout_name: "default".to_string(),
+            current_layout_type: "default".to_string(),
+            show_save_layout_dialog: false,
+            save_layout_name: String::new(),
         }
     }
 
     pub fn get_scripts_folder(&self) -> Option<PathBuf> {
         self.current_project_path.as_ref().map(|p| p.join("scripts"))
+    }
+
+    /// Load editor layout from project folder
+    pub fn load_editor_layout(&mut self) {
+        if let Some(ref project_path) = self.current_project_path {
+            if let Some(layout_name) = super::ui::load_default_layout_name(project_path) {
+                self.dock_state = super::ui::get_layout_by_name(&layout_name);
+                self.current_layout_name = layout_name.clone();
+                self.console.info(format!("Loaded layout: {}", layout_name));
+            }
+        }
+    }
+
+    /// Save current layout as default
+    pub fn save_default_layout(&self) {
+        if let Some(ref project_path) = self.current_project_path {
+            if let Err(e) = super::ui::save_default_layout(&self.current_layout_name, project_path) {
+                eprintln!("Failed to save default layout: {}", e);
+            }
+        }
     }
 
     pub fn get_default_scene_path(&self, name: &str) -> Option<PathBuf> {

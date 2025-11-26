@@ -22,6 +22,8 @@ pub fn render_menu_bar(
     current_scene_path: &Option<std::path::PathBuf>,
     is_playing: bool,
     show_exit_dialog: &mut bool,
+    layout_request: &mut Option<String>,
+    current_layout_name: &str,
     get_scene_files_fn: impl Fn(&std::path::Path) -> Vec<String>,
 ) {
     egui::menu::bar(ui, |ui| {
@@ -121,7 +123,7 @@ pub fn render_menu_bar(
             }
         }
 
-        // Play/Stop buttons in menu bar
+        // Play/Stop buttons in menu bar (center)
         if !is_playing {
             if ui.button("▶ Play").clicked() {
                 *play_request = true;
@@ -131,5 +133,53 @@ pub fn render_menu_bar(
                 *stop_request = true;
             }
         }
+
+        // Push layout dropdown to the right
+        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+            // Layout dropdown (right side)
+            egui::ComboBox::from_id_source("layout_selector")
+                .selected_text(format!("📐 {}", current_layout_name))
+                .show_ui(ui, |ui| {
+                    ui.label("Built-in Layouts");
+                    ui.separator();
+                    
+                    if ui.selectable_label(current_layout_name == "default", "Default").clicked() {
+                        *layout_request = Some("load:default".to_string());
+                    }
+                    if ui.selectable_label(current_layout_name == "2column", "2 Columns").clicked() {
+                        *layout_request = Some("load:2column".to_string());
+                    }
+                    if ui.selectable_label(current_layout_name == "tall", "Tall").clicked() {
+                        *layout_request = Some("load:tall".to_string());
+                    }
+                    if ui.selectable_label(current_layout_name == "wide", "Wide").clicked() {
+                        *layout_request = Some("load:wide".to_string());
+                    }
+                    
+                    // Load and display custom layouts
+                    if let Some(proj_path) = project_path {
+                        let custom_layouts = super::load_custom_layouts(proj_path);
+                        if !custom_layouts.is_empty() {
+                            ui.separator();
+                            ui.label("Custom Layouts");
+                            ui.separator();
+                            
+                            for (name, _) in custom_layouts {
+                                if ui.selectable_label(current_layout_name == name, &name).clicked() {
+                                    *layout_request = Some(format!("custom:{}", name));
+                                }
+                            }
+                        }
+                    }
+                    
+                    ui.separator();
+                    if ui.button("💾 Save Layout As...").clicked() {
+                        *layout_request = Some("save_as".to_string());
+                    }
+                    if ui.button("✓ Set as Default").clicked() {
+                        *layout_request = Some("save_default".to_string());
+                    }
+                });
+        });
     });
 }

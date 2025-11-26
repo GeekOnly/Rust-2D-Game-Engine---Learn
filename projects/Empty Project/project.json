@@ -1,5 +1,9 @@
 {
   "name": "Empty Project",
   "description": "Start from scratch with an empty project",
-  "version": "0.1.0"
+  "version": "0.1.0",
+  "editor_startup_scene": null,
+  "game_startup_scene": null,
+  "last_opened_scene": "scenes\\scene.json",
+  "startup_scene": null
 }

@@ -434,6 +434,9 @@ fn main() -> Result<()> {
                                                         editor_state.console.info(format!("Project opened: {}", folder.display()));
                                                         editor_state.console.info("Welcome to Rust 2D Game Engine!");
 
+                                                        // Load editor layout
+                                                        editor_state.load_editor_layout();
+
                                                         // Try to load last opened scene first, then startup scene
                                                         let mut scene_loaded = false;
                                                         
@@ -761,6 +764,86 @@ fn main() -> Result<()> {
                                     }
                                 }
                                 
+                                // Handle layout change request
+                                if let Some(layout_name) = editor_state.layout_request.take() {
+                                    if layout_name == "save_default" {
+                                        // Save current layout as default
+                                        editor_state.save_default_layout();
+                                        editor_state.console.info(format!("Saved '{}' as default layout", editor_state.current_layout_name));
+                                    } else if layout_name == "save_as" {
+                                        // Show save layout dialog
+                                        editor_state.show_save_layout_dialog = true;
+                                        editor_state.save_layout_name.clear();
+                                    } else if layout_name.starts_with("load:") {
+                                        // Load built-in layout
+                                        let name = layout_name.strip_prefix("load:").unwrap();
+                                        editor_state.dock_state = editor::ui::get_layout_by_name(name);
+                                        editor_state.current_layout_name = name.to_string();
+                                        editor_state.current_layout_type = name.to_string();
+                                        editor_state.console.info(format!("Changed to '{}' layout", name));
+                                    } else if layout_name.starts_with("custom:") {
+                                        // Load custom layout
+                                        let name = layout_name.strip_prefix("custom:").unwrap();
+                                        if let Some(project_path) = &editor_state.current_project_path {
+                                            // Try to load full state first (new format)
+                                            if let Some(dock_state) = editor::ui::load_custom_layout_state(name, project_path) {
+                                                editor_state.dock_state = dock_state;
+                                                editor_state.current_layout_name = name.to_string();
+                                                editor_state.current_layout_type = "custom".to_string();
+                                                editor_state.console.info(format!("Loaded custom layout '{}'", name));
+                                            } else {
+                                                // Fallback to legacy format
+                                                let layouts = editor::ui::load_custom_layouts(project_path);
+                                                if let Some((_, layout_type)) = layouts.iter().find(|(n, _)| n == name) {
+                                                    if layout_type != "custom" {
+                                                        editor_state.dock_state = editor::ui::get_layout_by_name(layout_type);
+                                                        editor_state.current_layout_name = name.to_string();
+                                                        editor_state.current_layout_type = layout_type.clone();
+                                                        editor_state.console.info(format!("Loaded custom layout '{}' (legacy)", name));
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // Save Layout Dialog
+                                if editor_state.show_save_layout_dialog {
+                                    egui::Window::new("Save Layout As")
+                                        .collapsible(false)
+                                        .resizable(false)
+                                        .show(&egui_ctx, |ui| {
+                                            ui.label("Layout Name:");
+                                            ui.text_edit_singleline(&mut editor_state.save_layout_name);
+                                            
+                                            ui.add_space(10.0);
+                                            ui.horizontal(|ui| {
+                                                if ui.button("Save").clicked() && !editor_state.save_layout_name.is_empty() {
+                                                    if let Some(ref project_path) = editor_state.current_project_path {
+                                                        // Save custom layout with full state (including panel sizes)
+                                                        if let Err(e) = editor::ui::save_custom_layout_state(
+                                                            &editor_state.save_layout_name,
+                                                            &editor_state.dock_state,
+                                                            project_path
+                                                        ) {
+                                                            editor_state.console.error(format!("Failed to save layout: {}", e));
+                                                        } else {
+                                                            // Update current layout name to the saved name
+                                                            let saved_name = editor_state.save_layout_name.clone();
+                                                            editor_state.current_layout_name = saved_name.clone();
+                                                            editor_state.current_layout_type = "custom".to_string();
+                                                            editor_state.console.info(format!("Saved layout as '{}'", saved_name));
+                                                            editor_state.show_save_layout_dialog = false;
+                                                        }
+                                                    }
+                                                }
+                                                if ui.button("Cancel").clicked() {
+                                                    editor_state.show_save_layout_dialog = false;
+                                                }
+                                            });
+                                        });
+                                }
+
                                 // Editor UI - Use docking layout if enabled
                                 if editor_state.use_docking {
                                     EditorUI::render_editor_with_dock(
@@ -792,6 +875,8 @@ fn main() -> Result<()> {
                                         &mut editor_state.show_exit_dialog,
                                         &mut editor_state.asset_manager,
                                         &mut editor_state.drag_drop,
+                                        &mut editor_state.layout_request,
+                                        &editor_state.current_layout_name,
                                     );
                                 } else {
                                     EditorUI::render_editor(
@@ -822,6 +907,7 @@ fn main() -> Result<()> {
                                         &mut editor_state.show_exit_dialog,
                                         &mut editor_state.asset_manager,
                                         &mut editor_state.drag_drop,
+                                        &mut editor_state.layout_request,
                                     );
                                 }
 

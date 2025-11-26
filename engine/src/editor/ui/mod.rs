@@ -14,7 +14,12 @@ use ecs::{World, Entity, EntityTag};
 use egui;
 use std::collections::HashMap;
 use crate::editor::{Console, SceneCamera, SceneGrid};
-pub use dock_layout::{EditorTab, TabContext, EditorTabViewer, create_default_layout, get_dock_style};
+pub use dock_layout::{
+    EditorTab, TabContext, EditorTabViewer, 
+    create_default_layout, create_2_column_layout, create_tall_layout, create_wide_layout,
+    get_dock_style, save_default_layout, load_default_layout_name, get_layout_by_name,
+    save_custom_layout, load_custom_layouts, save_custom_layout_state, load_custom_layout_state
+};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum TransformTool {
@@ -56,9 +61,11 @@ impl EditorUI {
         show_exit_dialog: &mut bool,
         asset_manager: &mut Option<crate::editor::AssetManager>,
         drag_drop: &mut crate::editor::DragDropState,
+        _layout_request: &mut Option<String>,
     ) {
         // Top Menu Bar
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
+            let mut dummy_layout = None;
             menu_bar::render_menu_bar(
                 ui,
                 world,
@@ -77,6 +84,8 @@ impl EditorUI {
                 current_scene_path,
                 is_playing,
                 show_exit_dialog,
+                &mut dummy_layout,
+                "default",
                 Self::get_scene_files,
             );
         });
@@ -237,7 +246,12 @@ impl EditorUI {
         show_exit_dialog: &mut bool,
         asset_manager: &mut Option<crate::editor::AssetManager>,
         drag_drop: &mut crate::editor::DragDropState,
+        layout_request: &mut Option<String>,
+        current_layout_name: &str,
     ) {
+        // Handle layout change request (will be processed by caller)
+        // Layout changes are handled in main.rs to access EditorState
+
         // Top Menu Bar
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
             menu_bar::render_menu_bar(
@@ -258,6 +272,8 @@ impl EditorUI {
                 current_scene_path,
                 is_playing,
                 show_exit_dialog,
+                layout_request,
+                current_layout_name,
                 Self::get_scene_files,
             );
         });

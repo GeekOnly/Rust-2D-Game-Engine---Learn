@@ -1,0 +1,85 @@
+{
+  "next_entity": 1,
+  "transforms": [
+    [
+      0,
+      {
+        "position": [
+          -45.0,
+          14.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ]
+  ],
+  "velocities": [
+    [
+      0,
+      [
+        0.0,
+        0.0
+      ]
+    ]
+  ],
+  "sprites": [
+    [
+      0,
+      {
+        "texture_id": "player",
+        "width": 40.0,
+        "height": 40.0,
+        "color": [
+          0.19999999,
+          0.5999998,
+          1.0,
+          1.0
+        ]
+      }
+    ]
+  ],
+  "colliders": [
+    [
+      0,
+      {
+        "width": 40.0,
+        "height": 40.0
+      }
+    ]
+  ],
+  "tags": [
+    [
+      0,
+      "Player"
+    ]
+  ],
+  "scripts": [],
+  "active": [
+    [
+      0,
+      true
+    ]
+  ],
+  "layers": [
+    [
+      0,
+      0
+    ]
+  ],
+  "parents": [],
+  "names": [
+    [
+      0,
+      "Player"
+    ]
+  ]
+}
