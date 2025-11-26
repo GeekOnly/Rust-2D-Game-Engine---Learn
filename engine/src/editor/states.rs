@@ -82,6 +82,7 @@ pub struct EditorState {
     pub hierarchy_search: String,        // Search filter
     pub autosave: super::autosave::AutoSave,  // Auto-save system
     pub show_exit_dialog: bool,          // Exit confirmation dialog
+    pub asset_manager: Option<super::asset_manager::AssetManager>,  // Asset manager
 }
 
 #[allow(dead_code)]
@@ -123,6 +124,7 @@ impl EditorState {
             hierarchy_search: String::new(),
             autosave: super::autosave::AutoSave::new(300), // 5 minutes
             show_exit_dialog: false,
+            asset_manager: None, // Initialized when project is opened
         }
     }
 

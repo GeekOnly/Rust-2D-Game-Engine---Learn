@@ -6,6 +6,7 @@ pub mod inspector;
 pub mod scene_view;
 pub mod bottom_panel;
 pub mod project_settings;
+pub mod asset_browser;
 
 // Re-exports
 use ecs::{World, Entity, EntityTag};
@@ -48,10 +49,10 @@ impl EditorUI {
         bottom_panel_tab: &mut usize,
         current_tool: &mut TransformTool,
         show_project_settings: &mut bool,
-        resource_current_folder: &mut String,
         scene_camera: &mut SceneCamera,
         scene_grid: &SceneGrid,
         show_exit_dialog: &mut bool,
+        asset_manager: &mut Option<crate::editor::AssetManager>,
     ) {
         // Top Menu Bar
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
@@ -123,14 +124,12 @@ impl EditorUI {
             );
         });
 
-        // Bottom Panel - Resources & Console
+        // Bottom Panel - Assets & Console
         egui::TopBottomPanel::bottom("bottom_panel").min_height(280.0).show(ctx, |ui| {
             bottom_panel::render_bottom_panel(
                 ui,
                 bottom_panel_tab,
-                project_path,
-                resource_current_folder,
-                load_file_request,
+                asset_manager,
                 console,
             );
         });

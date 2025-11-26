@@ -702,6 +702,13 @@ fn main() -> Result<()> {
                                     }
                                 });
 
+                                // Initialize asset manager if not yet initialized
+                                if editor_state.asset_manager.is_none() {
+                                    if let Some(ref project_path) = editor_state.current_project_path {
+                                        editor_state.asset_manager = Some(editor::AssetManager::new(project_path));
+                                    }
+                                }
+                                
                                 // Editor UI
                                 EditorUI::render_editor(
                                     &egui_ctx,
@@ -726,10 +733,10 @@ fn main() -> Result<()> {
                                     &mut editor_state.bottom_panel_tab,
                                     &mut editor_state.current_tool,
                                     &mut editor_state.show_project_settings,
-                                    &mut editor_state.resource_current_folder,
                                     &mut editor_state.scene_camera,
                                     &editor_state.scene_grid,
                                     &mut editor_state.show_exit_dialog,
+                                    &mut editor_state.asset_manager,
                                 );
 
                                 // Handle new scene request
