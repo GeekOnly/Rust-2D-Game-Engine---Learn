@@ -737,6 +737,7 @@ fn main() -> Result<()> {
                                     &editor_state.scene_grid,
                                     &mut editor_state.show_exit_dialog,
                                     &mut editor_state.asset_manager,
+                                    &mut editor_state.drag_drop,
                                 );
 
                                 // Handle new scene request

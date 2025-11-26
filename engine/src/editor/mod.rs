@@ -9,6 +9,7 @@ pub mod theme;
 pub mod toolbar;
 pub mod autosave;
 pub mod asset_manager;
+pub mod drag_drop;
 
 // Re-exports for convenience
 pub use console::Console;
@@ -21,3 +22,4 @@ pub use theme::UnityTheme;
 pub use toolbar::Toolbar;
 pub use autosave::AutoSave;
 pub use asset_manager::AssetManager;
+pub use drag_drop::{DragDropState, DraggedAsset};

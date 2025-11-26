@@ -146,11 +146,12 @@ pub struct AssetManager {
 
 impl AssetManager {
     pub fn new(project_path: &Path) -> Self {
-        let assets_path = project_path.join("assets");
-        std::fs::create_dir_all(&assets_path).ok();
+        // Start at project root, not assets folder
+        // This allows users to see all project files
+        let start_path = project_path.to_path_buf();
         
         Self {
-            current_path: assets_path.clone(),
+            current_path: start_path.clone(),
             view_mode: ViewMode::Grid,
             sort_mode: SortMode::Name,
             search_query: String::new(),
@@ -159,7 +160,7 @@ impl AssetManager {
             favorites: Vec::new(),
             show_hidden: false,
             thumbnail_size: 80.0,
-            history: vec![assets_path],
+            history: vec![start_path],
             history_index: 0,
         }
     }

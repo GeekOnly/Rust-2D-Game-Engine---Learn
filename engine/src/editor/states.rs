@@ -83,6 +83,7 @@ pub struct EditorState {
     pub autosave: super::autosave::AutoSave,  // Auto-save system
     pub show_exit_dialog: bool,          // Exit confirmation dialog
     pub asset_manager: Option<super::asset_manager::AssetManager>,  // Asset manager
+    pub drag_drop: super::drag_drop::DragDropState,  // Drag & drop state
 }
 
 #[allow(dead_code)]
@@ -125,6 +126,7 @@ impl EditorState {
             autosave: super::autosave::AutoSave::new(300), // 5 minutes
             show_exit_dialog: false,
             asset_manager: None, // Initialized when project is opened
+            drag_drop: super::drag_drop::DragDropState::new(),
         }
     }
 

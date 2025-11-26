@@ -1,7 +1,7 @@
 /// Unity/Unreal-like Asset Browser UI
 use egui::{Color32, Rect, Response, Sense, Stroke, Vec2};
 use crate::editor::asset_manager::{AssetManager, AssetMetadata, AssetType, ViewMode, SortMode};
-use crate::editor::UnityTheme;
+use crate::editor::{UnityTheme, DragDropState, DraggedAsset};
 
 pub struct AssetBrowser;
 
@@ -10,6 +10,7 @@ impl AssetBrowser {
     pub fn render(
         ui: &mut egui::Ui,
         asset_manager: &mut AssetManager,
+        drag_drop: &mut DragDropState,
     ) {
         let colors = UnityTheme::colors();
         
@@ -88,10 +89,10 @@ impl AssetBrowser {
             
             match asset_manager.view_mode {
                 ViewMode::Grid => {
-                    Self::render_grid_view(ui, asset_manager, &assets, colors);
+                    Self::render_grid_view(ui, asset_manager, &assets, colors, drag_drop);
                 }
                 ViewMode::List => {
-                    Self::render_list_view(ui, asset_manager, &assets, colors);
+                    Self::render_list_view(ui, asset_manager, &assets, colors, drag_drop);
                 }
             }
         });
@@ -103,6 +104,7 @@ impl AssetBrowser {
         asset_manager: &mut AssetManager,
         assets: &[AssetMetadata],
         colors: crate::editor::theme::UnityColors,
+        drag_drop: &mut DragDropState,
     ) {
         let thumbnail_size = asset_manager.thumbnail_size;
         let spacing = 10.0;
@@ -113,7 +115,7 @@ impl AssetBrowser {
         for row_assets in assets.chunks(columns) {
             ui.horizontal(|ui| {
                 for asset in row_assets {
-                    Self::render_grid_item(ui, asset_manager, asset, thumbnail_size, colors);
+                    Self::render_grid_item(ui, asset_manager, asset, thumbnail_size, colors, drag_drop);
                 }
             });
         }
@@ -126,6 +128,7 @@ impl AssetBrowser {
         asset: &AssetMetadata,
         size: f32,
         colors: crate::editor::theme::UnityColors,
+        drag_drop: &mut DragDropState,
     ) {
         let (rect, response) = ui.allocate_exact_size(
             Vec2::new(size, size + 30.0),
@@ -198,6 +201,15 @@ impl AssetBrowser {
                 colors.text,
             );
             
+            // Handle drag
+            if response.drag_started() && asset.asset_type != AssetType::Folder {
+                drag_drop.start_drag(DraggedAsset {
+                    path: asset.path.clone(),
+                    name: asset.name.clone(),
+                    asset_type: asset.asset_type.clone(),
+                });
+            }
+            
             // Handle click
             if response.clicked() {
                 if asset.asset_type == AssetType::Folder {
@@ -228,6 +240,7 @@ impl AssetBrowser {
         asset_manager: &mut AssetManager,
         assets: &[AssetMetadata],
         _colors: crate::editor::theme::UnityColors,
+        drag_drop: &mut DragDropState,
     ) {
         // Header
         ui.horizontal(|ui| {
@@ -296,6 +309,15 @@ impl AssetBrowser {
                 
                 name_response
             }).inner;
+            
+            // Handle drag
+            if response.drag_started() && asset.asset_type != AssetType::Folder {
+                drag_drop.start_drag(DraggedAsset {
+                    path: asset.path.clone(),
+                    name: asset.name.clone(),
+                    asset_type: asset.asset_type.clone(),
+                });
+            }
             
             // Handle click
             if response.clicked() {

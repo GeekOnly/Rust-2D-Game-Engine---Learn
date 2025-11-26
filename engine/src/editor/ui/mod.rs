@@ -53,6 +53,7 @@ impl EditorUI {
         scene_grid: &SceneGrid,
         show_exit_dialog: &mut bool,
         asset_manager: &mut Option<crate::editor::AssetManager>,
+        drag_drop: &mut crate::editor::DragDropState,
     ) {
         // Top Menu Bar
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
@@ -131,6 +132,7 @@ impl EditorUI {
                 bottom_panel_tab,
                 asset_manager,
                 console,
+                drag_drop,
             );
         });
 

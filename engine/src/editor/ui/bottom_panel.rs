@@ -1,5 +1,5 @@
 use egui;
-use crate::editor::{Console, AssetManager};
+use crate::editor::{Console, AssetManager, DragDropState};
 use crate::editor::ui::asset_browser::AssetBrowser;
 
 /// Renders the bottom panel with Assets and Console tabs
@@ -8,6 +8,7 @@ pub fn render_bottom_panel(
     bottom_panel_tab: &mut usize,
     asset_manager: &mut Option<AssetManager>,
     console: &mut Console,
+    drag_drop: &mut DragDropState,
 ) {
     // Tab bar
     ui.horizontal(|ui| {
@@ -21,7 +22,7 @@ pub fn render_bottom_panel(
         0 => {
             // Assets tab
             if let Some(ref mut manager) = asset_manager {
-                AssetBrowser::render(ui, manager);
+                AssetBrowser::render(ui, manager, drag_drop);
             } else {
                 ui.centered_and_justified(|ui| {
                     ui.label("No project open");
