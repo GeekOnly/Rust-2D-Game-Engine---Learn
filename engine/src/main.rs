@@ -203,6 +203,12 @@ fn main() -> Result<()> {
                         ..
                     } => target.exit(),
                     WindowEvent::KeyboardInput { event: key_event, .. } => {
+                        // Update modifiers for shortcut manager (from egui context)
+                        if app_state == AppState::Editor {
+                            let modifiers = egui_ctx.input(|i| i.modifiers);
+                            editor_state.shortcut_manager.update_modifiers(modifiers);
+                        }
+                        
                         // Update InputSystem
                         if let winit::keyboard::PhysicalKey::Code(key_code) = key_event.physical_key {
                             let key_str = format!("{:?}", key_code);
@@ -211,6 +217,72 @@ fn main() -> Result<()> {
                                     ctx.input.press_key(key);
                                 } else {
                                     ctx.input.release_key(key);
+                                }
+                            }
+                        }
+
+                        // Handle editor shortcuts (only when not playing)
+                        if app_state == AppState::Editor && !editor_state.is_playing {
+                            if let winit::keyboard::PhysicalKey::Code(key_code) = key_event.physical_key {
+                                if key_event.state == ElementState::Pressed {
+                                    if let Some(shortcut) = editor_state.shortcut_manager.check_shortcut(key_code) {
+                                        use crate::editor::EditorShortcut;
+                                        match shortcut {
+                                            EditorShortcut::ViewTool => {
+                                                editor_state.current_tool = TransformTool::View;
+                                                editor_state.console.info("Tool: View (Q)".to_string());
+                                            }
+                                            EditorShortcut::MoveTool => {
+                                                editor_state.current_tool = TransformTool::Move;
+                                                editor_state.console.info("Tool: Move (W)".to_string());
+                                            }
+                                            EditorShortcut::RotateTool => {
+                                                editor_state.current_tool = TransformTool::Rotate;
+                                                editor_state.console.info("Tool: Rotate (E)".to_string());
+                                            }
+                                            EditorShortcut::ScaleTool => {
+                                                editor_state.current_tool = TransformTool::Scale;
+                                                editor_state.console.info("Tool: Scale (R)".to_string());
+                                            }
+                                            EditorShortcut::Delete => {
+                                                if let Some(entity) = editor_state.selected_entity {
+                                                    editor_state.world.despawn(entity);
+                                                    editor_state.entity_names.remove(&entity);
+                                                    editor_state.selected_entity = None;
+                                                    editor_state.scene_modified = true;
+                                                    editor_state.console.info("Entity deleted".to_string());
+                                                }
+                                            }
+                                            EditorShortcut::FrameSelected => {
+                                                if let Some(entity) = editor_state.selected_entity {
+                                                    if let Some(transform) = editor_state.world.transforms.get(&entity) {
+                                                        let pos = glam::Vec2::new(transform.x(), transform.y());
+                                                        let size = if let Some(sprite) = editor_state.world.sprites.get(&entity) {
+                                                            glam::Vec2::new(sprite.width, sprite.height)
+                                                        } else {
+                                                            glam::Vec2::new(50.0, 50.0)
+                                                        };
+                                                        let viewport = glam::Vec2::new(800.0, 600.0);
+                                                        editor_state.scene_camera.frame_object(pos, size, viewport);
+                                                        editor_state.console.info("Framed selected object (F)".to_string());
+                                                    }
+                                                }
+                                            }
+                                            EditorShortcut::ToggleGrid => {
+                                                editor_state.scene_grid.toggle();
+                                                let status = if editor_state.scene_grid.enabled { "ON" } else { "OFF" };
+                                                editor_state.console.info(format!("Grid: {}", status));
+                                            }
+                                            EditorShortcut::Duplicate => {
+                                                if let Some(_entity) = editor_state.selected_entity {
+                                                    editor_state.console.info("Duplicate (Ctrl+D) - Not yet implemented".to_string());
+                                                }
+                                            }
+                                            _ => {
+                                                // Other shortcuts not yet implemented
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -618,6 +690,8 @@ fn main() -> Result<()> {
                                     &editor_state.current_tool,
                                     &mut editor_state.show_project_settings,
                                     &mut editor_state.resource_current_folder,
+                                    &mut editor_state.scene_camera,
+                                    &editor_state.scene_grid,
                                 );
 
                                 // Handle new scene request

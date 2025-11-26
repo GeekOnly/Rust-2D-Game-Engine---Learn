@@ -11,7 +11,7 @@ pub mod project_settings;
 use ecs::{World, Entity, EntityTag};
 use egui;
 use std::collections::HashMap;
-use crate::editor::Console;
+use crate::editor::{Console, SceneCamera, SceneGrid};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum TransformTool {
@@ -49,6 +49,8 @@ impl EditorUI {
         current_tool: &TransformTool,
         show_project_settings: &mut bool,
         resource_current_folder: &mut String,
+        scene_camera: &mut SceneCamera,
+        scene_grid: &SceneGrid,
     ) {
         // Top Menu Bar
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
@@ -112,6 +114,8 @@ impl EditorUI {
                 show_colliders,
                 show_velocities,
                 current_tool,
+                scene_camera,
+                scene_grid,
             );
         });
 

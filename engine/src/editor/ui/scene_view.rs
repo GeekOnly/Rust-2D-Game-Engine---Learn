@@ -1,6 +1,7 @@
 use ecs::{World, Entity};
 use egui;
 use crate::editor::ui::TransformTool;
+use crate::editor::{SceneCamera, SceneGrid};
 
 /// Renders the Scene/Game view panel
 ///
@@ -13,6 +14,8 @@ use crate::editor::ui::TransformTool;
 /// * `show_colliders` - Whether to render collider boundaries
 /// * `show_velocities` - Whether to render velocity vectors
 /// * `current_tool` - The current transform tool (View, Move, Rotate, Scale)
+/// * `scene_camera` - The scene camera for pan/zoom
+/// * `scene_grid` - The grid system for snapping
 pub fn render_scene_view(
     ui: &mut egui::Ui,
     world: &mut World,
@@ -22,6 +25,8 @@ pub fn render_scene_view(
     show_colliders: &bool,
     show_velocities: &bool,
     current_tool: &TransformTool,
+    scene_camera: &mut SceneCamera,
+    scene_grid: &SceneGrid,
 ) {
     ui.horizontal(|ui| {
         ui.selectable_value(scene_view_tab, 0, "🎬 Scene");
@@ -38,33 +43,88 @@ pub fn render_scene_view(
             );
             let rect = response.rect;
 
+            // === CAMERA CONTROLS ===
+            // Handle middle mouse panning
+            if response.dragged_by(egui::PointerButton::Middle) {
+                let delta = response.drag_delta();
+                let mouse_pos = response.interact_pointer_pos().unwrap_or(rect.center());
+                
+                if response.drag_started_by(egui::PointerButton::Middle) {
+                    scene_camera.start_pan(glam::Vec2::new(mouse_pos.x, mouse_pos.y));
+                } else {
+                    scene_camera.update_pan(glam::Vec2::new(mouse_pos.x, mouse_pos.y));
+                }
+            } else {
+                scene_camera.stop_pan();
+            }
+
+            // Handle scroll wheel zooming
+            let scroll_delta = ui.input(|i| i.smooth_scroll_delta.y + i.raw_scroll_delta.y);
+            if scroll_delta.abs() > 0.01 {
+                let mouse_pos = response.hover_pos().unwrap_or(rect.center());
+                scene_camera.zoom(scroll_delta * 0.01, glam::Vec2::new(mouse_pos.x, mouse_pos.y));
+            }
+
             // Draw grid background
             painter.rect_filled(rect, 0.0, egui::Color32::from_rgb(40, 40, 50));
 
-            // Draw grid lines
-            let grid_size = 50.0;
-            for i in 0..((rect.width() / grid_size) as usize) {
-                let x = rect.min.x + i as f32 * grid_size;
-                painter.line_segment(
-                    [egui::pos2(x, rect.min.y), egui::pos2(x, rect.max.y)],
-                    egui::Stroke::new(1.0, egui::Color32::from_rgb(60, 60, 70)),
+            // === GRID RENDERING ===
+            if scene_grid.enabled {
+                let grid_size = scene_grid.size * scene_camera.zoom;
+                let grid_color = egui::Color32::from_rgba_premultiplied(
+                    (scene_grid.color[0] * 255.0) as u8,
+                    (scene_grid.color[1] * 255.0) as u8,
+                    (scene_grid.color[2] * 255.0) as u8,
+                    (scene_grid.color[3] * 255.0) as u8,
                 );
-            }
-            for i in 0..((rect.height() / grid_size) as usize) {
-                let y = rect.min.y + i as f32 * grid_size;
-                painter.line_segment(
-                    [egui::pos2(rect.min.x, y), egui::pos2(rect.max.x, y)],
-                    egui::Stroke::new(1.0, egui::Color32::from_rgb(60, 60, 70)),
+                let axis_color = egui::Color32::from_rgba_premultiplied(
+                    (scene_grid.axis_color[0] * 255.0) as u8,
+                    (scene_grid.axis_color[1] * 255.0) as u8,
+                    (scene_grid.axis_color[2] * 255.0) as u8,
+                    (scene_grid.axis_color[3] * 255.0) as u8,
                 );
+
+                // Draw vertical grid lines
+                let start_x = ((rect.min.x - scene_camera.position.x * scene_camera.zoom) / grid_size).floor() * grid_size;
+                let mut x = start_x;
+                while x < rect.max.x {
+                    let world_x = (x - rect.center().x) / scene_camera.zoom + scene_camera.position.x;
+                    let is_axis = (world_x / scene_grid.size).abs() % 5.0 < 0.1;
+                    let color = if is_axis { axis_color } else { grid_color };
+                    
+                    painter.line_segment(
+                        [egui::pos2(x, rect.min.y), egui::pos2(x, rect.max.y)],
+                        egui::Stroke::new(1.0, color),
+                    );
+                    x += grid_size;
+                }
+
+                // Draw horizontal grid lines
+                let start_y = ((rect.min.y - scene_camera.position.y * scene_camera.zoom) / grid_size).floor() * grid_size;
+                let mut y = start_y;
+                while y < rect.max.y {
+                    let world_y = (y - rect.center().y) / scene_camera.zoom + scene_camera.position.y;
+                    let is_axis = (world_y / scene_grid.size).abs() % 5.0 < 0.1;
+                    let color = if is_axis { axis_color } else { grid_color };
+                    
+                    painter.line_segment(
+                        [egui::pos2(rect.min.x, y), egui::pos2(rect.max.x, y)],
+                        egui::Stroke::new(1.0, color),
+                    );
+                    y += grid_size;
+                }
             }
 
-            // Draw entities
+            // Draw entities (with camera transform)
             let center_x = rect.center().x;
             let center_y = rect.center().y;
 
             for (&entity, transform) in &world.transforms {
-                let screen_x = center_x + transform.x();
-                let screen_y = center_y + transform.y();
+                // Apply camera transform
+                let world_pos = glam::Vec2::new(transform.x(), transform.y());
+                let screen_pos = scene_camera.world_to_screen(world_pos);
+                let screen_x = center_x + screen_pos.x;
+                let screen_y = center_y + screen_pos.y;
 
                 if let Some(sprite) = world.sprites.get(&entity) {
                     let size = egui::vec2(sprite.width, sprite.height);

@@ -1,5 +1,6 @@
 /// Keyboard shortcuts system for Unity-like editor
-use winit::keyboard::{KeyCode, ModifiersState};
+use winit::keyboard::KeyCode;
+use egui::Modifiers;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum EditorShortcut {
@@ -38,24 +39,24 @@ pub enum EditorShortcut {
 }
 
 pub struct ShortcutManager {
-    modifiers: ModifiersState,
+    modifiers: Modifiers,
 }
 
 impl ShortcutManager {
     pub fn new() -> Self {
         Self {
-            modifiers: ModifiersState::empty(),
+            modifiers: Modifiers::default(),
         }
     }
     
-    pub fn update_modifiers(&mut self, modifiers: ModifiersState) {
+    pub fn update_modifiers(&mut self, modifiers: Modifiers) {
         self.modifiers = modifiers;
     }
     
     pub fn check_shortcut(&self, key: KeyCode) -> Option<EditorShortcut> {
-        let ctrl = self.modifiers.control_key();
-        let shift = self.modifiers.shift_key();
-        let alt = self.modifiers.alt_key();
+        let ctrl = self.modifiers.ctrl;
+        let shift = self.modifiers.shift;
+        let alt = self.modifiers.alt;
         
         match (key, ctrl, shift, alt) {
             // Transform tools (no modifiers)
