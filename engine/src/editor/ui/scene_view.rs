@@ -140,7 +140,7 @@ pub fn render_scene_view(
 
         // Draw entity (sprite or mesh)
         if world.meshes.contains_key(&entity) {
-            render_mesh_entity(&painter, entity, transform, world, screen_x, screen_y, scene_camera, *selected_entity == Some(entity), scene_view_mode);
+            render_mesh_entity(&painter, entity, transform, world, screen_x, screen_y, scene_camera, *selected_entity == Some(entity), scene_view_mode, projection_mode);
         } else {
             render_entity(&painter, entity, transform, world, screen_x, screen_y, scene_camera, *selected_entity == Some(entity));
         }
@@ -319,8 +319,16 @@ fn handle_camera_controls(
         scene_camera.stop_pan();
     }
 
-    // Scroll wheel - Zoom (improved)
-    let scroll_delta = response.ctx.input(|i| i.smooth_scroll_delta.y + i.raw_scroll_delta.y);
+    // Scroll wheel - Zoom (smooth and responsive)
+    let scroll_delta = response.ctx.input(|i| {
+        // Use smooth scroll if available, otherwise use raw but scaled down
+        if i.smooth_scroll_delta.y.abs() > 0.1 {
+            i.smooth_scroll_delta.y
+        } else {
+            i.raw_scroll_delta.y * 0.1 // Scale down raw scroll
+        }
+    });
+    
     if scroll_delta.abs() > 0.1 {
         let mouse_pos = response.hover_pos().unwrap_or(rect.center());
         let zoom_direction = if scroll_delta > 0.0 { 1.0 } else { -1.0 };
@@ -559,6 +567,7 @@ fn render_3d_cube(
     transform: &ecs::Transform,
     base_color: egui::Color32,
     scene_camera: &SceneCamera,
+    projection_mode: &ProjectionMode,
 ) {
     let half = size / 2.0;
     let scale = transform.scale;
@@ -587,9 +596,12 @@ fn render_3d_cube(
         })
         .collect();
     
-    // Project to 2D
+    // Project to 2D based on projection mode
     let projected: Vec<(f32, f32)> = rotated.iter()
-        .map(|v| v.project_isometric())
+        .map(|v| match projection_mode {
+            ProjectionMode::Isometric => v.project_isometric(),
+            ProjectionMode::Perspective => v.project_perspective(500.0, 300.0),
+        })
         .collect();
     
     // Define faces with their center Z for depth sorting
@@ -717,7 +729,7 @@ impl Point3D {
     /// Project to 2D screen space with perspective
     fn project_perspective(&self, fov: f32, distance: f32) -> (f32, f32) {
         let z_offset = self.z + distance;
-        if z_offset <= 0.1 {
+        if z_offset <= 10.0 {
             return (self.x, self.y);
         }
         
@@ -725,11 +737,12 @@ impl Point3D {
         (self.x * scale, self.y * scale)
     }
     
-    /// Project to 2D screen space (isometric)
+    /// Project to 2D screen space (isometric) - proper isometric angles
     fn project_isometric(&self) -> (f32, f32) {
-        // Isometric projection: 30° angle
-        let iso_x = self.x - self.z * 0.5;
-        let iso_y = self.y - self.z * 0.5;
+        // True isometric projection (120° angles)
+        // X and Z axes at 30° from horizontal
+        let iso_x = (self.x - self.z) * 0.866; // cos(30°) ≈ 0.866
+        let iso_y = self.y + (self.x + self.z) * 0.5; // sin(30°) = 0.5
         (iso_x, iso_y)
     }
 }
@@ -744,6 +757,7 @@ fn render_mesh_entity(
     scene_camera: &SceneCamera,
     is_selected: bool,
     scene_view_mode: &SceneViewMode,
+    projection_mode: &ProjectionMode,
 ) {
     if let Some(mesh) = world.meshes.get(&entity) {
         let color = egui::Color32::from_rgba_unmultiplied(
@@ -771,7 +785,7 @@ fn render_mesh_entity(
         match &mesh.mesh_type {
             ecs::MeshType::Cube => {
                 if *scene_view_mode == SceneViewMode::Mode3D {
-                    render_3d_cube(painter, screen_x, screen_y, base_size, transform, color, scene_camera);
+                    render_3d_cube(painter, screen_x, screen_y, base_size, transform, color, scene_camera, projection_mode);
                 } else {
                     // 2D view - simple square
                     let rect = egui::Rect::from_center_size(
