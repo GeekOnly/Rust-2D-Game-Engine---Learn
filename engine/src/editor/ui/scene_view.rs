@@ -17,6 +17,13 @@ pub enum ProjectionMode {
     Perspective,
 }
 
+/// Transform space mode (Local or World)
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum TransformSpace {
+    Local,
+    World,
+}
+
 /// Renders the Scene view panel (editor view only, no game view)
 pub fn render_scene_view(
     ui: &mut egui::Ui,
@@ -35,9 +42,10 @@ pub fn render_scene_view(
     drag_axis: &mut Option<u8>,
     scene_view_mode: &mut SceneViewMode,
     projection_mode: &mut ProjectionMode,
+    transform_space: &mut TransformSpace,
 ) {
     // Unity-like toolbar
-    render_scene_toolbar(ui, current_tool, is_playing, play_request, stop_request, scene_view_mode);
+    render_scene_toolbar(ui, current_tool, is_playing, play_request, stop_request, scene_view_mode, transform_space);
 
     // Main scene view
     let (response, painter) = ui.allocate_painter(
@@ -226,6 +234,7 @@ fn render_scene_toolbar(
     play_request: &mut bool,
     stop_request: &mut bool,
     scene_view_mode: &mut SceneViewMode,
+    transform_space: &mut TransformSpace,
 ) {
     ui.horizontal(|ui| {
         // Transform tools
@@ -247,8 +256,10 @@ fn render_scene_toolbar(
         
         ui.separator();
         
-        // Space: Local/Global
-        ui.label("Space: Local");
+        // Space: Local/World toggle
+        ui.label("Space:");
+        ui.selectable_value(transform_space, TransformSpace::Local, "Local");
+        ui.selectable_value(transform_space, TransformSpace::World, "World");
         
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
             // Play/Stop buttons

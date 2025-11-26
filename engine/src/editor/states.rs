@@ -96,6 +96,7 @@ pub struct EditorState {
     pub drag_axis: Option<u8>,           // Drag axis: 0=X, 1=Y, 2=Both
     pub scene_view_mode: super::ui::scene_view::SceneViewMode, // 2D or 3D mode
     pub projection_mode: super::ui::scene_view::ProjectionMode, // Isometric or Perspective
+    pub transform_space: super::ui::scene_view::TransformSpace, // Local or World space
 }
 
 #[allow(dead_code)]
@@ -151,6 +152,7 @@ impl EditorState {
             drag_axis: None,
             scene_view_mode: super::ui::scene_view::SceneViewMode::Mode2D,
             projection_mode: super::ui::scene_view::ProjectionMode::Perspective,
+            transform_space: super::ui::scene_view::TransformSpace::Local,
         }
     }
 

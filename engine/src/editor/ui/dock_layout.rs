@@ -41,6 +41,7 @@ pub struct TabContext<'a> {
     pub drag_axis: &'a mut Option<u8>,
     pub scene_view_mode: &'a mut scene_view::SceneViewMode,
     pub projection_mode: &'a mut scene_view::ProjectionMode,
+    pub transform_space: &'a mut scene_view::TransformSpace,
 }
 
 /// Tab viewer implementation for egui_dock
@@ -107,6 +108,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                     self.context.drag_axis,
                     self.context.scene_view_mode,
                     self.context.projection_mode,
+                    self.context.transform_space,
                 );
             }
             EditorTab::Game => {
