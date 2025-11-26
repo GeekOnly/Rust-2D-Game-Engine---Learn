@@ -1,7 +1,7 @@
 use ecs::{World, Entity, Prefab};
 use egui;
 use std::collections::HashMap;
-use crate::console::Console;
+use crate::editor::Console;
 
 /// Render the hierarchy panel (left panel) showing scene entities
 pub fn render_hierarchy(

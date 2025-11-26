@@ -1,6 +1,6 @@
 use egui;
-use crate::console::Console;
-use crate::editor_ui::resource_manager;
+use crate::editor::Console;
+use crate::editor::ui::resource_manager;
 use std::path::PathBuf;
 
 /// Renders the bottom panel with Resources and Console tabs

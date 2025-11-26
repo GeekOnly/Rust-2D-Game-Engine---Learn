@@ -13,6 +13,14 @@ pub enum AppState {
     Playing,
 }
 
+/// Editor actions (for handling user commands)
+#[derive(Debug, Clone, PartialEq)]
+pub enum EditorAction {
+    NewScene,
+    LoadScene(Option<std::path::PathBuf>), // None = Browse, Some = Direct load
+    Quit,
+}
+
 /// Launcher state - Project selection and creation
 #[allow(dead_code)]
 pub struct LauncherState {
@@ -50,8 +58,21 @@ pub struct EditorState {
     pub is_playing: bool,
     pub play_world: Option<World>,
     pub keyboard_state: HashMap<String, bool>,
+    pub input_system: input::InputSystem,
     pub show_colliders: bool,
     pub show_velocities: bool,
+    pub console: super::console::Console,
+    pub bottom_panel_tab: usize,
+    pub show_project_settings: bool,
+    pub show_unsaved_changes_dialog: bool,
+    pub pending_action: Option<EditorAction>,
+    pub asset_browser_path: Option<PathBuf>,
+    pub current_tool: super::ui::TransformTool,
+    pub resource_current_folder: String,
+    pub resource_selected_item: Option<PathBuf>,
+    pub show_create_menu: bool,
+    pub show_rename_dialog: bool,
+    pub rename_buffer: String,
 }
 
 #[allow(dead_code)]
@@ -69,8 +90,21 @@ impl EditorState {
             is_playing: false,
             play_world: None,
             keyboard_state: HashMap::new(),
+            input_system: input::InputSystem::new(),
             show_colliders: true,
             show_velocities: false,
+            console: super::console::Console::new(),
+            bottom_panel_tab: 0,
+            show_project_settings: false,
+            show_unsaved_changes_dialog: false,
+            pending_action: None,
+            asset_browser_path: None,
+            current_tool: super::ui::TransformTool::View,
+            resource_current_folder: String::new(),
+            resource_selected_item: None,
+            show_create_menu: false,
+            show_rename_dialog: false,
+            rename_buffer: String::new(),
         }
     }
 

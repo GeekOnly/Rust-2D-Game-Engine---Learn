@@ -11,7 +11,7 @@ pub mod project_settings;
 use ecs::{World, Entity, EntityTag};
 use egui;
 use std::collections::HashMap;
-use crate::console::Console;
+use crate::editor::Console;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum TransformTool {

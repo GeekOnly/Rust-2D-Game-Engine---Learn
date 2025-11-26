@@ -1,6 +1,6 @@
 use ecs::{World, Entity};
 use egui;
-use crate::editor_ui::TransformTool;
+use crate::editor::ui::TransformTool;
 
 /// Renders the Scene/Game view panel
 ///

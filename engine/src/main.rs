@@ -1,7 +1,5 @@
-mod editor_ui;
-mod states;
-mod script_loader;
-mod console;
+mod editor;
+mod runtime;
 
 use anyhow::Result;
 use engine_core::{EngineContext, EngineModule, project::ProjectManager};
@@ -9,280 +7,15 @@ use ecs::{World, Entity, Transform, Sprite, Collider, EntityTag};
 use script::ScriptEngine;
 use physics::PhysicsWorld;
 use render::RenderModule;
-use editor::EditorModule;
-use editor_ui::{EditorUI, TransformTool};
-use input::{Key, MouseButton};
+use ::editor::EditorModule as EditorMod;  // From editor crate (workspace)
+use crate::editor::{EditorUI, TransformTool, AppState, LauncherState, EditorState, EditorAction};  // From local editor module
+use input::Key;
 
 use winit::{
     event::*,
     event_loop::{ControlFlow, EventLoop},
     window::WindowBuilder,
 };
-
-// Moved to states module
-// pub use states::{AppState, LauncherState, EditorState, GameState};
-
-// Temporary: Keep local definitions until full migration
-#[derive(Debug, Clone, PartialEq)]
-enum AppState {
-    Launcher,
-    Editor,
-    Playing,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-enum EditorAction {
-    NewScene,
-    LoadScene(Option<std::path::PathBuf>), // None = Browse, Some = Direct load
-    Quit,
-}
-
-struct LauncherState {
-    project_manager: ProjectManager,
-    new_project_name: String,
-    new_project_desc: String,
-    show_new_project_dialog: bool,
-    error_message: Option<String>,
-}
-
-impl LauncherState {
-    fn new() -> Result<Self> {
-        Ok(Self {
-            project_manager: ProjectManager::new()?,
-            new_project_name: String::new(),
-            new_project_desc: String::new(),
-            show_new_project_dialog: false,
-            error_message: None,
-        })
-    }
-}
-
-struct EditorState {
-    world: World,
-    selected_entity: Option<Entity>,
-    entity_names: std::collections::HashMap<Entity, String>,
-    current_scene_path: Option<std::path::PathBuf>,
-    current_project_path: Option<std::path::PathBuf>,
-    scene_modified: bool,
-    show_save_required_dialog: bool,
-    scene_view_tab: usize,
-    is_playing: bool,
-    play_world: Option<World>, // Backup world for play mode
-    keyboard_state: std::collections::HashMap<String, bool>,
-    input_system: input::InputSystem,  // Unified input system
-    show_colliders: bool,  // Gizmo toggle
-    show_velocities: bool, // Gizmo toggle
-    console: console::Console,
-    bottom_panel_tab: usize, // 0 = Assets, 1 = Console
-    show_project_settings: bool,
-    show_unsaved_changes_dialog: bool,
-    pending_action: Option<EditorAction>,
-    asset_browser_path: Option<std::path::PathBuf>,
-    current_tool: TransformTool, // Q/W/E/R - Transform tool selection
-    // Resource Manager state
-    resource_current_folder: String, // Current folder path relative to project (e.g., "scenes", "", "scenes/levels")
-    resource_selected_item: Option<std::path::PathBuf>,
-    show_create_menu: bool,
-    show_rename_dialog: bool,
-    rename_buffer: String,
-}
-
-impl EditorState {
-    fn new() -> Self {
-        Self {
-            world: World::new(),
-            selected_entity: None,
-            entity_names: std::collections::HashMap::new(),
-            current_scene_path: None,
-            current_project_path: None,
-            scene_modified: false,
-            show_save_required_dialog: false,
-            scene_view_tab: 0,
-            is_playing: false,
-            play_world: None,
-            keyboard_state: std::collections::HashMap::new(),
-            input_system: input::InputSystem::new(),
-            show_colliders: true,   // Show colliders by default
-            show_velocities: false, // Hide velocities by default
-            console: console::Console::new(),
-            bottom_panel_tab: 1,    // Start with Console tab
-            show_project_settings: false,
-            show_unsaved_changes_dialog: false,
-            pending_action: None,
-            asset_browser_path: None,
-            current_tool: TransformTool::Move, // Default to Move tool (W)
-            resource_current_folder: String::new(), // Start at root
-            resource_selected_item: None,
-            show_create_menu: false,
-            show_rename_dialog: false,
-            rename_buffer: String::new(),
-        }
-    }
-
-    fn get_scripts_folder(&self) -> Option<std::path::PathBuf> {
-        self.current_project_path.as_ref().map(|p| p.join("scripts"))
-    }
-
-    fn get_scenes_folder(&self) -> Option<std::path::PathBuf> {
-        self.current_project_path.as_ref().map(|p| p.join("scenes"))
-    }
-
-    fn get_default_scene_path(&self, scene_name: &str) -> Option<std::path::PathBuf> {
-        self.get_scenes_folder().map(|p| p.join(format!("{}.scene", scene_name)))
-    }
-
-    fn create_script_file(&self, script_name: &str) -> anyhow::Result<std::path::PathBuf> {
-        let scripts_folder = self.get_scripts_folder()
-            .ok_or_else(|| anyhow::anyhow!("No project open"))?;
-
-        // Create scripts folder if it doesn't exist
-        std::fs::create_dir_all(&scripts_folder)?;
-
-        let script_path = scripts_folder.join(format!("{}.lua", script_name));
-
-        // Create default script content if file doesn't exist
-        if !script_path.exists() {
-            let default_content = format!(r#"-- Script: {}
--- Simple player movement script
-
--- Engine API Functions (provided by the game engine):
--- is_key_pressed(key) - Check if a key is pressed
--- set_velocity(vx, vy) - Set entity velocity
--- get_tag(entity) - Get entity tag
--- destroy_entity(entity) - Destroy an entity
-
--- Movement speed
-local speed = 200.0
-
-function on_start()
-    -- Called when the game starts
-    print("Script {} started!")
-end
-
-function on_update(dt)
-    -- Called every frame (dt is delta time in seconds)
-
-    -- Player movement (WASD or Arrow keys)
-    local vx = 0.0
-    local vy = 0.0
-
-    if is_key_pressed("W") or is_key_pressed("Up") then
-        vy = vy - speed
-    end
-    if is_key_pressed("S") or is_key_pressed("Down") then
-        vy = vy + speed
-    end
-    if is_key_pressed("A") or is_key_pressed("Left") then
-        vx = vx - speed
-    end
-    if is_key_pressed("D") or is_key_pressed("Right") then
-        vx = vx + speed
-    end
-
-    -- Normalize diagonal movement
-    if vx ~= 0.0 and vy ~= 0.0 then
-        local length = math.sqrt(vx * vx + vy * vy)
-        vx = vx / length * speed
-        vy = vy / length * speed
-    end
-
-    -- Set velocity
-    set_velocity(vx, vy)
-end
-
-function on_collision(other_entity)
-    -- Called when this entity collides with another
-    print("Collision with entity: " .. tostring(other_entity))
-
-    -- Example: Collect item
-    local tag = get_tag(other_entity)
-    if tag == "Item" then
-        print("Collected item!")
-        destroy_entity(other_entity)
-    end
-end
-"#, script_name, script_name);
-
-            std::fs::write(&script_path, default_content)?;
-        }
-
-        Ok(script_path)
-    }
-
-    fn open_script_in_editor(&self, script_name: &str) -> anyhow::Result<()> {
-        let script_path = self.create_script_file(script_name)?;
-
-        // Open in default system editor
-        #[cfg(target_os = "windows")]
-        {
-            std::process::Command::new("cmd")
-                .args(&["/C", "start", "", script_path.to_str().unwrap()])
-                .spawn()?;
-        }
-
-        #[cfg(target_os = "macos")]
-        {
-            std::process::Command::new("open")
-                .arg(&script_path)
-                .spawn()?;
-        }
-
-        #[cfg(target_os = "linux")]
-        {
-            std::process::Command::new("xdg-open")
-                .arg(&script_path)
-                .spawn()?;
-        }
-
-        Ok(())
-    }
-
-    fn save_scene(&mut self, path: &std::path::Path) -> anyhow::Result<()> {
-        // Create scenes folder if it doesn't exist
-        if let Some(parent) = path.parent() {
-            std::fs::create_dir_all(parent)?;
-        }
-
-        // Save world to JSON
-        let world_json = self.world.save_to_json()?;
-
-        // Save entity names
-        let entity_names_json = serde_json::to_string_pretty(&self.entity_names)?;
-
-        // Combine into one scene file
-        let scene_data = serde_json::json!({
-            "world": serde_json::from_str::<serde_json::Value>(&world_json)?,
-            "entity_names": serde_json::from_str::<serde_json::Value>(&entity_names_json)?,
-        });
-
-        std::fs::write(path, serde_json::to_string_pretty(&scene_data)?)?;
-        self.current_scene_path = Some(path.to_path_buf());
-        self.scene_modified = false;
-        Ok(())
-    }
-
-    fn load_scene(&mut self, path: &std::path::Path) -> anyhow::Result<()> {
-        let scene_json = std::fs::read_to_string(path)?;
-        let scene_data: serde_json::Value = serde_json::from_str(&scene_json)?;
-
-        // Load world
-        if let Some(world_data) = scene_data.get("world") {
-            let world_json = serde_json::to_string(world_data)?;
-            self.world.load_from_json(&world_json)?;
-        }
-
-        // Load entity names
-        if let Some(names_data) = scene_data.get("entity_names") {
-            let names_json = serde_json::to_string(names_data)?;
-            self.entity_names = serde_json::from_str(&names_json)?;
-        }
-
-        self.current_scene_path = Some(path.to_path_buf());
-        self.scene_modified = false;
-        self.selected_entity = None;
-        Ok(())
-    }
-}
 
 struct GameState {
     world: World,
@@ -361,7 +94,7 @@ impl GameState {
         // Update player velocity based on input
         if let Some(player) = self.player {
             let input = ctx.input.get_movement_input(0); // Player 1
-            
+
             let vx = input.x * self.player_speed;
             let vy = input.y * self.player_speed;
 
@@ -429,7 +162,7 @@ fn main() -> Result<()> {
 
     // Initialize renderer with window
     let mut renderer = pollster::block_on(RenderModule::new(&window))?;
-    let _editor = EditorModule::new();
+    let _editor = EditorMod::new();
 
     // egui setup
     let egui_ctx = egui::Context::default();
@@ -440,7 +173,7 @@ fn main() -> Result<()> {
         Some(window.scale_factor() as f32),
         None,
     );
-    
+
     let mut egui_renderer = egui_wgpu::Renderer::new(
         &renderer.device,
         renderer.config.format,
@@ -450,7 +183,7 @@ fn main() -> Result<()> {
 
     event_loop.run(move |event, target| {
         target.set_control_flow(ControlFlow::Poll);
-        
+
         match event {
             Event::WindowEvent {
                 ref event,
@@ -530,7 +263,7 @@ fn main() -> Result<()> {
                     WindowEvent::ScaleFactorChanged { scale_factor: _, inner_size_writer: _ } => {
                         // In winit 0.29, ScaleFactorChanged provides inner_size_writer, not new_inner_size directly in the same way?
                         // Actually it's simpler to just handle Resized usually.
-                        // But let's check docs if possible. 
+                        // But let's check docs if possible.
                         // For now, let's just ignore ScaleFactorChanged or assume it triggers Resized.
                     }
                     WindowEvent::RedrawRequested => {
@@ -1291,13 +1024,13 @@ fn main() -> Result<()> {
                         }
 
                         let full_output = egui_ctx.end_frame();
-                        
+
                         let paint_jobs = egui_ctx.tessellate(full_output.shapes, full_output.pixels_per_point);
                         let screen_descriptor = egui_wgpu::ScreenDescriptor {
                             size_in_pixels: [renderer.config.width, renderer.config.height],
                             pixels_per_point: window.scale_factor() as f32,
                         };
-                        
+
                         // Update textures
                         for (id, image_delta) in &full_output.textures_delta.set {
                             egui_renderer.update_texture(&renderer.device, &renderer.queue, *id, image_delta);
