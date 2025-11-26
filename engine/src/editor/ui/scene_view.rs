@@ -390,67 +390,153 @@ fn render_grid_2d(painter: &egui::Painter, rect: egui::Rect, scene_camera: &Scen
 }
 
 fn render_grid_3d(painter: &egui::Painter, rect: egui::Rect, scene_camera: &SceneCamera, scene_grid: &SceneGrid) {
-    let grid_size = scene_grid.size * scene_camera.zoom;
     let center = rect.center();
+    let grid_world_size = scene_grid.size; // World space grid size
     
-    // Main grid color
+    // Grid colors
     let grid_color = egui::Color32::from_rgba_premultiplied(
         (scene_grid.color[0] * 255.0) as u8,
         (scene_grid.color[1] * 255.0) as u8,
         (scene_grid.color[2] * 255.0) as u8,
-        (scene_grid.color[3] * 255.0) as u8,
+        (scene_grid.color[3] * 100.0) as u8, // More transparent
     );
     
     // Axis colors (X=Red, Z=Blue for 3D)
-    let x_axis_color = egui::Color32::from_rgb(200, 50, 50);
-    let z_axis_color = egui::Color32::from_rgb(50, 50, 200);
-
-    // Draw perspective-like grid (simulated 3D)
-    let grid_count = 20;
-    let perspective_factor = 0.3; // How much the grid "recedes"
+    let x_axis_color = egui::Color32::from_rgba_premultiplied(200, 50, 50, 150);
+    let z_axis_color = egui::Color32::from_rgba_premultiplied(50, 100, 200, 150);
     
-    // Draw horizontal lines (going into depth)
-    for i in -grid_count..=grid_count {
-        let i: i32 = i;
-        let offset = i as f32 * grid_size;
-        let y_pos = center.y + offset;
+    // Camera parameters
+    let yaw = scene_camera.rotation.to_radians();
+    let pitch = scene_camera.pitch.to_radians();
+    let zoom = scene_camera.zoom;
+    
+    // Grid range
+    let grid_range = 50; // Number of grid lines in each direction
+    let fade_distance = 30.0; // Distance at which lines start to fade
+    
+    // Helper function to project 3D point to 2D screen
+    let project_3d = |x: f32, z: f32| -> egui::Pos2 {
+        // Apply camera rotation
+        let cos_yaw = yaw.cos();
+        let sin_yaw = yaw.sin();
+        let rotated_x = x * cos_yaw - z * sin_yaw;
+        let rotated_z = x * sin_yaw + z * cos_yaw;
         
-        if y_pos < rect.min.y || y_pos > rect.max.y {
-            continue;
+        // Apply pitch (vertical rotation)
+        let y = 0.0; // Grid is on Y=0 plane
+        let cos_pitch = pitch.cos();
+        let sin_pitch = pitch.sin();
+        let rotated_y = y * cos_pitch - rotated_z * sin_pitch;
+        let final_z = y * sin_pitch + rotated_z * cos_pitch;
+        
+        // Perspective projection
+        let distance = 500.0;
+        let perspective_z = final_z + distance;
+        let scale = if perspective_z > 10.0 {
+            (distance / perspective_z) * zoom
+        } else {
+            zoom
+        };
+        
+        egui::pos2(
+            center.x + rotated_x * scale,
+            center.y + rotated_y * scale,
+        )
+    };
+    
+    // Calculate fade based on distance from camera
+    let calc_alpha = |x: f32, z: f32| -> u8 {
+        let dist = (x * x + z * z).sqrt();
+        if dist > fade_distance {
+            let fade = 1.0 - ((dist - fade_distance) / fade_distance).min(1.0);
+            (fade * 100.0) as u8
+        } else {
+            100
+        }
+    };
+    
+    // Draw grid lines parallel to X axis (running along Z)
+    for i in -grid_range..=grid_range {
+        let x = i as f32 * grid_world_size;
+        let is_axis = i == 0;
+        
+        let mut points = Vec::new();
+        for j in -grid_range..=grid_range {
+            let z = j as f32 * grid_world_size;
+            points.push(project_3d(x, z));
         }
         
-        // Lines get shorter as they go "into" the screen
-        let depth_factor = 1.0 - (i.abs() as f32 / grid_count as f32) * perspective_factor;
-        let line_width = rect.width() * depth_factor;
-        let x_start = center.x - line_width / 2.0;
-        let x_end = center.x + line_width / 2.0;
-        
-        let color = if i == 0 { x_axis_color } else { grid_color };
-        let stroke_width = if i == 0 { 2.0 } else { 1.0 };
-        
-        painter.line_segment(
-            [egui::pos2(x_start, y_pos), egui::pos2(x_end, y_pos)],
-            egui::Stroke::new(stroke_width, color),
-        );
+        // Draw line segments
+        for j in 0..points.len() - 1 {
+            let z1 = ((j as i32) - grid_range) as f32 * grid_world_size;
+            let alpha = calc_alpha(x, z1);
+            
+            if alpha > 10 {
+                let color = if is_axis {
+                    egui::Color32::from_rgba_premultiplied(
+                        z_axis_color.r(),
+                        z_axis_color.g(),
+                        z_axis_color.b(),
+                        alpha,
+                    )
+                } else {
+                    egui::Color32::from_rgba_premultiplied(
+                        grid_color.r(),
+                        grid_color.g(),
+                        grid_color.b(),
+                        alpha,
+                    )
+                };
+                
+                let width = if is_axis { 2.0 } else { 1.0 };
+                painter.line_segment(
+                    [points[j], points[j + 1]],
+                    egui::Stroke::new(width, color),
+                );
+            }
+        }
     }
     
-    // Draw vertical lines (left-right)
-    for i in -grid_count..=grid_count {
-        let i: i32 = i;
-        let offset = i as f32 * grid_size;
-        let x_pos = center.x + offset;
+    // Draw grid lines parallel to Z axis (running along X)
+    for i in -grid_range..=grid_range {
+        let z = i as f32 * grid_world_size;
+        let is_axis = i == 0;
         
-        if x_pos < rect.min.x || x_pos > rect.max.x {
-            continue;
+        let mut points = Vec::new();
+        for j in -grid_range..=grid_range {
+            let x = j as f32 * grid_world_size;
+            points.push(project_3d(x, z));
         }
         
-        let color = if i == 0 { z_axis_color } else { grid_color };
-        let stroke_width = if i == 0 { 2.0 } else { 1.0 };
-        
-        painter.line_segment(
-            [egui::pos2(x_pos, rect.min.y), egui::pos2(x_pos, rect.max.y)],
-            egui::Stroke::new(stroke_width, color),
-        );
+        // Draw line segments
+        for j in 0..points.len() - 1 {
+            let x1 = ((j as i32) - grid_range) as f32 * grid_world_size;
+            let alpha = calc_alpha(x1, z);
+            
+            if alpha > 10 {
+                let color = if is_axis {
+                    egui::Color32::from_rgba_premultiplied(
+                        x_axis_color.r(),
+                        x_axis_color.g(),
+                        x_axis_color.b(),
+                        alpha,
+                    )
+                } else {
+                    egui::Color32::from_rgba_premultiplied(
+                        grid_color.r(),
+                        grid_color.g(),
+                        grid_color.b(),
+                        alpha,
+                    )
+                };
+                
+                let width = if is_axis { 2.0 } else { 1.0 };
+                painter.line_segment(
+                    [points[j], points[j + 1]],
+                    egui::Stroke::new(width, color),
+                );
+            }
+        }
     }
 }
 
