@@ -5,7 +5,7 @@ use glam::Vec2;
 pub struct SceneCamera {
     pub position: Vec2,
     pub zoom: f32,
-    pub rotation: f32,
+    pub rotation: f32, // In degrees (for 3D view)
     
     // Camera bounds
     pub min_zoom: f32,
@@ -14,6 +14,10 @@ pub struct SceneCamera {
     // Pan state
     is_panning: bool,
     last_mouse_pos: Vec2,
+    
+    // Rotation state (for 3D view)
+    is_rotating: bool,
+    rotation_sensitivity: f32,
 }
 
 impl SceneCamera {
@@ -26,6 +30,8 @@ impl SceneCamera {
             max_zoom: 10.0,
             is_panning: false,
             last_mouse_pos: Vec2::ZERO,
+            is_rotating: false,
+            rotation_sensitivity: 0.5,
         }
     }
     
@@ -49,18 +55,41 @@ impl SceneCamera {
         self.is_panning = false;
     }
     
-    /// Zoom in/out (scroll wheel)
-    pub fn zoom(&mut self, delta: f32, mouse_pos: Vec2) {
-        let old_zoom = self.zoom;
+    /// Zoom in/out (scroll wheel) - improved version
+    pub fn zoom(&mut self, delta: f32, _mouse_pos: Vec2) {
+        // Smooth exponential zoom
+        let zoom_speed = 0.15;
+        let zoom_factor = if delta > 0.0 {
+            1.0 + zoom_speed
+        } else {
+            1.0 - zoom_speed
+        };
         
-        // Exponential zoom for smooth feel
-        self.zoom *= 1.0 + delta * 0.1;
+        self.zoom *= zoom_factor;
         self.zoom = self.zoom.clamp(self.min_zoom, self.max_zoom);
-        
-        // Zoom towards mouse position
-        let zoom_factor = self.zoom / old_zoom;
-        let world_mouse = self.screen_to_world(mouse_pos);
-        self.position = world_mouse - (world_mouse - self.position) * zoom_factor;
+    }
+    
+    /// Start rotation (right mouse button pressed)
+    pub fn start_rotate(&mut self, mouse_pos: Vec2) {
+        self.is_rotating = true;
+        self.last_mouse_pos = mouse_pos;
+    }
+    
+    /// Update rotation (right mouse button held)
+    pub fn update_rotate(&mut self, mouse_pos: Vec2) {
+        if self.is_rotating {
+            let delta = mouse_pos - self.last_mouse_pos;
+            // Horizontal movement rotates around Y axis
+            self.rotation += delta.x * self.rotation_sensitivity;
+            // Keep rotation in 0-360 range
+            self.rotation = self.rotation.rem_euclid(360.0);
+            self.last_mouse_pos = mouse_pos;
+        }
+    }
+    
+    /// Stop rotation (right mouse button released)
+    pub fn stop_rotate(&mut self) {
+        self.is_rotating = false;
     }
     
     /// Frame selected object (F key)
@@ -88,6 +117,13 @@ impl SceneCamera {
         self.position = Vec2::ZERO;
         self.zoom = 1.0;
         self.rotation = 0.0;
+        self.is_panning = false;
+        self.is_rotating = false;
+    }
+    
+    /// Check if camera is being controlled
+    pub fn is_controlling(&self) -> bool {
+        self.is_panning || self.is_rotating
     }
 }
 

@@ -39,7 +39,7 @@ pub fn render_scene_view(
     let rect = response.rect;
 
     // === CAMERA CONTROLS ===
-    handle_camera_controls(&response, scene_camera, rect);
+    handle_camera_controls(&response, scene_camera, rect, scene_view_mode);
 
     // === BACKGROUND ===
     let bg_color = match scene_view_mode {
@@ -58,7 +58,7 @@ pub fn render_scene_view(
     
     // === 3D SCENE GIZMO (top-right corner) ===
     if *scene_view_mode == SceneViewMode::Mode3D {
-        render_scene_gizmo(&painter, rect);
+        render_scene_gizmo(&painter, rect, scene_camera);
     }
 
     // === ENTITIES ===
@@ -103,8 +103,11 @@ pub fn render_scene_view(
         }
     }
 
-    // === SELECTION ===
-    if response.clicked() && !response.dragged() {
+    // === SELECTION === (only if not controlling camera)
+    let is_camera_control = response.dragged_by(egui::PointerButton::Middle) || 
+                           response.dragged_by(egui::PointerButton::Secondary);
+    
+    if response.clicked() && !response.dragged() && !is_camera_control {
         if let Some(entity) = hovered_entity {
             *selected_entity = Some(entity);
         } else {
@@ -112,7 +115,7 @@ pub fn render_scene_view(
         }
     }
 
-    // === TRANSFORM GIZMO ===
+    // === TRANSFORM GIZMO === (only if not controlling camera)
     if let Some(sel_entity) = *selected_entity {
         if let Some(transform) = world.transforms.get(&sel_entity) {
             let world_pos = glam::Vec2::new(transform.x(), transform.y());
@@ -122,8 +125,10 @@ pub fn render_scene_view(
 
             render_transform_gizmo(&painter, screen_x, screen_y, current_tool);
             
-            // Handle gizmo interaction (smooth dragging with state)
-            handle_gizmo_interaction_stateful(&response, sel_entity, world, screen_x, screen_y, current_tool, scene_camera, dragging_entity, drag_axis);
+            // Handle gizmo interaction only if not controlling camera
+            if !is_camera_control {
+                handle_gizmo_interaction_stateful(&response, sel_entity, world, screen_x, screen_y, current_tool, scene_camera, dragging_entity, drag_axis);
+            }
         }
     }
 
@@ -181,8 +186,23 @@ fn render_scene_toolbar(
     ui.separator();
 }
 
-fn handle_camera_controls(response: &egui::Response, scene_camera: &mut SceneCamera, rect: egui::Rect) {
-    // Middle mouse pan
+fn handle_camera_controls(response: &egui::Response, scene_camera: &mut SceneCamera, rect: egui::Rect, scene_view_mode: &SceneViewMode) {
+    // Right mouse button - Rotate camera (3D mode only)
+    if *scene_view_mode == SceneViewMode::Mode3D {
+        if response.dragged_by(egui::PointerButton::Secondary) {
+            if let Some(mouse_pos) = response.interact_pointer_pos() {
+                if response.drag_started_by(egui::PointerButton::Secondary) {
+                    scene_camera.start_rotate(glam::Vec2::new(mouse_pos.x, mouse_pos.y));
+                } else {
+                    scene_camera.update_rotate(glam::Vec2::new(mouse_pos.x, mouse_pos.y));
+                }
+            }
+        } else {
+            scene_camera.stop_rotate();
+        }
+    }
+    
+    // Middle mouse button - Pan camera
     if response.dragged_by(egui::PointerButton::Middle) {
         if let Some(mouse_pos) = response.interact_pointer_pos() {
             if response.drag_started_by(egui::PointerButton::Middle) {
@@ -195,11 +215,12 @@ fn handle_camera_controls(response: &egui::Response, scene_camera: &mut SceneCam
         scene_camera.stop_pan();
     }
 
-    // Scroll wheel zoom
+    // Scroll wheel - Zoom (improved)
     let scroll_delta = response.ctx.input(|i| i.smooth_scroll_delta.y + i.raw_scroll_delta.y);
-    if scroll_delta.abs() > 0.01 {
+    if scroll_delta.abs() > 0.1 {
         let mouse_pos = response.hover_pos().unwrap_or(rect.center());
-        scene_camera.zoom(scroll_delta * 0.01, glam::Vec2::new(mouse_pos.x, mouse_pos.y));
+        let zoom_direction = if scroll_delta > 0.0 { 1.0 } else { -1.0 };
+        scene_camera.zoom(zoom_direction, glam::Vec2::new(mouse_pos.x, mouse_pos.y));
     }
 }
 
@@ -300,7 +321,7 @@ fn render_grid_3d(painter: &egui::Painter, rect: egui::Rect, scene_camera: &Scen
     }
 }
 
-fn render_scene_gizmo(painter: &egui::Painter, rect: egui::Rect) {
+fn render_scene_gizmo(painter: &egui::Painter, rect: egui::Rect, scene_camera: &SceneCamera) {
     // Scene gizmo in top-right corner (Unity-like)
     let gizmo_size = 80.0;
     let margin = 20.0;
@@ -359,6 +380,16 @@ fn render_scene_gizmo(painter: &egui::Painter, rect: egui::Rect) {
         "Z",
         egui::FontId::proportional(14.0),
         egui::Color32::from_rgb(80, 80, 255),
+    );
+    
+    // Display rotation angle below gizmo
+    let rotation_text = format!("Rot: {:.0}°", scene_camera.rotation);
+    painter.text(
+        egui::pos2(gizmo_center.x, gizmo_center.y + gizmo_size / 2.0 + 15.0),
+        egui::Align2::CENTER_TOP,
+        rotation_text,
+        egui::FontId::proportional(11.0),
+        egui::Color32::from_rgb(180, 180, 180),
     );
 }
 
