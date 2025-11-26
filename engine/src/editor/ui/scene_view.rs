@@ -126,10 +126,37 @@ pub fn render_scene_view(
     }
     
     for (entity, transform) in entities {
-        let world_pos = glam::Vec2::new(transform.x(), transform.y());
-        let screen_pos = scene_camera.world_to_screen(world_pos);
-        let screen_x = center.x + screen_pos.x;
-        let screen_y = center.y + screen_pos.y;
+        // Calculate screen position with proper 3D projection for Z-axis
+        let (screen_x, screen_y) = if *scene_view_mode == SceneViewMode::Mode3D {
+            // 3D mode: Project 3D position (X, Y, Z) to 2D screen
+            let pos_3d = Point3D::new(transform.x(), transform.y(), transform.position[2]);
+
+            // Apply camera rotation
+            let yaw = scene_camera.rotation.to_radians();
+            let pitch = scene_camera.pitch.to_radians();
+            let rotated = pos_3d
+                .rotate_y(-yaw)
+                .rotate_x(pitch);
+
+            // Perspective projection
+            let distance = 500.0;
+            let perspective_z = rotated.z + distance;
+            let scale = if perspective_z > 10.0 {
+                (distance / perspective_z) * scene_camera.zoom
+            } else {
+                scene_camera.zoom
+            };
+
+            (
+                center.x + rotated.x * scale,
+                center.y + rotated.y * scale,
+            )
+        } else {
+            // 2D mode: Simple X, Y projection
+            let world_pos = glam::Vec2::new(transform.x(), transform.y());
+            let screen_pos = scene_camera.world_to_screen(world_pos);
+            (center.x + screen_pos.x, center.y + screen_pos.y)
+        };
 
         // Get entity bounds for click detection
         let entity_rect = if let Some(sprite) = world.sprites.get(&entity) {
@@ -283,16 +310,18 @@ fn render_scene_toolbar(
 }
 
 fn handle_camera_controls(
-    response: &egui::Response, 
-    scene_camera: &mut SceneCamera, 
-    rect: egui::Rect, 
+    response: &egui::Response,
+    scene_camera: &mut SceneCamera,
+    rect: egui::Rect,
     scene_view_mode: &SceneViewMode,
     selected_entity: &Option<ecs::Entity>,
     world: &ecs::World,
 ) {
     let is_alt_pressed = response.ctx.input(|i| i.modifiers.alt);
-    
-    // Alt + Left mouse button - Orbit around selected object (3D mode)
+
+    // === UNITY-LIKE CAMERA CONTROLS ===
+
+    // Alt + Left Mouse Button - Orbit around pivot point (3D mode only)
     if *scene_view_mode == SceneViewMode::Mode3D && is_alt_pressed {
         if response.dragged_by(egui::PointerButton::Primary) {
             if let Some(mouse_pos) = response.interact_pointer_pos() {
@@ -316,23 +345,32 @@ fn handle_camera_controls(
             scene_camera.stop_orbit();
         }
     }
-    
-    // Right mouse button - Free look rotate (3D mode only)
-    if *scene_view_mode == SceneViewMode::Mode3D && !is_alt_pressed {
-        if response.dragged_by(egui::PointerButton::Secondary) {
-            if let Some(mouse_pos) = response.interact_pointer_pos() {
+
+    // Right Mouse Button - Free look / Fly camera (3D mode)
+    // In 2D mode - also enables panning
+    if response.dragged_by(egui::PointerButton::Secondary) && !is_alt_pressed {
+        if let Some(mouse_pos) = response.interact_pointer_pos() {
+            if *scene_view_mode == SceneViewMode::Mode3D {
+                // 3D mode: Right mouse = rotate camera (free look)
                 if response.drag_started_by(egui::PointerButton::Secondary) {
                     scene_camera.start_rotate(glam::Vec2::new(mouse_pos.x, mouse_pos.y));
                 } else {
                     scene_camera.update_rotate(glam::Vec2::new(mouse_pos.x, mouse_pos.y));
                 }
+            } else {
+                // 2D mode: Right mouse = pan (Unity 2D behavior)
+                if response.drag_started_by(egui::PointerButton::Secondary) {
+                    scene_camera.start_pan(glam::Vec2::new(mouse_pos.x, mouse_pos.y));
+                } else {
+                    scene_camera.update_pan(glam::Vec2::new(mouse_pos.x, mouse_pos.y));
+                }
             }
-        } else {
-            scene_camera.stop_rotate();
         }
+    } else if *scene_view_mode == SceneViewMode::Mode3D {
+        scene_camera.stop_rotate();
     }
-    
-    // Middle mouse button - Pan camera
+
+    // Middle Mouse Button - Pan camera (works in both 2D and 3D modes)
     if response.dragged_by(egui::PointerButton::Middle) {
         if let Some(mouse_pos) = response.interact_pointer_pos() {
             if response.drag_started_by(egui::PointerButton::Middle) {
@@ -341,20 +379,19 @@ fn handle_camera_controls(
                 scene_camera.update_pan(glam::Vec2::new(mouse_pos.x, mouse_pos.y));
             }
         }
-    } else {
+    } else if !response.dragged_by(egui::PointerButton::Secondary) || *scene_view_mode == SceneViewMode::Mode3D {
         scene_camera.stop_pan();
     }
 
-    // Scroll wheel - Zoom (smooth and responsive)
+    // Scroll Wheel - Zoom (Unity-like smooth zoom)
     let scroll_delta = response.ctx.input(|i| {
-        // Use smooth scroll if available, otherwise use raw but scaled down
         if i.smooth_scroll_delta.y.abs() > 0.1 {
             i.smooth_scroll_delta.y
         } else {
-            i.raw_scroll_delta.y * 0.1 // Scale down raw scroll
+            i.raw_scroll_delta.y * 0.1
         }
     });
-    
+
     if scroll_delta.abs() > 0.1 {
         let mouse_pos = response.hover_pos().unwrap_or(rect.center());
         let zoom_direction = if scroll_delta > 0.0 { 1.0 } else { -1.0 };
@@ -397,43 +434,40 @@ fn render_grid_2d(painter: &egui::Painter, rect: egui::Rect, scene_camera: &Scen
 fn render_grid_3d(painter: &egui::Painter, rect: egui::Rect, scene_camera: &SceneCamera, scene_grid: &SceneGrid) {
     let center = rect.center();
     let grid_world_size = scene_grid.size; // World space grid size
-    
-    // Grid colors - make more visible
-    let grid_color = egui::Color32::from_rgba_premultiplied(
-        (scene_grid.color[0] * 255.0) as u8,
-        (scene_grid.color[1] * 255.0) as u8,
-        (scene_grid.color[2] * 255.0) as u8,
-        150, // More opaque for visibility
-    );
-    
-    // Axis colors (X=Red, Z=Blue for 3D)
-    let x_axis_color = egui::Color32::from_rgba_premultiplied(200, 50, 50, 200);
-    let z_axis_color = egui::Color32::from_rgba_premultiplied(50, 100, 200, 200);
-    
+
+    // Unity-like grid colors - subtle gray
+    let grid_color = egui::Color32::from_rgba_premultiplied(100, 100, 100, 100);
+
+    // Axis colors matching Unity (X=Red, Z=Blue)
+    let x_axis_color = egui::Color32::from_rgba_premultiplied(220, 60, 60, 200);
+    let z_axis_color = egui::Color32::from_rgba_premultiplied(60, 120, 220, 200);
+
     // Camera parameters
     let yaw = scene_camera.rotation.to_radians();
     let pitch = scene_camera.pitch.to_radians();
     let zoom = scene_camera.zoom;
-    
-    // Grid range
-    let grid_range = 20; // Number of grid lines in each direction (reduced for better performance)
-    let fade_distance = 15.0 * grid_world_size; // Distance at which lines start to fade (in world units)
-    
-    // Helper function to project 3D point to 2D screen
+
+    // Grid range - Unity style extends far
+    let grid_range = 25;
+    let fade_distance = 20.0 * grid_world_size;
+
+    // Helper function to project 3D point on XZ plane (Y=0) to 2D screen
     let project_3d = |x: f32, z: f32| -> egui::Pos2 {
-        // Apply camera rotation
+        // Point is on XZ plane (horizontal ground plane), Y=0
+        let y = 0.0;
+
+        // Apply camera rotation (yaw around Y-axis)
         let cos_yaw = yaw.cos();
         let sin_yaw = yaw.sin();
         let rotated_x = x * cos_yaw - z * sin_yaw;
         let rotated_z = x * sin_yaw + z * cos_yaw;
-        
-        // Apply pitch (vertical rotation)
-        let y = 0.0; // Grid is on Y=0 plane
+
+        // Apply pitch (rotation around horizontal axis)
         let cos_pitch = pitch.cos();
         let sin_pitch = pitch.sin();
         let rotated_y = y * cos_pitch - rotated_z * sin_pitch;
         let final_z = y * sin_pitch + rotated_z * cos_pitch;
-        
+
         // Perspective projection
         let distance = 500.0;
         let perspective_z = final_z + distance;
@@ -442,10 +476,10 @@ fn render_grid_3d(painter: &egui::Painter, rect: egui::Rect, scene_camera: &Scen
         } else {
             zoom
         };
-        
+
         egui::pos2(
-            center.x + rotated_x * scale,
-            center.y + rotated_y * scale,
+            center.x + rotated_x * scale - scene_camera.position.x * zoom,
+            center.y + rotated_y * scale - scene_camera.position.y * zoom,
         )
     };
     
@@ -453,36 +487,37 @@ fn render_grid_3d(painter: &egui::Painter, rect: egui::Rect, scene_camera: &Scen
     let calc_alpha = |x: f32, z: f32| -> u8 {
         let dist = (x * x + z * z).sqrt();
         if dist > fade_distance {
-            let fade = 1.0 - ((dist - fade_distance) / fade_distance).min(1.0);
-            (fade * 150.0) as u8 // Increased base alpha
+            let fade = 1.0 - ((dist - fade_distance) / (fade_distance * 0.5)).min(1.0);
+            (fade * 100.0) as u8
         } else {
-            150 // More opaque
+            100
         }
     };
-    
-    // Draw grid lines parallel to X axis (running along Z)
+
+    // Draw grid lines along Z axis (parallel to Z, varies X) - Unity style
     for i in -grid_range..=grid_range {
         let x = i as f32 * grid_world_size;
-        let is_axis = i == 0;
-        
+        let is_x_axis = i == 0;
+
         let mut points = Vec::new();
         for j in -grid_range..=grid_range {
             let z = j as f32 * grid_world_size;
             points.push(project_3d(x, z));
         }
-        
-        // Draw line segments
+
+        // Draw line segments with fading
         for j in 0..points.len() - 1 {
             let z1 = ((j as i32) - grid_range) as f32 * grid_world_size;
             let alpha = calc_alpha(x, z1);
-            
-            if alpha > 10 {
-                let color = if is_axis {
+
+            if alpha > 5 {
+                let color = if is_x_axis {
+                    // X-axis line (red) - this is the line at X=0 running along Z
                     egui::Color32::from_rgba_premultiplied(
-                        z_axis_color.r(),
-                        z_axis_color.g(),
-                        z_axis_color.b(),
-                        alpha,
+                        x_axis_color.r(),
+                        x_axis_color.g(),
+                        x_axis_color.b(),
+                        alpha.max(150),
                     )
                 } else {
                     egui::Color32::from_rgba_premultiplied(
@@ -492,8 +527,8 @@ fn render_grid_3d(painter: &egui::Painter, rect: egui::Rect, scene_camera: &Scen
                         alpha,
                     )
                 };
-                
-                let width = if is_axis { 2.0 } else { 1.0 };
+
+                let width = if is_x_axis { 2.5 } else { 1.0 };
                 painter.line_segment(
                     [points[j], points[j + 1]],
                     egui::Stroke::new(width, color),
@@ -501,30 +536,31 @@ fn render_grid_3d(painter: &egui::Painter, rect: egui::Rect, scene_camera: &Scen
             }
         }
     }
-    
-    // Draw grid lines parallel to Z axis (running along X)
+
+    // Draw grid lines along X axis (parallel to X, varies Z) - Unity style
     for i in -grid_range..=grid_range {
         let z = i as f32 * grid_world_size;
-        let is_axis = i == 0;
-        
+        let is_z_axis = i == 0;
+
         let mut points = Vec::new();
         for j in -grid_range..=grid_range {
             let x = j as f32 * grid_world_size;
             points.push(project_3d(x, z));
         }
-        
-        // Draw line segments
+
+        // Draw line segments with fading
         for j in 0..points.len() - 1 {
             let x1 = ((j as i32) - grid_range) as f32 * grid_world_size;
             let alpha = calc_alpha(x1, z);
-            
-            if alpha > 10 {
-                let color = if is_axis {
+
+            if alpha > 5 {
+                let color = if is_z_axis {
+                    // Z-axis line (blue) - this is the line at Z=0 running along X
                     egui::Color32::from_rgba_premultiplied(
-                        x_axis_color.r(),
-                        x_axis_color.g(),
-                        x_axis_color.b(),
-                        alpha,
+                        z_axis_color.r(),
+                        z_axis_color.g(),
+                        z_axis_color.b(),
+                        alpha.max(150),
                     )
                 } else {
                     egui::Color32::from_rgba_premultiplied(
@@ -534,8 +570,8 @@ fn render_grid_3d(painter: &egui::Painter, rect: egui::Rect, scene_camera: &Scen
                         alpha,
                     )
                 };
-                
-                let width = if is_axis { 2.0 } else { 1.0 };
+
+                let width = if is_z_axis { 2.5 } else { 1.0 };
                 painter.line_segment(
                     [points[j], points[j + 1]],
                     egui::Stroke::new(width, color),
@@ -644,10 +680,18 @@ fn render_entity(
             (sprite.color[3] * 255.0) as u8,
         );
 
+        // Draw sprite as a billboard (always facing camera) in 3D space
         painter.rect_filled(
             egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), size),
             2.0,
             color,
+        );
+
+        // Draw a subtle outline to show it's a sprite in 3D space
+        painter.rect_stroke(
+            egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), size),
+            2.0,
+            egui::Stroke::new(1.0, egui::Color32::from_rgba_premultiplied(255, 255, 255, 50)),
         );
 
         if is_selected {
@@ -659,7 +703,7 @@ fn render_entity(
         }
     } else {
         painter.circle_filled(egui::pos2(screen_x, screen_y), 5.0 * scene_camera.zoom, egui::Color32::from_rgb(150, 150, 150));
-        
+
         if is_selected {
             painter.circle_stroke(
                 egui::pos2(screen_x, screen_y),
