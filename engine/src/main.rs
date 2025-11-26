@@ -205,7 +205,14 @@ fn main() -> Result<()> {
                             ..
                         },
                         ..
-                    } => target.exit(),
+                    } => {
+                        // If in editor and scene is modified, show exit dialog
+                        if app_state == AppState::Editor && editor_state.scene_modified {
+                            editor_state.show_exit_dialog = true;
+                        } else {
+                            target.exit();
+                        }
+                    }
                     WindowEvent::KeyboardInput { event: key_event, .. } => {
                         // Update modifiers for shortcut manager (from egui context)
                         if app_state == AppState::Editor {
@@ -420,15 +427,34 @@ fn main() -> Result<()> {
                                                         editor_state.console.info(format!("Project opened: {}", folder.display()));
                                                         editor_state.console.info("Welcome to Rust 2D Game Engine!");
 
-                                                        // Load startup scene if configured
-                                                        if let Ok(Some(startup_scene)) = launcher_state.project_manager.get_startup_scene(&folder) {
-                                                            let scene_path = folder.join(&startup_scene);
+                                                        // Try to load last opened scene first, then startup scene
+                                                        let mut scene_loaded = false;
+                                                        
+                                                        // 1. Try last opened scene
+                                                        if let Ok(Some(last_scene)) = launcher_state.project_manager.get_last_opened_scene(&folder) {
+                                                            let scene_path = folder.join(&last_scene);
                                                             if scene_path.exists() {
                                                                 if let Err(e) = editor_state.load_scene(&scene_path) {
-                                                                    editor_state.console.error(format!("Failed to load startup scene: {}", e));
+                                                                    editor_state.console.error(format!("Failed to load last scene: {}", e));
                                                                 } else {
                                                                     editor_state.current_scene_path = Some(scene_path.clone());
-                                                                    editor_state.console.info(format!("Loaded startup scene: {}", startup_scene.display()));
+                                                                    editor_state.console.info(format!("Loaded last scene: {}", last_scene.display()));
+                                                                    scene_loaded = true;
+                                                                }
+                                                            }
+                                                        }
+                                                        
+                                                        // 2. If no last scene, try startup scene
+                                                        if !scene_loaded {
+                                                            if let Ok(Some(startup_scene)) = launcher_state.project_manager.get_startup_scene(&folder) {
+                                                                let scene_path = folder.join(&startup_scene);
+                                                                if scene_path.exists() {
+                                                                    if let Err(e) = editor_state.load_scene(&scene_path) {
+                                                                        editor_state.console.error(format!("Failed to load startup scene: {}", e));
+                                                                    } else {
+                                                                        editor_state.current_scene_path = Some(scene_path.clone());
+                                                                        editor_state.console.info(format!("Loaded startup scene: {}", startup_scene.display()));
+                                                                    }
                                                                 }
                                                             }
                                                         }
@@ -519,15 +545,34 @@ fn main() -> Result<()> {
                                                                     editor_state.current_project_path = Some(project.path.clone());
                                                                     editor_state.asset_browser_path = Some(project.path.clone());
 
-                                                                    // Load startup scene if configured
-                                                                    if let Ok(Some(startup_scene)) = launcher_state.project_manager.get_startup_scene(&project.path) {
-                                                                        let scene_path = project.path.join(&startup_scene);
+                                                                    // Try to load last opened scene first, then startup scene
+                                                                    let mut scene_loaded = false;
+                                                                    
+                                                                    // 1. Try last opened scene
+                                                                    if let Ok(Some(last_scene)) = launcher_state.project_manager.get_last_opened_scene(&project.path) {
+                                                                        let scene_path = project.path.join(&last_scene);
                                                                         if scene_path.exists() {
                                                                             if let Err(e) = editor_state.load_scene(&scene_path) {
-                                                                                editor_state.console.error(format!("Failed to load startup scene: {}", e));
+                                                                                editor_state.console.error(format!("Failed to load last scene: {}", e));
                                                                             } else {
                                                                                 editor_state.current_scene_path = Some(scene_path.clone());
-                                                                                editor_state.console.info(format!("Loaded startup scene: {}", startup_scene.display()));
+                                                                                editor_state.console.info(format!("Loaded last scene: {}", last_scene.display()));
+                                                                                scene_loaded = true;
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                    
+                                                                    // 2. If no last scene, try startup scene
+                                                                    if !scene_loaded {
+                                                                        if let Ok(Some(startup_scene)) = launcher_state.project_manager.get_startup_scene(&project.path) {
+                                                                            let scene_path = project.path.join(&startup_scene);
+                                                                            if scene_path.exists() {
+                                                                                if let Err(e) = editor_state.load_scene(&scene_path) {
+                                                                                    editor_state.console.error(format!("Failed to load startup scene: {}", e));
+                                                                                } else {
+                                                                                    editor_state.current_scene_path = Some(scene_path.clone());
+                                                                                    editor_state.console.info(format!("Loaded startup scene: {}", startup_scene.display()));
+                                                                                }
                                                                             }
                                                                         }
                                                                     }
@@ -1035,21 +1080,21 @@ fn main() -> Result<()> {
                                                         }
                                                         
                                                         if saved {
-                                                            // Return to launcher
-                                                            app_state = AppState::Launcher;
+                                                            // Exit application
+                                                            editor_state.should_exit = true;
                                                             editor_state.show_exit_dialog = false;
                                                         }
                                                     }
                                                     
                                                     if ui.button("Exit Without Saving").clicked() {
-                                                        // Return to launcher without saving
-                                                        app_state = AppState::Launcher;
+                                                        // Exit application without saving
+                                                        editor_state.should_exit = true;
                                                         editor_state.show_exit_dialog = false;
                                                     }
                                                 } else {
                                                     if ui.button("Exit").clicked() {
-                                                        // Return to launcher
-                                                        app_state = AppState::Launcher;
+                                                        // Exit application
+                                                        editor_state.should_exit = true;
                                                         editor_state.show_exit_dialog = false;
                                                     }
                                                 }
@@ -1257,6 +1302,11 @@ fn main() -> Result<()> {
                 }
             },
             Event::AboutToWait => {
+                // Check if we should exit
+                if editor_state.should_exit {
+                    target.exit();
+                }
+                
                 window.request_redraw();
             }
             _ => {}

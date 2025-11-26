@@ -82,6 +82,7 @@ pub struct EditorState {
     pub hierarchy_search: String,        // Search filter
     pub autosave: super::autosave::AutoSave,  // Auto-save system
     pub show_exit_dialog: bool,          // Exit confirmation dialog
+    pub should_exit: bool,               // Flag to trigger actual exit
     pub asset_manager: Option<super::asset_manager::AssetManager>,  // Asset manager
     pub drag_drop: super::drag_drop::DragDropState,  // Drag & drop state
 }
@@ -125,6 +126,7 @@ impl EditorState {
             hierarchy_search: String::new(),
             autosave: super::autosave::AutoSave::new(300), // 5 minutes
             show_exit_dialog: false,
+            should_exit: false,
             asset_manager: None, // Initialized when project is opened
             drag_drop: super::drag_drop::DragDropState::new(),
         }
@@ -143,10 +145,26 @@ impl EditorState {
     }
 
     pub fn save_scene(&mut self, path: &PathBuf) -> Result<()> {
+        // Sync entity_names to world.names before saving
+        for (entity, name) in &self.entity_names {
+            self.world.names.insert(*entity, name.clone());
+        }
+        
         let json = self.world.save_to_json()?;
         std::fs::write(path, json)?;
         self.current_scene_path = Some(path.clone());
         self.scene_modified = false;
+        
+        // Update last_opened_scene in project config
+        if let Some(project_path) = &self.current_project_path {
+            if let Ok(pm) = ProjectManager::new() {
+                // Make path relative to project
+                if let Ok(relative_path) = path.strip_prefix(project_path) {
+                    let _ = pm.set_last_opened_scene(project_path, Some(relative_path.to_path_buf()));
+                }
+            }
+        }
+        
         log::info!("Scene saved to {:?}", path);
         Ok(())
     }
@@ -161,12 +179,26 @@ impl EditorState {
         // Rebuild entity_names from loaded entities
         self.entity_names.clear();
         for &entity in self.world.transforms.keys() {
-            let name = if let Some(tag) = self.world.tags.get(&entity) {
+            // Use name from world if available, otherwise generate one
+            let name = if let Some(name) = self.world.names.get(&entity) {
+                name.clone()
+            } else if let Some(tag) = self.world.tags.get(&entity) {
                 format!("{:?}", tag)
             } else {
                 format!("Entity {}", entity)
             };
-            self.entity_names.insert(entity, name);
+            self.entity_names.insert(entity, name.clone());
+            self.world.names.insert(entity, name);
+        }
+
+        // Update last_opened_scene in project config
+        if let Some(project_path) = &self.current_project_path {
+            if let Ok(pm) = ProjectManager::new() {
+                // Make path relative to project
+                if let Ok(relative_path) = path.strip_prefix(project_path) {
+                    let _ = pm.set_last_opened_scene(project_path, Some(relative_path.to_path_buf()));
+                }
+            }
         }
 
         log::info!("Scene loaded from {:?}", path);

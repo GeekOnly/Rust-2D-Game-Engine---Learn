@@ -206,6 +206,7 @@ pub struct World {
     pub layers: HashMap<Entity, u8>,        // Layer (0-31, Unity has 32 layers)
     pub parents: HashMap<Entity, Entity>,   // Parent entity
     pub children: HashMap<Entity, Vec<Entity>>, // Children entities
+    pub names: HashMap<Entity, String>,     // Entity names (for editor)
 }
 
 impl World {
@@ -244,6 +245,7 @@ impl World {
         self.scripts.remove(&e);
         self.active.remove(&e);
         self.layers.remove(&e);
+        self.names.remove(&e);
     }
 
     pub fn clear(&mut self) {
@@ -257,6 +259,7 @@ impl World {
         self.layers.clear();
         self.parents.clear();
         self.children.clear();
+        self.names.clear();
         self.next_entity = 0;
     }
 
@@ -296,6 +299,7 @@ impl World {
             active: Vec<(Entity, bool)>,
             layers: Vec<(Entity, u8)>,
             parents: Vec<(Entity, Entity)>,
+            names: Vec<(Entity, String)>,
         }
 
         let data = SceneData {
@@ -309,6 +313,7 @@ impl World {
             active: self.active.iter().map(|(k, v)| (*k, *v)).collect(),
             layers: self.layers.iter().map(|(k, v)| (*k, *v)).collect(),
             parents: self.parents.iter().map(|(k, v)| (*k, *v)).collect(),
+            names: self.names.iter().map(|(k, v)| (*k, v.clone())).collect(),
         };
 
         serde_json::to_string_pretty(&data)
@@ -317,12 +322,19 @@ impl World {
     pub fn load_from_json(&mut self, json: &str) -> Result<(), serde_json::Error> {
         #[derive(Deserialize)]
         struct SceneData {
+            #[serde(default)]
             next_entity: Entity,
+            #[serde(default)]
             transforms: Vec<(Entity, Transform)>,
+            #[serde(default)]
             velocities: Vec<(Entity, (f32, f32))>,
+            #[serde(default)]
             sprites: Vec<(Entity, Sprite)>,
+            #[serde(default)]
             colliders: Vec<(Entity, Collider)>,
+            #[serde(default)]
             tags: Vec<(Entity, EntityTag)>,
+            #[serde(default)]
             scripts: Vec<(Entity, Script)>,
             #[serde(default)]
             active: Vec<(Entity, bool)>,
@@ -330,12 +342,25 @@ impl World {
             layers: Vec<(Entity, u8)>,
             #[serde(default)]
             parents: Vec<(Entity, Entity)>,
+            #[serde(default)]
+            names: Vec<(Entity, String)>,
         }
 
         let data: SceneData = serde_json::from_str(json)?;
 
         self.clear();
-        self.next_entity = data.next_entity;
+        
+        // Set next_entity, or calculate from existing entities if not provided
+        if data.next_entity > 0 {
+            self.next_entity = data.next_entity;
+        } else {
+            // Calculate next_entity from max entity ID + 1
+            let max_entity = data.transforms.iter()
+                .map(|(e, _)| *e)
+                .max()
+                .unwrap_or(0);
+            self.next_entity = max_entity + 1;
+        }
 
         for (entity, transform) in data.transforms {
             self.transforms.insert(entity, transform);
@@ -348,6 +373,9 @@ impl World {
         }
         for (entity, collider) in data.colliders {
             self.colliders.insert(entity, collider);
+        }
+        for (entity, name) in data.names {
+            self.names.insert(entity, name);
         }
         for (entity, tag) in data.tags {
             self.tags.insert(entity, tag);

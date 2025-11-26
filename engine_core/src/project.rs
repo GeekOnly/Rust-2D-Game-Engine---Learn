@@ -22,6 +22,8 @@ pub struct ProjectConfig {
     pub editor_startup_scene: Option<PathBuf>,  // Scene to load when opening project in Editor
     #[serde(default)]
     pub game_startup_scene: Option<PathBuf>,    // Scene to load when running exported game
+    #[serde(default)]
+    pub last_opened_scene: Option<PathBuf>,     // Last scene that was open (for auto-restore)
     // Legacy field for backward compatibility
     #[serde(default)]
     pub startup_scene: Option<PathBuf>,
@@ -60,6 +62,7 @@ impl ProjectManager {
             version: "0.1.0".to_string(),
             editor_startup_scene: None,
             game_startup_scene: None,
+            last_opened_scene: None,
             startup_scene: None,
         };
 
@@ -233,6 +236,34 @@ impl ProjectManager {
     // Legacy method - sets editor_startup_scene
     pub fn set_startup_scene(&self, project_path: &Path, scene_path: Option<PathBuf>) -> Result<()> {
         self.set_editor_startup_scene(project_path, scene_path)
+    }
+
+    // Get last opened scene
+    pub fn get_last_opened_scene(&self, project_path: &Path) -> Result<Option<PathBuf>> {
+        let config_path = project_path.join("project.json");
+        if !config_path.exists() {
+            return Ok(None);
+        }
+
+        let config_str = fs::read_to_string(&config_path)?;
+        let config: ProjectConfig = serde_json::from_str(&config_str)?;
+        Ok(config.last_opened_scene)
+    }
+
+    // Set last opened scene
+    pub fn set_last_opened_scene(&self, project_path: &Path, scene_path: Option<PathBuf>) -> Result<()> {
+        let config_path = project_path.join("project.json");
+        if !config_path.exists() {
+            return Err(anyhow::anyhow!("Project config not found"));
+        }
+
+        let config_str = fs::read_to_string(&config_path)?;
+        let mut config: ProjectConfig = serde_json::from_str(&config_str)?;
+        config.last_opened_scene = scene_path;
+
+        let config_json = serde_json::to_string_pretty(&config)?;
+        fs::write(config_path, config_json)?;
+        Ok(())
     }
 
     pub fn get_example_projects() -> Vec<(&'static str, &'static str)> {
