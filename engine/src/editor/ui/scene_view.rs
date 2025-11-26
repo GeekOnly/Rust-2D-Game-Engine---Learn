@@ -1,7 +1,7 @@
 use ecs::{World, Entity};
 use egui;
 use crate::editor::ui::TransformTool;
-use crate::editor::{SceneCamera, SceneGrid};
+use crate::editor::{SceneCamera, SceneGrid, Toolbar};
 
 /// Renders the Scene/Game view panel
 ///
@@ -16,6 +16,8 @@ use crate::editor::{SceneCamera, SceneGrid};
 /// * `current_tool` - The current transform tool (View, Move, Rotate, Scale)
 /// * `scene_camera` - The scene camera for pan/zoom
 /// * `scene_grid` - The grid system for snapping
+/// * `play_request` - Request to start playing
+/// * `stop_request` - Request to stop playing
 pub fn render_scene_view(
     ui: &mut egui::Ui,
     world: &mut World,
@@ -24,15 +26,20 @@ pub fn render_scene_view(
     is_playing: bool,
     show_colliders: &bool,
     show_velocities: &bool,
-    current_tool: &TransformTool,
+    current_tool: &mut TransformTool,
     scene_camera: &mut SceneCamera,
     scene_grid: &SceneGrid,
+    play_request: &mut bool,
+    stop_request: &mut bool,
 ) {
+    // Tab selector
     ui.horizontal(|ui| {
         ui.selectable_value(scene_view_tab, 0, "🎬 Scene");
         ui.selectable_value(scene_view_tab, 1, "🎮 Game");
     });
-    ui.separator();
+    
+    // Unity-like toolbar
+    Toolbar::render(ui, current_tool, is_playing, play_request, stop_request);
 
     match *scene_view_tab {
         0 => {
@@ -46,7 +53,7 @@ pub fn render_scene_view(
             // === CAMERA CONTROLS ===
             // Handle middle mouse panning
             if response.dragged_by(egui::PointerButton::Middle) {
-                let delta = response.drag_delta();
+                let _delta = response.drag_delta();
                 let mouse_pos = response.interact_pointer_pos().unwrap_or(rect.center());
                 
                 if response.drag_started_by(egui::PointerButton::Middle) {

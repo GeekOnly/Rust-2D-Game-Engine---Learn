@@ -166,6 +166,10 @@ fn main() -> Result<()> {
 
     // egui setup
     let egui_ctx = egui::Context::default();
+    
+    // Apply Unity-like theme
+    editor::UnityTheme::apply(&egui_ctx);
+    
     let mut egui_state = egui_winit::State::new(
         egui_ctx.clone(),
         egui::ViewportId::ROOT,
@@ -687,7 +691,7 @@ fn main() -> Result<()> {
                                     &mut editor_state.show_velocities,
                                     &mut editor_state.console,
                                     &mut editor_state.bottom_panel_tab,
-                                    &editor_state.current_tool,
+                                    &mut editor_state.current_tool,
                                     &mut editor_state.show_project_settings,
                                     &mut editor_state.resource_current_folder,
                                     &mut editor_state.scene_camera,

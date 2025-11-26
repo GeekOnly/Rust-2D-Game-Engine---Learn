@@ -46,7 +46,7 @@ impl EditorUI {
         show_velocities: &mut bool,
         console: &mut Console,
         bottom_panel_tab: &mut usize,
-        current_tool: &TransformTool,
+        current_tool: &mut TransformTool,
         show_project_settings: &mut bool,
         resource_current_folder: &mut String,
         scene_camera: &mut SceneCamera,
@@ -116,6 +116,8 @@ impl EditorUI {
                 current_tool,
                 scene_camera,
                 scene_grid,
+                play_request,
+                stop_request,
             );
         });
 
