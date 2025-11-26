@@ -1,4 +1,8 @@
-use ecs::{World, Entity, Sprite, Collider, EntityTag, Script, Prefab, ScriptParameter};
+// Sub-modules
+pub mod resource_manager;
+
+// Re-exports
+use ecs::{World, Entity, EntityTag, Script, Prefab, ScriptParameter};
 use egui;
 use std::collections::HashMap;
 use crate::console::Console;
@@ -14,6 +18,7 @@ pub enum TransformTool {
 pub struct EditorUI;
 
 impl EditorUI {
+
     pub fn render_editor(
         ctx: &egui::Context,
         world: &mut World,
@@ -1265,18 +1270,105 @@ impl EditorUI {
 
                         ui.add_space(5.0);
 
-                        // Resource grid with modern cards
-                        egui::ScrollArea::vertical()
-                            .auto_shrink([false, false])
-                            .show(ui, |ui| {
-                                // Get current folder path
-                                let current_path = if resource_current_folder.is_empty() {
-                                    proj_path.clone()
-                                } else {
-                                    proj_path.join(&*resource_current_folder)
-                                };
+                        // Unity/Unreal-style 2-panel layout
+                        ui.horizontal(|ui| {
+                            // LEFT PANEL - Folder Tree
+                            egui::Frame::none()
+                                .fill(egui::Color32::from_rgb(37, 37, 38))
+                                .show(ui, |ui| {
+                                    ui.set_width(220.0);
+                                    ui.set_min_height(ui.available_height());
 
-                                ui.horizontal_wrapped(|ui| {
+                                    egui::ScrollArea::vertical()
+                                        .auto_shrink([false, false])
+                                        .show(ui, |ui| {
+                                            ui.add_space(5.0);
+
+                                            // Assets root (always expanded)
+                                            ui.horizontal(|ui| {
+                                                ui.add_space(5.0);
+                                                ui.label(egui::RichText::new("▼").size(10.0).color(egui::Color32::GRAY));
+                                                ui.add_space(3.0);
+                                                ui.label(egui::RichText::new("📁").size(14.0));
+                                                ui.add_space(3.0);
+
+                                                let is_root_selected = resource_current_folder.is_empty();
+                                                let text_color = if is_root_selected {
+                                                    egui::Color32::from_rgb(0, 122, 204)
+                                                } else {
+                                                    egui::Color32::LIGHT_GRAY
+                                                };
+
+                                                if ui.selectable_label(is_root_selected, egui::RichText::new("Assets").color(text_color).strong()).clicked() {
+                                                    resource_current_folder.clear();
+                                                }
+                                            });
+
+                                            ui.add_space(3.0);
+
+                                            // Main folders
+                                            let folders = vec![
+                                                ("scenes", "🎬", "Scenes"),
+                                                ("scripts", "📜", "Scripts"),
+                                                ("sprites", "🖼️", "Sprites"),
+                                                ("audio", "🔊", "Audio"),
+                                            ];
+
+                                            for (folder_name, icon, display_name) in folders {
+                                                let folder_path = proj_path.join(folder_name);
+                                                if !folder_path.exists() {
+                                                    continue;
+                                                }
+
+                                                ui.horizontal(|ui| {
+                                                    ui.add_space(15.0);
+
+                                                    // Expand/collapse triangle (future: for subfolders)
+                                                    ui.label(egui::RichText::new("▶").size(10.0).color(egui::Color32::GRAY));
+                                                    ui.add_space(3.0);
+
+                                                    ui.label(egui::RichText::new(icon).size(14.0));
+                                                    ui.add_space(3.0);
+
+                                                    let is_selected = *resource_current_folder == folder_name;
+                                                    let text_color = if is_selected {
+                                                        egui::Color32::from_rgb(0, 122, 204)
+                                                    } else {
+                                                        egui::Color32::LIGHT_GRAY
+                                                    };
+
+                                                    if ui.selectable_label(is_selected, egui::RichText::new(display_name).color(text_color)).clicked() {
+                                                        *resource_current_folder = folder_name.to_string();
+                                                    }
+                                                });
+
+                                                ui.add_space(2.0);
+                                            }
+                                        });
+                                });
+
+                            ui.separator();
+
+                            // RIGHT PANEL - Content View
+                            egui::Frame::none()
+                                .fill(egui::Color32::from_rgb(30, 30, 30))
+                                .show(ui, |ui| {
+                                    ui.set_min_width(ui.available_width());
+                                    ui.set_min_height(ui.available_height());
+
+                                    egui::ScrollArea::vertical()
+                                        .auto_shrink([false, false])
+                                        .show(ui, |ui| {
+                                            ui.add_space(10.0);
+
+                                            // Get current folder path
+                                            let current_path = if resource_current_folder.is_empty() {
+                                                proj_path.clone()
+                                            } else {
+                                                proj_path.join(&*resource_current_folder)
+                                            };
+
+                                            ui.horizontal_wrapped(|ui| {
                                     ui.style_mut().spacing.item_spacing = egui::vec2(12.0, 12.0);
                                     ui.set_min_width(ui.available_width());
 
@@ -1301,49 +1393,21 @@ impl EditorUI {
                                             }
                                         }
 
-                                        // Modern card design
-                                        let card_response = egui::Frame::none()
-                                            .fill(egui::Color32::from_rgb(50, 50, 52))
-                                            .rounding(egui::Rounding::same(6.0))
-                                            .stroke(egui::Stroke::new(1.0, egui::Color32::from_rgb(70, 70, 72)))
-                                            .inner_margin(egui::Margin::same(12.0))
-                                            .show(ui, |ui| {
-                                                ui.set_min_size(egui::vec2(110.0, 90.0));
-                                                ui.vertical_centered(|ui| {
-                                                    // Icon with accent color background
-                                                    egui::Frame::none()
-                                                        .fill(accent_color.linear_multiply(0.3))
-                                                        .rounding(egui::Rounding::same(8.0))
-                                                        .inner_margin(egui::Margin::same(8.0))
-                                                        .show(ui, |ui| {
-                                                            ui.label(egui::RichText::new(icon).size(28.0).color(accent_color));
-                                                        });
+                                        // Render folder card using helper
+                                        let count_label = if exists {
+                                            format!("{} items", file_count)
+                                        } else {
+                                            "Empty".to_string()
+                                        };
+                                        let card_response = resource_manager::render_resource_card(
+                                            ui,
+                                            icon,
+                                            display_name,
+                                            &count_label,
+                                            accent_color
+                                        );
 
-                                                    ui.add_space(6.0);
-                                                    ui.label(egui::RichText::new(display_name).strong().size(12.0));
-
-                                                    if exists {
-                                                        ui.label(
-                                                            egui::RichText::new(format!("{} items", file_count))
-                                                                .size(10.0)
-                                                                .color(egui::Color32::GRAY)
-                                                        );
-                                                    } else {
-                                                        ui.label(
-                                                            egui::RichText::new("Empty")
-                                                                .size(10.0)
-                                                                .color(egui::Color32::DARK_GRAY)
-                                                        );
-                                                    }
-                                                });
-                                            });
-
-                                        // Hover effect
-                                        if card_response.response.hovered() {
-                                            ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
-                                        }
-
-                                        if card_response.response.clicked() && exists {
+                                        if card_response.clicked() && exists {
                                             // Navigate into folder
                                             if resource_current_folder.is_empty() {
                                                 *resource_current_folder = folder_name.to_string();
@@ -1353,319 +1417,70 @@ impl EditorUI {
                                         }
 
                                         // Right-click context menu for folders
-                                        card_response.response.context_menu(|ui| {
-                                            ui.set_min_width(180.0);
-
-                                            if ui.button("➕ Create").clicked() {
-                                                ui.close_menu();
-                                            }
-
-                                            ui.menu_button("📄 Create", |ui| {
-                                                if folder_name == "scenes" {
-                                                    if ui.button("🎬 New Scene").clicked() {
-                                                        // Create new scene
-                                                        let mut counter = 1;
-                                                        loop {
-                                                            let scene_name = format!("NewScene{}.scene", counter);
-                                                            let scene_path = folder_path.join(&scene_name);
-                                                            if !scene_path.exists() {
-                                                                // Create empty scene with minimal structure
-                                                                let empty_scene_json = serde_json::json!({
-                                                                    "entity_names": {},
-                                                                    "world": {
-                                                                        "transforms": [],
-                                                                        "sprites": [],
-                                                                        "velocities": [],
-                                                                        "colliders": [],
-                                                                        "scripts": [],
-                                                                        "tags": [],
-                                                                        "parents": [],
-                                                                        "active": [],
-                                                                        "layers": [],
-                                                                        "next_entity": 0
-                                                                    }
-                                                                });
-                                                                if let Ok(json) = serde_json::to_string_pretty(&empty_scene_json) {
-                                                                    let _ = std::fs::write(&scene_path, json);
-                                                                }
-                                                                break;
-                                                            }
-                                                            counter += 1;
-                                                        }
-                                                        ui.close_menu();
-                                                    }
-                                                }
-
-                                                if folder_name == "scripts" {
-                                                    if ui.button("📜 New Script").clicked() {
-                                                        // Create new script
-                                                        let mut counter = 1;
-                                                        loop {
-                                                            let script_name = format!("NewScript_{}.lua", counter);
-                                                            let script_path = folder_path.join(&script_name);
-                                                            if !script_path.exists() {
-                                                                let template = "-- New Script\n\nfunction on_start()\n    print(\"Script started!\")\nend\n\nfunction on_update(dt)\n    -- Update logic here\nend\n";
-                                                                let _ = std::fs::write(&script_path, template);
-                                                                break;
-                                                            }
-                                                            counter += 1;
-                                                        }
-                                                        ui.close_menu();
-                                                    }
-                                                }
-
-                                                if ui.button("📁 New Folder").clicked() {
-                                                    let mut counter = 1;
-                                                    loop {
-                                                        let new_folder_name = format!("NewFolder{}", counter);
-                                                        let new_folder_path = folder_path.join(&new_folder_name);
-                                                        if !new_folder_path.exists() {
-                                                            let _ = std::fs::create_dir(&new_folder_path);
-                                                            break;
-                                                        }
-                                                        counter += 1;
-                                                    }
-                                                    ui.close_menu();
-                                                }
-                                            });
-
-                                            ui.separator();
-
-                                            if ui.button("📂 Show in Explorer").clicked() {
-                                                #[cfg(target_os = "windows")]
-                                                {
-                                                    let _ = std::process::Command::new("explorer")
-                                                        .arg(&folder_path)
-                                                        .spawn();
-                                                }
-                                                ui.close_menu();
-                                            }
-
-                                            if ui.button("🔄 Refresh").clicked() {
-                                                ui.close_menu();
-                                            }
+                                        card_response.context_menu(|ui| {
+                                            resource_manager::render_folder_context_menu(ui, folder_name, &folder_path);
                                         });
                                         }
-                                    }
-                                });
+                                    } else {
+                                        // Inside a folder - show files
+                                        if current_path.exists() {
+                                            if let Ok(entries) = std::fs::read_dir(&current_path) {
+                                                let mut entries: Vec<_> = entries.flatten().collect();
+                                                entries.sort_by_key(|e| e.file_name());
 
-                                ui.add_space(15.0);
+                                                for entry in entries {
+                                                    if let Some(name) = entry.file_name().to_str() {
+                                                        let path = entry.path();
+                                                        let is_dir = path.is_dir();
 
-                                // Recent Files Section
-                                ui.label(egui::RichText::new("⏱️ Recent Files").strong().size(14.0));
-                                ui.add_space(8.0);
+                                                        // Get file type info using helper
+                                                        let file_info = resource_manager::get_file_type_info(name, is_dir);
 
-                                ui.horizontal_wrapped(|ui| {
-                                    ui.style_mut().spacing.item_spacing = egui::vec2(10.0, 10.0);
-                                    ui.set_min_width(ui.available_width());
+                                                        // Truncate long names
+                                                        let display_name = if name.len() > 15 {
+                                                            format!("{}...", &name[..12])
+                                                        } else {
+                                                            name.to_string()
+                                                        };
 
-                                    // Show recent scenes
-                                    let scenes_path = proj_path.join("scenes");
-                                    if scenes_path.exists() {
-                                        if let Ok(entries) = std::fs::read_dir(&scenes_path) {
-                                            for entry in entries.flatten().take(8) {
-                                                if let Some(name) = entry.file_name().to_str() {
-                                                    if name.ends_with(".scene") {
-                                                        // Modern file card
-                                                        let file_response = egui::Frame::none()
-                                                            .fill(egui::Color32::from_rgb(45, 45, 48))
-                                                            .rounding(egui::Rounding::same(4.0))
-                                                            .stroke(egui::Stroke::new(1.0, egui::Color32::from_rgb(60, 60, 62)))
-                                                            .inner_margin(egui::Margin::symmetric(10.0, 8.0))
-                                                            .show(ui, |ui| {
-                                                                ui.set_min_size(egui::vec2(95.0, 75.0));
-                                                                ui.vertical_centered(|ui| {
-                                                                    ui.label(egui::RichText::new("🎬").size(24.0));
-                                                                    ui.add_space(4.0);
+                                                        // Render card using helper
+                                                        let card_response = resource_manager::render_resource_card(
+                                                            ui,
+                                                            file_info.icon,
+                                                            &display_name,
+                                                            file_info.type_label,
+                                                            file_info.accent_color
+                                                        );
 
-                                                                    let display_name = name.trim_end_matches(".scene");
-                                                                    ui.label(
-                                                                        egui::RichText::new(display_name)
-                                                                            .size(11.0)
-                                                                            .color(egui::Color32::LIGHT_GRAY)
-                                                                    );
+                                                        // Click handling
+                                                        if card_response.clicked() {
+                                                            if is_dir {
+                                                                // Navigate into subfolder
+                                                                *resource_current_folder = format!("{}/{}", resource_current_folder, name);
+                                                            }
+                                                        }
 
-                                                                    ui.label(
-                                                                        egui::RichText::new("Scene")
-                                                                            .size(9.0)
-                                                                            .color(egui::Color32::DARK_GRAY)
-                                                                    );
-                                                                });
+                                                        if card_response.double_clicked() && !is_dir {
+                                                            if name.ends_with(".scene") {
+                                                                *load_file_request = Some(path.clone());
+                                                            }
+                                                        }
+
+                                                        // Context menu for files
+                                                        if !is_dir {
+                                                            card_response.context_menu(|ui| {
+                                                                resource_manager::render_file_context_menu(ui, &path, name, load_file_request);
                                                             });
-
-                                                        if file_response.response.hovered() {
-                                                            ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
                                                         }
-
-                                                        if file_response.response.double_clicked() {
-                                                            // Load scene
-                                                            *load_file_request = Some(entry.path());
-                                                        }
-
-                                                        // Right-click context menu for scene files
-                                                        file_response.response.context_menu(|ui| {
-                                                            ui.set_min_width(160.0);
-
-                                                            if ui.button("📂 Open").clicked() {
-                                                                *load_file_request = Some(entry.path());
-                                                                ui.close_menu();
-                                                            }
-
-                                                            ui.separator();
-
-                                                            if ui.button("✏️ Rename").clicked() {
-                                                                // Future: Implement rename dialog
-                                                                ui.close_menu();
-                                                            }
-
-                                                            if ui.button("📋 Duplicate").clicked() {
-                                                                // Duplicate scene
-                                                                let file_path = entry.path();
-                                                                if let Some(file_name) = file_path.file_stem() {
-                                                                    let mut counter = 1;
-                                                                    loop {
-                                                                        let new_name = format!("{}_copy{}.scene", file_name.to_string_lossy(), counter);
-                                                                        let new_path = file_path.with_file_name(new_name);
-                                                                        if !new_path.exists() {
-                                                                            let _ = std::fs::copy(&file_path, &new_path);
-                                                                            break;
-                                                                        }
-                                                                        counter += 1;
-                                                                    }
-                                                                }
-                                                                ui.close_menu();
-                                                            }
-
-                                                            ui.separator();
-
-                                                            if ui.button("🗑️ Delete").clicked() {
-                                                                let _ = std::fs::remove_file(entry.path());
-                                                                ui.close_menu();
-                                                            }
-
-                                                            ui.separator();
-
-                                                            if ui.button("📂 Show in Explorer").clicked() {
-                                                                #[cfg(target_os = "windows")]
-                                                                {
-                                                                    let _ = std::process::Command::new("explorer")
-                                                                        .arg("/select,")
-                                                                        .arg(entry.path())
-                                                                        .spawn();
-                                                                }
-                                                                ui.close_menu();
-                                                            }
-                                                        });
                                                     }
                                                 }
                                             }
                                         }
                                     }
-
-                                    // Show recent scripts
-                                    let scripts_path = proj_path.join("scripts");
-                                    if scripts_path.exists() {
-                                        if let Ok(entries) = std::fs::read_dir(&scripts_path) {
-                                            for entry in entries.flatten().take(8) {
-                                                if let Some(name) = entry.file_name().to_str() {
-                                                    if name.ends_with(".lua") {
-                                                        // Modern file card
-                                                        let file_response = egui::Frame::none()
-                                                            .fill(egui::Color32::from_rgb(45, 45, 48))
-                                                            .rounding(egui::Rounding::same(4.0))
-                                                            .stroke(egui::Stroke::new(1.0, egui::Color32::from_rgb(60, 60, 62)))
-                                                            .inner_margin(egui::Margin::symmetric(10.0, 8.0))
-                                                            .show(ui, |ui| {
-                                                                ui.set_min_size(egui::vec2(95.0, 75.0));
-                                                                ui.vertical_centered(|ui| {
-                                                                    ui.label(egui::RichText::new("📜").size(24.0));
-                                                                    ui.add_space(4.0);
-
-                                                                    let display_name = name.trim_end_matches(".lua");
-                                                                    ui.label(
-                                                                        egui::RichText::new(display_name)
-                                                                            .size(11.0)
-                                                                            .color(egui::Color32::LIGHT_GRAY)
-                                                                    );
-
-                                                                    ui.label(
-                                                                        egui::RichText::new("Script")
-                                                                            .size(9.0)
-                                                                            .color(egui::Color32::DARK_GRAY)
-                                                                    );
-                                                                });
-                                                            });
-
-                                                        if file_response.response.hovered() {
-                                                            ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
-                                                        }
-
-                                                        // Right-click context menu for script files
-                                                        file_response.response.context_menu(|ui| {
-                                                            ui.set_min_width(160.0);
-
-                                                            if ui.button("✏️ Edit Script").clicked() {
-                                                                #[cfg(target_os = "windows")]
-                                                                {
-                                                                    let _ = std::process::Command::new("notepad")
-                                                                        .arg(entry.path())
-                                                                        .spawn();
-                                                                }
-                                                                ui.close_menu();
-                                                            }
-
-                                                            ui.separator();
-
-                                                            if ui.button("✏️ Rename").clicked() {
-                                                                // Future: Implement rename dialog
-                                                                ui.close_menu();
-                                                            }
-
-                                                            if ui.button("📋 Duplicate").clicked() {
-                                                                // Duplicate script
-                                                                let file_path = entry.path();
-                                                                if let Some(file_name) = file_path.file_stem() {
-                                                                    let mut counter = 1;
-                                                                    loop {
-                                                                        let new_name = format!("{}_copy{}.lua", file_name.to_string_lossy(), counter);
-                                                                        let new_path = file_path.with_file_name(new_name);
-                                                                        if !new_path.exists() {
-                                                                            let _ = std::fs::copy(&file_path, &new_path);
-                                                                            break;
-                                                                        }
-                                                                        counter += 1;
-                                                                    }
-                                                                }
-                                                                ui.close_menu();
-                                                            }
-
-                                                            ui.separator();
-
-                                                            if ui.button("🗑️ Delete").clicked() {
-                                                                let _ = std::fs::remove_file(entry.path());
-                                                                ui.close_menu();
-                                                            }
-
-                                                            ui.separator();
-
-                                                            if ui.button("📂 Show in Explorer").clicked() {
-                                                                #[cfg(target_os = "windows")]
-                                                                {
-                                                                    let _ = std::process::Command::new("explorer")
-                                                                        .arg("/select,")
-                                                                        .arg(entry.path())
-                                                                        .spawn();
-                                                                }
-                                                                ui.close_menu();
-                                                            }
-                                                        });
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                });
-                            });
+                                            });  // Close horizontal_wrapped (content grid)
+                                        });      // Close ScrollArea::vertical (right panel scroll)
+                                });              // Close Frame::none (right panel frame)
+                        });                      // Close ui.horizontal (2-panel container)
                     } else {
                         // No project open - modern empty state
                         ui.vertical_centered(|ui| {
@@ -2005,7 +1820,7 @@ impl EditorUI {
                         if response.clicked() {
                             *selected_entity = Some(entity);
                         }
-                        
+
                         // Context Menu
                         response.context_menu(|ui| {
                             ui.label(format!("📝 {}", name));
@@ -2031,12 +1846,12 @@ impl EditorUI {
             // Leaf node
             ui.horizontal(|ui| {
                 // Indent to match collapsing header text (approx 15-20px)
-                ui.add_space(20.0); 
+                ui.add_space(20.0);
                 let response = ui.selectable_label(is_selected, format!("{} {}", icon, name));
                 if response.clicked() {
                     *selected_entity = Some(entity);
                 }
-                
+
                 // Context Menu
                 response.context_menu(|ui| {
                     ui.label(format!("📝 {}", name));

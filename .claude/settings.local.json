@@ -13,7 +13,10 @@
       "Bash(rustc:*)",
       "Bash(awk:*)",
       "Bash(rustfmt:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(git mv:*)",
+      "Bash(if [ -d game ])",
+      "Bash(then mv game engine)"
     ],
     "deny": [],
     "ask": []

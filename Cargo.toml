@@ -7,7 +7,7 @@ members = [
   "script",
   "input",
   "editor",
-  "game",
+  "engine",
 ]
 resolver = "2"
 
