@@ -14,7 +14,7 @@ impl UnityTheme {
         let bg_light = Color32::from_rgb(56, 56, 56);          // Hover/selected
         let border = Color32::from_rgb(26, 26, 26);            // Borders
         let text = Color32::from_rgb(210, 210, 210);           // Text
-        let text_dim = Color32::from_rgb(150, 150, 150);       // Disabled text
+        let _text_dim = Color32::from_rgb(150, 150, 150);       // Disabled text
         let accent = Color32::from_rgb(44, 93, 135);           // Unity blue
         let accent_hover = Color32::from_rgb(58, 122, 177);    // Lighter blue
         

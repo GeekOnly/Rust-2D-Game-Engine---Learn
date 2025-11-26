@@ -282,6 +282,23 @@ fn main() -> Result<()> {
                                                     editor_state.console.info("Duplicate (Ctrl+D) - Not yet implemented".to_string());
                                                 }
                                             }
+                                            EditorShortcut::SaveScene => {
+                                                // Save scene (Ctrl+S)
+                                                if let Some(ref path) = editor_state.current_scene_path.clone() {
+                                                    if let Err(e) = editor_state.save_scene(path) {
+                                                        editor_state.console.error(format!("Failed to save: {}", e));
+                                                    } else {
+                                                        editor_state.console.info("Scene saved (Ctrl+S)".to_string());
+                                                        editor_state.autosave.reset(); // Reset auto-save timer
+                                                    }
+                                                } else {
+                                                    editor_state.console.warning("No scene to save. Use File → Save Scene As...".to_string());
+                                                }
+                                            }
+                                            EditorShortcut::Exit => {
+                                                // Exit editor (Ctrl+Q)
+                                                editor_state.show_exit_dialog = true;
+                                            }
                                             _ => {
                                                 // Other shortcuts not yet implemented
                                             }
@@ -359,6 +376,22 @@ fn main() -> Result<()> {
                         // Egui frame setup
                         let raw_input = egui_state.take_egui_input(&window);
                         egui_ctx.begin_frame(raw_input);
+
+                        // Auto-save logic (only in editor mode)
+                        if app_state == AppState::Editor && !editor_state.is_playing {
+                            if editor_state.autosave.should_save() && editor_state.scene_modified {
+                                if let Some(scene_path) = &editor_state.current_scene_path {
+                                    let autosave_path = editor_state.autosave.create_autosave_path(scene_path);
+                                    if let Ok(json) = editor_state.world.save_to_json() {
+                                        if std::fs::write(&autosave_path, json).is_ok() {
+                                            editor_state.autosave.mark_saved();
+                                            editor_state.console.info(format!("Auto-saved to {}", autosave_path.display()));
+                                            let _ = editor_state.autosave.cleanup_old_autosaves(scene_path);
+                                        }
+                                    }
+                                }
+                            }
+                        }
 
                         // Render UI based on app state
                         match app_state {
@@ -696,6 +729,7 @@ fn main() -> Result<()> {
                                     &mut editor_state.resource_current_folder,
                                     &mut editor_state.scene_camera,
                                     &editor_state.scene_grid,
+                                    &mut editor_state.show_exit_dialog,
                                 );
 
                                 // Handle new scene request
@@ -960,6 +994,60 @@ fn main() -> Result<()> {
                                                 if ui.button("Cancel").clicked() {
                                                     editor_state.show_unsaved_changes_dialog = false;
                                                     editor_state.pending_action = None;
+                                                }
+                                            });
+                                        });
+                                }
+
+                                // Show exit confirmation dialog
+                                if editor_state.show_exit_dialog {
+                                    egui::Window::new("Exit Editor")
+                                        .collapsible(false)
+                                        .resizable(false)
+                                        .anchor(egui::Align2::CENTER_CENTER, egui::vec2(0.0, 0.0))
+                                        .show(&egui_ctx, |ui| {
+                                            if editor_state.scene_modified {
+                                                ui.label("You have unsaved changes. Do you want to save before exiting?");
+                                            } else {
+                                                ui.label("Are you sure you want to exit?");
+                                            }
+                                            ui.add_space(10.0);
+                                            
+                                            ui.horizontal(|ui| {
+                                                if editor_state.scene_modified {
+                                                    if ui.button("Save and Exit").clicked() {
+                                                        // Save scene
+                                                        let mut saved = false;
+                                                        if let Some(ref path) = editor_state.current_scene_path.clone() {
+                                                            if let Err(e) = editor_state.save_scene(path) {
+                                                                editor_state.console.error(format!("Failed to save: {}", e));
+                                                            } else {
+                                                                saved = true;
+                                                            }
+                                                        }
+                                                        
+                                                        if saved {
+                                                            // Return to launcher
+                                                            app_state = AppState::Launcher;
+                                                            editor_state.show_exit_dialog = false;
+                                                        }
+                                                    }
+                                                    
+                                                    if ui.button("Exit Without Saving").clicked() {
+                                                        // Return to launcher without saving
+                                                        app_state = AppState::Launcher;
+                                                        editor_state.show_exit_dialog = false;
+                                                    }
+                                                } else {
+                                                    if ui.button("Exit").clicked() {
+                                                        // Return to launcher
+                                                        app_state = AppState::Launcher;
+                                                        editor_state.show_exit_dialog = false;
+                                                    }
+                                                }
+                                                
+                                                if ui.button("Cancel").clicked() {
+                                                    editor_state.show_exit_dialog = false;
                                                 }
                                             });
                                         });

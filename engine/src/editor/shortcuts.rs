@@ -19,6 +19,7 @@ pub enum EditorShortcut {
     OpenScene,     // Ctrl+O
     SaveScene,     // Ctrl+S
     SaveSceneAs,   // Ctrl+Shift+S
+    Exit,          // Ctrl+Q
     
     // Edit operations
     Undo,          // Ctrl+Z
@@ -74,6 +75,7 @@ impl ShortcutManager {
             (KeyCode::KeyO, true, false, false) => Some(EditorShortcut::OpenScene),
             (KeyCode::KeyS, true, false, false) => Some(EditorShortcut::SaveScene),
             (KeyCode::KeyS, true, true, false) => Some(EditorShortcut::SaveSceneAs),
+            (KeyCode::KeyQ, true, false, false) => Some(EditorShortcut::Exit),
             
             // Edit operations
             (KeyCode::KeyZ, true, false, false) => Some(EditorShortcut::Undo),

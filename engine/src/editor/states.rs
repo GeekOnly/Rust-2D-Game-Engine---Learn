@@ -80,6 +80,8 @@ pub struct EditorState {
     pub scene_grid: super::grid::SceneGrid,
     pub selected_entities: Vec<Entity>,  // Multi-selection support
     pub hierarchy_search: String,        // Search filter
+    pub autosave: super::autosave::AutoSave,  // Auto-save system
+    pub show_exit_dialog: bool,          // Exit confirmation dialog
 }
 
 #[allow(dead_code)]
@@ -119,6 +121,8 @@ impl EditorState {
             scene_grid: super::grid::SceneGrid::new(),
             selected_entities: Vec::new(),
             hierarchy_search: String::new(),
+            autosave: super::autosave::AutoSave::new(300), // 5 minutes
+            show_exit_dialog: false,
         }
     }
 

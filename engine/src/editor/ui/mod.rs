@@ -51,6 +51,7 @@ impl EditorUI {
         resource_current_folder: &mut String,
         scene_camera: &mut SceneCamera,
         scene_grid: &SceneGrid,
+        show_exit_dialog: &mut bool,
     ) {
         // Top Menu Bar
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
@@ -71,6 +72,7 @@ impl EditorUI {
                 project_path,
                 current_scene_path,
                 is_playing,
+                show_exit_dialog,
                 Self::get_scene_files,
             );
         });

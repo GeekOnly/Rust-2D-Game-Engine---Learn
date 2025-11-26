@@ -21,23 +21,33 @@ pub fn render_menu_bar(
     project_path: &Option<std::path::PathBuf>,
     current_scene_path: &Option<std::path::PathBuf>,
     is_playing: bool,
+    show_exit_dialog: &mut bool,
     get_scene_files_fn: impl Fn(&std::path::Path) -> Vec<String>,
 ) {
     egui::menu::bar(ui, |ui| {
         ui.menu_button("File", |ui| {
             if ui.button("New Scene").clicked() {
                 *new_scene_request = true;
+                ui.close_menu();
             }
             ui.separator();
-            if ui.button("Save Scene").clicked() {
+            if ui.button("💾 Save Scene (Ctrl+S)").clicked() {
                 *save_request = true;
+                ui.close_menu();
             }
             if ui.button("Save Scene As...").clicked() {
                 *save_as_request = true;
+                ui.close_menu();
             }
             ui.separator();
             if ui.button("Load Scene...").clicked() {
                 *load_request = true;
+                ui.close_menu();
+            }
+            ui.separator();
+            if ui.button("⬅ Back to Launcher (Ctrl+Q)").clicked() {
+                *show_exit_dialog = true;
+                ui.close_menu();
             }
         });
         ui.menu_button("Edit", |ui| {
