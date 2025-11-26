@@ -107,7 +107,17 @@ pub fn render_scene_view(
     let center = rect.center();
     let mut hovered_entity: Option<Entity> = None;
     
-    for (&entity, transform) in &world.transforms {
+    // Collect and sort entities by Z position for proper depth rendering in 3D mode
+    let mut entities: Vec<(Entity, &ecs::Transform)> = world.transforms.iter()
+        .map(|(&e, t)| (e, t))
+        .collect();
+    
+    if *scene_view_mode == SceneViewMode::Mode3D {
+        // Sort by Z position (far to near) for painter's algorithm
+        entities.sort_by(|a, b| a.1.position[2].partial_cmp(&b.1.position[2]).unwrap_or(std::cmp::Ordering::Equal));
+    }
+    
+    for (entity, transform) in entities {
         let world_pos = glam::Vec2::new(transform.x(), transform.y());
         let screen_pos = scene_camera.world_to_screen(world_pos);
         let screen_x = center.x + screen_pos.x;
@@ -550,7 +560,7 @@ fn rotate_point_2d(x: f32, y: f32, angle_rad: f32) -> (f32, f32) {
 fn render_mesh_entity(
     painter: &egui::Painter,
     entity: Entity,
-    _transform: &ecs::Transform,
+    transform: &ecs::Transform,
     world: &World,
     screen_x: f32,
     screen_y: f32,
@@ -566,14 +576,20 @@ fn render_mesh_entity(
             (mesh.color[3] * 255.0) as u8,
         );
         
-        let base_size = 50.0 * scene_camera.zoom;
+        // Apply object scale
+        let scale = glam::Vec3::from(transform.scale);
+        let base_size = 50.0 * scene_camera.zoom * scale.x.max(scale.y).max(scale.z);
         
         // Get camera rotation for 3D rendering
-        let rotation_rad = if *scene_view_mode == SceneViewMode::Mode3D {
+        let camera_rotation_rad = if *scene_view_mode == SceneViewMode::Mode3D {
             scene_camera.get_rotation_radians()
         } else {
             0.0
         };
+        
+        // Get object rotation (Z-axis rotation for now)
+        let object_rotation_rad = transform.rotation[2].to_radians();
+        let total_rotation = camera_rotation_rad + object_rotation_rad;
         
         match &mesh.mesh_type {
             ecs::MeshType::Cube => {
@@ -586,14 +602,18 @@ fn render_mesh_entity(
                     let half = size / 2.0;
                     
                     // Apply rotation to depth offset
-                    let (depth_x, depth_y) = rotate_point_2d(depth / 2.0, -depth / 2.0, rotation_rad);
+                    let (depth_x, depth_y) = rotate_point_2d(depth / 2.0, -depth / 2.0, total_rotation);
                     
-                    // Front face corners (rotated)
+                    // Apply scale to size
+                    let scaled_half_x = half * scale.x;
+                    let scaled_half_y = half * scale.y;
+                    
+                    // Front face corners (rotated by camera + object rotation)
                     let corners = [
-                        rotate_point_2d(-half, -half, rotation_rad),
-                        rotate_point_2d(half, -half, rotation_rad),
-                        rotate_point_2d(half, half, rotation_rad),
-                        rotate_point_2d(-half, half, rotation_rad),
+                        rotate_point_2d(-scaled_half_x, -scaled_half_y, total_rotation),
+                        rotate_point_2d(scaled_half_x, -scaled_half_y, total_rotation),
+                        rotate_point_2d(scaled_half_x, scaled_half_y, total_rotation),
+                        rotate_point_2d(-scaled_half_x, scaled_half_y, total_rotation),
                     ];
                     
                     // Front face
