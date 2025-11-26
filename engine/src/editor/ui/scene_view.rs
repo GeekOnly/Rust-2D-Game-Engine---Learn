@@ -604,14 +604,14 @@ fn render_3d_cube(
         })
         .collect();
     
-    // Define faces with their center Z for depth sorting
+    // Define faces with correct winding order (counter-clockwise from outside)
     let mut faces_with_depth: Vec<(Vec<usize>, f32, f32)> = vec![
-        (vec![0, 1, 2, 3], 1.0, 0.0),   // Front face
-        (vec![5, 4, 7, 6], 0.6, 0.0),   // Back face (reversed winding)
-        (vec![0, 1, 5, 4], 0.7, 0.0),   // Bottom face
-        (vec![3, 2, 6, 7], 0.9, 0.0),   // Top face
-        (vec![4, 0, 3, 7], 0.75, 0.0),  // Left face (reversed winding)
-        (vec![1, 5, 6, 2], 0.85, 0.0),  // Right face (reversed winding)
+        (vec![0, 1, 2, 3], 1.0, 0.0),   // Front face (Z-)
+        (vec![5, 4, 7, 6], 0.6, 0.0),   // Back face (Z+)
+        (vec![1, 0, 4, 5], 0.7, 0.0),   // Bottom face (Y-)
+        (vec![3, 2, 6, 7], 0.9, 0.0),   // Top face (Y+)
+        (vec![0, 3, 7, 4], 0.75, 0.0),  // Left face (X-)
+        (vec![2, 1, 5, 6], 0.85, 0.0),  // Right face (X+)
     ];
     
     // Calculate average Z depth for each face
@@ -627,19 +627,31 @@ fn render_3d_cube(
     
     // Draw faces with depth-based shading and back-face culling
     for (face_indices, brightness, _depth) in faces_with_depth {
-        // Simple back-face culling using cross product
+        // Back-face culling using normal vector
         if face_indices.len() >= 3 {
-            let p0 = projected[face_indices[0]];
-            let p1 = projected[face_indices[1]];
-            let p2 = projected[face_indices[2]];
+            // Get 3D positions for normal calculation
+            let v0 = &rotated[face_indices[0]];
+            let v1 = &rotated[face_indices[1]];
+            let v2 = &rotated[face_indices[2]];
             
-            // Calculate cross product to determine face orientation
-            let v1 = (p1.0 - p0.0, p1.1 - p0.1);
-            let v2 = (p2.0 - p0.0, p2.1 - p0.1);
-            let cross = v1.0 * v2.1 - v1.1 * v2.0;
+            // Calculate face normal using cross product
+            let edge1 = (v1.x - v0.x, v1.y - v0.y, v1.z - v0.z);
+            let edge2 = (v2.x - v0.x, v2.y - v0.y, v2.z - v0.z);
             
-            // Skip back-facing polygons (cross product < 0)
-            if cross < 0.0 {
+            let normal = (
+                edge1.1 * edge2.2 - edge1.2 * edge2.1,
+                edge1.2 * edge2.0 - edge1.0 * edge2.2,
+                edge1.0 * edge2.1 - edge1.1 * edge2.0,
+            );
+            
+            // View direction (camera looking at object)
+            let view_dir = (0.0, 0.0, -1.0);
+            
+            // Dot product with view direction
+            let dot = normal.0 * view_dir.0 + normal.1 * view_dir.1 + normal.2 * view_dir.2;
+            
+            // Skip back-facing polygons (dot product > 0 means facing away)
+            if dot > 0.0 {
                 continue;
             }
         }
