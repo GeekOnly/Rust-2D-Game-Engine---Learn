@@ -42,11 +42,23 @@ pub fn render_scene_view(
     handle_camera_controls(&response, scene_camera, rect);
 
     // === BACKGROUND ===
-    painter.rect_filled(rect, 0.0, egui::Color32::from_rgb(40, 40, 50));
+    let bg_color = match scene_view_mode {
+        SceneViewMode::Mode2D => egui::Color32::from_rgb(40, 40, 50),
+        SceneViewMode::Mode3D => egui::Color32::from_rgb(50, 55, 65), // Slightly different for 3D
+    };
+    painter.rect_filled(rect, 0.0, bg_color);
 
     // === GRID ===
     if scene_grid.enabled {
-        render_grid(&painter, rect, scene_camera, scene_grid);
+        match scene_view_mode {
+            SceneViewMode::Mode2D => render_grid_2d(&painter, rect, scene_camera, scene_grid),
+            SceneViewMode::Mode3D => render_grid_3d(&painter, rect, scene_camera, scene_grid),
+        }
+    }
+    
+    // === 3D SCENE GIZMO (top-right corner) ===
+    if *scene_view_mode == SceneViewMode::Mode3D {
+        render_scene_gizmo(&painter, rect);
     }
 
     // === ENTITIES ===
@@ -187,7 +199,7 @@ fn handle_camera_controls(response: &egui::Response, scene_camera: &mut SceneCam
     }
 }
 
-fn render_grid(painter: &egui::Painter, rect: egui::Rect, scene_camera: &SceneCamera, scene_grid: &SceneGrid) {
+fn render_grid_2d(painter: &egui::Painter, rect: egui::Rect, scene_camera: &SceneCamera, scene_grid: &SceneGrid) {
     let grid_size = scene_grid.size * scene_camera.zoom;
     let grid_color = egui::Color32::from_rgba_premultiplied(
         (scene_grid.color[0] * 255.0) as u8,
@@ -217,6 +229,133 @@ fn render_grid(painter: &egui::Painter, rect: egui::Rect, scene_camera: &SceneCa
         );
         y += grid_size;
     }
+}
+
+fn render_grid_3d(painter: &egui::Painter, rect: egui::Rect, scene_camera: &SceneCamera, scene_grid: &SceneGrid) {
+    let grid_size = scene_grid.size * scene_camera.zoom;
+    let center = rect.center();
+    
+    // Main grid color
+    let grid_color = egui::Color32::from_rgba_premultiplied(
+        (scene_grid.color[0] * 255.0) as u8,
+        (scene_grid.color[1] * 255.0) as u8,
+        (scene_grid.color[2] * 255.0) as u8,
+        (scene_grid.color[3] * 255.0) as u8,
+    );
+    
+    // Axis colors (X=Red, Z=Blue for 3D)
+    let x_axis_color = egui::Color32::from_rgb(200, 50, 50);
+    let z_axis_color = egui::Color32::from_rgb(50, 50, 200);
+
+    // Draw perspective-like grid (simulated 3D)
+    let grid_count = 20;
+    let perspective_factor = 0.3; // How much the grid "recedes"
+    
+    // Draw horizontal lines (going into depth)
+    for i in -grid_count..=grid_count {
+        let i: i32 = i;
+        let offset = i as f32 * grid_size;
+        let y_pos = center.y + offset;
+        
+        if y_pos < rect.min.y || y_pos > rect.max.y {
+            continue;
+        }
+        
+        // Lines get shorter as they go "into" the screen
+        let depth_factor = 1.0 - (i.abs() as f32 / grid_count as f32) * perspective_factor;
+        let line_width = rect.width() * depth_factor;
+        let x_start = center.x - line_width / 2.0;
+        let x_end = center.x + line_width / 2.0;
+        
+        let color = if i == 0 { x_axis_color } else { grid_color };
+        let stroke_width = if i == 0 { 2.0 } else { 1.0 };
+        
+        painter.line_segment(
+            [egui::pos2(x_start, y_pos), egui::pos2(x_end, y_pos)],
+            egui::Stroke::new(stroke_width, color),
+        );
+    }
+    
+    // Draw vertical lines (left-right)
+    for i in -grid_count..=grid_count {
+        let i: i32 = i;
+        let offset = i as f32 * grid_size;
+        let x_pos = center.x + offset;
+        
+        if x_pos < rect.min.x || x_pos > rect.max.x {
+            continue;
+        }
+        
+        let color = if i == 0 { z_axis_color } else { grid_color };
+        let stroke_width = if i == 0 { 2.0 } else { 1.0 };
+        
+        painter.line_segment(
+            [egui::pos2(x_pos, rect.min.y), egui::pos2(x_pos, rect.max.y)],
+            egui::Stroke::new(stroke_width, color),
+        );
+    }
+}
+
+fn render_scene_gizmo(painter: &egui::Painter, rect: egui::Rect) {
+    // Scene gizmo in top-right corner (Unity-like)
+    let gizmo_size = 80.0;
+    let margin = 20.0;
+    let gizmo_center = egui::pos2(
+        rect.max.x - margin - gizmo_size / 2.0,
+        rect.min.y + margin + gizmo_size / 2.0,
+    );
+    
+    // Background circle
+    painter.circle_filled(gizmo_center, gizmo_size / 2.0, egui::Color32::from_rgba_premultiplied(30, 30, 35, 200));
+    painter.circle_stroke(gizmo_center, gizmo_size / 2.0, egui::Stroke::new(1.0, egui::Color32::from_rgb(60, 60, 70)));
+    
+    // Axis length
+    let axis_len = gizmo_size * 0.35;
+    
+    // X axis (Red) - Right
+    let x_end = egui::pos2(gizmo_center.x + axis_len, gizmo_center.y);
+    painter.line_segment(
+        [gizmo_center, x_end],
+        egui::Stroke::new(3.0, egui::Color32::from_rgb(255, 80, 80)),
+    );
+    painter.circle_filled(x_end, 6.0, egui::Color32::from_rgb(255, 80, 80));
+    painter.text(
+        egui::pos2(x_end.x + 12.0, x_end.y),
+        egui::Align2::LEFT_CENTER,
+        "X",
+        egui::FontId::proportional(14.0),
+        egui::Color32::from_rgb(255, 80, 80),
+    );
+    
+    // Y axis (Green) - Up
+    let y_end = egui::pos2(gizmo_center.x, gizmo_center.y - axis_len);
+    painter.line_segment(
+        [gizmo_center, y_end],
+        egui::Stroke::new(3.0, egui::Color32::from_rgb(80, 255, 80)),
+    );
+    painter.circle_filled(y_end, 6.0, egui::Color32::from_rgb(80, 255, 80));
+    painter.text(
+        egui::pos2(y_end.x, y_end.y - 12.0),
+        egui::Align2::CENTER_BOTTOM,
+        "Y",
+        egui::FontId::proportional(14.0),
+        egui::Color32::from_rgb(80, 255, 80),
+    );
+    
+    // Z axis (Blue) - Towards viewer (diagonal down-left for perspective)
+    let z_end = egui::pos2(gizmo_center.x - axis_len * 0.5, gizmo_center.y + axis_len * 0.5);
+    painter.line_segment(
+        [gizmo_center, z_end],
+        egui::Stroke::new(3.0, egui::Color32::from_rgb(80, 80, 255)),
+    );
+    painter.circle_filled(z_end, 6.0, egui::Color32::from_rgb(80, 80, 255));
+    painter.text(
+        egui::pos2(z_end.x - 12.0, z_end.y),
+        egui::Align2::RIGHT_CENTER,
+        "Z",
+        egui::FontId::proportional(14.0),
+        egui::Color32::from_rgb(80, 80, 255),
+    );
 }
 
 fn render_entity(
