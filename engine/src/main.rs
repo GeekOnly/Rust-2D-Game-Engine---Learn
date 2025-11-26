@@ -880,6 +880,7 @@ fn main() -> Result<()> {
                                         &mut editor_state.dragging_entity,
                                         &mut editor_state.drag_axis,
                                         &mut editor_state.scene_view_mode,
+                                        &mut editor_state.projection_mode,
                                     );
                                 } else {
                                     EditorUI::render_editor(

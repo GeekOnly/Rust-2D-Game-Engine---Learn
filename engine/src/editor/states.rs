@@ -95,6 +95,7 @@ pub struct EditorState {
     pub dragging_entity: Option<Entity>, // Entity being dragged
     pub drag_axis: Option<u8>,           // Drag axis: 0=X, 1=Y, 2=Both
     pub scene_view_mode: super::ui::scene_view::SceneViewMode, // 2D or 3D mode
+    pub projection_mode: super::ui::scene_view::ProjectionMode, // Isometric or Perspective
 }
 
 #[allow(dead_code)]
@@ -149,6 +150,7 @@ impl EditorState {
             dragging_entity: None,
             drag_axis: None,
             scene_view_mode: super::ui::scene_view::SceneViewMode::Mode2D,
+            projection_mode: super::ui::scene_view::ProjectionMode::Perspective,
         }
     }
 
