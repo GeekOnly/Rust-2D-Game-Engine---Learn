@@ -33,7 +33,7 @@ impl Prefab {
     pub fn player() -> Self {
         Self {
             name: "Player".to_string(),
-            transform: Transform::with_position_2d(0.0, 0.0),
+            transform: Transform::default(), // Use default transform (0, 0, 0) to work in both 2D and 3D
             sprite: Some(Sprite {
                 texture_id: "player".to_string(),
                 width: 40.0,
@@ -51,7 +51,7 @@ impl Prefab {
     pub fn item() -> Self {
         Self {
             name: "Item".to_string(),
-            transform: Transform::with_position_2d(0.0, 0.0),
+            transform: Transform::default(), // Use default transform (0, 0, 0) to work in both 2D and 3D
             sprite: Some(Sprite {
                 texture_id: "item".to_string(),
                 width: 30.0,
