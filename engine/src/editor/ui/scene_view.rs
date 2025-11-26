@@ -127,6 +127,16 @@ pub fn render_scene_view(
         let entity_rect = if let Some(sprite) = world.sprites.get(&entity) {
             let size = egui::vec2(sprite.width * scene_camera.zoom, sprite.height * scene_camera.zoom);
             egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), size)
+        } else if world.meshes.contains_key(&entity) && *scene_view_mode == SceneViewMode::Mode3D {
+            // Calculate proper 3D bounds for meshes in 3D mode
+            let scale = glam::Vec3::from(transform.scale);
+            let base_size = 50.0 * scene_camera.zoom * scale.x.max(scale.y).max(scale.z);
+            calculate_3d_cube_bounds(screen_x, screen_y, base_size, transform, scene_camera, projection_mode)
+        } else if world.meshes.contains_key(&entity) {
+            // 2D mode - simple square bounds
+            let scale = glam::Vec3::from(transform.scale);
+            let base_size = 50.0 * scene_camera.zoom * scale.x.max(scale.y).max(scale.z);
+            egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), egui::vec2(base_size, base_size))
         } else {
             egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), egui::vec2(10.0, 10.0))
         };
@@ -558,6 +568,69 @@ fn render_entity(
     }
 }
 
+/// Calculate 2D bounding box from 3D cube vertices after projection
+fn calculate_3d_cube_bounds(
+    screen_x: f32,
+    screen_y: f32,
+    size: f32,
+    transform: &ecs::Transform,
+    scene_camera: &SceneCamera,
+    projection_mode: &ProjectionMode,
+) -> egui::Rect {
+    let half = size / 2.0;
+    let scale = transform.scale;
+    
+    // Define 8 vertices of a cube in local space
+    let vertices = [
+        Point3D::new(-half * scale[0], -half * scale[1], -half * scale[2]),
+        Point3D::new(half * scale[0], -half * scale[1], -half * scale[2]),
+        Point3D::new(half * scale[0], half * scale[1], -half * scale[2]),
+        Point3D::new(-half * scale[0], half * scale[1], -half * scale[2]),
+        Point3D::new(-half * scale[0], -half * scale[1], half * scale[2]),
+        Point3D::new(half * scale[0], -half * scale[1], half * scale[2]),
+        Point3D::new(half * scale[0], half * scale[1], half * scale[2]),
+        Point3D::new(-half * scale[0], half * scale[1], half * scale[2]),
+    ];
+    
+    // Apply object rotation first, then camera rotation
+    let rotated: Vec<Point3D> = vertices.iter()
+        .map(|v| {
+            let obj_rotated = v.rotate(&transform.rotation);
+            obj_rotated
+                .rotate_y(-scene_camera.rotation.to_radians())
+                .rotate_x(scene_camera.pitch.to_radians())
+        })
+        .collect();
+    
+    // Project to 2D based on projection mode
+    let projected: Vec<(f32, f32)> = rotated.iter()
+        .map(|v| match projection_mode {
+            ProjectionMode::Isometric => v.project_isometric(),
+            ProjectionMode::Perspective => v.project_perspective(500.0, 300.0),
+        })
+        .collect();
+    
+    // Find min/max bounds
+    let mut min_x = f32::MAX;
+    let mut max_x = f32::MIN;
+    let mut min_y = f32::MAX;
+    let mut max_y = f32::MIN;
+    
+    for (x, y) in projected {
+        let screen_px = screen_x + x;
+        let screen_py = screen_y + y;
+        min_x = min_x.min(screen_px);
+        max_x = max_x.max(screen_px);
+        min_y = min_y.min(screen_py);
+        max_y = max_y.max(screen_py);
+    }
+    
+    egui::Rect::from_min_max(
+        egui::pos2(min_x, min_y),
+        egui::pos2(max_x, max_y),
+    )
+}
+
 /// Render a 3D cube with full rotation support and proper face culling
 fn render_3d_cube(
     painter: &egui::Painter,
@@ -794,6 +867,13 @@ fn render_mesh_entity(
         let object_rotation_rad = transform.rotation[2].to_radians();
         let total_rotation = camera_rotation_rad + object_rotation_rad;
         
+        // Store bounds for selection box
+        let mesh_bounds = if *scene_view_mode == SceneViewMode::Mode3D && matches!(&mesh.mesh_type, ecs::MeshType::Cube) {
+            Some(calculate_3d_cube_bounds(screen_x, screen_y, base_size, transform, scene_camera, projection_mode))
+        } else {
+            None
+        };
+        
         match &mesh.mesh_type {
             ecs::MeshType::Cube => {
                 if *scene_view_mode == SceneViewMode::Mode3D {
@@ -885,12 +965,23 @@ fn render_mesh_entity(
         
         // Selection outline
         if is_selected {
-            let selection_size = base_size + 8.0;
-            painter.rect_stroke(
-                egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), egui::vec2(selection_size, selection_size)),
-                2.0,
-                egui::Stroke::new(2.0, egui::Color32::from_rgb(255, 200, 0)),
-            );
+            if let Some(bounds) = mesh_bounds {
+                // Use calculated 3D bounds for selection box
+                let expanded_bounds = bounds.expand(4.0);
+                painter.rect_stroke(
+                    expanded_bounds,
+                    2.0,
+                    egui::Stroke::new(2.0, egui::Color32::from_rgb(255, 200, 0)),
+                );
+            } else {
+                // Fallback to simple square selection
+                let selection_size = base_size + 8.0;
+                painter.rect_stroke(
+                    egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), egui::vec2(selection_size, selection_size)),
+                    2.0,
+                    egui::Stroke::new(2.0, egui::Color32::from_rgb(255, 200, 0)),
+                );
+            }
         }
     }
 }
