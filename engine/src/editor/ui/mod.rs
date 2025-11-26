@@ -120,6 +120,10 @@ impl EditorUI {
 
         // Center Panel - Scene/Game View
         egui::CentralPanel::default().show(ctx, |ui| {
+            // Dummy drag state for old layout (not used)
+            let mut dummy_dragging_entity = None;
+            let mut dummy_drag_axis = None;
+            
             scene_view::render_scene_view(
                 ui,
                 world,
@@ -133,6 +137,8 @@ impl EditorUI {
                 scene_grid,
                 play_request,
                 stop_request,
+                &mut dummy_dragging_entity,
+                &mut dummy_drag_axis,
             );
         });
 
@@ -248,6 +254,8 @@ impl EditorUI {
         drag_drop: &mut crate::editor::DragDropState,
         layout_request: &mut Option<String>,
         current_layout_name: &str,
+        dragging_entity: &mut Option<Entity>,
+        drag_axis: &mut Option<u8>,
     ) {
         // Handle layout change request (will be processed by caller)
         // Layout changes are handled in main.rs to access EditorState
@@ -300,6 +308,8 @@ impl EditorUI {
                 stop_request,
                 asset_manager,
                 drag_drop,
+                dragging_entity,
+                drag_axis,
             };
 
             let mut tab_viewer = EditorTabViewer {

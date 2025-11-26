@@ -877,6 +877,8 @@ fn main() -> Result<()> {
                                         &mut editor_state.drag_drop,
                                         &mut editor_state.layout_request,
                                         &editor_state.current_layout_name,
+                                        &mut editor_state.dragging_entity,
+                                        &mut editor_state.drag_axis,
                                     );
                                 } else {
                                     EditorUI::render_editor(

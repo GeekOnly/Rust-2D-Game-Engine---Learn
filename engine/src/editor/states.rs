@@ -92,6 +92,8 @@ pub struct EditorState {
     pub current_layout_type: String,     // Current layout type (base type: default, 2column, tall, wide)
     pub show_save_layout_dialog: bool,   // Show save layout dialog
     pub save_layout_name: String,        // Name for saving layout
+    pub dragging_entity: Option<Entity>, // Entity being dragged
+    pub drag_axis: Option<u8>,           // Drag axis: 0=X, 1=Y, 2=Both
 }
 
 #[allow(dead_code)]
@@ -143,6 +145,8 @@ impl EditorState {
             current_layout_type: "default".to_string(),
             show_save_layout_dialog: false,
             save_layout_name: String::new(),
+            dragging_entity: None,
+            drag_axis: None,
         }
     }
 

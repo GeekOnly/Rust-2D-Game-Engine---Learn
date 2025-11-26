@@ -24,6 +24,8 @@ pub fn render_scene_view(
     scene_grid: &SceneGrid,
     play_request: &mut bool,
     stop_request: &mut bool,
+    dragging_entity: &mut Option<Entity>,
+    drag_axis: &mut Option<u8>,
 ) {
     // Unity-like toolbar
     render_scene_toolbar(ui, current_tool, is_playing, play_request, stop_request);
@@ -103,9 +105,15 @@ pub fn render_scene_view(
 
             render_transform_gizmo(&painter, screen_x, screen_y, current_tool);
             
-            // Handle gizmo interaction (smooth dragging)
-            handle_gizmo_interaction(&response, sel_entity, world, screen_x, screen_y, current_tool, scene_camera);
+            // Handle gizmo interaction (smooth dragging with state)
+            handle_gizmo_interaction_stateful(&response, sel_entity, world, screen_x, screen_y, current_tool, scene_camera, dragging_entity, drag_axis);
         }
+    }
+
+    // Clear drag state when not dragging
+    if !response.dragged() {
+        *dragging_entity = None;
+        *drag_axis = None;
     }
 }
 
@@ -345,7 +353,7 @@ fn render_transform_gizmo(painter: &egui::Painter, screen_x: f32, screen_y: f32,
     }
 }
 
-fn handle_gizmo_interaction(
+fn handle_gizmo_interaction_stateful(
     response: &egui::Response,
     entity: Entity,
     world: &mut World,
@@ -353,64 +361,78 @@ fn handle_gizmo_interaction(
     screen_y: f32,
     current_tool: &TransformTool,
     scene_camera: &SceneCamera,
+    dragging_entity: &mut Option<Entity>,
+    drag_axis: &mut Option<u8>,
 ) {
-    if !response.dragged() || *current_tool == TransformTool::View {
+    if *current_tool == TransformTool::View {
         return;
     }
 
-    let delta = response.drag_delta();
-    if delta.x.abs() < 0.1 && delta.y.abs() < 0.1 {
-        return;
+    // Start dragging - determine which handle
+    if response.drag_started() {
+        if let Some(hover_pos) = response.hover_pos() {
+            let gizmo_size = 50.0;
+            let handle_size = 8.0;
+            
+            let x_handle = egui::pos2(screen_x + gizmo_size, screen_y);
+            let y_handle = egui::pos2(screen_x, screen_y + gizmo_size);
+            let center = egui::pos2(screen_x, screen_y);
+            
+            let dist_x = hover_pos.distance(x_handle);
+            let dist_y = hover_pos.distance(y_handle);
+            let dist_center = hover_pos.distance(center);
+            
+            if dist_center < handle_size * 1.5 {
+                *dragging_entity = Some(entity);
+                *drag_axis = Some(2); // Both axes
+            } else if dist_x < handle_size * 1.5 {
+                *dragging_entity = Some(entity);
+                *drag_axis = Some(0); // X only
+            } else if dist_y < handle_size * 1.5 {
+                *dragging_entity = Some(entity);
+                *drag_axis = Some(1); // Y only
+            }
+        }
     }
 
-    // Convert screen delta to world delta (accounting for zoom)
-    let world_delta_x = delta.x / scene_camera.zoom;
-    let world_delta_y = delta.y / scene_camera.zoom;
+    // Continue dragging
+    if response.dragged() && *dragging_entity == Some(entity) {
+        let delta = response.drag_delta();
+        
+        // Convert screen delta to world delta (accounting for zoom)
+        let world_delta_x = delta.x / scene_camera.zoom;
+        let world_delta_y = delta.y / scene_camera.zoom;
 
-    if let Some(transform) = world.transforms.get_mut(&entity) {
-        match current_tool {
-            TransformTool::Move => {
-                // Check which handle is being dragged
-                if let Some(hover_pos) = response.hover_pos() {
-                    let gizmo_size = 50.0;
-                    let handle_size = 8.0;
-                    
-                    let x_handle = egui::pos2(screen_x + gizmo_size, screen_y);
-                    let y_handle = egui::pos2(screen_x, screen_y + gizmo_size);
-                    let center = egui::pos2(screen_x, screen_y);
-                    
-                    let dist_x = hover_pos.distance(x_handle);
-                    let dist_y = hover_pos.distance(y_handle);
-                    let dist_center = hover_pos.distance(center);
-                    
-                    if dist_center < handle_size * 1.5 {
-                        // Both axes
-                        transform.position[0] += world_delta_x;
-                        transform.position[1] += world_delta_y;
-                    } else if dist_x < handle_size * 1.5 {
-                        // X only
-                        transform.position[0] += world_delta_x;
-                    } else if dist_y < handle_size * 1.5 {
-                        // Y only
-                        transform.position[1] += world_delta_y;
+        if let Some(transform) = world.transforms.get_mut(&entity) {
+            match current_tool {
+                TransformTool::Move => {
+                    if let Some(axis) = *drag_axis {
+                        match axis {
+                            0 => transform.position[0] += world_delta_x, // X only
+                            1 => transform.position[1] += world_delta_y, // Y only
+                            2 => {
+                                // Both axes
+                                transform.position[0] += world_delta_x;
+                                transform.position[1] += world_delta_y;
+                            }
+                            _ => {}
+                        }
                     }
                 }
+                TransformTool::Rotate => {
+                    let rotation_speed = 0.01;
+                    transform.rotation[2] += (delta.x - delta.y) * rotation_speed;
+                }
+                TransformTool::Scale => {
+                    let scale_speed = 0.01;
+                    let scale_delta = (delta.x + delta.y) * scale_speed;
+                    transform.scale[0] += scale_delta;
+                    transform.scale[1] += scale_delta;
+                    transform.scale[0] = transform.scale[0].max(0.1);
+                    transform.scale[1] = transform.scale[1].max(0.1);
+                }
+                _ => {}
             }
-            TransformTool::Rotate => {
-                // Simple rotation based on drag
-                let rotation_speed = 0.01;
-                transform.rotation[2] += (delta.x - delta.y) * rotation_speed;
-            }
-            TransformTool::Scale => {
-                // Uniform scale
-                let scale_speed = 0.01;
-                let scale_delta = (delta.x + delta.y) * scale_speed;
-                transform.scale[0] += scale_delta;
-                transform.scale[1] += scale_delta;
-                transform.scale[0] = transform.scale[0].max(0.1);
-                transform.scale[1] = transform.scale[1].max(0.1);
-            }
-            _ => {}
         }
     }
 }

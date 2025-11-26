@@ -37,6 +37,8 @@ pub struct TabContext<'a> {
     pub stop_request: &'a mut bool,
     pub asset_manager: &'a mut Option<AssetManager>,
     pub drag_drop: &'a mut DragDropState,
+    pub dragging_entity: &'a mut Option<Entity>,
+    pub drag_axis: &'a mut Option<u8>,
 }
 
 /// Tab viewer implementation for egui_dock
@@ -99,6 +101,8 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                     self.context.scene_grid,
                     self.context.play_request,
                     self.context.stop_request,
+                    self.context.dragging_entity,
+                    self.context.drag_axis,
                 );
             }
             EditorTab::Game => {
