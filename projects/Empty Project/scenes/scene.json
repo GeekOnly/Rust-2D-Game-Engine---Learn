@@ -1,8 +1,8 @@
 {
-  "next_entity": 7,
+  "next_entity": 8,
   "transforms": [
     [
-      6,
+      7,
       {
         "position": [
           0.0,
@@ -98,29 +98,29 @@
       true
     ],
     [
-      6,
+      7,
       true
     ]
   ],
   "layers": [
     [
-      0,
+      7,
       0
     ],
     [
-      6,
+      0,
       0
     ]
   ],
   "parents": [],
   "names": [
     [
-      0,
-      "Player"
+      7,
+      "Cube"
     ],
     [
-      6,
-      "Cube"
+      0,
+      "Player"
     ]
   ]
 }

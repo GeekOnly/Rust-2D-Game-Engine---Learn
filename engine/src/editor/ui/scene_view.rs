@@ -69,27 +69,38 @@ pub fn render_scene_view(
     
     // === 3D SCENE GIZMO (top-right corner) ===
     if *scene_view_mode == SceneViewMode::Mode3D {
-        render_scene_gizmo(&painter, rect, scene_camera, projection_mode);
-        
-        // Handle projection mode button click
+        // Render gizmo with UI for clickable button
         let gizmo_size = 80.0;
         let margin = 20.0;
         let gizmo_center_x = rect.max.x - margin - gizmo_size / 2.0;
         let gizmo_center_y = rect.min.y + margin + gizmo_size / 2.0;
-        let button_y = gizmo_center_y + gizmo_size / 2.0 + 35.0;
-        let button_rect = egui::Rect::from_center_size(
-            egui::pos2(gizmo_center_x, button_y),
-            egui::vec2(80.0, 20.0),
-        );
         
-        if let Some(click_pos) = response.interact_pointer_pos() {
-            if response.clicked() && button_rect.contains(click_pos) {
-                *projection_mode = match projection_mode {
-                    ProjectionMode::Perspective => ProjectionMode::Isometric,
-                    ProjectionMode::Isometric => ProjectionMode::Perspective,
+        render_scene_gizmo_visual(&painter, gizmo_center_x, gizmo_center_y, gizmo_size, scene_camera);
+        
+        // Projection mode button (using UI for interaction)
+        let button_y = gizmo_center_y + gizmo_size / 2.0 + 35.0;
+        let button_pos = egui::pos2(gizmo_center_x - 40.0, button_y - 10.0);
+        
+        ui.allocate_ui_at_rect(
+            egui::Rect::from_min_size(button_pos, egui::vec2(80.0, 20.0)),
+            |ui| {
+                ui.style_mut().visuals.widgets.inactive.weak_bg_fill = egui::Color32::from_rgba_premultiplied(50, 50, 55, 200);
+                ui.style_mut().visuals.widgets.hovered.weak_bg_fill = egui::Color32::from_rgba_premultiplied(60, 60, 65, 220);
+                ui.style_mut().visuals.widgets.active.weak_bg_fill = egui::Color32::from_rgba_premultiplied(70, 70, 75, 240);
+                
+                let button_text = match projection_mode {
+                    ProjectionMode::Perspective => "⬜ Persp",
+                    ProjectionMode::Isometric => "◇ Iso",
                 };
+                
+                if ui.button(button_text).clicked() {
+                    *projection_mode = match projection_mode {
+                        ProjectionMode::Perspective => ProjectionMode::Isometric,
+                        ProjectionMode::Isometric => ProjectionMode::Perspective,
+                    };
+                }
             }
-        }
+        );
     }
 
     // === ENTITIES ===
@@ -404,14 +415,8 @@ fn render_grid_3d(painter: &egui::Painter, rect: egui::Rect, scene_camera: &Scen
     }
 }
 
-fn render_scene_gizmo(painter: &egui::Painter, rect: egui::Rect, scene_camera: &SceneCamera, projection_mode: &mut ProjectionMode) {
-    // Scene gizmo in top-right corner (Unity-like)
-    let gizmo_size = 80.0;
-    let margin = 20.0;
-    let gizmo_center = egui::pos2(
-        rect.max.x - margin - gizmo_size / 2.0,
-        rect.min.y + margin + gizmo_size / 2.0,
-    );
+fn render_scene_gizmo_visual(painter: &egui::Painter, center_x: f32, center_y: f32, gizmo_size: f32, scene_camera: &SceneCamera) {
+    let gizmo_center = egui::pos2(center_x, center_y);
     
     // Background circle
     painter.circle_filled(gizmo_center, gizmo_size / 2.0, egui::Color32::from_rgba_premultiplied(30, 30, 35, 200));
@@ -420,8 +425,17 @@ fn render_scene_gizmo(painter: &egui::Painter, rect: egui::Rect, scene_camera: &
     // Axis length
     let axis_len = gizmo_size * 0.35;
     
-    // X axis (Red) - Right
-    let x_end = egui::pos2(gizmo_center.x + axis_len, gizmo_center.y);
+    // Get camera rotation
+    let yaw_rad = scene_camera.get_rotation_radians();
+    let pitch_rad = scene_camera.get_pitch_radians();
+    
+    // Calculate 3D axis directions and project to 2D
+    // X axis (Red) - rotated by yaw
+    let x_dir = (yaw_rad.cos(), yaw_rad.sin());
+    let x_end = egui::pos2(
+        gizmo_center.x + x_dir.0 * axis_len,
+        gizmo_center.y + x_dir.1 * axis_len,
+    );
     painter.line_segment(
         [gizmo_center, x_end],
         egui::Stroke::new(3.0, egui::Color32::from_rgb(255, 80, 80)),
@@ -435,8 +449,9 @@ fn render_scene_gizmo(painter: &egui::Painter, rect: egui::Rect, scene_camera: &
         egui::Color32::from_rgb(255, 80, 80),
     );
     
-    // Y axis (Green) - Up
-    let y_end = egui::pos2(gizmo_center.x, gizmo_center.y - axis_len);
+    // Y axis (Green) - Up (affected by pitch)
+    let y_offset = pitch_rad.cos() * axis_len;
+    let y_end = egui::pos2(gizmo_center.x, gizmo_center.y - y_offset);
     painter.line_segment(
         [gizmo_center, y_end],
         egui::Stroke::new(3.0, egui::Color32::from_rgb(80, 255, 80)),
@@ -450,8 +465,12 @@ fn render_scene_gizmo(painter: &egui::Painter, rect: egui::Rect, scene_camera: &
         egui::Color32::from_rgb(80, 255, 80),
     );
     
-    // Z axis (Blue) - Towards viewer (diagonal down-left for perspective)
-    let z_end = egui::pos2(gizmo_center.x - axis_len * 0.5, gizmo_center.y + axis_len * 0.5);
+    // Z axis (Blue) - perpendicular to X, affected by yaw
+    let z_dir = (-yaw_rad.sin(), yaw_rad.cos());
+    let z_end = egui::pos2(
+        gizmo_center.x + z_dir.0 * axis_len,
+        gizmo_center.y + z_dir.1 * axis_len,
+    );
     painter.line_segment(
         [gizmo_center, z_end],
         egui::Stroke::new(3.0, egui::Color32::from_rgb(80, 80, 255)),
@@ -473,35 +492,6 @@ fn render_scene_gizmo(painter: &egui::Painter, rect: egui::Rect, scene_camera: &
         rotation_text,
         egui::FontId::proportional(11.0),
         egui::Color32::from_rgb(180, 180, 180),
-    );
-    
-    // Projection mode toggle button (Unity-like)
-    let button_y = gizmo_center.y + gizmo_size / 2.0 + 35.0;
-    let button_size = egui::vec2(80.0, 20.0);
-    let button_rect = egui::Rect::from_center_size(
-        egui::pos2(gizmo_center.x, button_y),
-        button_size,
-    );
-    
-    // Draw button background
-    let button_color = egui::Color32::from_rgba_premultiplied(50, 50, 55, 200);
-    let hover_color = egui::Color32::from_rgba_premultiplied(60, 60, 65, 220);
-    
-    // Check if mouse is hovering (we'll handle click in the main render function)
-    painter.rect_filled(button_rect, 3.0, button_color);
-    painter.rect_stroke(button_rect, 3.0, egui::Stroke::new(1.0, egui::Color32::from_rgb(80, 80, 90)));
-    
-    // Draw button text with icon
-    let button_text = match projection_mode {
-        ProjectionMode::Perspective => "⬜ Persp",
-        ProjectionMode::Isometric => "◇ Iso",
-    };
-    painter.text(
-        button_rect.center(),
-        egui::Align2::CENTER_CENTER,
-        button_text,
-        egui::FontId::proportional(12.0),
-        egui::Color32::from_rgb(200, 200, 200),
     );
 }
 

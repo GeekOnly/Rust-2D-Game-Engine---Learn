@@ -69,12 +69,12 @@ impl SceneCamera {
     
     /// Zoom in/out (scroll wheel) - improved version
     pub fn zoom(&mut self, delta: f32, _mouse_pos: Vec2) {
-        // Smooth exponential zoom
-        let zoom_speed = 0.15;
+        // Smooth exponential zoom with better sensitivity
+        let zoom_speed = 0.1; // Reduced from 0.15 for smoother control
         let zoom_factor = if delta > 0.0 {
             1.0 + zoom_speed
         } else {
-            1.0 - zoom_speed
+            1.0 / (1.0 + zoom_speed) // Use division for symmetric zoom
         };
         
         self.zoom *= zoom_factor;
