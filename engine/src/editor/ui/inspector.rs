@@ -248,6 +248,11 @@ pub fn render_inspector(
                                         ui.label("Height");
                                         ui.add(egui::DragValue::new(&mut sprite.height).speed(1.0));
                                         ui.end_row();
+
+                                        ui.label("Billboard");
+                                        ui.checkbox(&mut sprite.billboard, "")
+                                            .on_hover_text("Always face camera in 3D mode");
+                                        ui.end_row();
                                     });
                                 
                                 ui.add_space(5.0);
