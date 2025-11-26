@@ -67,6 +67,32 @@ impl Prefab {
         }
     }
 
+    /// Create a 2D Camera prefab
+    pub fn camera_2d() -> Self {
+        Self {
+            name: "Camera 2D".to_string(),
+            transform: Transform::with_position(0.0, 0.0, -10.0), // Camera behind objects
+            sprite: None,
+            collider: None,
+            velocity: None,
+            tag: None,
+            script: None,
+        }
+    }
+
+    /// Create a 3D Camera prefab
+    pub fn camera_3d() -> Self {
+        Self {
+            name: "Camera 3D".to_string(),
+            transform: Transform::with_position(0.0, 5.0, -10.0), // Camera above and behind
+            sprite: None,
+            collider: None,
+            velocity: None,
+            tag: None,
+            script: None,
+        }
+    }
+
     /// Spawn this prefab into the world
     pub fn spawn(&self, world: &mut World) -> Entity {
         let entity = world.spawn();
@@ -206,20 +232,80 @@ pub enum ScriptParameter {
     Bool(bool),
 }
 
-/// Camera for view control (Unity-like)
+/// Camera component for view control (Unity-like)
+/// Can be attached to an entity to create game cameras
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Camera {
-    pub x: f32,
-    pub y: f32,
-    pub zoom: f32,
+    // Camera projection settings
+    pub projection: CameraProjection,
+
+    // Field of view (for perspective projection, in degrees)
+    pub fov: f32,
+
+    // Orthographic size (for orthographic projection, half-height in world units)
+    pub orthographic_size: f32,
+
+    // Near and far clip planes
+    pub near_clip: f32,
+    pub far_clip: f32,
+
+    // Viewport settings (normalized 0-1)
+    pub viewport_rect: [f32; 4], // x, y, width, height
+
+    // Camera depth (lower renders first, like Unity)
+    pub depth: i32,
+
+    // Clear flags
+    pub clear_flags: CameraClearFlags,
+    pub background_color: [f32; 4], // RGBA
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum CameraProjection {
+    Orthographic, // 2D camera
+    Perspective,  // 3D camera
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum CameraClearFlags {
+    SolidColor,
+    Skybox,
+    DepthOnly,
+    DontClear,
 }
 
 impl Default for Camera {
     fn default() -> Self {
         Self {
-            x: 0.0,
-            y: 0.0,
-            zoom: 1.0,
+            projection: CameraProjection::Orthographic,
+            fov: 60.0,
+            orthographic_size: 5.0,
+            near_clip: 0.3,
+            far_clip: 1000.0,
+            viewport_rect: [0.0, 0.0, 1.0, 1.0], // Full screen
+            depth: 0,
+            clear_flags: CameraClearFlags::SolidColor,
+            background_color: [0.15, 0.16, 0.18, 1.0], // Dark gray (Unity default)
+        }
+    }
+}
+
+impl Camera {
+    /// Create a 2D orthographic camera (Unity 2D style)
+    pub fn orthographic_2d() -> Self {
+        Self {
+            projection: CameraProjection::Orthographic,
+            orthographic_size: 5.0,
+            ..Default::default()
+        }
+    }
+
+    /// Create a 3D perspective camera (Unity 3D style)
+    pub fn perspective_3d() -> Self {
+        Self {
+            projection: CameraProjection::Perspective,
+            fov: 60.0,
+            ..Default::default()
         }
     }
 }
@@ -232,6 +318,7 @@ pub struct World {
     pub sprites: HashMap<Entity, Sprite>,
     pub colliders: HashMap<Entity, Collider>,
     pub meshes: HashMap<Entity, Mesh>,      // 3D meshes
+    pub cameras: HashMap<Entity, Camera>,   // Camera components
     pub tags: HashMap<Entity, EntityTag>,
     pub scripts: HashMap<Entity, Script>,
     pub active: HashMap<Entity, bool>,      // Active state (Unity-like)
@@ -274,6 +361,7 @@ impl World {
         self.sprites.remove(&e);
         self.colliders.remove(&e);
         self.meshes.remove(&e);
+        self.cameras.remove(&e);
         self.tags.remove(&e);
         self.scripts.remove(&e);
         self.active.remove(&e);
@@ -286,6 +374,8 @@ impl World {
         self.velocities.clear();
         self.sprites.clear();
         self.colliders.clear();
+        self.meshes.clear();
+        self.cameras.clear();
         self.tags.clear();
         self.scripts.clear();
         self.active.clear();
