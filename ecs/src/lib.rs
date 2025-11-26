@@ -153,6 +153,22 @@ pub struct Collider {
     pub height: f32,
 }
 
+/// 3D Mesh component
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Mesh {
+    pub mesh_type: MeshType,
+    pub color: [f32; 4], // RGBA
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum MeshType {
+    Cube,
+    Sphere,
+    Cylinder,
+    Plane,
+    Capsule,
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum EntityTag {
     Player,
@@ -200,6 +216,7 @@ pub struct World {
     pub velocities: HashMap<Entity, (f32, f32)>,
     pub sprites: HashMap<Entity, Sprite>,
     pub colliders: HashMap<Entity, Collider>,
+    pub meshes: HashMap<Entity, Mesh>,      // 3D meshes
     pub tags: HashMap<Entity, EntityTag>,
     pub scripts: HashMap<Entity, Script>,
     pub active: HashMap<Entity, bool>,      // Active state (Unity-like)
@@ -241,6 +258,7 @@ impl World {
         self.velocities.remove(&e);
         self.sprites.remove(&e);
         self.colliders.remove(&e);
+        self.meshes.remove(&e);
         self.tags.remove(&e);
         self.scripts.remove(&e);
         self.active.remove(&e);

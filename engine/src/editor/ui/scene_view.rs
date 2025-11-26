@@ -86,8 +86,12 @@ pub fn render_scene_view(
             }
         }
 
-        // Draw entity
-        render_entity(&painter, entity, transform, world, screen_x, screen_y, scene_camera, *selected_entity == Some(entity));
+        // Draw entity (sprite or mesh)
+        if world.meshes.contains_key(&entity) {
+            render_mesh_entity(&painter, entity, transform, world, screen_x, screen_y, scene_camera, *selected_entity == Some(entity), scene_view_mode);
+        } else {
+            render_entity(&painter, entity, transform, world, screen_x, screen_y, scene_camera, *selected_entity == Some(entity));
+        }
         
         // Draw gizmos
         if *show_colliders {
@@ -397,6 +401,170 @@ fn render_entity(
             painter.circle_stroke(
                 egui::pos2(screen_x, screen_y),
                 8.0 * scene_camera.zoom,
+                egui::Stroke::new(2.0, egui::Color32::from_rgb(255, 200, 0)),
+            );
+        }
+    }
+}
+
+fn render_mesh_entity(
+    painter: &egui::Painter,
+    entity: Entity,
+    _transform: &ecs::Transform,
+    world: &World,
+    screen_x: f32,
+    screen_y: f32,
+    scene_camera: &SceneCamera,
+    is_selected: bool,
+    scene_view_mode: &SceneViewMode,
+) {
+    if let Some(mesh) = world.meshes.get(&entity) {
+        let color = egui::Color32::from_rgba_unmultiplied(
+            (mesh.color[0] * 255.0) as u8,
+            (mesh.color[1] * 255.0) as u8,
+            (mesh.color[2] * 255.0) as u8,
+            (mesh.color[3] * 255.0) as u8,
+        );
+        
+        let base_size = 50.0 * scene_camera.zoom;
+        
+        match &mesh.mesh_type {
+            ecs::MeshType::Cube => {
+                if *scene_view_mode == SceneViewMode::Mode3D {
+                    // Draw 3D cube (isometric view)
+                    let size = base_size;
+                    let depth = size * 0.5;
+                    
+                    // Front face
+                    let front_rect = egui::Rect::from_center_size(
+                        egui::pos2(screen_x, screen_y),
+                        egui::vec2(size, size),
+                    );
+                    painter.rect_filled(front_rect, 2.0, color);
+                    
+                    // Top face (darker)
+                    let top_color = egui::Color32::from_rgba_unmultiplied(
+                        (mesh.color[0] * 200.0) as u8,
+                        (mesh.color[1] * 200.0) as u8,
+                        (mesh.color[2] * 200.0) as u8,
+                        (mesh.color[3] * 255.0) as u8,
+                    );
+                    let top_points = [
+                        egui::pos2(screen_x - size/2.0, screen_y - size/2.0),
+                        egui::pos2(screen_x + size/2.0, screen_y - size/2.0),
+                        egui::pos2(screen_x + size/2.0 + depth/2.0, screen_y - size/2.0 - depth/2.0),
+                        egui::pos2(screen_x - size/2.0 + depth/2.0, screen_y - size/2.0 - depth/2.0),
+                    ];
+                    painter.add(egui::Shape::convex_polygon(top_points.to_vec(), top_color, egui::Stroke::NONE));
+                    
+                    // Right face (lighter)
+                    let right_color = egui::Color32::from_rgba_unmultiplied(
+                        (mesh.color[0] * 230.0) as u8,
+                        (mesh.color[1] * 230.0) as u8,
+                        (mesh.color[2] * 230.0) as u8,
+                        (mesh.color[3] * 255.0) as u8,
+                    );
+                    let right_points = [
+                        egui::pos2(screen_x + size/2.0, screen_y - size/2.0),
+                        egui::pos2(screen_x + size/2.0, screen_y + size/2.0),
+                        egui::pos2(screen_x + size/2.0 + depth/2.0, screen_y + size/2.0 - depth/2.0),
+                        egui::pos2(screen_x + size/2.0 + depth/2.0, screen_y - size/2.0 - depth/2.0),
+                    ];
+                    painter.add(egui::Shape::convex_polygon(right_points.to_vec(), right_color, egui::Stroke::NONE));
+                    
+                    // Outline
+                    painter.rect_stroke(front_rect, 2.0, egui::Stroke::new(1.0, egui::Color32::BLACK));
+                } else {
+                    // 2D view - simple square
+                    let rect = egui::Rect::from_center_size(
+                        egui::pos2(screen_x, screen_y),
+                        egui::vec2(base_size, base_size),
+                    );
+                    painter.rect_filled(rect, 2.0, color);
+                    painter.rect_stroke(rect, 2.0, egui::Stroke::new(1.0, egui::Color32::BLACK));
+                }
+            }
+            ecs::MeshType::Sphere => {
+                painter.circle_filled(egui::pos2(screen_x, screen_y), base_size / 2.0, color);
+                painter.circle_stroke(egui::pos2(screen_x, screen_y), base_size / 2.0, egui::Stroke::new(1.0, egui::Color32::BLACK));
+            }
+            ecs::MeshType::Cylinder => {
+                if *scene_view_mode == SceneViewMode::Mode3D {
+                    // Draw cylinder (3D view)
+                    let width = base_size;
+                    let height = base_size * 1.5;
+                    let ellipse_height = base_size * 0.3;
+                    
+                    // Body
+                    let body_rect = egui::Rect::from_center_size(
+                        egui::pos2(screen_x, screen_y),
+                        egui::vec2(width, height),
+                    );
+                    painter.rect_filled(body_rect, 0.0, color);
+                    
+                    // Top cap (flattened circle)
+                    let top_rect = egui::Rect::from_center_size(
+                        egui::pos2(screen_x, screen_y - height/2.0),
+                        egui::vec2(width, ellipse_height),
+                    );
+                    painter.rect_filled(top_rect, width/2.0, color);
+                    
+                    // Bottom cap (darker, flattened circle)
+                    let bottom_color = egui::Color32::from_rgba_unmultiplied(
+                        (mesh.color[0] * 200.0) as u8,
+                        (mesh.color[1] * 200.0) as u8,
+                        (mesh.color[2] * 200.0) as u8,
+                        (mesh.color[3] * 255.0) as u8,
+                    );
+                    let bottom_rect = egui::Rect::from_center_size(
+                        egui::pos2(screen_x, screen_y + height/2.0),
+                        egui::vec2(width, ellipse_height),
+                    );
+                    painter.rect_filled(bottom_rect, width/2.0, bottom_color);
+                } else {
+                    // 2D view - circle
+                    painter.circle_filled(egui::pos2(screen_x, screen_y), base_size / 2.0, color);
+                }
+            }
+            ecs::MeshType::Plane => {
+                let size = base_size * 1.5;
+                let rect = egui::Rect::from_center_size(
+                    egui::pos2(screen_x, screen_y),
+                    egui::vec2(size, size * 0.1),
+                );
+                painter.rect_filled(rect, 0.0, color);
+                painter.rect_stroke(rect, 0.0, egui::Stroke::new(1.0, egui::Color32::BLACK));
+            }
+            ecs::MeshType::Capsule => {
+                let width = base_size * 0.6;
+                let height = base_size * 1.5;
+                let radius = width / 2.0;
+                
+                // Body rectangle
+                let body_rect = egui::Rect::from_center_size(
+                    egui::pos2(screen_x, screen_y),
+                    egui::vec2(width, height - width),
+                );
+                painter.rect_filled(body_rect, 0.0, color);
+                
+                // Top cap
+                painter.circle_filled(egui::pos2(screen_x, screen_y - (height - width)/2.0), radius, color);
+                
+                // Bottom cap
+                painter.circle_filled(egui::pos2(screen_x, screen_y + (height - width)/2.0), radius, color);
+                
+                // Outline
+                painter.circle_stroke(egui::pos2(screen_x, screen_y - (height - width)/2.0), radius, egui::Stroke::new(1.0, egui::Color32::BLACK));
+                painter.circle_stroke(egui::pos2(screen_x, screen_y + (height - width)/2.0), radius, egui::Stroke::new(1.0, egui::Color32::BLACK));
+            }
+        }
+        
+        // Selection outline
+        if is_selected {
+            let selection_size = base_size + 8.0;
+            painter.rect_stroke(
+                egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), egui::vec2(selection_size, selection_size)),
+                2.0,
                 egui::Stroke::new(2.0, egui::Color32::from_rgb(255, 200, 0)),
             );
         }
