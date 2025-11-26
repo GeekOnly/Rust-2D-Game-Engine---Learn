@@ -550,7 +550,7 @@ fn render_entity(
     }
 }
 
-/// Render a 3D cube with full rotation support
+/// Render a 3D cube with full rotation support and proper face culling
 fn render_3d_cube(
     painter: &egui::Painter,
     screen_x: f32,
@@ -575,9 +575,16 @@ fn render_3d_cube(
         Point3D::new(-half * scale[0], half * scale[1], half * scale[2]),   // 7: back-top-left
     ];
     
-    // Apply object rotation
+    // Apply object rotation first, then camera rotation
     let rotated: Vec<Point3D> = vertices.iter()
-        .map(|v| v.rotate(&transform.rotation))
+        .map(|v| {
+            // Apply object rotation
+            let obj_rotated = v.rotate(&transform.rotation);
+            // Apply camera rotation for view
+            obj_rotated
+                .rotate_y(-scene_camera.rotation.to_radians())
+                .rotate_x(scene_camera.pitch.to_radians())
+        })
         .collect();
     
     // Project to 2D
@@ -585,18 +592,46 @@ fn render_3d_cube(
         .map(|v| v.project_isometric())
         .collect();
     
-    // Define faces (indices into vertices array)
-    let faces = [
-        ([0, 1, 2, 3], 1.0),   // Front face
-        ([4, 5, 6, 7], 0.6),   // Back face
-        ([0, 1, 5, 4], 0.7),   // Bottom face
-        ([3, 2, 6, 7], 0.9),   // Top face
-        ([0, 3, 7, 4], 0.75),  // Left face
-        ([1, 2, 6, 5], 0.85),  // Right face
+    // Define faces with their center Z for depth sorting
+    let mut faces_with_depth: Vec<(Vec<usize>, f32, f32)> = vec![
+        (vec![0, 1, 2, 3], 1.0, 0.0),   // Front face
+        (vec![5, 4, 7, 6], 0.6, 0.0),   // Back face (reversed winding)
+        (vec![0, 1, 5, 4], 0.7, 0.0),   // Bottom face
+        (vec![3, 2, 6, 7], 0.9, 0.0),   // Top face
+        (vec![4, 0, 3, 7], 0.75, 0.0),  // Left face (reversed winding)
+        (vec![1, 5, 6, 2], 0.85, 0.0),  // Right face (reversed winding)
     ];
     
-    // Draw faces with depth-based shading
-    for (face_indices, brightness) in &faces {
+    // Calculate average Z depth for each face
+    for face_data in &mut faces_with_depth {
+        let avg_z: f32 = face_data.0.iter()
+            .map(|&i| rotated[i].z)
+            .sum::<f32>() / face_data.0.len() as f32;
+        face_data.2 = avg_z;
+    }
+    
+    // Sort faces by depth (far to near) - painter's algorithm
+    faces_with_depth.sort_by(|a, b| a.2.partial_cmp(&b.2).unwrap_or(std::cmp::Ordering::Equal));
+    
+    // Draw faces with depth-based shading and back-face culling
+    for (face_indices, brightness, _depth) in faces_with_depth {
+        // Simple back-face culling using cross product
+        if face_indices.len() >= 3 {
+            let p0 = projected[face_indices[0]];
+            let p1 = projected[face_indices[1]];
+            let p2 = projected[face_indices[2]];
+            
+            // Calculate cross product to determine face orientation
+            let v1 = (p1.0 - p0.0, p1.1 - p0.1);
+            let v2 = (p2.0 - p0.0, p2.1 - p0.1);
+            let cross = v1.0 * v2.1 - v1.1 * v2.0;
+            
+            // Skip back-facing polygons (cross product < 0)
+            if cross < 0.0 {
+                continue;
+            }
+        }
+        
         let points: Vec<egui::Pos2> = face_indices.iter()
             .map(|&i| {
                 let (x, y) = projected[i];
@@ -614,7 +649,7 @@ fn render_3d_cube(
         painter.add(egui::Shape::convex_polygon(
             points,
             face_color,
-            egui::Stroke::new(1.0, egui::Color32::BLACK),
+            egui::Stroke::new(1.5, egui::Color32::from_gray(40)),
         ));
     }
 }
