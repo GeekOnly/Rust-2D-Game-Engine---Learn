@@ -11,7 +11,24 @@ pub fn render_inspector(
     edit_script_request: &mut Option<String>,
     project_path: &Option<std::path::PathBuf>,
 ) {
-    ui.heading("🔧 Inspector");
+    // Unity-style header
+    ui.horizontal(|ui| {
+        ui.heading("Inspector");
+        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+            // Options menu
+            ui.menu_button("⋮", |ui| {
+                if ui.button("Reset").clicked() {
+                    ui.close_menu();
+                }
+                if ui.button("Copy Component").clicked() {
+                    ui.close_menu();
+                }
+                if ui.button("Paste Component Values").clicked() {
+                    ui.close_menu();
+                }
+            });
+        });
+    });
     ui.separator();
 
         if let Some(entity) = *selected_entity {
@@ -118,137 +135,249 @@ pub fn render_inspector(
 
                 ui.add_space(10.0);
 
-                // Transform Component (Unity-like: always visible, no collapsing)
+                // Transform Component (Unity-style: always visible)
                 if let Some(transform) = world.transforms.get_mut(&entity) {
-                    // Transform header (gray bar like Unity)
-                    egui::Frame::none()
-                        .fill(egui::Color32::from_rgb(56, 56, 56))
-                        .inner_margin(egui::Margin::same(5.0))
+                    render_component_header(ui, "Transform", "⚙️", true);
+
+                    // Transform fields - Unity style (X Y Z in same row)
+                    egui::Grid::new("transform_grid")
+                        .num_columns(7)
+                        .spacing([5.0, 8.0])
                         .show(ui, |ui| {
-                            ui.horizontal(|ui| {
-                                ui.label("⚙️");
-                                ui.strong("Transform");
+                            // Position row
+                            ui.label("Position");
+                            ui.label("X");
+                            ui.add(
+                                egui::DragValue::new(&mut transform.position[0])
+                                    .speed(0.1)
+                                    .max_decimals(2)
+                            );
+                            ui.label("Y");
+                            ui.add(
+                                egui::DragValue::new(&mut transform.position[1])
+                                    .speed(0.1)
+                                    .max_decimals(2)
+                            );
+                            ui.label("Z");
+                            ui.add(
+                                egui::DragValue::new(&mut transform.position[2])
+                                    .speed(0.1)
+                                    .max_decimals(2)
+                            );
+                            ui.end_row();
 
-                                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                                    // Unity has gear icon and three-dot menu here
-                                    ui.label("⚙️");
-                                });
-                            });
+                            // Rotation row
+                            ui.label("Rotation");
+                            ui.label("X");
+                            ui.add(
+                                egui::DragValue::new(&mut transform.rotation[0])
+                                    .speed(0.5)
+                                    .max_decimals(2)
+                            );
+                            ui.label("Y");
+                            ui.add(
+                                egui::DragValue::new(&mut transform.rotation[1])
+                                    .speed(0.5)
+                                    .max_decimals(2)
+                            );
+                            ui.label("Z");
+                            ui.add(
+                                egui::DragValue::new(&mut transform.rotation[2])
+                                    .speed(0.5)
+                                    .max_decimals(2)
+                            );
+                            ui.end_row();
+
+                            // Scale row
+                            ui.label("Scale");
+                            ui.label("X");
+                            ui.add(
+                                egui::DragValue::new(&mut transform.scale[0])
+                                    .speed(0.01)
+                                    .max_decimals(2)
+                            );
+                            ui.label("Y");
+                            ui.add(
+                                egui::DragValue::new(&mut transform.scale[1])
+                                    .speed(0.01)
+                                    .max_decimals(2)
+                            );
+                            ui.label("Z");
+                            ui.add(
+                                egui::DragValue::new(&mut transform.scale[2])
+                                    .speed(0.01)
+                                    .max_decimals(2)
+                            );
+                            ui.end_row();
                         });
-
-                    // Transform fields (always visible)
-                    ui.add_space(5.0);
-
-                    // Position (grouped in one row)
-                    ui.horizontal(|ui| {
-                        ui.label("Position");
-                        ui.label("X");
-                        ui.add(egui::DragValue::new(&mut transform.position[0]).speed(1.0).max_decimals(2));
-                        ui.label("Y");
-                        ui.add(egui::DragValue::new(&mut transform.position[1]).speed(1.0).max_decimals(2));
-                        ui.label("Z");
-                        ui.add(egui::DragValue::new(&mut transform.position[2]).speed(1.0).max_decimals(2));
-                    });
-
-                    // Rotation (grouped in one row)
-                    ui.horizontal(|ui| {
-                        ui.label("Rotation");
-                        ui.label("X");
-                        ui.add(egui::DragValue::new(&mut transform.rotation[0]).speed(0.1).max_decimals(2));
-                        ui.label("Y");
-                        ui.add(egui::DragValue::new(&mut transform.rotation[1]).speed(0.1).max_decimals(2));
-                        ui.label("Z");
-                        ui.add(egui::DragValue::new(&mut transform.rotation[2]).speed(0.1).max_decimals(2));
-                    });
-
-                    // Scale (grouped in one row)
-                    ui.horizontal(|ui| {
-                        ui.label("Scale    ");
-                        ui.label("X");
-                        ui.add(egui::DragValue::new(&mut transform.scale[0]).speed(0.1).max_decimals(2));
-                        ui.label("Y");
-                        ui.add(egui::DragValue::new(&mut transform.scale[1]).speed(0.1).max_decimals(2));
-                        ui.label("Z");
-                        ui.add(egui::DragValue::new(&mut transform.scale[2]).speed(0.1).max_decimals(2));
-                    });
 
                     ui.add_space(10.0);
                 }
 
-                // Sprite Component (only show if has sprite)
+                // Sprite Component (Unity-style collapsible)
                 let has_sprite = world.sprites.contains_key(&entity);
+                let mut remove_sprite = false;
+                
                 if has_sprite {
-                    ui.collapsing("Sprite Renderer", |ui| {
+                    let sprite_id = ui.make_persistent_id("sprite_component");
+                    let is_open = egui::collapsing_header::CollapsingState::load_with_default_open(
+                        ui.ctx(), sprite_id, true
+                    );
+                    
+                    render_component_header(ui, "Sprite Renderer", "🎨", false);
+                    
+                    if is_open.is_open() {
                         if let Some(sprite) = world.sprites.get_mut(&entity) {
-                            ui.text_edit_singleline(&mut sprite.texture_id);
-                            ui.horizontal(|ui| {
-                                ui.label("Width:");
-                                ui.add(egui::DragValue::new(&mut sprite.width).speed(1.0));
+                            ui.indent("sprite_indent", |ui| {
+                                egui::Grid::new("sprite_grid")
+                                    .num_columns(2)
+                                    .spacing([10.0, 8.0])
+                                    .show(ui, |ui| {
+                                        ui.label("Sprite");
+                                        ui.text_edit_singleline(&mut sprite.texture_id);
+                                        ui.end_row();
+                                        
+                                        ui.label("Color");
+                                        ui.color_edit_button_rgba_unmultiplied(&mut sprite.color);
+                                        ui.end_row();
+                                        
+                                        ui.label("Width");
+                                        ui.add(egui::DragValue::new(&mut sprite.width).speed(1.0));
+                                        ui.end_row();
+                                        
+                                        ui.label("Height");
+                                        ui.add(egui::DragValue::new(&mut sprite.height).speed(1.0));
+                                        ui.end_row();
+                                    });
+                                
+                                ui.add_space(5.0);
+                                ui.horizontal(|ui| {
+                                    if ui.button("⚙️").on_hover_text("Component Settings").clicked() {
+                                        // Component menu
+                                    }
+                                    if ui.button("❌ Remove Component").clicked() {
+                                        remove_sprite = true;
+                                    }
+                                });
                             });
-                            ui.horizontal(|ui| {
-                                ui.label("Height:");
-                                ui.add(egui::DragValue::new(&mut sprite.height).speed(1.0));
-                            });
-                            ui.horizontal(|ui| {
-                                ui.label("Color:");
-                                ui.color_edit_button_rgba_unmultiplied(&mut sprite.color);
-                            });
-
-                            if ui.button("Remove Component").clicked() {
-                                world.sprites.remove(&entity);
-                            }
                         }
-                    });
+                        ui.add_space(10.0);
+                    }
+                }
+                
+                if remove_sprite {
+                    world.sprites.remove(&entity);
                 }
 
-                // Collider Component (only show if has collider)
+                // Collider Component (Unity-style)
                 let has_collider = world.colliders.contains_key(&entity);
+                let mut remove_collider = false;
+                
                 if has_collider {
-                    ui.collapsing("Box Collider", |ui| {
+                    let collider_id = ui.make_persistent_id("collider_component");
+                    let is_open = egui::collapsing_header::CollapsingState::load_with_default_open(
+                        ui.ctx(), collider_id, true
+                    );
+                    
+                    render_component_header(ui, "Box Collider 2D", "📦", false);
+                    
+                    if is_open.is_open() {
                         if let Some(collider) = world.colliders.get_mut(&entity) {
-                            ui.horizontal(|ui| {
-                                ui.label("Width:");
-                                ui.add(egui::DragValue::new(&mut collider.width).speed(1.0));
+                            ui.indent("collider_indent", |ui| {
+                                egui::Grid::new("collider_grid")
+                                    .num_columns(2)
+                                    .spacing([10.0, 8.0])
+                                    .show(ui, |ui| {
+                                        ui.label("Width");
+                                        ui.add(egui::DragValue::new(&mut collider.width).speed(1.0));
+                                        ui.end_row();
+                                        
+                                        ui.label("Height");
+                                        ui.add(egui::DragValue::new(&mut collider.height).speed(1.0));
+                                        ui.end_row();
+                                    });
+                                
+                                ui.add_space(5.0);
+                                ui.horizontal(|ui| {
+                                    if ui.button("⚙️").on_hover_text("Component Settings").clicked() {
+                                        // Component menu
+                                    }
+                                    if ui.button("❌ Remove Component").clicked() {
+                                        remove_collider = true;
+                                    }
+                                });
                             });
-                            ui.horizontal(|ui| {
-                                ui.label("Height:");
-                                ui.add(egui::DragValue::new(&mut collider.height).speed(1.0));
-                            });
-
-                            if ui.button("Remove Component").clicked() {
-                                world.colliders.remove(&entity);
-                            }
                         }
-                    });
+                        ui.add_space(10.0);
+                    }
+                }
+                
+                if remove_collider {
+                    world.colliders.remove(&entity);
                 }
 
-                // Velocity Component (Rigidbody) - only show if has velocity
+                // Velocity Component (Rigidbody) - Unity-style
                 let has_velocity = world.velocities.contains_key(&entity);
+                let mut remove_velocity = false;
+                
                 if has_velocity {
-                    ui.collapsing("Rigidbody 2D", |ui| {
+                    let velocity_id = ui.make_persistent_id("velocity_component");
+                    let is_open = egui::collapsing_header::CollapsingState::load_with_default_open(
+                        ui.ctx(), velocity_id, true
+                    );
+                    
+                    render_component_header(ui, "Rigidbody 2D", "⚡", false);
+                    
+                    if is_open.is_open() {
                         if let Some(velocity) = world.velocities.get_mut(&entity) {
-                            ui.horizontal(|ui| {
-                                ui.label("Velocity X:");
-                                ui.add(egui::DragValue::new(&mut velocity.0).speed(1.0));
+                            ui.indent("velocity_indent", |ui| {
+                                egui::Grid::new("velocity_grid")
+                                    .num_columns(2)
+                                    .spacing([10.0, 8.0])
+                                    .show(ui, |ui| {
+                                        ui.label("Velocity X");
+                                        ui.add(egui::DragValue::new(&mut velocity.0).speed(0.1));
+                                        ui.end_row();
+                                        
+                                        ui.label("Velocity Y");
+                                        ui.add(egui::DragValue::new(&mut velocity.1).speed(0.1));
+                                        ui.end_row();
+                                    });
+                                
+                                ui.add_space(5.0);
+                                ui.horizontal(|ui| {
+                                    if ui.button("⚙️").on_hover_text("Component Settings").clicked() {
+                                        // Component menu
+                                    }
+                                    if ui.button("❌ Remove Component").clicked() {
+                                        remove_velocity = true;
+                                    }
+                                });
                             });
-                            ui.horizontal(|ui| {
-                                ui.label("Velocity Y:");
-                                ui.add(egui::DragValue::new(&mut velocity.1).speed(1.0));
-                            });
-
-                            if ui.button("Remove Component").clicked() {
-                                world.velocities.remove(&entity);
-                            }
                         }
-                    });
+                        ui.add_space(10.0);
+                    }
+                }
+                
+                if remove_velocity {
+                    world.velocities.remove(&entity);
                 }
 
 
-                // Script Component
+                // Script Component (Unity-style)
                 let has_script = world.scripts.contains_key(&entity);
                 let mut remove_script = false;
-                ui.collapsing("Script", |ui| {
-                    if has_script {
+                
+                if has_script {
+                    let script_id = ui.make_persistent_id("script_component");
+                    let is_open = egui::collapsing_header::CollapsingState::load_with_default_open(
+                        ui.ctx(), script_id, true
+                    );
+                    
+                    render_component_header(ui, "Script", "📜", false);
+                    
+                    if is_open.is_open() {
+                        ui.indent("script_indent", |ui| {
                         if let Some(script) = world.scripts.get_mut(&entity) {
                             // Get available scripts from project
                             let mut available_scripts = Vec::new();
@@ -266,24 +395,28 @@ pub fn render_inspector(
                                 }
                             }
 
-                            ui.horizontal(|ui| {
-                                ui.label("Script:");
-                                if !available_scripts.is_empty() {
-                                    egui::ComboBox::from_id_source("script_picker")
-                                        .selected_text(&script.script_name)
-                                        .show_ui(ui, |ui| {
-                                            for script_name in &available_scripts {
-                                                ui.selectable_value(&mut script.script_name, script_name.clone(), script_name);
-                                            }
-                                        });
-                                } else {
-                                    ui.text_edit_singleline(&mut script.script_name);
-                                }
-                            });
-                            ui.horizontal(|ui| {
-                                ui.label("Enabled:");
-                                ui.checkbox(&mut script.enabled, "");
-                            });
+                            egui::Grid::new("script_grid")
+                                .num_columns(2)
+                                .spacing([10.0, 8.0])
+                                .show(ui, |ui| {
+                                    ui.label("Script");
+                                    if !available_scripts.is_empty() {
+                                        egui::ComboBox::from_id_source("script_picker")
+                                            .selected_text(&script.script_name)
+                                            .show_ui(ui, |ui| {
+                                                for script_name in &available_scripts {
+                                                    ui.selectable_value(&mut script.script_name, script_name.clone(), script_name);
+                                                }
+                                            });
+                                    } else {
+                                        ui.text_edit_singleline(&mut script.script_name);
+                                    }
+                                    ui.end_row();
+                                    
+                                    ui.label("Enabled");
+                                    ui.checkbox(&mut script.enabled, "");
+                                    ui.end_row();
+                                });
 
                             ui.add_space(10.0);
 
@@ -298,34 +431,40 @@ pub fn render_inspector(
                                         script.parameters.entry(key).or_insert(default_value);
                                     }
 
-                                    // Display all parameters
+                                    // Display all parameters (Unity-style)
                                     if !script.parameters.is_empty() {
+                                        ui.add_space(10.0);
                                         ui.separator();
-                                        ui.label(egui::RichText::new("Script Parameters:").strong());
+                                        ui.label(egui::RichText::new("Parameters").strong());
+                                        ui.add_space(5.0);
 
-                                        let param_keys: Vec<String> = script.parameters.keys().cloned().collect();
-                                        for key in param_keys {
-                                            if let Some(value) = script.parameters.get_mut(&key) {
-                                                ui.horizontal(|ui| {
-                                                    ui.label(format!("{}:", key));
+                                        egui::Grid::new("script_params_grid")
+                                            .num_columns(2)
+                                            .spacing([10.0, 8.0])
+                                            .show(ui, |ui| {
+                                                let param_keys: Vec<String> = script.parameters.keys().cloned().collect();
+                                                for key in param_keys {
+                                                    if let Some(value) = script.parameters.get_mut(&key) {
+                                                        ui.label(&key);
 
-                                                    match value {
-                                                        ScriptParameter::Float(f) => {
-                                                            ui.add(egui::DragValue::new(f).speed(0.1));
+                                                        match value {
+                                                            ScriptParameter::Float(f) => {
+                                                                ui.add(egui::DragValue::new(f).speed(0.1));
+                                                            }
+                                                            ScriptParameter::Int(i) => {
+                                                                ui.add(egui::DragValue::new(i).speed(1));
+                                                            }
+                                                            ScriptParameter::String(s) => {
+                                                                ui.text_edit_singleline(s);
+                                                            }
+                                                            ScriptParameter::Bool(b) => {
+                                                                ui.checkbox(b, "");
+                                                            }
                                                         }
-                                                        ScriptParameter::Int(i) => {
-                                                            ui.add(egui::DragValue::new(i).speed(1));
-                                                        }
-                                                        ScriptParameter::String(s) => {
-                                                            ui.text_edit_singleline(s);
-                                                        }
-                                                        ScriptParameter::Bool(b) => {
-                                                            ui.checkbox(b, "");
-                                                        }
+                                                        ui.end_row();
                                                     }
-                                                });
-                                            }
-                                        }
+                                                }
+                                            });
                                     }
                                 }
                             }
@@ -337,146 +476,151 @@ pub fn render_inspector(
                                 if ui.button("📝 Edit Script").clicked() {
                                     *edit_script_request = Some(script_name);
                                 }
-                                if ui.button("Remove Component").clicked() {
+                                if ui.button("⚙️").on_hover_text("Component Settings").clicked() {
+                                    // Component menu
+                                }
+                                if ui.button("❌ Remove Component").clicked() {
                                     remove_script = true;
                                 }
                             });
                         }
-                    } else {
-                        if ui.button("Add Script").clicked() {
-                            // Check for available scripts
-                            let mut available_scripts = Vec::new();
-                            if let Some(proj_path) = project_path {
-                                let scripts_path = proj_path.join("scripts");
-                                if let Ok(entries) = std::fs::read_dir(&scripts_path) {
-                                    for entry in entries.flatten() {
-                                        if let Some(name) = entry.file_name().to_str() {
-                                            if name.ends_with(".lua") {
-                                                available_scripts.push(name.trim_end_matches(".lua").to_string());
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            // Use first available script or create new one
-                            let script_name = if !available_scripts.is_empty() {
-                                available_scripts[0].clone()
-                            } else {
-                                format!("Script_{}", entity)
-                            };
-
-                            world.scripts.insert(entity, Script {
-                                script_name: script_name.clone(),
-                                enabled: true,
-                                parameters: HashMap::new(),
-                            });
-
-                            // Create file if it doesn't exist
-                            if available_scripts.is_empty() {
-                                *edit_script_request = Some(script_name);
-                            }
-                        }
+                        });
+                        ui.add_space(10.0);
                     }
-                });
-
+                }
+                
                 if remove_script {
                     world.scripts.remove(&entity);
                 }
 
-                ui.add_space(20.0);
+                ui.add_space(15.0);
 
-                // ===== Add Component Button (Unity-like) =====
-                ui.menu_button("➕ Add Component", |ui| {
-                    ui.label("🎨 Rendering");
-                    ui.separator();
+                // ===== Add Component Button (Unity-style) =====
+                ui.horizontal(|ui| {
+                    ui.add_space(ui.available_width() / 2.0 - 70.0);
+                    ui.menu_button("➕ Add Component", |ui| {
+                        ui.label("🎨 Rendering");
+                        ui.separator();
 
-                    // Add Sprite Renderer
-                    if !world.sprites.contains_key(&entity) {
-                        if ui.button("Sprite Renderer").clicked() {
-                            world.sprites.insert(entity, ecs::Sprite {
-                                texture_id: "sprite".to_string(),
-                                width: 32.0,
-                                height: 32.0,
-                                color: [1.0, 1.0, 1.0, 1.0],
-                            });
-                            ui.close_menu();
+                        // Add Sprite Renderer
+                        if !world.sprites.contains_key(&entity) {
+                            if ui.button("Sprite Renderer").clicked() {
+                                world.sprites.insert(entity, ecs::Sprite {
+                                    texture_id: "sprite".to_string(),
+                                    width: 32.0,
+                                    height: 32.0,
+                                    color: [1.0, 1.0, 1.0, 1.0],
+                                });
+                                ui.close_menu();
+                            }
                         }
-                    }
 
-                    ui.add_space(5.0);
-                    ui.label("⚙️ Physics");
-                    ui.separator();
+                        ui.add_space(5.0);
+                        ui.label("⚙️ Physics");
+                        ui.separator();
 
-                    // Add Collider
-                    if !world.colliders.contains_key(&entity) {
-                        if ui.button("Box Collider 2D").clicked() {
-                            world.colliders.insert(entity, ecs::Collider {
-                                width: 32.0,
-                                height: 32.0,
-                            });
-                            ui.close_menu();
+                        // Add Collider
+                        if !world.colliders.contains_key(&entity) {
+                            if ui.button("Box Collider 2D").clicked() {
+                                world.colliders.insert(entity, ecs::Collider {
+                                    width: 32.0,
+                                    height: 32.0,
+                                });
+                                ui.close_menu();
+                            }
                         }
-                    }
 
-                    // Add Velocity
-                    if !world.velocities.contains_key(&entity) {
-                        if ui.button("Rigidbody 2D").clicked() {
-                            world.velocities.insert(entity, (0.0, 0.0));
-                            ui.close_menu();
+                        // Add Velocity
+                        if !world.velocities.contains_key(&entity) {
+                            if ui.button("Rigidbody 2D").clicked() {
+                                world.velocities.insert(entity, (0.0, 0.0));
+                                ui.close_menu();
+                            }
                         }
-                    }
 
-                    ui.add_space(5.0);
-                    ui.label("📜 Scripting");
-                    ui.separator();
+                        ui.add_space(5.0);
+                        ui.label("📜 Scripting");
+                        ui.separator();
 
-                    // Add Script
-                    if !world.scripts.contains_key(&entity) {
-                        if ui.button("Script").clicked() {
-                            // Check for available scripts
-                            let mut available_scripts = Vec::new();
-                            if let Some(proj_path) = project_path {
-                                let scripts_path = proj_path.join("scripts");
-                                if let Ok(entries) = std::fs::read_dir(&scripts_path) {
-                                    for entry in entries.flatten() {
-                                        if let Some(name) = entry.file_name().to_str() {
-                                            if name.ends_with(".lua") {
-                                                available_scripts.push(name.trim_end_matches(".lua").to_string());
+                        // Add Script
+                        if !world.scripts.contains_key(&entity) {
+                            if ui.button("Script").clicked() {
+                                // Check for available scripts
+                                let mut available_scripts = Vec::new();
+                                if let Some(proj_path) = project_path {
+                                    let scripts_path = proj_path.join("scripts");
+                                    if let Ok(entries) = std::fs::read_dir(&scripts_path) {
+                                        for entry in entries.flatten() {
+                                            if let Some(name) = entry.file_name().to_str() {
+                                                if name.ends_with(".lua") {
+                                                    available_scripts.push(name.trim_end_matches(".lua").to_string());
+                                                }
                                             }
                                         }
                                     }
                                 }
+
+                                // Use first available script or create new one
+                                let script_name = if !available_scripts.is_empty() {
+                                    available_scripts[0].clone()
+                                } else {
+                                    format!("Script_{}", entity)
+                                };
+
+                                world.scripts.insert(entity, Script {
+                                    script_name: script_name.clone(),
+                                    enabled: true,
+                                    parameters: HashMap::new(),
+                                });
+                                ui.close_menu();
                             }
-
-                            // Use first available script or create new one
-                            let script_name = if !available_scripts.is_empty() {
-                                available_scripts[0].clone()
-                            } else {
-                                format!("Script_{}", entity)
-                            };
-
-                            world.scripts.insert(entity, Script {
-                                script_name: script_name.clone(),
-                                enabled: true,
-                                parameters: HashMap::new(),
-                            });
-                            ui.close_menu();
                         }
-                    }
+                    });
                 });
 
+                ui.add_space(15.0);
+                ui.separator();
                 ui.add_space(10.0);
 
-                if ui.button("🗑 Delete GameObject").clicked() {
-                    world.despawn(entity);
-                    entity_names.remove(&entity);
-                    *selected_entity = None;
-                }
+                // Delete GameObject button (centered, Unity-style)
+                ui.horizontal(|ui| {
+                    ui.add_space(ui.available_width() / 2.0 - 80.0);
+                    if ui.button("🗑 Delete GameObject").clicked() {
+                        world.despawn(entity);
+                        entity_names.remove(&entity);
+                        *selected_entity = None;
+                    }
+                });
             });
         } else {
-            ui.label("Select an entity to edit");
+            ui.vertical_centered(|ui| {
+                ui.add_space(50.0);
+                ui.label(egui::RichText::new("Select an object to inspect").color(egui::Color32::GRAY));
+            });
         }
+}
+
+/// Render Unity-style component header
+fn render_component_header(ui: &mut egui::Ui, name: &str, icon: &str, always_open: bool) {
+    egui::Frame::none()
+        .fill(egui::Color32::from_rgb(56, 56, 56))
+        .inner_margin(egui::Margin::same(6.0))
+        .show(ui, |ui| {
+            ui.horizontal(|ui| {
+                if !always_open {
+                    ui.label("▼");
+                }
+                ui.label(icon);
+                ui.strong(name);
+
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    if ui.small_button("⋮").on_hover_text("Component Options").clicked() {
+                        // Component menu
+                    }
+                });
+            });
+        });
+    ui.add_space(8.0);
 }
 
 /// Parse Lua script file to extract variable declarations (Unity-like parameters)
