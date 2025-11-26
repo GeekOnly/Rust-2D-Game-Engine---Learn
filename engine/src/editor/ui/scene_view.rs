@@ -213,11 +213,14 @@ pub fn render_scene_view(
             let screen_x = center.x + screen_pos.x;
             let screen_y = center.y + screen_pos.y;
 
-            render_transform_gizmo(&painter, screen_x, screen_y, current_tool, scene_camera, scene_view_mode);
+            // Clone transform data to avoid borrow issues
+            let transform_copy = transform.clone();
+            
+            render_transform_gizmo(&painter, screen_x, screen_y, current_tool, scene_camera, scene_view_mode, transform_space, &transform_copy);
             
             // Handle gizmo interaction only if not controlling camera
             if !is_camera_control {
-                handle_gizmo_interaction_stateful(&response, sel_entity, world, screen_x, screen_y, current_tool, scene_camera, dragging_entity, drag_axis);
+                handle_gizmo_interaction_stateful(&response, sel_entity, world, screen_x, screen_y, current_tool, scene_camera, dragging_entity, drag_axis, transform_space, &transform_copy);
             }
         }
     }
@@ -1134,15 +1137,30 @@ fn render_transform_gizmo(
     current_tool: &TransformTool,
     scene_camera: &SceneCamera,
     scene_view_mode: &SceneViewMode,
+    transform_space: &TransformSpace,
+    transform: &ecs::Transform,
 ) {
     let gizmo_size = 50.0;
     let handle_size = 8.0;
     
-    // Get rotation angle (only in 3D mode)
+    // Get rotation angle based on space mode
     let rotation_rad = if *scene_view_mode == SceneViewMode::Mode3D {
-        scene_camera.get_rotation_radians()
+        match transform_space {
+            TransformSpace::Local => {
+                // Local space: combine object rotation with camera rotation
+                scene_camera.get_rotation_radians() + transform.rotation[2].to_radians()
+            }
+            TransformSpace::World => {
+                // World space: only camera rotation
+                scene_camera.get_rotation_radians()
+            }
+        }
     } else {
-        0.0
+        // 2D mode
+        match transform_space {
+            TransformSpace::Local => transform.rotation[2].to_radians(),
+            TransformSpace::World => 0.0,
+        }
     };
 
     match current_tool {
@@ -1247,10 +1265,22 @@ fn handle_gizmo_interaction_stateful(
     scene_camera: &SceneCamera,
     dragging_entity: &mut Option<Entity>,
     drag_axis: &mut Option<u8>,
+    transform_space: &TransformSpace,
+    transform: &ecs::Transform,
 ) {
     if *current_tool == TransformTool::View {
         return;
     }
+
+    // Calculate rotation for gizmo handles
+    let rotation_rad = match transform_space {
+        TransformSpace::Local => {
+            scene_camera.get_rotation_radians() + transform.rotation[2].to_radians()
+        }
+        TransformSpace::World => {
+            scene_camera.get_rotation_radians()
+        }
+    };
 
     // Start dragging - determine which handle
     if response.drag_started() {
@@ -1258,8 +1288,18 @@ fn handle_gizmo_interaction_stateful(
             let gizmo_size = 50.0;
             let handle_size = 8.0;
             
-            let x_handle = egui::pos2(screen_x + gizmo_size, screen_y);
-            let y_handle = egui::pos2(screen_x, screen_y + gizmo_size);
+            // Calculate rotated handle positions
+            let x_dir = glam::Vec2::new(rotation_rad.cos(), rotation_rad.sin());
+            let y_dir = glam::Vec2::new(-rotation_rad.sin(), rotation_rad.cos()); // Perpendicular to X
+            
+            let x_handle = egui::pos2(
+                screen_x + x_dir.x * gizmo_size,
+                screen_y + x_dir.y * gizmo_size
+            );
+            let y_handle = egui::pos2(
+                screen_x - gizmo_size * rotation_rad.sin(),
+                screen_y - gizmo_size * rotation_rad.cos()
+            );
             let center = egui::pos2(screen_x, screen_y);
             
             let dist_x = hover_pos.distance(x_handle);
@@ -1284,20 +1324,41 @@ fn handle_gizmo_interaction_stateful(
         let delta = response.drag_delta();
         
         // Convert screen delta to world delta (accounting for zoom)
-        let world_delta_x = delta.x / scene_camera.zoom;
-        let world_delta_y = delta.y / scene_camera.zoom;
+        let screen_delta = glam::Vec2::new(delta.x, delta.y);
+        
+        // Calculate rotation for axis-aligned movement
+        let rotation_rad = match transform_space {
+            TransformSpace::Local => {
+                scene_camera.get_rotation_radians() + transform.rotation[2].to_radians()
+            }
+            TransformSpace::World => {
+                scene_camera.get_rotation_radians()
+            }
+        };
+        
+        // Rotate screen delta to world space
+        let cos_r = rotation_rad.cos();
+        let sin_r = rotation_rad.sin();
+        let world_delta_x = (screen_delta.x * cos_r + screen_delta.y * sin_r) / scene_camera.zoom;
+        let world_delta_y = (-screen_delta.x * sin_r + screen_delta.y * cos_r) / scene_camera.zoom;
 
-        if let Some(transform) = world.transforms.get_mut(&entity) {
+        if let Some(transform_mut) = world.transforms.get_mut(&entity) {
             match current_tool {
                 TransformTool::Move => {
                     if let Some(axis) = *drag_axis {
                         match axis {
-                            0 => transform.position[0] += world_delta_x, // X only
-                            1 => transform.position[1] += world_delta_y, // Y only
+                            0 => {
+                                // X axis only - project delta onto X axis
+                                transform_mut.position[0] += world_delta_x;
+                            }
+                            1 => {
+                                // Y axis only - project delta onto Y axis  
+                                transform_mut.position[1] -= world_delta_y;
+                            }
                             2 => {
-                                // Both axes
-                                transform.position[0] += world_delta_x;
-                                transform.position[1] += world_delta_y;
+                                // Both axes - free movement
+                                transform_mut.position[0] += world_delta_x;
+                                transform_mut.position[1] -= world_delta_y;
                             }
                             _ => {}
                         }
@@ -1305,15 +1366,15 @@ fn handle_gizmo_interaction_stateful(
                 }
                 TransformTool::Rotate => {
                     let rotation_speed = 0.01;
-                    transform.rotation[2] += (delta.x - delta.y) * rotation_speed;
+                    transform_mut.rotation[2] += (delta.x - delta.y) * rotation_speed;
                 }
                 TransformTool::Scale => {
                     let scale_speed = 0.01;
                     let scale_delta = (delta.x + delta.y) * scale_speed;
-                    transform.scale[0] += scale_delta;
-                    transform.scale[1] += scale_delta;
-                    transform.scale[0] = transform.scale[0].max(0.1);
-                    transform.scale[1] = transform.scale[1].max(0.1);
+                    transform_mut.scale[0] += scale_delta;
+                    transform_mut.scale[1] += scale_delta;
+                    transform_mut.scale[0] = transform_mut.scale[0].max(0.1);
+                    transform_mut.scale[1] = transform_mut.scale[1].max(0.1);
                 }
                 _ => {}
             }
