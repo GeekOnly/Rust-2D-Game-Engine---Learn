@@ -73,6 +73,13 @@ pub struct EditorState {
     pub show_create_menu: bool,
     pub show_rename_dialog: bool,
     pub rename_buffer: String,
+    
+    // NEW: Unity-like editor features
+    pub shortcut_manager: super::shortcuts::ShortcutManager,
+    pub scene_camera: super::camera::SceneCamera,
+    pub scene_grid: super::grid::SceneGrid,
+    pub selected_entities: Vec<Entity>,  // Multi-selection support
+    pub hierarchy_search: String,        // Search filter
 }
 
 #[allow(dead_code)]
@@ -105,6 +112,13 @@ impl EditorState {
             show_create_menu: false,
             show_rename_dialog: false,
             rename_buffer: String::new(),
+            
+            // NEW: Initialize Unity-like features
+            shortcut_manager: super::shortcuts::ShortcutManager::new(),
+            scene_camera: super::camera::SceneCamera::new(),
+            scene_grid: super::grid::SceneGrid::new(),
+            selected_entities: Vec::new(),
+            hierarchy_search: String::new(),
         }
     }
 
