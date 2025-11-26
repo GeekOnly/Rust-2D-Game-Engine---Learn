@@ -1,7 +1,21 @@
+//! Scene View Module
+//!
+//! Handles the main scene rendering in the editor, including:
+//! - 2D and 3D scene rendering
+//! - Entity visualization (sprites, meshes, gizmos)
+//! - Camera controls (pan, orbit, zoom)
+//! - Grid rendering
+//! - Transform gizmos
+//! - Scene navigation tools
+
 use ecs::{World, Entity};
 use egui;
 use crate::editor::ui::TransformTool;
 use crate::editor::{SceneCamera, SceneGrid};
+
+// ============================================================================
+// TYPES & ENUMS
+// ============================================================================
 
 /// Scene view mode
 #[derive(Debug, Clone, Copy, PartialEq)]
