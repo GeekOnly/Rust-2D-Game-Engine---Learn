@@ -393,17 +393,17 @@ fn render_grid_3d(painter: &egui::Painter, rect: egui::Rect, scene_camera: &Scen
     let center = rect.center();
     let grid_world_size = scene_grid.size; // World space grid size
     
-    // Grid colors
+    // Grid colors - make more visible
     let grid_color = egui::Color32::from_rgba_premultiplied(
         (scene_grid.color[0] * 255.0) as u8,
         (scene_grid.color[1] * 255.0) as u8,
         (scene_grid.color[2] * 255.0) as u8,
-        (scene_grid.color[3] * 100.0) as u8, // More transparent
+        150, // More opaque for visibility
     );
     
     // Axis colors (X=Red, Z=Blue for 3D)
-    let x_axis_color = egui::Color32::from_rgba_premultiplied(200, 50, 50, 150);
-    let z_axis_color = egui::Color32::from_rgba_premultiplied(50, 100, 200, 150);
+    let x_axis_color = egui::Color32::from_rgba_premultiplied(200, 50, 50, 200);
+    let z_axis_color = egui::Color32::from_rgba_premultiplied(50, 100, 200, 200);
     
     // Camera parameters
     let yaw = scene_camera.rotation.to_radians();
@@ -411,8 +411,8 @@ fn render_grid_3d(painter: &egui::Painter, rect: egui::Rect, scene_camera: &Scen
     let zoom = scene_camera.zoom;
     
     // Grid range
-    let grid_range = 50; // Number of grid lines in each direction
-    let fade_distance = 30.0; // Distance at which lines start to fade
+    let grid_range = 20; // Number of grid lines in each direction (reduced for better performance)
+    let fade_distance = 15.0 * grid_world_size; // Distance at which lines start to fade (in world units)
     
     // Helper function to project 3D point to 2D screen
     let project_3d = |x: f32, z: f32| -> egui::Pos2 {
@@ -449,9 +449,9 @@ fn render_grid_3d(painter: &egui::Painter, rect: egui::Rect, scene_camera: &Scen
         let dist = (x * x + z * z).sqrt();
         if dist > fade_distance {
             let fade = 1.0 - ((dist - fade_distance) / fade_distance).min(1.0);
-            (fade * 100.0) as u8
+            (fade * 150.0) as u8 // Increased base alpha
         } else {
-            100
+            150 // More opaque
         }
     };
     
