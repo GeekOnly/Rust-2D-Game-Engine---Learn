@@ -7,12 +7,14 @@ pub mod scene_view;
 pub mod bottom_panel;
 pub mod project_settings;
 pub mod asset_browser;
+pub mod dock_layout;
 
 // Re-exports
 use ecs::{World, Entity, EntityTag};
 use egui;
 use std::collections::HashMap;
 use crate::editor::{Console, SceneCamera, SceneGrid};
+pub use dock_layout::{EditorTab, TabContext, EditorTabViewer, create_default_layout, get_dock_style};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum TransformTool {
@@ -203,5 +205,102 @@ impl EditorUI {
         } else {
             "📍" // Empty GameObject
         }
+    }
+
+    /// Render editor with docking system (Unity-like)
+    pub fn render_editor_with_dock(
+        ctx: &egui::Context,
+        dock_state: &mut egui_dock::DockState<EditorTab>,
+        world: &mut World,
+        selected_entity: &mut Option<Entity>,
+        entity_names: &mut HashMap<Entity, String>,
+        save_request: &mut bool,
+        save_as_request: &mut bool,
+        load_request: &mut bool,
+        load_file_request: &mut Option<std::path::PathBuf>,
+        new_scene_request: &mut bool,
+        play_request: &mut bool,
+        stop_request: &mut bool,
+        edit_script_request: &mut Option<String>,
+        project_path: &Option<std::path::PathBuf>,
+        current_scene_path: &Option<std::path::PathBuf>,
+        scene_view_tab: &mut usize,
+        is_playing: bool,
+        show_colliders: &mut bool,
+        show_velocities: &mut bool,
+        console: &mut Console,
+        _bottom_panel_tab: &mut usize,
+        current_tool: &mut TransformTool,
+        show_project_settings: &mut bool,
+        scene_camera: &mut SceneCamera,
+        scene_grid: &SceneGrid,
+        show_exit_dialog: &mut bool,
+        asset_manager: &mut Option<crate::editor::AssetManager>,
+        drag_drop: &mut crate::editor::DragDropState,
+    ) {
+        // Top Menu Bar
+        egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
+            menu_bar::render_menu_bar(
+                ui,
+                world,
+                entity_names,
+                new_scene_request,
+                save_request,
+                save_as_request,
+                load_request,
+                load_file_request,
+                play_request,
+                stop_request,
+                show_project_settings,
+                show_colliders,
+                show_velocities,
+                project_path,
+                current_scene_path,
+                is_playing,
+                show_exit_dialog,
+                Self::get_scene_files,
+            );
+        });
+
+        // Main docking area
+        egui::CentralPanel::default().show(ctx, |ui| {
+            let mut tab_context = TabContext {
+                world,
+                selected_entity,
+                entity_names,
+                edit_script_request,
+                project_path,
+                current_scene_path,
+                load_file_request,
+                console,
+                scene_view_tab,
+                is_playing,
+                show_colliders,
+                show_velocities,
+                current_tool,
+                scene_camera,
+                scene_grid,
+                play_request,
+                stop_request,
+                asset_manager,
+                drag_drop,
+            };
+
+            let mut tab_viewer = EditorTabViewer {
+                context: &mut tab_context,
+            };
+
+            egui_dock::DockArea::new(dock_state)
+                .style(get_dock_style())
+                .show_inside(ui, &mut tab_viewer);
+        });
+
+        // Project Settings Dialog
+        project_settings::render_project_settings(
+            ctx,
+            show_project_settings,
+            project_path,
+            Self::get_scene_files,
+        );
     }
 }

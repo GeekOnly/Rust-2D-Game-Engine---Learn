@@ -167,8 +167,11 @@ fn main() -> Result<()> {
     // egui setup
     let egui_ctx = egui::Context::default();
     
-    // Apply Unity-like theme
+    // Apply Unity-like theme (dark mode)
     editor::UnityTheme::apply(&egui_ctx);
+    
+    // Force dark mode for egui_dock
+    egui_ctx.set_visuals(egui::Visuals::dark());
     
     let mut egui_state = egui_winit::State::new(
         egui_ctx.clone(),
@@ -382,6 +385,10 @@ fn main() -> Result<()> {
 
                         // Egui frame setup
                         let raw_input = egui_state.take_egui_input(&window);
+                        
+                        // Re-apply Unity theme every frame to prevent override
+                        editor::UnityTheme::apply(&egui_ctx);
+                        
                         egui_ctx.begin_frame(raw_input);
 
                         // Auto-save logic (only in editor mode)
@@ -754,36 +761,69 @@ fn main() -> Result<()> {
                                     }
                                 }
                                 
-                                // Editor UI
-                                EditorUI::render_editor(
-                                    &egui_ctx,
-                                    &mut editor_state.world,
-                                    &mut editor_state.selected_entity,
-                                    &mut editor_state.entity_names,
-                                    &mut save_request,
-                                    &mut save_as_request,
-                                    &mut load_request,
-                                    &mut load_file_request,
-                                    &mut new_scene_request,
-                                    &mut play_request,
-                                    &mut stop_request,
-                                    &mut edit_script_request,
-                                    &editor_state.current_project_path,
-                                    &editor_state.current_scene_path,
-                                    &mut editor_state.scene_view_tab,
-                                    editor_state.is_playing,
-                                    &mut editor_state.show_colliders,
-                                    &mut editor_state.show_velocities,
-                                    &mut editor_state.console,
-                                    &mut editor_state.bottom_panel_tab,
-                                    &mut editor_state.current_tool,
-                                    &mut editor_state.show_project_settings,
-                                    &mut editor_state.scene_camera,
-                                    &editor_state.scene_grid,
-                                    &mut editor_state.show_exit_dialog,
-                                    &mut editor_state.asset_manager,
-                                    &mut editor_state.drag_drop,
-                                );
+                                // Editor UI - Use docking layout if enabled
+                                if editor_state.use_docking {
+                                    EditorUI::render_editor_with_dock(
+                                        &egui_ctx,
+                                        &mut editor_state.dock_state,
+                                        &mut editor_state.world,
+                                        &mut editor_state.selected_entity,
+                                        &mut editor_state.entity_names,
+                                        &mut save_request,
+                                        &mut save_as_request,
+                                        &mut load_request,
+                                        &mut load_file_request,
+                                        &mut new_scene_request,
+                                        &mut play_request,
+                                        &mut stop_request,
+                                        &mut edit_script_request,
+                                        &editor_state.current_project_path,
+                                        &editor_state.current_scene_path,
+                                        &mut editor_state.scene_view_tab,
+                                        editor_state.is_playing,
+                                        &mut editor_state.show_colliders,
+                                        &mut editor_state.show_velocities,
+                                        &mut editor_state.console,
+                                        &mut editor_state.bottom_panel_tab,
+                                        &mut editor_state.current_tool,
+                                        &mut editor_state.show_project_settings,
+                                        &mut editor_state.scene_camera,
+                                        &editor_state.scene_grid,
+                                        &mut editor_state.show_exit_dialog,
+                                        &mut editor_state.asset_manager,
+                                        &mut editor_state.drag_drop,
+                                    );
+                                } else {
+                                    EditorUI::render_editor(
+                                        &egui_ctx,
+                                        &mut editor_state.world,
+                                        &mut editor_state.selected_entity,
+                                        &mut editor_state.entity_names,
+                                        &mut save_request,
+                                        &mut save_as_request,
+                                        &mut load_request,
+                                        &mut load_file_request,
+                                        &mut new_scene_request,
+                                        &mut play_request,
+                                        &mut stop_request,
+                                        &mut edit_script_request,
+                                        &editor_state.current_project_path,
+                                        &editor_state.current_scene_path,
+                                        &mut editor_state.scene_view_tab,
+                                        editor_state.is_playing,
+                                        &mut editor_state.show_colliders,
+                                        &mut editor_state.show_velocities,
+                                        &mut editor_state.console,
+                                        &mut editor_state.bottom_panel_tab,
+                                        &mut editor_state.current_tool,
+                                        &mut editor_state.show_project_settings,
+                                        &mut editor_state.scene_camera,
+                                        &editor_state.scene_grid,
+                                        &mut editor_state.show_exit_dialog,
+                                        &mut editor_state.asset_manager,
+                                        &mut editor_state.drag_drop,
+                                    );
+                                }
 
                                 // Handle new scene request
                                 if new_scene_request {

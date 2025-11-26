@@ -85,6 +85,8 @@ pub struct EditorState {
     pub should_exit: bool,               // Flag to trigger actual exit
     pub asset_manager: Option<super::asset_manager::AssetManager>,  // Asset manager
     pub drag_drop: super::drag_drop::DragDropState,  // Drag & drop state
+    pub dock_state: egui_dock::DockState<super::ui::EditorTab>,  // Docking system
+    pub use_docking: bool,               // Toggle between old and new layout
 }
 
 #[allow(dead_code)]
@@ -129,6 +131,8 @@ impl EditorState {
             should_exit: false,
             asset_manager: None, // Initialized when project is opened
             drag_drop: super::drag_drop::DragDropState::new(),
+            dock_state: super::ui::create_default_layout(),
+            use_docking: true, // Use new docking layout by default
         }
     }
 
