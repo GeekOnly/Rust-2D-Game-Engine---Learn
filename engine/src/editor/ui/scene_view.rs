@@ -129,7 +129,12 @@ pub fn render_scene_view(
         // Calculate screen position with proper 3D projection for Z-axis
         let (screen_x, screen_y) = if *scene_view_mode == SceneViewMode::Mode3D {
             // 3D mode: Project 3D position (X, Y, Z) to 2D screen
-            let pos_3d = Point3D::new(transform.x(), transform.y(), transform.position[2]);
+            // Apply camera position offset (for panning)
+            let pos_3d = Point3D::new(
+                transform.x() - scene_camera.position.x,
+                transform.y(),
+                transform.position[2] - scene_camera.position.y, // camera.position.y maps to world Z
+            );
 
             // Apply camera rotation
             let yaw = scene_camera.rotation.to_radians();
@@ -453,14 +458,18 @@ fn render_grid_3d(painter: &egui::Painter, rect: egui::Rect, scene_camera: &Scen
 
     // Helper function to project 3D point on XZ plane (Y=0) to 2D screen
     let project_3d = |x: f32, z: f32| -> egui::Pos2 {
+        // Apply camera position offset (for panning)
+        let world_x = x - scene_camera.position.x;
+        let world_z = z - scene_camera.position.y; // camera.position.y maps to world Z
+
         // Point is on XZ plane (horizontal ground plane), Y=0
         let y = 0.0;
 
         // Apply camera rotation (yaw around Y-axis)
         let cos_yaw = yaw.cos();
         let sin_yaw = yaw.sin();
-        let rotated_x = x * cos_yaw - z * sin_yaw;
-        let rotated_z = x * sin_yaw + z * cos_yaw;
+        let rotated_x = world_x * cos_yaw - world_z * sin_yaw;
+        let rotated_z = world_x * sin_yaw + world_z * cos_yaw;
 
         // Apply pitch (rotation around horizontal axis)
         let cos_pitch = pitch.cos();
@@ -478,8 +487,8 @@ fn render_grid_3d(painter: &egui::Painter, rect: egui::Rect, scene_camera: &Scen
         };
 
         egui::pos2(
-            center.x + rotated_x * scale - scene_camera.position.x * zoom,
-            center.y + rotated_y * scale - scene_camera.position.y * zoom,
+            center.x + rotated_x * scale,
+            center.y + rotated_y * scale,
         )
     };
     

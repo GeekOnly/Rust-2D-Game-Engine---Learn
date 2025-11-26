@@ -57,7 +57,22 @@ impl SceneCamera {
     pub fn update_pan(&mut self, mouse_pos: Vec2) {
         if self.is_panning {
             let delta = mouse_pos - self.last_mouse_pos;
-            self.position -= delta / self.zoom;
+
+            // In 3D mode, pan should respect camera rotation
+            // Convert screen space delta to world space delta
+            let yaw_rad = self.rotation.to_radians();
+            let cos_yaw = yaw_rad.cos();
+            let sin_yaw = yaw_rad.sin();
+
+            // Pan along camera's local X and Z axes
+            // Inverted to match Unity behavior (drag right = move camera right = world moves left)
+            let pan_speed = 1.0 / self.zoom;
+            let world_delta_x = -(delta.x * cos_yaw + delta.y * sin_yaw) * pan_speed;
+            let world_delta_z = -(-delta.x * sin_yaw + delta.y * cos_yaw) * pan_speed;
+
+            self.position.x += world_delta_x;
+            self.position.y += world_delta_z; // position.y maps to world Z
+
             self.last_mouse_pos = mouse_pos;
         }
     }
