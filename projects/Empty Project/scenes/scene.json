@@ -1,8 +1,28 @@
 {
-  "next_entity": 16,
+  "next_entity": 18,
   "transforms": [
     [
-      15,
+      16,
+      {
+        "position": [
+          3.928981,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      17,
       {
         "position": [
           0.0,
@@ -29,21 +49,33 @@
   "scripts": [],
   "active": [
     [
-      15,
+      17,
+      true
+    ],
+    [
+      16,
       true
     ]
   ],
   "layers": [
     [
-      15,
+      17,
+      0
+    ],
+    [
+      16,
       0
     ]
   ],
   "parents": [],
   "names": [
     [
-      15,
+      16,
       "Cube"
+    ],
+    [
+      17,
+      "Camera"
     ]
   ]
 }

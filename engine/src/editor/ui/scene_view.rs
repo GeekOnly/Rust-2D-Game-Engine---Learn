@@ -77,30 +77,34 @@ pub fn render_scene_view(
     
     // === 3D SCENE GIZMO (top-right corner) ===
     if *scene_view_mode == SceneViewMode::Mode3D {
-        // Render gizmo with UI for clickable button
+        // Render gizmo with UI for clickable axes
         let gizmo_size = 80.0;
         let margin = 20.0;
         let gizmo_center_x = rect.max.x - margin - gizmo_size / 2.0;
         let gizmo_center_y = rect.min.y + margin + gizmo_size / 2.0;
-        
+
+        // Handle gizmo axis clicks
+        handle_gizmo_axis_clicks(ui, gizmo_center_x, gizmo_center_y, gizmo_size, scene_camera);
+
+        // Render gizmo visual on top
         render_scene_gizmo_visual(&painter, gizmo_center_x, gizmo_center_y, gizmo_size, scene_camera);
-        
+
         // Projection mode button (using UI for interaction)
         let button_y = gizmo_center_y + gizmo_size / 2.0 + 35.0;
         let button_pos = egui::pos2(gizmo_center_x - 40.0, button_y - 10.0);
-        
+
         ui.allocate_ui_at_rect(
             egui::Rect::from_min_size(button_pos, egui::vec2(80.0, 20.0)),
             |ui| {
                 ui.style_mut().visuals.widgets.inactive.weak_bg_fill = egui::Color32::from_rgba_premultiplied(50, 50, 55, 200);
                 ui.style_mut().visuals.widgets.hovered.weak_bg_fill = egui::Color32::from_rgba_premultiplied(60, 60, 65, 220);
                 ui.style_mut().visuals.widgets.active.weak_bg_fill = egui::Color32::from_rgba_premultiplied(70, 70, 75, 240);
-                
+
                 let button_text = match projection_mode {
                     ProjectionMode::Perspective => "⬜ Persp",
                     ProjectionMode::Isometric => "◇ Iso",
                 };
-                
+
                 if ui.button(button_text).clicked() {
                     *projection_mode = match projection_mode {
                         ProjectionMode::Perspective => ProjectionMode::Isometric,
@@ -586,6 +590,75 @@ fn render_grid_3d(painter: &egui::Painter, rect: egui::Rect, scene_camera: &Scen
                     egui::Stroke::new(width, color),
                 );
             }
+        }
+    }
+}
+
+/// Handle clicks on gizmo axes to snap camera to preset views
+fn handle_gizmo_axis_clicks(ui: &mut egui::Ui, center_x: f32, center_y: f32, gizmo_size: f32, scene_camera: &mut SceneCamera) {
+    let gizmo_center = egui::pos2(center_x, center_y);
+    let axis_len = gizmo_size * 0.35;
+    let click_radius = 12.0; // Clickable area around axis endpoint
+
+    // Get camera rotation for current axis positions
+    let yaw_rad = scene_camera.get_rotation_radians();
+    let pitch_rad = scene_camera.get_pitch_radians();
+
+    // Calculate axis endpoint positions (same as in render function)
+    let x_dir = (yaw_rad.cos(), yaw_rad.sin());
+    let x_end = egui::pos2(
+        gizmo_center.x + x_dir.0 * axis_len,
+        gizmo_center.y + x_dir.1 * axis_len,
+    );
+
+    let y_offset = pitch_rad.cos() * axis_len;
+    let y_end = egui::pos2(gizmo_center.x, gizmo_center.y - y_offset);
+
+    let z_dir = (-yaw_rad.sin(), yaw_rad.cos());
+    let z_end = egui::pos2(
+        gizmo_center.x + z_dir.0 * axis_len,
+        gizmo_center.y + z_dir.1 * axis_len,
+    );
+
+    // Create invisible clickable areas for each axis
+    let x_rect = egui::Rect::from_center_size(x_end, egui::vec2(click_radius * 2.0, click_radius * 2.0));
+    let y_rect = egui::Rect::from_center_size(y_end, egui::vec2(click_radius * 2.0, click_radius * 2.0));
+    let z_rect = egui::Rect::from_center_size(z_end, egui::vec2(click_radius * 2.0, click_radius * 2.0));
+
+    // X axis click (Right view)
+    let x_response = ui.allocate_rect(x_rect, egui::Sense::click());
+    if x_response.clicked() {
+        scene_camera.rotation = 90.0;  // Look from +X axis
+        scene_camera.pitch = 0.0;
+    }
+
+    // Y axis click (Top view)
+    let y_response = ui.allocate_rect(y_rect, egui::Sense::click());
+    if y_response.clicked() {
+        scene_camera.rotation = 0.0;
+        scene_camera.pitch = 90.0;  // Look from +Y axis (top)
+    }
+
+    // Z axis click (Front view)
+    let z_response = ui.allocate_rect(z_rect, egui::Sense::click());
+    if z_response.clicked() {
+        scene_camera.rotation = 0.0;   // Look from +Z axis
+        scene_camera.pitch = 0.0;
+    }
+
+    // Also handle clicks on opposite directions (click axis label with Shift for opposite view)
+    if ui.input(|i| i.modifiers.shift) {
+        if x_response.clicked() {
+            scene_camera.rotation = -90.0; // Look from -X axis (left)
+            scene_camera.pitch = 0.0;
+        }
+        if y_response.clicked() {
+            scene_camera.rotation = 0.0;
+            scene_camera.pitch = -90.0; // Look from -Y axis (bottom)
+        }
+        if z_response.clicked() {
+            scene_camera.rotation = 180.0; // Look from -Z axis (back)
+            scene_camera.pitch = 0.0;
         }
     }
 }
