@@ -12,7 +12,8 @@ fn vs_main(
     var out: VertexOutput;
     let x = f32(1 - i32(in_vertex_index)) * 0.5;
     let y = f32(i32(in_vertex_index & 1u) * 2 - 1) * 0.5;
-    out.clip_position = vec4<f32>(x, y, 0.0, 1.0);
+    // Use proper depth value (0.0 = near, 1.0 = far)
+    out.clip_position = vec4<f32>(x, y, 0.5, 1.0);
     out.color = vec3<f32>(x + 0.5, y + 0.5, 0.5);
     return out;
 }
