@@ -1,6 +1,26 @@
 {
-  "next_entity": 3,
+  "next_entity": 4,
   "transforms": [
+    [
+      3,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
     [
       0,
       {
@@ -17,26 +37,6 @@
         "scale": [
           0.1,
           0.1,
-          1.0
-        ]
-      }
-    ],
-    [
-      2,
-      {
-        "position": [
-          284.24637,
-          64.406204,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
           1.0
         ]
       }
@@ -82,31 +82,40 @@
       "Player"
     ]
   ],
-  "scripts": [],
-  "active": [
+  "scripts": [
     [
       0,
+      {
+        "script_name": "Script_0",
+        "enabled": true,
+        "parameters": {}
+      }
+    ]
+  ],
+  "active": [
+    [
+      3,
       true
     ],
     [
-      2,
+      0,
       true
     ]
   ],
   "layers": [
     [
-      0,
+      3,
       0
     ],
     [
-      2,
+      0,
       0
     ]
   ],
   "parents": [],
   "names": [
     [
-      2,
+      3,
       "Cube"
     ],
     [

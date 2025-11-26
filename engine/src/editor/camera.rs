@@ -5,11 +5,16 @@ use glam::Vec2;
 pub struct SceneCamera {
     pub position: Vec2,
     pub zoom: f32,
-    pub rotation: f32, // In degrees (for 3D view)
+    pub rotation: f32,    // Horizontal rotation (yaw) in degrees
+    pub pitch: f32,       // Vertical rotation in degrees
+    pub distance: f32,    // Distance from pivot point (for orbit)
+    pub pivot: Vec2,      // Pivot point for orbit mode
     
     // Camera bounds
     pub min_zoom: f32,
     pub max_zoom: f32,
+    pub min_pitch: f32,
+    pub max_pitch: f32,
     
     // Pan state
     is_panning: bool,
@@ -17,6 +22,7 @@ pub struct SceneCamera {
     
     // Rotation state (for 3D view)
     is_rotating: bool,
+    is_orbiting: bool,
     rotation_sensitivity: f32,
 }
 
@@ -25,12 +31,18 @@ impl SceneCamera {
         Self {
             position: Vec2::ZERO,
             zoom: 1.0,
-            rotation: 0.0,
+            rotation: 45.0,   // Default 45° angle
+            pitch: 30.0,      // Default 30° pitch
+            distance: 500.0,  // Default distance
+            pivot: Vec2::ZERO,
             min_zoom: 0.1,
             max_zoom: 10.0,
+            min_pitch: -89.0,
+            max_pitch: 89.0,
             is_panning: false,
             last_mouse_pos: Vec2::ZERO,
             is_rotating: false,
+            is_orbiting: false,
             rotation_sensitivity: 0.5,
         }
     }
@@ -75,14 +87,18 @@ impl SceneCamera {
         self.last_mouse_pos = mouse_pos;
     }
     
-    /// Update rotation (right mouse button held)
+    /// Update rotation (right mouse button held) - Free look
     pub fn update_rotate(&mut self, mouse_pos: Vec2) {
         if self.is_rotating {
             let delta = mouse_pos - self.last_mouse_pos;
-            // Horizontal movement rotates around Y axis
+            // Horizontal movement rotates around Y axis (yaw)
             self.rotation += delta.x * self.rotation_sensitivity;
-            // Keep rotation in 0-360 range
             self.rotation = self.rotation.rem_euclid(360.0);
+            
+            // Vertical movement changes pitch
+            self.pitch -= delta.y * self.rotation_sensitivity;
+            self.pitch = self.pitch.clamp(self.min_pitch, self.max_pitch);
+            
             self.last_mouse_pos = mouse_pos;
         }
     }
@@ -90,6 +106,46 @@ impl SceneCamera {
     /// Stop rotation (right mouse button released)
     pub fn stop_rotate(&mut self) {
         self.is_rotating = false;
+    }
+    
+    /// Start orbit (Alt + Left mouse button)
+    pub fn start_orbit(&mut self, mouse_pos: Vec2, pivot_point: Vec2) {
+        self.is_orbiting = true;
+        self.pivot = pivot_point;
+        self.last_mouse_pos = mouse_pos;
+    }
+    
+    /// Update orbit (Alt + Left mouse button held)
+    pub fn update_orbit(&mut self, mouse_pos: Vec2) {
+        if self.is_orbiting {
+            let delta = mouse_pos - self.last_mouse_pos;
+            
+            // Rotate around pivot
+            self.rotation += delta.x * self.rotation_sensitivity;
+            self.rotation = self.rotation.rem_euclid(360.0);
+            
+            self.pitch -= delta.y * self.rotation_sensitivity;
+            self.pitch = self.pitch.clamp(self.min_pitch, self.max_pitch);
+            
+            self.last_mouse_pos = mouse_pos;
+        }
+    }
+    
+    /// Stop orbit
+    pub fn stop_orbit(&mut self) {
+        self.is_orbiting = false;
+    }
+    
+    /// Focus on object (F key)
+    pub fn focus_on(&mut self, target_pos: Vec2, object_size: f32) {
+        self.pivot = target_pos;
+        self.position = target_pos;
+        
+        // Set appropriate distance based on object size
+        self.distance = object_size * 3.0;
+        
+        // Adjust zoom to frame object nicely
+        self.zoom = 1.0;
     }
     
     /// Frame selected object (F key)
@@ -116,14 +172,28 @@ impl SceneCamera {
     pub fn reset(&mut self) {
         self.position = Vec2::ZERO;
         self.zoom = 1.0;
-        self.rotation = 0.0;
+        self.rotation = 45.0;
+        self.pitch = 30.0;
+        self.distance = 500.0;
+        self.pivot = Vec2::ZERO;
         self.is_panning = false;
         self.is_rotating = false;
+        self.is_orbiting = false;
     }
     
     /// Check if camera is being controlled
     pub fn is_controlling(&self) -> bool {
-        self.is_panning || self.is_rotating
+        self.is_panning || self.is_rotating || self.is_orbiting
+    }
+    
+    /// Get rotation matrix for transforming gizmo
+    pub fn get_rotation_radians(&self) -> f32 {
+        self.rotation.to_radians()
+    }
+    
+    /// Get pitch in radians
+    pub fn get_pitch_radians(&self) -> f32 {
+        self.pitch.to_radians()
     }
 }
 

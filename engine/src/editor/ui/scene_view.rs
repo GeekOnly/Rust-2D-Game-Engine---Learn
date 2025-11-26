@@ -38,8 +38,11 @@ pub fn render_scene_view(
     );
     let rect = response.rect;
 
+    // === KEYBOARD SHORTCUTS ===
+    let focus_pressed = ui.input(|i| i.key_pressed(egui::Key::F));
+    
     // === CAMERA CONTROLS ===
-    handle_camera_controls(&response, scene_camera, rect, scene_view_mode);
+    handle_camera_controls(&response, scene_camera, rect, scene_view_mode, selected_entity, world);
 
     // === BACKGROUND ===
     let bg_color = match scene_view_mode {
@@ -103,9 +106,27 @@ pub fn render_scene_view(
         }
     }
 
+    // === FOCUS ON SELECTED (F key) ===
+    if focus_pressed {
+        if let Some(entity) = *selected_entity {
+            if let Some(transform) = world.transforms.get(&entity) {
+                let pos = glam::Vec2::new(transform.x(), transform.y());
+                let size = if let Some(sprite) = world.sprites.get(&entity) {
+                    sprite.width.max(sprite.height)
+                } else if world.meshes.contains_key(&entity) {
+                    50.0
+                } else {
+                    10.0
+                };
+                scene_camera.focus_on(pos, size);
+            }
+        }
+    }
+    
     // === SELECTION === (only if not controlling camera)
     let is_camera_control = response.dragged_by(egui::PointerButton::Middle) || 
-                           response.dragged_by(egui::PointerButton::Secondary);
+                           response.dragged_by(egui::PointerButton::Secondary) ||
+                           (ui.input(|i| i.modifiers.alt) && response.dragged_by(egui::PointerButton::Primary));
     
     if response.clicked() && !response.dragged() && !is_camera_control {
         if let Some(entity) = hovered_entity {
@@ -123,7 +144,7 @@ pub fn render_scene_view(
             let screen_x = center.x + screen_pos.x;
             let screen_y = center.y + screen_pos.y;
 
-            render_transform_gizmo(&painter, screen_x, screen_y, current_tool);
+            render_transform_gizmo(&painter, screen_x, screen_y, current_tool, scene_camera, scene_view_mode);
             
             // Handle gizmo interaction only if not controlling camera
             if !is_camera_control {
@@ -186,9 +207,43 @@ fn render_scene_toolbar(
     ui.separator();
 }
 
-fn handle_camera_controls(response: &egui::Response, scene_camera: &mut SceneCamera, rect: egui::Rect, scene_view_mode: &SceneViewMode) {
-    // Right mouse button - Rotate camera (3D mode only)
-    if *scene_view_mode == SceneViewMode::Mode3D {
+fn handle_camera_controls(
+    response: &egui::Response, 
+    scene_camera: &mut SceneCamera, 
+    rect: egui::Rect, 
+    scene_view_mode: &SceneViewMode,
+    selected_entity: &Option<ecs::Entity>,
+    world: &ecs::World,
+) {
+    let is_alt_pressed = response.ctx.input(|i| i.modifiers.alt);
+    
+    // Alt + Left mouse button - Orbit around selected object (3D mode)
+    if *scene_view_mode == SceneViewMode::Mode3D && is_alt_pressed {
+        if response.dragged_by(egui::PointerButton::Primary) {
+            if let Some(mouse_pos) = response.interact_pointer_pos() {
+                if response.drag_started_by(egui::PointerButton::Primary) {
+                    // Get pivot point from selected entity or use camera position
+                    let pivot = if let Some(entity) = selected_entity {
+                        if let Some(transform) = world.transforms.get(entity) {
+                            glam::Vec2::new(transform.x(), transform.y())
+                        } else {
+                            scene_camera.position
+                        }
+                    } else {
+                        scene_camera.position
+                    };
+                    scene_camera.start_orbit(glam::Vec2::new(mouse_pos.x, mouse_pos.y), pivot);
+                } else {
+                    scene_camera.update_orbit(glam::Vec2::new(mouse_pos.x, mouse_pos.y));
+                }
+            }
+        } else {
+            scene_camera.stop_orbit();
+        }
+    }
+    
+    // Right mouse button - Free look rotate (3D mode only)
+    if *scene_view_mode == SceneViewMode::Mode3D && !is_alt_pressed {
         if response.dragged_by(egui::PointerButton::Secondary) {
             if let Some(mouse_pos) = response.interact_pointer_pos() {
                 if response.drag_started_by(egui::PointerButton::Secondary) {
@@ -382,8 +437,8 @@ fn render_scene_gizmo(painter: &egui::Painter, rect: egui::Rect, scene_camera: &
         egui::Color32::from_rgb(80, 80, 255),
     );
     
-    // Display rotation angle below gizmo
-    let rotation_text = format!("Rot: {:.0}°", scene_camera.rotation);
+    // Display rotation angles below gizmo
+    let rotation_text = format!("Yaw: {:.0}° Pitch: {:.0}°", scene_camera.rotation, scene_camera.pitch);
     painter.text(
         egui::pos2(gizmo_center.x, gizmo_center.y + gizmo_size / 2.0 + 15.0),
         egui::Align2::CENTER_TOP,
@@ -643,28 +698,87 @@ fn render_velocity_gizmo(
     }
 }
 
-fn render_transform_gizmo(painter: &egui::Painter, screen_x: f32, screen_y: f32, current_tool: &TransformTool) {
+fn render_transform_gizmo(
+    painter: &egui::Painter, 
+    screen_x: f32, 
+    screen_y: f32, 
+    current_tool: &TransformTool,
+    scene_camera: &SceneCamera,
+    scene_view_mode: &SceneViewMode,
+) {
     let gizmo_size = 50.0;
     let handle_size = 8.0;
+    
+    // Get rotation angle (only in 3D mode)
+    let rotation_rad = if *scene_view_mode == SceneViewMode::Mode3D {
+        scene_camera.get_rotation_radians()
+    } else {
+        0.0
+    };
 
     match current_tool {
         TransformTool::View => {}
         TransformTool::Move => {
-            // X axis (Red)
-            let x_end = egui::pos2(screen_x + gizmo_size, screen_y);
+            // X axis (Red) - rotated
+            let x_dir = glam::Vec2::new(rotation_rad.cos(), rotation_rad.sin());
+            let x_end = egui::pos2(
+                screen_x + x_dir.x * gizmo_size, 
+                screen_y + x_dir.y * gizmo_size
+            );
             painter.line_segment(
                 [egui::pos2(screen_x, screen_y), x_end],
                 egui::Stroke::new(3.0, egui::Color32::from_rgb(255, 0, 0)),
             );
             painter.circle_filled(x_end, handle_size, egui::Color32::from_rgb(255, 0, 0));
+            
+            // Label
+            painter.text(
+                egui::pos2(x_end.x + 10.0, x_end.y),
+                egui::Align2::LEFT_CENTER,
+                "X",
+                egui::FontId::proportional(12.0),
+                egui::Color32::from_rgb(255, 0, 0),
+            );
 
-            // Y axis (Green)
-            let y_end = egui::pos2(screen_x, screen_y + gizmo_size);
+            // Y axis (Green) - always up in screen space
+            let y_end = egui::pos2(screen_x, screen_y - gizmo_size);
             painter.line_segment(
                 [egui::pos2(screen_x, screen_y), y_end],
                 egui::Stroke::new(3.0, egui::Color32::from_rgb(0, 255, 0)),
             );
             painter.circle_filled(y_end, handle_size, egui::Color32::from_rgb(0, 255, 0));
+            
+            // Label
+            painter.text(
+                egui::pos2(y_end.x, y_end.y - 10.0),
+                egui::Align2::CENTER_BOTTOM,
+                "Y",
+                egui::FontId::proportional(12.0),
+                egui::Color32::from_rgb(0, 255, 0),
+            );
+            
+            // Z axis (Blue) - perpendicular to X in 3D mode
+            if *scene_view_mode == SceneViewMode::Mode3D {
+                let z_dir = glam::Vec2::new(-rotation_rad.sin(), rotation_rad.cos());
+                let z_end = egui::pos2(
+                    screen_x + z_dir.x * gizmo_size, 
+                    screen_y + z_dir.y * gizmo_size
+                );
+                painter.line_segment(
+                    [egui::pos2(screen_x, screen_y), z_end],
+                    egui::Stroke::new(3.0, egui::Color32::from_rgb(0, 0, 255)),
+                );
+                painter.circle_filled(z_end, handle_size, egui::Color32::from_rgb(0, 0, 255));
+                
+                // Label
+                painter.text(
+                    egui::pos2(z_end.x + 10.0, z_end.y),
+                    egui::Align2::LEFT_CENTER,
+                    "Z",
+                    egui::FontId::proportional(12.0),
+                    egui::Color32::from_rgb(0, 0, 255),
+                );
+            }
 
             // Center (Yellow)
             painter.circle_filled(egui::pos2(screen_x, screen_y), handle_size, egui::Color32::from_rgb(255, 255, 0));
