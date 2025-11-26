@@ -550,11 +550,153 @@ fn render_entity(
     }
 }
 
+/// Render a 3D cube with full rotation support
+fn render_3d_cube(
+    painter: &egui::Painter,
+    screen_x: f32,
+    screen_y: f32,
+    size: f32,
+    transform: &ecs::Transform,
+    base_color: egui::Color32,
+    scene_camera: &SceneCamera,
+) {
+    let half = size / 2.0;
+    let scale = transform.scale;
+    
+    // Define 8 vertices of a cube in local space
+    let vertices = [
+        Point3D::new(-half * scale[0], -half * scale[1], -half * scale[2]), // 0: front-bottom-left
+        Point3D::new(half * scale[0], -half * scale[1], -half * scale[2]),  // 1: front-bottom-right
+        Point3D::new(half * scale[0], half * scale[1], -half * scale[2]),   // 2: front-top-right
+        Point3D::new(-half * scale[0], half * scale[1], -half * scale[2]),  // 3: front-top-left
+        Point3D::new(-half * scale[0], -half * scale[1], half * scale[2]),  // 4: back-bottom-left
+        Point3D::new(half * scale[0], -half * scale[1], half * scale[2]),   // 5: back-bottom-right
+        Point3D::new(half * scale[0], half * scale[1], half * scale[2]),    // 6: back-top-right
+        Point3D::new(-half * scale[0], half * scale[1], half * scale[2]),   // 7: back-top-left
+    ];
+    
+    // Apply object rotation
+    let rotated: Vec<Point3D> = vertices.iter()
+        .map(|v| v.rotate(&transform.rotation))
+        .collect();
+    
+    // Project to 2D
+    let projected: Vec<(f32, f32)> = rotated.iter()
+        .map(|v| v.project_isometric())
+        .collect();
+    
+    // Define faces (indices into vertices array)
+    let faces = [
+        ([0, 1, 2, 3], 1.0),   // Front face
+        ([4, 5, 6, 7], 0.6),   // Back face
+        ([0, 1, 5, 4], 0.7),   // Bottom face
+        ([3, 2, 6, 7], 0.9),   // Top face
+        ([0, 3, 7, 4], 0.75),  // Left face
+        ([1, 2, 6, 5], 0.85),  // Right face
+    ];
+    
+    // Draw faces with depth-based shading
+    for (face_indices, brightness) in &faces {
+        let points: Vec<egui::Pos2> = face_indices.iter()
+            .map(|&i| {
+                let (x, y) = projected[i];
+                egui::pos2(screen_x + x, screen_y + y)
+            })
+            .collect();
+        
+        let face_color = egui::Color32::from_rgba_unmultiplied(
+            (base_color.r() as f32 * brightness) as u8,
+            (base_color.g() as f32 * brightness) as u8,
+            (base_color.b() as f32 * brightness) as u8,
+            base_color.a(),
+        );
+        
+        painter.add(egui::Shape::convex_polygon(
+            points,
+            face_color,
+            egui::Stroke::new(1.0, egui::Color32::BLACK),
+        ));
+    }
+}
+
 /// Helper function to rotate a 2D point around origin
 fn rotate_point_2d(x: f32, y: f32, angle_rad: f32) -> (f32, f32) {
     let cos_a = angle_rad.cos();
     let sin_a = angle_rad.sin();
     (x * cos_a - y * sin_a, x * sin_a + y * cos_a)
+}
+
+/// 3D point structure
+#[derive(Clone, Copy, Debug)]
+struct Point3D {
+    x: f32,
+    y: f32,
+    z: f32,
+}
+
+impl Point3D {
+    fn new(x: f32, y: f32, z: f32) -> Self {
+        Self { x, y, z }
+    }
+    
+    /// Rotate around X axis
+    fn rotate_x(&self, angle: f32) -> Self {
+        let cos_a = angle.cos();
+        let sin_a = angle.sin();
+        Self {
+            x: self.x,
+            y: self.y * cos_a - self.z * sin_a,
+            z: self.y * sin_a + self.z * cos_a,
+        }
+    }
+    
+    /// Rotate around Y axis
+    fn rotate_y(&self, angle: f32) -> Self {
+        let cos_a = angle.cos();
+        let sin_a = angle.sin();
+        Self {
+            x: self.x * cos_a + self.z * sin_a,
+            y: self.y,
+            z: -self.x * sin_a + self.z * cos_a,
+        }
+    }
+    
+    /// Rotate around Z axis
+    fn rotate_z(&self, angle: f32) -> Self {
+        let cos_a = angle.cos();
+        let sin_a = angle.sin();
+        Self {
+            x: self.x * cos_a - self.y * sin_a,
+            y: self.x * sin_a + self.y * cos_a,
+            z: self.z,
+        }
+    }
+    
+    /// Apply full 3D rotation (XYZ order)
+    fn rotate(&self, rotation: &[f32; 3]) -> Self {
+        self.rotate_x(rotation[0].to_radians())
+            .rotate_y(rotation[1].to_radians())
+            .rotate_z(rotation[2].to_radians())
+    }
+    
+    /// Project to 2D screen space with perspective
+    fn project_perspective(&self, fov: f32, distance: f32) -> (f32, f32) {
+        let z_offset = self.z + distance;
+        if z_offset <= 0.1 {
+            return (self.x, self.y);
+        }
+        
+        let scale = fov / z_offset;
+        (self.x * scale, self.y * scale)
+    }
+    
+    /// Project to 2D screen space (isometric)
+    fn project_isometric(&self) -> (f32, f32) {
+        // Isometric projection: 30° angle
+        let iso_x = self.x - self.z * 0.5;
+        let iso_y = self.y - self.z * 0.5;
+        (iso_x, iso_y)
+    }
 }
 
 fn render_mesh_entity(
@@ -594,65 +736,7 @@ fn render_mesh_entity(
         match &mesh.mesh_type {
             ecs::MeshType::Cube => {
                 if *scene_view_mode == SceneViewMode::Mode3D {
-                    // Draw 3D cube with camera rotation
-                    let size = base_size;
-                    let depth = size * 0.5;
-                    
-                    // Define cube vertices in local space
-                    let half = size / 2.0;
-                    
-                    // Apply rotation to depth offset
-                    let (depth_x, depth_y) = rotate_point_2d(depth / 2.0, -depth / 2.0, total_rotation);
-                    
-                    // Apply scale to size
-                    let scaled_half_x = half * scale.x;
-                    let scaled_half_y = half * scale.y;
-                    
-                    // Front face corners (rotated by camera + object rotation)
-                    let corners = [
-                        rotate_point_2d(-scaled_half_x, -scaled_half_y, total_rotation),
-                        rotate_point_2d(scaled_half_x, -scaled_half_y, total_rotation),
-                        rotate_point_2d(scaled_half_x, scaled_half_y, total_rotation),
-                        rotate_point_2d(-scaled_half_x, scaled_half_y, total_rotation),
-                    ];
-                    
-                    // Front face
-                    let front_points: Vec<egui::Pos2> = corners.iter()
-                        .map(|(x, y)| egui::pos2(screen_x + x, screen_y + y))
-                        .collect();
-                    painter.add(egui::Shape::convex_polygon(front_points.clone(), color, egui::Stroke::new(1.0, egui::Color32::BLACK)));
-                    
-                    // Top face (darker)
-                    let top_color = egui::Color32::from_rgba_unmultiplied(
-                        (mesh.color[0] * 200.0) as u8,
-                        (mesh.color[1] * 200.0) as u8,
-                        (mesh.color[2] * 200.0) as u8,
-                        (mesh.color[3] * 255.0) as u8,
-                    );
-                    let top_points = vec![
-                        egui::pos2(screen_x + corners[0].0, screen_y + corners[0].1),
-                        egui::pos2(screen_x + corners[1].0, screen_y + corners[1].1),
-                        egui::pos2(screen_x + corners[1].0 + depth_x, screen_y + corners[1].1 + depth_y),
-                        egui::pos2(screen_x + corners[0].0 + depth_x, screen_y + corners[0].1 + depth_y),
-                    ];
-                    painter.add(egui::Shape::convex_polygon(top_points, top_color, egui::Stroke::new(1.0, egui::Color32::BLACK)));
-                    
-                    // Right face (lighter) - only if visible
-                    if depth_x > 0.0 {
-                        let right_color = egui::Color32::from_rgba_unmultiplied(
-                            (mesh.color[0] * 230.0) as u8,
-                            (mesh.color[1] * 230.0) as u8,
-                            (mesh.color[2] * 230.0) as u8,
-                            (mesh.color[3] * 255.0) as u8,
-                        );
-                        let right_points = vec![
-                            egui::pos2(screen_x + corners[1].0, screen_y + corners[1].1),
-                            egui::pos2(screen_x + corners[2].0, screen_y + corners[2].1),
-                            egui::pos2(screen_x + corners[2].0 + depth_x, screen_y + corners[2].1 + depth_y),
-                            egui::pos2(screen_x + corners[1].0 + depth_x, screen_y + corners[1].1 + depth_y),
-                        ];
-                        painter.add(egui::Shape::convex_polygon(right_points, right_color, egui::Stroke::new(1.0, egui::Color32::BLACK)));
-                    }
+                    render_3d_cube(painter, screen_x, screen_y, base_size, transform, color, scene_camera);
                 } else {
                     // 2D view - simple square
                     let rect = egui::Rect::from_center_size(
