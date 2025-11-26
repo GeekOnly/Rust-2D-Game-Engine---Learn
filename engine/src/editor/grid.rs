@@ -14,7 +14,7 @@ impl SceneGrid {
     pub fn new() -> Self {
         Self {
             enabled: true,
-            size: 32.0,  // 32 pixels per grid cell
+            size: 1.0,  // 1 unit per grid cell (like Blender: 1 unit = 1 meter)
             snap_enabled: false,
             color: [0.3, 0.3, 0.3, 0.5],  // Gray grid lines
             axis_color: [0.5, 0.5, 0.5, 0.8],  // Brighter axis lines

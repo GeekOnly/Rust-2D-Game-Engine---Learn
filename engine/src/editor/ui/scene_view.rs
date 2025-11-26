@@ -138,12 +138,14 @@ pub fn render_scene_view(
         } else if world.meshes.contains_key(&entity) && *scene_view_mode == SceneViewMode::Mode3D {
             // Calculate proper 3D bounds for meshes in 3D mode
             let scale = glam::Vec3::from(transform.scale);
-            let base_size = 50.0 * scene_camera.zoom * scale.x.max(scale.y).max(scale.z);
+            let world_size = 2.0; // Default cube is 2x2x2 units (like Blender)
+            let base_size = world_size * scene_camera.zoom * scale.x.max(scale.y).max(scale.z);
             calculate_3d_cube_bounds(screen_x, screen_y, base_size, transform, scene_camera, projection_mode)
         } else if world.meshes.contains_key(&entity) {
             // 2D mode - simple square bounds
             let scale = glam::Vec3::from(transform.scale);
-            let base_size = 50.0 * scene_camera.zoom * scale.x.max(scale.y).max(scale.z);
+            let world_size = 2.0; // Default cube is 2x2x2 units
+            let base_size = world_size * scene_camera.zoom * scale.x.max(scale.y).max(scale.z);
             egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), egui::vec2(base_size, base_size))
         } else {
             egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), egui::vec2(10.0, 10.0))
@@ -951,7 +953,8 @@ fn render_mesh_entity(
         
         // Apply object scale
         let scale = glam::Vec3::from(transform.scale);
-        let base_size = 50.0 * scene_camera.zoom * scale.x.max(scale.y).max(scale.z);
+        let world_size = 2.0; // Default cube is 2x2x2 units (like Blender)
+        let base_size = world_size * scene_camera.zoom * scale.x.max(scale.y).max(scale.z);
         
         // Get camera rotation for 3D rendering
         let camera_rotation_rad = if *scene_view_mode == SceneViewMode::Mode3D {

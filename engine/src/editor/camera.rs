@@ -30,13 +30,13 @@ impl SceneCamera {
     pub fn new() -> Self {
         Self {
             position: Vec2::ZERO,
-            zoom: 1.0,
+            zoom: 50.0,       // Zoom to convert world units to screen pixels (50 pixels per unit)
             rotation: 45.0,   // Default 45° angle
             pitch: 30.0,      // Default 30° pitch
             distance: 500.0,  // Default distance
             pivot: Vec2::ZERO,
-            min_zoom: 0.1,
-            max_zoom: 10.0,
+            min_zoom: 5.0,    // Min zoom adjusted for world units
+            max_zoom: 200.0,  // Max zoom adjusted for world units
             min_pitch: -89.0,
             max_pitch: 89.0,
             is_panning: false,
