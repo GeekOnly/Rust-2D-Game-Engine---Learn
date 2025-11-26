@@ -26,9 +26,10 @@ pub fn render_scene_view(
     stop_request: &mut bool,
     dragging_entity: &mut Option<Entity>,
     drag_axis: &mut Option<u8>,
+    scene_view_mode: &mut SceneViewMode,
 ) {
     // Unity-like toolbar
-    render_scene_toolbar(ui, current_tool, is_playing, play_request, stop_request);
+    render_scene_toolbar(ui, current_tool, is_playing, play_request, stop_request, scene_view_mode);
 
     // Main scene view
     let (response, painter) = ui.allocate_painter(
@@ -123,18 +124,20 @@ fn render_scene_toolbar(
     is_playing: bool,
     play_request: &mut bool,
     stop_request: &mut bool,
+    scene_view_mode: &mut SceneViewMode,
 ) {
     ui.horizontal(|ui| {
         // Transform tools
         ui.selectable_value(current_tool, TransformTool::View, "🖐 View (Q)");
         ui.selectable_value(current_tool, TransformTool::Move, "➕ Move (W)");
-        ui.selectable_value(current_tool, TransformTool::Rotate, "🔄 Rotate (E)");
+        ui.selectable_value(current_tool, TransformTool::Rotate, "� Roteate (E)");
         ui.selectable_value(current_tool, TransformTool::Scale, "📏 Scale (R)");
         
         ui.separator();
         
-        // 2D/3D toggle (placeholder)
-        ui.label("2D");
+        // 2D/3D toggle (Unity-like)
+        ui.selectable_value(scene_view_mode, SceneViewMode::Mode2D, "2D");
+        ui.selectable_value(scene_view_mode, SceneViewMode::Mode3D, "3D");
         
         ui.separator();
         

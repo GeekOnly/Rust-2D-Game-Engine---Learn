@@ -20,6 +20,7 @@ pub use dock_layout::{
     get_dock_style, save_default_layout, load_default_layout_name, get_layout_by_name,
     save_custom_layout, load_custom_layouts, save_custom_layout_state, load_custom_layout_state
 };
+pub use scene_view::SceneViewMode;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum TransformTool {
@@ -123,6 +124,7 @@ impl EditorUI {
             // Dummy drag state for old layout (not used)
             let mut dummy_dragging_entity = None;
             let mut dummy_drag_axis = None;
+            let mut dummy_scene_view_mode = scene_view::SceneViewMode::Mode2D;
             
             scene_view::render_scene_view(
                 ui,
@@ -139,6 +141,7 @@ impl EditorUI {
                 stop_request,
                 &mut dummy_dragging_entity,
                 &mut dummy_drag_axis,
+                &mut dummy_scene_view_mode,
             );
         });
 
@@ -256,6 +259,7 @@ impl EditorUI {
         current_layout_name: &str,
         dragging_entity: &mut Option<Entity>,
         drag_axis: &mut Option<u8>,
+        scene_view_mode: &mut scene_view::SceneViewMode,
     ) {
         // Handle layout change request (will be processed by caller)
         // Layout changes are handled in main.rs to access EditorState
@@ -310,6 +314,7 @@ impl EditorUI {
                 drag_drop,
                 dragging_entity,
                 drag_axis,
+                scene_view_mode,
             };
 
             let mut tab_viewer = EditorTabViewer {
