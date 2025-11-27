@@ -158,10 +158,27 @@ pub fn handle_gizmo_interaction_stateful(
                     }
                 }
                 TransformTool::Rotate => {
-                    // Unity-style rotation: use horizontal drag only
-                    // Positive delta.x = rotate counter-clockwise (standard math convention)
-                    let rotation_speed = 0.5;
-                    transform_mut.rotation[2] += delta.x * rotation_speed;
+                    // Unity-style rotation: rotate based on angle change around center
+                    if let Some(mouse_pos) = response.interact_pointer_pos() {
+                        let center = egui::pos2(screen_x, screen_y);
+                        let current_pos = mouse_pos;
+                        let prev_pos = current_pos - delta;
+                        
+                        let current_angle = (current_pos.y - center.y).atan2(current_pos.x - center.x);
+                        let prev_angle = (prev_pos.y - center.y).atan2(prev_pos.x - center.x);
+                        
+                        let mut angle_delta = current_angle - prev_angle;
+                        
+                        // Handle wrapping around PI/-PI
+                        if angle_delta > std::f32::consts::PI {
+                            angle_delta -= 2.0 * std::f32::consts::PI;
+                        } else if angle_delta < -std::f32::consts::PI {
+                            angle_delta += 2.0 * std::f32::consts::PI;
+                        }
+                        
+                        // Convert radians to degrees and apply
+                        transform_mut.rotation[2] += angle_delta.to_degrees();
+                    }
                 }
                 TransformTool::Scale => {
                     // Increased scale speed for better control

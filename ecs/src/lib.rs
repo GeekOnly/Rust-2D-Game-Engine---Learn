@@ -2,6 +2,10 @@ use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
 
 pub mod traits;
+pub mod component_manager;
+
+// Re-export สำหรับใช้งานง่าย
+pub use component_manager::{ComponentType, ComponentManager};
 
 pub type Entity = u32;
 

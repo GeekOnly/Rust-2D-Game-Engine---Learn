@@ -1,4 +1,4 @@
-use ecs::{World, Entity, EntityTag, Script, ScriptParameter};
+use ecs::{World, Entity, EntityTag, Script, ScriptParameter, ComponentType, ComponentManager};
 use egui;
 use std::collections::HashMap;
 
@@ -215,7 +215,7 @@ pub fn render_inspector(
                 }
 
                 // Sprite Component (Unity-style collapsible)
-                let has_sprite = world.sprites.contains_key(&entity);
+                let has_sprite = world.has_component(entity, ComponentType::Sprite);
                 let mut remove_sprite = false;
                 
                 if has_sprite {
@@ -271,11 +271,11 @@ pub fn render_inspector(
                 }
                 
                 if remove_sprite {
-                    world.sprites.remove(&entity);
+                    let _ = world.remove_component(entity, ComponentType::Sprite);
                 }
 
                 // Collider Component (Unity-style)
-                let has_collider = world.colliders.contains_key(&entity);
+                let has_collider = world.has_component(entity, ComponentType::BoxCollider);
                 let mut remove_collider = false;
                 
                 if has_collider {
@@ -318,11 +318,11 @@ pub fn render_inspector(
                 }
                 
                 if remove_collider {
-                    world.colliders.remove(&entity);
+                    let _ = world.remove_component(entity, ComponentType::BoxCollider);
                 }
 
                 // Velocity Component (Rigidbody) - Unity-style
-                let has_velocity = world.velocities.contains_key(&entity);
+                let has_velocity = world.has_component(entity, ComponentType::Rigidbody);
                 let mut remove_velocity = false;
                 
                 if has_velocity {
@@ -365,11 +365,11 @@ pub fn render_inspector(
                 }
                 
                 if remove_velocity {
-                    world.velocities.remove(&entity);
+                    let _ = world.remove_component(entity, ComponentType::Rigidbody);
                 }
 
                 // Mesh Component (3D) - Unity-style
-                let has_mesh = world.meshes.contains_key(&entity);
+                let has_mesh = world.has_component(entity, ComponentType::Mesh);
                 let mut remove_mesh = false;
                 
                 if has_mesh {
@@ -431,11 +431,11 @@ pub fn render_inspector(
                 }
                 
                 if remove_mesh {
-                    world.meshes.remove(&entity);
+                    let _ = world.remove_component(entity, ComponentType::Mesh);
                 }
 
                 // Camera Component (Unity-style)
-                let has_camera = world.cameras.contains_key(&entity);
+                let has_camera = world.has_component(entity, ComponentType::Camera);
                 let mut remove_camera = false;
 
                 if has_camera {
@@ -513,11 +513,11 @@ pub fn render_inspector(
                 }
 
                 if remove_camera {
-                    world.cameras.remove(&entity);
+                    let _ = world.remove_component(entity, ComponentType::Camera);
                 }
 
                 // Script Component (Unity-style)
-                let has_script = world.scripts.contains_key(&entity);
+                let has_script = world.has_component(entity, ComponentType::Script);
                 let mut remove_script = false;
                 
                 if has_script {
@@ -642,7 +642,7 @@ pub fn render_inspector(
                 }
                 
                 if remove_script {
-                    world.scripts.remove(&entity);
+                    let _ = world.remove_component(entity, ComponentType::Script);
                 }
 
                 ui.add_space(15.0);
@@ -651,81 +651,62 @@ pub fn render_inspector(
                 ui.horizontal(|ui| {
                     ui.add_space(ui.available_width() / 2.0 - 70.0);
                     ui.menu_button("➕ Add Component", |ui| {
-                        ui.label("🎨 Rendering");
-                        ui.separator();
+                        // ใช้ Component Manager เพื่อดึงรายการ Component ที่สามารถเพิ่มได้
+                        let addable_components = world.get_addable_components(entity);
 
-                        // Add Sprite Renderer
-                        if !world.sprites.contains_key(&entity) {
-                            if ui.button("Sprite Renderer").clicked() {
-                                world.sprites.insert(entity, ecs::Sprite {
-                                    texture_id: "sprite".to_string(),
-                                    width: 32.0,
-                                    height: 32.0,
-                                    color: [1.0, 1.0, 1.0, 1.0],
-                                    billboard: false, // Default sprite, not billboard
-                                });
-                                ui.close_menu();
-                            }
-                        }
+                        if addable_components.is_empty() {
+                            ui.label("All components added");
+                        } else {
+                            // จัดกลุ่ม Component ตามหมวดหมู่
+                            let rendering_components = vec![ComponentType::Sprite, ComponentType::Mesh];
+                            let physics_components = vec![ComponentType::BoxCollider, ComponentType::Rigidbody];
+                            let other_components = vec![ComponentType::Camera, ComponentType::Script, ComponentType::Tag];
 
-                        ui.add_space(5.0);
-                        ui.label("⚙️ Physics");
-                        ui.separator();
-
-                        // Add Collider
-                        if !world.colliders.contains_key(&entity) {
-                            if ui.button("Box Collider 2D").clicked() {
-                                world.colliders.insert(entity, ecs::Collider {
-                                    width: 32.0,
-                                    height: 32.0,
-                                });
-                                ui.close_menu();
-                            }
-                        }
-
-                        // Add Velocity
-                        if !world.velocities.contains_key(&entity) {
-                            if ui.button("Rigidbody 2D").clicked() {
-                                world.velocities.insert(entity, (0.0, 0.0));
-                                ui.close_menu();
-                            }
-                        }
-
-                        ui.add_space(5.0);
-                        ui.label("📜 Scripting");
-                        ui.separator();
-
-                        // Add Script
-                        if !world.scripts.contains_key(&entity) {
-                            if ui.button("Script").clicked() {
-                                // Check for available scripts
-                                let mut available_scripts = Vec::new();
-                                if let Some(proj_path) = project_path {
-                                    let scripts_path = proj_path.join("scripts");
-                                    if let Ok(entries) = std::fs::read_dir(&scripts_path) {
-                                        for entry in entries.flatten() {
-                                            if let Some(name) = entry.file_name().to_str() {
-                                                if name.ends_with(".lua") {
-                                                    available_scripts.push(name.trim_end_matches(".lua").to_string());
-                                                }
-                                            }
+                            // Rendering Section
+                            let has_rendering = addable_components.iter().any(|c| rendering_components.contains(c));
+                            if has_rendering {
+                                ui.label("🎨 Rendering");
+                                ui.separator();
+                                for component_type in &rendering_components {
+                                    if addable_components.contains(component_type) {
+                                        if ui.button(component_type.display_name()).clicked() {
+                                            let _ = world.add_component(entity, *component_type);
+                                            ui.close_menu();
                                         }
                                     }
                                 }
+                                ui.add_space(5.0);
+                            }
 
-                                // Use first available script or create new one
-                                let script_name = if !available_scripts.is_empty() {
-                                    available_scripts[0].clone()
-                                } else {
-                                    format!("Script_{}", entity)
-                                };
+                            // Physics Section
+                            let has_physics = addable_components.iter().any(|c| physics_components.contains(c));
+                            if has_physics {
+                                ui.label("⚙️ Physics");
+                                ui.separator();
+                                for component_type in &physics_components {
+                                    if addable_components.contains(component_type) {
+                                        if ui.button(component_type.display_name()).clicked() {
+                                            let _ = world.add_component(entity, *component_type);
+                                            ui.close_menu();
+                                        }
+                                    }
+                                }
+                                ui.add_space(5.0);
+                            }
 
-                                world.scripts.insert(entity, Script {
-                                    script_name: script_name.clone(),
-                                    enabled: true,
-                                    parameters: HashMap::new(),
-                                });
-                                ui.close_menu();
+                            // Other Components Section
+                            let has_other = addable_components.iter().any(|c| other_components.contains(c));
+                            if has_other {
+                                ui.label("📜 Other");
+                                ui.separator();
+                                for component_type in &other_components {
+                                    if addable_components.contains(component_type) {
+                                        if ui.button(component_type.display_name()).clicked() {
+                                            let _ = world.add_component(entity, *component_type);
+                                            ui.close_menu();
+                                        }
+                                    }
+                                }
                             }
                         }
                     });
