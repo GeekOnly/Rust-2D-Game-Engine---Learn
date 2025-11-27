@@ -8,3 +8,4 @@ cc ccc6e796d736f4131d352e412efc37278606f429e81a6a9dab855bbd8f0b98ba # shrinks to
 cc 67adc26feea4c289eb1681828989ac8d94554e48ea6e9d8f519b188986dad03f # shrinks to initial_rotation = -40.673958, initial_pitch = 0.0, mouse_start = Vec2(0.0, 0.0), mouse_delta_x = 58.803173, mouse_delta_y = 0.0
 cc e83e95fedaef4e61df1b825397e3854cb4a6c4250aba7b0f3e5720cb099201bc # shrinks to initial_zoom = 5.0, zoom_delta = 1.2144506, dt = 0.070548736
 cc 4f62c02ea7e362fc1781c8eeff3e51e7fc8bec5129702c4e91cf2773df260665 # shrinks to initial_rotation = 0.0, initial_pitch = -62.288662, mouse_start = Vec2(0.0, 0.0), mouse_delta_x = 0.0, mouse_delta_y = 86.36273
+cc eb41246b23be30e0138e6cbc082ee04d6547a5979f7138bfa1ddeb88fcc15a3b # shrinks to pivot = Vec2(0.0, 0.0), initial_offset = Vec2(0.0, 161.81407), mouse_start = Vec2(0.0, 0.0), mouse_delta = Vec2(-291.9763, 0.0), num_frames = 50

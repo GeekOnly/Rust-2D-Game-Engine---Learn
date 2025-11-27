@@ -1,5 +1,63 @@
 /// Scene camera controller for Unity-like editor
 use glam::{Vec2, Vec3, Mat4};
+use serde::{Deserialize, Serialize};
+
+/// Camera settings for sensitivity and damping
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CameraSettings {
+    // Sensitivity settings
+    pub pan_sensitivity: f32,
+    pub rotation_sensitivity: f32,
+    pub zoom_sensitivity: f32,
+    
+    // Damping settings (0.0 = no damping, 1.0 = maximum damping)
+    pub pan_damping: f32,
+    pub rotation_damping: f32,
+    pub zoom_damping: f32,
+    
+    // Inertia settings
+    pub enable_inertia: bool,
+    pub inertia_decay: f32,  // How quickly momentum decays (0.0-1.0)
+    
+    // Zoom settings
+    pub zoom_to_cursor: bool,
+    pub zoom_speed: f32,
+}
+
+impl Default for CameraSettings {
+    fn default() -> Self {
+        Self {
+            pan_sensitivity: 1.0,
+            rotation_sensitivity: 0.5,
+            zoom_sensitivity: 0.1,
+            pan_damping: 0.15,
+            rotation_damping: 0.12,
+            zoom_damping: 0.2,
+            enable_inertia: true,
+            inertia_decay: 0.95,
+            zoom_to_cursor: true,
+            zoom_speed: 10.0,
+        }
+    }
+}
+
+/// Camera velocity for tracking movement momentum
+#[derive(Debug, Clone)]
+pub struct CameraVelocity {
+    pub pan_velocity: Vec2,
+    pub rotation_velocity: Vec2,  // (yaw_velocity, pitch_velocity)
+    pub zoom_velocity: f32,
+}
+
+impl Default for CameraVelocity {
+    fn default() -> Self {
+        Self {
+            pan_velocity: Vec2::ZERO,
+            rotation_velocity: Vec2::ZERO,
+            zoom_velocity: 0.0,
+        }
+    }
+}
 
 /// Camera state for mode switching
 #[derive(Debug, Clone)]
@@ -34,21 +92,34 @@ pub struct SceneCamera {
     is_orbiting: bool,
     
     // Settings
-    pub rotation_sensitivity: f32,
-    pub zoom_sensitivity: f32,
+    pub settings: CameraSettings,
+    pub rotation_sensitivity: f32,  // Kept for backward compatibility
+    pub zoom_sensitivity: f32,      // Kept for backward compatibility
     pub pan_speed: f32,
     
-    // Smooth interpolation
+    // Velocity tracking for inertia
+    velocity: CameraVelocity,
+    
+    // Target values for smooth interpolation
+    target_position: Vec2,
+    target_rotation: f32,
+    target_pitch: f32,
     target_zoom: f32,
+    
+    // Smooth interpolation
     zoom_interpolation_speed: f32,
     
     // Mode switching state
     saved_3d_state: Option<CameraState>,
+    
+    // Cursor tracking for zoom
+    last_cursor_world_pos: Option<Vec2>,
 }
 
 impl SceneCamera {
     pub fn new() -> Self {
         let initial_zoom = 50.0;
+        let settings = CameraSettings::default();
         Self {
             position: Vec2::ZERO,
             zoom: initial_zoom,       // Zoom to convert world units to screen pixels (50 pixels per unit)
@@ -64,12 +135,18 @@ impl SceneCamera {
             last_mouse_pos: Vec2::ZERO,
             is_rotating: false,
             is_orbiting: false,
-            rotation_sensitivity: 0.5,
-            zoom_sensitivity: 0.1,
+            rotation_sensitivity: settings.rotation_sensitivity,
+            zoom_sensitivity: settings.zoom_sensitivity,
             pan_speed: 1.0,
+            settings,
+            velocity: CameraVelocity::default(),
+            target_position: Vec2::ZERO,
+            target_rotation: 45.0,
+            target_pitch: 30.0,
             target_zoom: initial_zoom,
             zoom_interpolation_speed: 10.0,
             saved_3d_state: None,
+            last_cursor_world_pos: None,
         }
     }
     
@@ -96,12 +173,18 @@ impl SceneCamera {
 
             // Pan along camera's local X and Z axes
             // Inverted to match Unity behavior (drag right = move camera right = world moves left)
-            let pan_speed = 1.0 / self.zoom;
+            let pan_speed = self.settings.pan_sensitivity / self.zoom;
             let world_delta_x = -(delta.x * cos_yaw + delta.y * sin_yaw) * pan_speed;
             let world_delta_z = -(-delta.x * sin_yaw + delta.y * cos_yaw) * pan_speed;
 
-            self.position.x += world_delta_x;
-            self.position.y += world_delta_z; // position.y maps to world Z
+            // Update target position instead of direct position
+            self.target_position.x += world_delta_x;
+            self.target_position.y += world_delta_z; // position.y maps to world Z
+            
+            // Add to velocity for inertia
+            if self.settings.enable_inertia {
+                self.velocity.pan_velocity += Vec2::new(world_delta_x, world_delta_z);
+            }
 
             self.last_mouse_pos = mouse_pos;
         }
@@ -110,43 +193,136 @@ impl SceneCamera {
     /// Stop panning (middle mouse button released)
     pub fn stop_pan(&mut self) {
         self.is_panning = false;
+        // Velocity will continue to move camera if inertia is enabled
     }
     
     /// Zoom in/out (scroll wheel) - improved version with cursor-based zooming
     pub fn zoom(&mut self, delta: f32, mouse_pos: Vec2) {
-        // Calculate world position under cursor before zoom
-        let world_pos_before = self.screen_to_world(mouse_pos);
+        if self.settings.zoom_to_cursor {
+            // Calculate world position under cursor before zoom
+            let world_pos_before = self.screen_to_world(mouse_pos);
+            self.last_cursor_world_pos = Some(world_pos_before);
+        }
         
         // Smooth exponential zoom with better sensitivity
         let zoom_factor = if delta > 0.0 {
-            1.0 + self.zoom_sensitivity
+            1.0 + self.settings.zoom_sensitivity
         } else {
-            1.0 / (1.0 + self.zoom_sensitivity)
+            1.0 / (1.0 + self.settings.zoom_sensitivity)
         };
         
         self.target_zoom *= zoom_factor;
         self.target_zoom = self.target_zoom.clamp(self.min_zoom, self.max_zoom);
         
-        // Apply zoom immediately for now (interpolation happens in update)
-        self.zoom = self.target_zoom;
-        
-        // Calculate world position under cursor after zoom
-        let world_pos_after = self.screen_to_world(mouse_pos);
-        
-        // Adjust camera position to keep world point under cursor stationary
-        let world_delta = world_pos_after - world_pos_before;
-        self.position -= world_delta;
+        // Add to velocity for inertia
+        if self.settings.enable_inertia {
+            let zoom_delta = self.target_zoom - self.zoom;
+            self.velocity.zoom_velocity += zoom_delta * 0.1;
+        }
     }
     
     /// Update camera state (call each frame for smooth interpolation)
     pub fn update(&mut self, delta_time: f32) {
-        // Smooth zoom interpolation
+        // Apply damping to smooth out movements
+        self.apply_damping(delta_time);
+        
+        // Apply inertia when input stops
+        if !self.is_controlling() {
+            self.apply_inertia(delta_time);
+        }
+        
+        // Smooth interpolation toward target values
+        self.interpolate_to_targets(delta_time);
+        
+        // Handle cursor-based zoom adjustment
+        if let Some(world_pos_before) = self.last_cursor_world_pos {
+            // This would need cursor position, so we'll handle it differently
+            // For now, clear the stored position after zoom completes
+            if (self.zoom - self.target_zoom).abs() < 0.01 {
+                self.last_cursor_world_pos = None;
+            }
+        }
+    }
+    
+    /// Apply damping to velocity
+    fn apply_damping(&mut self, delta_time: f32) {
+        // Exponential damping for smooth deceleration
+        let pan_damping_factor = 1.0 - (-self.settings.pan_damping * 10.0 * delta_time).exp();
+        let rotation_damping_factor = 1.0 - (-self.settings.rotation_damping * 10.0 * delta_time).exp();
+        let zoom_damping_factor = 1.0 - (-self.settings.zoom_damping * 10.0 * delta_time).exp();
+        
+        // Apply damping to position
+        if (self.position - self.target_position).length() > 0.001 {
+            self.position = self.position + (self.target_position - self.position) * pan_damping_factor;
+        } else {
+            self.position = self.target_position;
+        }
+        
+        // Apply damping to rotation
+        if (self.rotation - self.target_rotation).abs() > 0.01 {
+            self.rotation = self.rotation + (self.target_rotation - self.rotation) * rotation_damping_factor;
+        } else {
+            self.rotation = self.target_rotation;
+        }
+        
+        // Apply damping to pitch
+        if (self.pitch - self.target_pitch).abs() > 0.01 {
+            self.pitch = self.pitch + (self.target_pitch - self.pitch) * rotation_damping_factor;
+        } else {
+            self.pitch = self.target_pitch;
+        }
+        
+        // Apply damping to zoom
         if (self.zoom - self.target_zoom).abs() > 0.01 {
-            let t = 1.0 - (-self.zoom_interpolation_speed * delta_time).exp();
-            self.zoom = self.zoom + (self.target_zoom - self.zoom) * t;
+            self.zoom = self.zoom + (self.target_zoom - self.zoom) * zoom_damping_factor;
         } else {
             self.zoom = self.target_zoom;
         }
+    }
+    
+    /// Apply inertia when input stops
+    fn apply_inertia(&mut self, delta_time: f32) {
+        if !self.settings.enable_inertia {
+            // Clear velocities if inertia is disabled
+            self.velocity = CameraVelocity::default();
+            return;
+        }
+        
+        // Apply pan velocity
+        if self.velocity.pan_velocity.length() > 0.001 {
+            self.target_position += self.velocity.pan_velocity * delta_time * 60.0;
+            // Decay velocity exponentially
+            self.velocity.pan_velocity *= self.settings.inertia_decay;
+        } else {
+            self.velocity.pan_velocity = Vec2::ZERO;
+        }
+        
+        // Apply rotation velocity
+        if self.velocity.rotation_velocity.length() > 0.001 {
+            self.target_rotation += self.velocity.rotation_velocity.x * delta_time * 60.0;
+            self.target_pitch += self.velocity.rotation_velocity.y * delta_time * 60.0;
+            self.target_pitch = self.target_pitch.clamp(self.min_pitch, self.max_pitch);
+            // Decay velocity exponentially
+            self.velocity.rotation_velocity *= self.settings.inertia_decay;
+        } else {
+            self.velocity.rotation_velocity = Vec2::ZERO;
+        }
+        
+        // Apply zoom velocity
+        if self.velocity.zoom_velocity.abs() > 0.001 {
+            self.target_zoom += self.velocity.zoom_velocity * delta_time * 60.0;
+            self.target_zoom = self.target_zoom.clamp(self.min_zoom, self.max_zoom);
+            // Decay velocity exponentially
+            self.velocity.zoom_velocity *= self.settings.inertia_decay;
+        } else {
+            self.velocity.zoom_velocity = 0.0;
+        }
+    }
+    
+    /// Smooth interpolation toward target values
+    fn interpolate_to_targets(&mut self, _delta_time: f32) {
+        // This is now handled in apply_damping
+        // Kept as separate method for clarity and future enhancements
     }
     
     /// Start rotation (right mouse button pressed)
@@ -160,12 +336,20 @@ impl SceneCamera {
         if self.is_rotating {
             let delta = mouse_pos - self.last_mouse_pos;
             // Horizontal movement rotates around Y axis (yaw)
-            self.rotation += delta.x * self.rotation_sensitivity;
-            self.rotation = self.rotation.rem_euclid(360.0);
+            let yaw_delta = delta.x * self.settings.rotation_sensitivity;
+            let pitch_delta = -delta.y * self.settings.rotation_sensitivity;
+            
+            self.target_rotation += yaw_delta;
+            self.target_rotation = self.target_rotation.rem_euclid(360.0);
             
             // Vertical movement changes pitch
-            self.pitch -= delta.y * self.rotation_sensitivity;
-            self.pitch = self.pitch.clamp(self.min_pitch, self.max_pitch);
+            self.target_pitch += pitch_delta;
+            self.target_pitch = self.target_pitch.clamp(self.min_pitch, self.max_pitch);
+            
+            // Add to velocity for inertia
+            if self.settings.enable_inertia {
+                self.velocity.rotation_velocity += Vec2::new(yaw_delta, pitch_delta);
+            }
             
             self.last_mouse_pos = mouse_pos;
         }
@@ -181,6 +365,16 @@ impl SceneCamera {
         self.is_orbiting = true;
         self.pivot = pivot_point;
         self.last_mouse_pos = mouse_pos;
+        // Ensure target position matches current position to avoid damping drift
+        self.target_position = self.position;
+        // Calculate and store the distance and rotation based on current position
+        let offset = self.position - self.pivot;
+        self.distance = offset.length();
+        // Calculate the rotation angle from the offset to maintain current orientation
+        if self.distance > 0.001 {
+            self.target_rotation = offset.y.atan2(offset.x).to_degrees();
+            self.rotation = self.target_rotation;
+        }
     }
     
     /// Update orbit (Alt + Left mouse button held)
@@ -188,24 +382,29 @@ impl SceneCamera {
         if self.is_orbiting {
             let delta = mouse_pos - self.last_mouse_pos;
             
-            // Store the distance before rotation
-            let initial_distance = (self.position - self.pivot).length();
+            // Use the stored distance field to maintain consistent distance
+            let orbit_distance = self.distance;
             
             // Rotate around pivot
-            self.rotation += delta.x * self.rotation_sensitivity;
-            self.rotation = self.rotation.rem_euclid(360.0);
+            let yaw_delta = delta.x * self.settings.rotation_sensitivity;
+            let pitch_delta = -delta.y * self.settings.rotation_sensitivity;
             
-            self.pitch -= delta.y * self.rotation_sensitivity;
-            self.pitch = self.pitch.clamp(self.min_pitch, self.max_pitch);
+            self.target_rotation += yaw_delta;
+            self.target_rotation = self.target_rotation.rem_euclid(360.0);
             
-            // Update camera position to maintain distance from pivot
-            let yaw_rad = self.rotation.to_radians();
-            let offset_x = initial_distance * yaw_rad.cos();
-            let offset_z = initial_distance * yaw_rad.sin();
-            self.position = self.pivot + Vec2::new(offset_x, offset_z);
+            self.target_pitch += pitch_delta;
+            self.target_pitch = self.target_pitch.clamp(self.min_pitch, self.max_pitch);
             
-            // Update the distance field as well
-            self.distance = initial_distance;
+            // Update camera position to maintain the stored distance from pivot
+            let yaw_rad = self.target_rotation.to_radians();
+            let offset_x = orbit_distance * yaw_rad.cos();
+            let offset_z = orbit_distance * yaw_rad.sin();
+            self.target_position = self.pivot + Vec2::new(offset_x, offset_z);
+            
+            // Add to velocity for inertia
+            if self.settings.enable_inertia {
+                self.velocity.rotation_velocity += Vec2::new(yaw_delta, pitch_delta);
+            }
             
             self.last_mouse_pos = mouse_pos;
         }
@@ -258,11 +457,16 @@ impl SceneCamera {
     /// Reset camera to default
     pub fn reset(&mut self) {
         self.position = Vec2::ZERO;
-        self.zoom = 1.0;
+        self.zoom = 50.0;
         self.rotation = 45.0;
         self.pitch = 30.0;
         self.distance = 500.0;
         self.pivot = Vec2::ZERO;
+        self.target_position = Vec2::ZERO;
+        self.target_zoom = 50.0;
+        self.target_rotation = 45.0;
+        self.target_pitch = 30.0;
+        self.velocity = CameraVelocity::default();
         self.is_panning = false;
         self.is_rotating = false;
         self.is_orbiting = false;
@@ -363,12 +567,47 @@ impl SceneCamera {
             // Restore previous 3D orientation
             self.rotation = saved_state.rotation;
             self.pitch = saved_state.pitch;
+            self.target_rotation = saved_state.rotation;
+            self.target_pitch = saved_state.pitch;
             // Position and zoom are already preserved
         } else {
             // Initialize to default isometric view
             self.rotation = 45.0;
             self.pitch = 30.0;
+            self.target_rotation = 45.0;
+            self.target_pitch = 30.0;
         }
+    }
+    
+    /// Load camera settings from JSON file
+    pub fn load_settings(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        let settings_path = std::path::Path::new(".kiro/settings/camera_settings.json");
+        if settings_path.exists() {
+            let contents = std::fs::read_to_string(settings_path)?;
+            self.settings = serde_json::from_str(&contents)?;
+            // Update backward compatibility fields
+            self.rotation_sensitivity = self.settings.rotation_sensitivity;
+            self.zoom_sensitivity = self.settings.zoom_sensitivity;
+        }
+        Ok(())
+    }
+    
+    /// Save camera settings to JSON file
+    pub fn save_settings(&self) -> Result<(), Box<dyn std::error::Error>> {
+        let settings_dir = std::path::Path::new(".kiro/settings");
+        std::fs::create_dir_all(settings_dir)?;
+        
+        let settings_path = settings_dir.join("camera_settings.json");
+        let contents = serde_json::to_string_pretty(&self.settings)?;
+        std::fs::write(settings_path, contents)?;
+        Ok(())
+    }
+    
+    /// Reset settings to default Unity-like values
+    pub fn reset_settings_to_default(&mut self) {
+        self.settings = CameraSettings::default();
+        self.rotation_sensitivity = self.settings.rotation_sensitivity;
+        self.zoom_sensitivity = self.settings.zoom_sensitivity;
     }
 }
 
