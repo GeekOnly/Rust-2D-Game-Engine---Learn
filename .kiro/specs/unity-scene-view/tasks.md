@@ -47,45 +47,70 @@
   - **Property 6: Focus frames entity appropriately**
   - **Validates: Requirements 1.6**
 
-- [ ] 2. Implement enhanced grid system
+- [x] 2. Implement enhanced grid system
+
+
+
+
+
   - Add adaptive grid spacing based on zoom level
   - Implement perspective-correct 3D grid rendering
   - Add distance-based fading for 3D grid lines
   - Implement axis highlighting (red X, blue Z)
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 7.2, 7.3_
 
-- [ ] 2.1 Write property test for 2D grid orthogonality
+- [x] 2.1 Write property test for 2D grid orthogonality
+
+
   - **Property 7: 2D grid lines are orthogonal**
   - **Validates: Requirements 2.1**
 
-- [ ] 2.2 Write property test for 3D grid perspective correctness
+- [x] 2.2 Write property test for 3D grid perspective correctness
+
+
   - **Property 8: 3D grid has correct perspective**
   - **Validates: Requirements 2.2**
 
-- [ ] 2.3 Write property test for grid distance fading
+
+- [x] 2.3 Write property test for grid distance fading
+
   - **Property 9: Grid fades with distance**
   - **Validates: Requirements 2.3**
 
-- [ ] 2.4 Write property test for adaptive grid density
+- [x] 2.4 Write property test for adaptive grid density
+
+
   - **Property 10: Adaptive grid maintains visual density**
   - **Validates: Requirements 2.5, 7.1**
 
-- [ ] 2.5 Write property test for grid subdivision adaptation
+
+- [x] 2.5 Write property test for grid subdivision adaptation
+
   - **Property 11: Grid subdivisions adapt to zoom**
   - **Validates: Requirements 7.2, 7.3**
 
-- [ ] 3. Implement 2D/3D mode switching
+- [x] 3. Implement 2D/3D mode switching
+
+
+
+
+
+
   - Add mode switching logic with state preservation
   - Implement camera state save/restore for mode transitions
   - Add toolbar UI for 2D/3D toggle
   - Ensure smooth transitions between modes
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
 
-- [ ] 3.1 Write property test for camera state preservation during mode switch
+- [x] 3.1 Write property test for camera state preservation during mode switch
+
+
   - **Property 12: Mode switching preserves camera state**
   - **Validates: Requirements 3.3**
 
-- [ ] 3.2 Write property test for 3D orientation restoration
+- [x] 3.2 Write property test for 3D orientation restoration
+
+
   - **Property 13: 3D mode restores or initializes orientation**
   - **Validates: Requirements 3.4**
 

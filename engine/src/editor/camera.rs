@@ -1,6 +1,15 @@
 /// Scene camera controller for Unity-like editor
 use glam::{Vec2, Vec3, Mat4};
 
+/// Camera state for mode switching
+#[derive(Debug, Clone)]
+pub struct CameraState {
+    pub position: Vec2,
+    pub zoom: f32,
+    pub rotation: f32,
+    pub pitch: f32,
+}
+
 #[derive(Debug, Clone)]
 pub struct SceneCamera {
     pub position: Vec2,
@@ -32,6 +41,9 @@ pub struct SceneCamera {
     // Smooth interpolation
     target_zoom: f32,
     zoom_interpolation_speed: f32,
+    
+    // Mode switching state
+    saved_3d_state: Option<CameraState>,
 }
 
 impl SceneCamera {
@@ -57,6 +69,7 @@ impl SceneCamera {
             pan_speed: 1.0,
             target_zoom: initial_zoom,
             zoom_interpolation_speed: 10.0,
+            saved_3d_state: None,
         }
     }
     
@@ -306,6 +319,51 @@ impl SceneCamera {
                     far,
                 )
             }
+        }
+    }
+    
+    /// Save current camera state (for mode switching)
+    pub fn save_state(&self) -> CameraState {
+        CameraState {
+            position: self.position,
+            zoom: self.zoom,
+            rotation: self.rotation,
+            pitch: self.pitch,
+        }
+    }
+    
+    /// Restore camera state (for mode switching)
+    pub fn restore_state(&mut self, state: &CameraState) {
+        self.position = state.position;
+        self.zoom = state.zoom;
+        self.target_zoom = state.zoom;
+        self.rotation = state.rotation;
+        self.pitch = state.pitch;
+    }
+    
+    /// Switch to 2D mode, preserving position and zoom
+    pub fn switch_to_2d(&mut self) {
+        // Save current 3D state
+        self.saved_3d_state = Some(self.save_state());
+        
+        // Reset rotation and pitch for 2D mode
+        self.rotation = 0.0;
+        self.pitch = 0.0;
+        
+        // Position and zoom are preserved
+    }
+    
+    /// Switch to 3D mode, restoring previous 3D orientation or using default
+    pub fn switch_to_3d(&mut self) {
+        if let Some(saved_state) = &self.saved_3d_state {
+            // Restore previous 3D orientation
+            self.rotation = saved_state.rotation;
+            self.pitch = saved_state.pitch;
+            // Position and zoom are already preserved
+        } else {
+            // Initialize to default isometric view
+            self.rotation = 45.0;
+            self.pitch = 30.0;
         }
     }
 }

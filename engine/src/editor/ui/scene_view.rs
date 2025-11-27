@@ -58,8 +58,19 @@ pub fn render_scene_view(
     projection_mode: &mut ProjectionMode,
     transform_space: &mut TransformSpace,
 ) {
+    // Track previous mode to detect changes
+    let previous_mode = *scene_view_mode;
+    
     // Unity-like toolbar
     render_scene_toolbar(ui, current_tool, is_playing, play_request, stop_request, scene_view_mode, transform_space);
+
+    // Handle mode switching
+    if previous_mode != *scene_view_mode {
+        match scene_view_mode {
+            SceneViewMode::Mode2D => scene_camera.switch_to_2d(),
+            SceneViewMode::Mode3D => scene_camera.switch_to_3d(),
+        }
+    }
 
     // Main scene view
     let (response, painter) = ui.allocate_painter(

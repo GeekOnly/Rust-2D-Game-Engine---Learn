@@ -10,6 +10,14 @@ use proptest::prelude::*;
 use glam::{Vec2, Vec3, Mat4};
 
 #[derive(Debug, Clone)]
+pub struct CameraState {
+    pub position: Vec2,
+    pub zoom: f32,
+    pub rotation: f32,
+    pub pitch: f32,
+}
+
+#[derive(Debug, Clone)]
 pub struct SceneCamera {
     pub position: Vec2,
     pub zoom: f32,
@@ -30,6 +38,7 @@ pub struct SceneCamera {
     pub pan_speed: f32,
     target_zoom: f32,
     zoom_interpolation_speed: f32,
+    saved_3d_state: Option<CameraState>,
 }
 
 impl SceneCamera {
@@ -55,6 +64,7 @@ impl SceneCamera {
             pan_speed: 1.0,
             target_zoom: initial_zoom,
             zoom_interpolation_speed: 10.0,
+            saved_3d_state: None,
         }
     }
     
@@ -170,6 +180,39 @@ impl SceneCamera {
     
     pub fn world_to_screen(&self, world_pos: Vec2) -> Vec2 {
         (world_pos - self.position) * self.zoom
+    }
+    
+    pub fn save_state(&self) -> CameraState {
+        CameraState {
+            position: self.position,
+            zoom: self.zoom,
+            rotation: self.rotation,
+            pitch: self.pitch,
+        }
+    }
+    
+    pub fn restore_state(&mut self, state: &CameraState) {
+        self.position = state.position;
+        self.zoom = state.zoom;
+        self.target_zoom = state.zoom;
+        self.rotation = state.rotation;
+        self.pitch = state.pitch;
+    }
+    
+    pub fn switch_to_2d(&mut self) {
+        self.saved_3d_state = Some(self.save_state());
+        self.rotation = 0.0;
+        self.pitch = 0.0;
+    }
+    
+    pub fn switch_to_3d(&mut self) {
+        if let Some(saved_state) = &self.saved_3d_state {
+            self.rotation = saved_state.rotation;
+            self.pitch = saved_state.pitch;
+        } else {
+            self.rotation = 45.0;
+            self.pitch = 30.0;
+        }
     }
 }
 
@@ -461,5 +504,122 @@ proptest! {
                 "Zoom should be within bounds"
             );
         }
+    }
+    
+    // Feature: unity-scene-view, Property 12: Mode switching preserves camera state
+    // Validates: Requirements 3.3
+    #[test]
+    fn prop_mode_switching_preserves_camera_state(
+        initial_pos in prop_vec2(),
+        initial_zoom in prop_zoom(),
+        initial_rotation in prop_angle(),
+        initial_pitch in prop_pitch(),
+    ) {
+        let mut camera = SceneCamera::new();
+        camera.position = initial_pos;
+        camera.zoom = initial_zoom;
+        camera.target_zoom = initial_zoom;
+        camera.rotation = initial_rotation;
+        camera.pitch = initial_pitch;
+        
+        // Switch from 3D to 2D
+        camera.switch_to_2d();
+        
+        // Position and zoom should be preserved
+        prop_assert!(
+            (camera.position - initial_pos).length() < 0.01,
+            "Position should be preserved when switching to 2D. Expected: {:?}, Actual: {:?}",
+            initial_pos,
+            camera.position
+        );
+        
+        prop_assert!(
+            (camera.zoom - initial_zoom).abs() < 0.01,
+            "Zoom should be preserved when switching to 2D. Expected: {}, Actual: {}",
+            initial_zoom,
+            camera.zoom
+        );
+        
+        // Rotation and pitch should be reset for 2D mode
+        prop_assert!(
+            camera.rotation.abs() < 0.01,
+            "Rotation should be reset to 0 in 2D mode"
+        );
+        
+        prop_assert!(
+            camera.pitch.abs() < 0.01,
+            "Pitch should be reset to 0 in 2D mode"
+        );
+        
+        // Switch back to 3D
+        camera.switch_to_3d();
+        
+        // Position and zoom should still be preserved
+        prop_assert!(
+            (camera.position - initial_pos).length() < 0.01,
+            "Position should be preserved when switching back to 3D. Expected: {:?}, Actual: {:?}",
+            initial_pos,
+            camera.position
+        );
+        
+        prop_assert!(
+            (camera.zoom - initial_zoom).abs() < 0.01,
+            "Zoom should be preserved when switching back to 3D. Expected: {}, Actual: {}",
+            initial_zoom,
+            camera.zoom
+        );
+    }
+    
+    // Feature: unity-scene-view, Property 13: 3D mode restores or initializes orientation
+    // Validates: Requirements 3.4
+    #[test]
+    fn prop_3d_mode_restores_or_initializes_orientation(
+        initial_rotation in prop_angle(),
+        initial_pitch in prop_pitch(),
+    ) {
+        // Test case 1: Switching to 3D with previous state
+        let mut camera = SceneCamera::new();
+        camera.rotation = initial_rotation;
+        camera.pitch = initial_pitch;
+        
+        // Switch to 2D and back to 3D
+        camera.switch_to_2d();
+        camera.switch_to_3d();
+        
+        // Should restore previous 3D orientation
+        prop_assert!(
+            (camera.rotation - initial_rotation).abs() < 0.01,
+            "Rotation should be restored when switching back to 3D. Expected: {}, Actual: {}",
+            initial_rotation,
+            camera.rotation
+        );
+        
+        prop_assert!(
+            (camera.pitch - initial_pitch).abs() < 0.01,
+            "Pitch should be restored when switching back to 3D. Expected: {}, Actual: {}",
+            initial_pitch,
+            camera.pitch
+        );
+        
+        // Test case 2: Switching to 3D without previous state
+        let mut camera2 = SceneCamera::new();
+        camera2.saved_3d_state = None; // Ensure no saved state
+        camera2.rotation = 0.0;
+        camera2.pitch = 0.0;
+        
+        camera2.switch_to_3d();
+        
+        // Should initialize to default isometric view
+        prop_assert!(
+            (camera2.rotation - 45.0).abs() < 0.01,
+            "Rotation should be initialized to 45° when no previous state exists. Actual: {}",
+            camera2.rotation
+        );
+        
+        prop_assert!(
+            (camera2.pitch - 30.0).abs() < 0.01,
+            "Pitch should be initialized to 30° when no previous state exists. Actual: {}",
+            camera2.pitch
+        );
     }
 }
