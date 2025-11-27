@@ -113,33 +113,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
             }
             EditorTab::Game => {
                 // Game view - camera view only (what player sees)
-                ui.vertical_centered(|ui| {
-                    ui.heading("Game View");
-                    ui.separator();
-                    
-                    if self.context.is_playing {
-                        ui.label("🎮 Game is running");
-                        ui.label("This shows what the player sees from the camera");
-                    } else {
-                        ui.label("▶️ Press Play to see game view");
-                        ui.label("This will show the camera perspective");
-                    }
-                    
-                    // TODO: Render actual game camera view here
-                    let available = ui.available_size();
-                    let (response, painter) = ui.allocate_painter(available, egui::Sense::hover());
-                    let rect = response.rect;
-                    
-                    // Draw placeholder
-                    painter.rect_filled(rect, 0.0, egui::Color32::from_rgb(30, 30, 40));
-                    painter.text(
-                        rect.center(),
-                        egui::Align2::CENTER_CENTER,
-                        "Game Camera View",
-                        egui::FontId::proportional(20.0),
-                        egui::Color32::GRAY,
-                    );
-                });
+                crate::runtime::render_game_view(ui, self.context.world);
             }
             EditorTab::Console => {
                 // Render console (simple version for now)
@@ -426,8 +400,11 @@ fn get_entity_icon(world: &World, entity: Entity) -> &'static str {
     let has_collider = world.colliders.contains_key(&entity);
     let has_velocity = world.velocities.contains_key(&entity);
     let has_script = world.scripts.contains_key(&entity);
+    let has_camera = world.cameras.contains_key(&entity);
 
-    if has_script {
+    if has_camera {
+        "📷"
+    } else if has_script {
         "📜"
     } else if has_velocity && has_collider {
         "🏃"

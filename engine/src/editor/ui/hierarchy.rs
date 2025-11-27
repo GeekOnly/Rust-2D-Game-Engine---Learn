@@ -72,7 +72,9 @@ pub fn render_hierarchy(
             }
             
             if ui.button("📷 Camera").clicked() {
-                let entity = Prefab::new("Camera").spawn(world);
+                let entity = world.spawn();
+                world.transforms.insert(entity, ecs::Transform::default());
+                world.cameras.insert(entity, ecs::Camera::default());
                 entity_names.insert(entity, "Camera".to_string());
                 *selected_entity = Some(entity);
                 ui.close_menu();

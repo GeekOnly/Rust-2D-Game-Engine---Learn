@@ -434,6 +434,88 @@ pub fn render_inspector(
                     world.meshes.remove(&entity);
                 }
 
+                // Camera Component (Unity-style)
+                let has_camera = world.cameras.contains_key(&entity);
+                let mut remove_camera = false;
+
+                if has_camera {
+                    let camera_id = ui.make_persistent_id("camera_component");
+                    let is_open = egui::collapsing_header::CollapsingState::load_with_default_open(
+                        ui.ctx(), camera_id, true
+                    );
+
+                    render_component_header(ui, "Camera", "📷", false);
+
+                    if is_open.is_open() {
+                        if let Some(camera) = world.cameras.get_mut(&entity) {
+                            ui.indent("camera_indent", |ui| {
+                                egui::Grid::new("camera_grid")
+                                    .num_columns(2)
+                                    .spacing([10.0, 8.0])
+                                    .show(ui, |ui| {
+                                        ui.label("Projection");
+                                        egui::ComboBox::from_id_source("projection_picker")
+                                            .selected_text(match camera.projection {
+                                                ecs::CameraProjection::Orthographic => "Orthographic",
+                                                ecs::CameraProjection::Perspective => "Perspective",
+                                            })
+                                            .show_ui(ui, |ui| {
+                                                ui.selectable_value(&mut camera.projection, ecs::CameraProjection::Orthographic, "Orthographic");
+                                                ui.selectable_value(&mut camera.projection, ecs::CameraProjection::Perspective, "Perspective");
+                                            });
+                                        ui.end_row();
+
+                                        // Show different fields based on projection mode
+                                        match camera.projection {
+                                            ecs::CameraProjection::Orthographic => {
+                                                ui.label("Size");
+                                                ui.add(egui::DragValue::new(&mut camera.orthographic_size).speed(0.1).clamp_range(0.1..=1000.0));
+                                                ui.end_row();
+                                            }
+                                            ecs::CameraProjection::Perspective => {
+                                                ui.label("FOV");
+                                                ui.add(egui::Slider::new(&mut camera.fov, 1.0..=179.0).suffix("°"));
+                                                ui.end_row();
+                                            }
+                                        }
+
+                                        ui.label("Depth");
+                                        ui.add(egui::DragValue::new(&mut camera.depth).speed(1.0))
+                                            .on_hover_text("Camera rendering order (lower renders first)");
+                                        ui.end_row();
+
+                                        ui.label("Background");
+                                        ui.color_edit_button_rgba_unmultiplied(&mut camera.background_color);
+                                        ui.end_row();
+
+                                        ui.label("Near Clip");
+                                        ui.add(egui::DragValue::new(&mut camera.near_clip).speed(0.1).clamp_range(0.01..=1000.0));
+                                        ui.end_row();
+
+                                        ui.label("Far Clip");
+                                        ui.add(egui::DragValue::new(&mut camera.far_clip).speed(1.0).clamp_range(1.0..=10000.0));
+                                        ui.end_row();
+                                    });
+
+                                ui.add_space(5.0);
+                                ui.horizontal(|ui| {
+                                    if ui.button("⚙️").on_hover_text("Component Settings").clicked() {
+                                        // Component menu
+                                    }
+                                    if ui.button("❌ Remove Component").clicked() {
+                                        remove_camera = true;
+                                    }
+                                });
+                            });
+                        }
+                        ui.add_space(10.0);
+                    }
+                }
+
+                if remove_camera {
+                    world.cameras.remove(&entity);
+                }
+
                 // Script Component (Unity-style)
                 let has_script = world.scripts.contains_key(&entity);
                 let mut remove_script = false;
