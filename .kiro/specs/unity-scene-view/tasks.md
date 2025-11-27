@@ -114,86 +114,143 @@
   - **Property 13: 3D mode restores or initializes orientation**
   - **Validates: Requirements 3.4**
 
-- [ ] 4. Implement 3D rendering improvements
+- [x] 4. Implement 3D rendering improvements
+
+
+
+
+
   - Add Point3D structure with rotation and projection methods
   - Implement perspective and isometric projection
   - Add back-face culling for mesh rendering
   - Implement depth-based face sorting (painter's algorithm)
   - _Requirements: 4.1, 4.2, 4.3, 4.4_
 
-- [ ] 4.1 Write property test for perspective depth scaling
+- [x] 4.1 Write property test for perspective depth scaling
+
+
   - **Property 14: Perspective projection scales with depth**
   - **Validates: Requirements 4.1**
 
-- [ ] 4.2 Write property test for back-face culling
+
+- [x] 4.2 Write property test for back-face culling
+
   - **Property 15: Back-face culling hides non-visible faces**
   - **Validates: Requirements 4.2**
 
-- [ ] 4.3 Write property test for face depth sorting
+- [x] 4.3 Write property test for face depth sorting
+
+
   - **Property 16: Faces are depth-sorted**
   - **Validates: Requirements 4.3**
 
-- [ ] 5. Implement scene gizmo
+- [x] 5. Implement scene gizmo
+
+
+
+
+
   - Create scene gizmo visual component (XYZ axes)
   - Add clickable axis indicators for camera snapping
   - Implement gizmo rotation to match camera orientation
   - Add projection mode toggle button near gizmo
   - _Requirements: 3.5, 4.5, 6.1, 6.2, 6.3, 6.5_
 
-- [ ] 5.1 Write property test for gizmo orientation reflection
+
+- [x] 5.1 Write property test for gizmo orientation reflection
+
   - **Property 17: Gizmo reflects camera orientation**
   - **Validates: Requirements 6.2**
 
-- [ ] 6. Implement depth sorting for entities
+- [x] 6. Implement depth sorting for entities
+
+
+
+
+
+
+
   - Add Z-position based sorting for entities in 3D mode
   - Implement separate sorting for transparent objects
   - Ensure selection outlines and gizmos render on top
   - Add proper render order for all scene elements
   - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5_
 
-- [ ] 6.1 Write property test for entity depth ordering
+- [x] 6.1 Write property test for entity depth ordering
+
+
   - **Property 18: Entities render in depth order**
   - **Validates: Requirements 8.1**
 
-- [ ] 6.2 Write property test for transparent object sorting
+
+
+- [x] 6.2 Write property test for transparent object sorting
+
   - **Property 19: Transparent objects are sorted correctly**
   - **Validates: Requirements 8.2**
 
-- [ ] 7. Integrate all components in scene view
+- [x] 7. Integrate all components in scene view
+
+
+
+
+
   - Wire up enhanced camera controls to scene view
   - Integrate new grid rendering
   - Connect mode switching to UI
   - Ensure all components work together seamlessly
   - _Requirements: All_
 
-- [ ] 8. Add error handling and validation
+- [x] 8. Add error handling and validation
+
+
+
+
   - Add input validation for camera operations
   - Implement bounds checking for zoom and rotation
   - Add error handling for invalid mesh data
   - Ensure graceful degradation for edge cases
   - _Requirements: All_
 
-- [ ] 9. Checkpoint - Ensure all tests pass
+- [x] 9. Checkpoint - Ensure all tests pass
+
+
+
+
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 10. Polish and optimize
+- [x] 10. Polish and optimize
+
+
+
+
+
   - Optimize grid rendering performance
   - Add caching for static camera states
   - Implement line batching for grid rendering
   - Fine-tune camera sensitivity and feel
   - _Requirements: 5.1_
 
-- [ ] 10.1 Write unit tests for coordinate transformations
+- [x] 10.1 Write unit tests for coordinate transformations
+
+
   - Test world-to-screen and screen-to-world conversions
   - Test rotation matrix calculations
   - Test projection matrix generation
   - _Requirements: 1.1, 1.5, 4.1_
 
-- [ ] 10.2 Write unit tests for grid calculations
+- [x] 10.2 Write unit tests for grid calculations
+
+
   - Test grid line generation
   - Test fade alpha calculations
   - Test adaptive spacing selection
   - _Requirements: 2.1, 2.2, 2.3, 2.5_
 
-- [ ] 11. Final checkpoint - Ensure all tests pass
+- [x] 11. Final checkpoint - Ensure all tests pass
+
+
+
+
+
   - Ensure all tests pass, ask the user if questions arise.

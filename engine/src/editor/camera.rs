@@ -75,6 +75,10 @@ impl SceneCamera {
     
     /// Start panning (middle mouse button pressed)
     pub fn start_pan(&mut self, mouse_pos: Vec2) {
+        // Validate mouse position
+        if !mouse_pos.is_finite() {
+            return;
+        }
         self.is_panning = true;
         self.last_mouse_pos = mouse_pos;
     }

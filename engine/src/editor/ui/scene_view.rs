@@ -151,10 +151,27 @@ pub fn render_scene_view(
     
     if *scene_view_mode == SceneViewMode::Mode3D {
         // Sort by Z position (far to near) for painter's algorithm
+        // This ensures proper depth ordering as per Requirements 8.1
         entities.sort_by(|a, b| a.1.position[2].partial_cmp(&b.1.position[2]).unwrap_or(std::cmp::Ordering::Equal));
     }
     
-    for (entity, transform) in entities {
+    // Separate entities into opaque and transparent for proper rendering order
+    // Transparent objects need special handling for alpha blending (Requirements 8.2)
+    let (mut opaque_entities, mut transparent_entities): (Vec<_>, Vec<_>) = entities.into_iter()
+        .partition(|(entity, _)| {
+            // Check if entity has transparency
+            let is_opaque = if let Some(sprite) = world.sprites.get(entity) {
+                sprite.color[3] >= 1.0
+            } else if let Some(mesh) = world.meshes.get(entity) {
+                mesh.color[3] >= 1.0
+            } else {
+                true // Default to opaque
+            };
+            is_opaque
+        });
+    
+    // Render opaque entities first (back-to-front)
+    for (entity, transform) in opaque_entities.iter() {
         // Calculate screen position with proper 3D projection for Z-axis
         let (screen_x, screen_y) = if *scene_view_mode == SceneViewMode::Mode3D {
             // 3D mode: Project 3D position (X, Y, Z) to 2D screen
@@ -215,24 +232,185 @@ pub fn render_scene_view(
         // Check if mouse is hovering this entity
         if let Some(hover_pos) = response.hover_pos() {
             if entity_rect.contains(hover_pos) {
-                hovered_entity = Some(entity);
+                hovered_entity = Some(*entity);
             }
         }
 
         // Draw entity (sprite or mesh)
-        if world.meshes.contains_key(&entity) {
-            render_mesh_entity(&painter, entity, transform, world, screen_x, screen_y, scene_camera, *selected_entity == Some(entity), scene_view_mode, projection_mode);
+        if world.meshes.contains_key(entity) {
+            render_mesh_entity(&painter, *entity, transform, world, screen_x, screen_y, scene_camera, *selected_entity == Some(*entity), scene_view_mode, projection_mode);
         } else {
-            render_entity(&painter, entity, transform, world, screen_x, screen_y, scene_camera, *selected_entity == Some(entity), scene_view_mode);
+            render_entity(&painter, *entity, transform, world, screen_x, screen_y, scene_camera, *selected_entity == Some(*entity), scene_view_mode);
         }
         
-        // Draw gizmos
-        if *show_colliders {
-            render_collider_gizmo(&painter, entity, world, screen_x, screen_y, scene_camera, *selected_entity == Some(entity));
+        // Draw gizmos (but not selection outlines yet - those render on top)
+        if *show_colliders && *selected_entity != Some(*entity) {
+            render_collider_gizmo(&painter, *entity, world, screen_x, screen_y, scene_camera, false);
         }
         
         if *show_velocities {
-            render_velocity_gizmo(&painter, entity, world, screen_x, screen_y);
+            render_velocity_gizmo(&painter, *entity, world, screen_x, screen_y);
+        }
+    }
+    
+    // Render transparent entities after opaque ones (Requirements 8.2)
+    // Transparent objects must be rendered back-to-front for correct alpha blending
+    for (entity, transform) in transparent_entities.iter() {
+        // Calculate screen position with proper 3D projection for Z-axis
+        let (screen_x, screen_y) = if *scene_view_mode == SceneViewMode::Mode3D {
+            // 3D mode: Project 3D position (X, Y, Z) to 2D screen
+            let pos_3d = Point3D::new(
+                transform.x() - scene_camera.position.x,
+                transform.y(),
+                transform.position[2] - scene_camera.position.y,
+            );
+
+            let yaw = scene_camera.rotation.to_radians();
+            let pitch = scene_camera.pitch.to_radians();
+            let rotated = pos_3d
+                .rotate_y(-yaw)
+                .rotate_x(pitch);
+
+            let distance = 500.0;
+            let perspective_z = rotated.z + distance;
+            let scale = if perspective_z > 10.0 {
+                (distance / perspective_z) * scene_camera.zoom
+            } else {
+                scene_camera.zoom
+            };
+
+            (
+                center.x + rotated.x * scale,
+                center.y + rotated.y * scale,
+            )
+        } else {
+            // 2D mode: Simple X, Y projection
+            let world_pos = glam::Vec2::new(transform.x(), transform.y());
+            let screen_pos = scene_camera.world_to_screen(world_pos);
+            (center.x + screen_pos.x, center.y + screen_pos.y)
+        };
+
+        // Get entity bounds for click detection
+        let entity_rect = if let Some(sprite) = world.sprites.get(entity) {
+            let size = egui::vec2(sprite.width * scene_camera.zoom, sprite.height * scene_camera.zoom);
+            egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), size)
+        } else if world.meshes.contains_key(entity) && *scene_view_mode == SceneViewMode::Mode3D {
+            let scale = glam::Vec3::from(transform.scale);
+            let world_size = 2.0;
+            let base_size = world_size * scene_camera.zoom * scale.x.max(scale.y).max(scale.z);
+            calculate_3d_cube_bounds(screen_x, screen_y, base_size, transform, scene_camera, projection_mode)
+        } else if world.meshes.contains_key(entity) {
+            let scale = glam::Vec3::from(transform.scale);
+            let world_size = 2.0;
+            let base_size = world_size * scene_camera.zoom * scale.x.max(scale.y).max(scale.z);
+            egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), egui::vec2(base_size, base_size))
+        } else {
+            egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), egui::vec2(10.0, 10.0))
+        };
+
+        // Check if mouse is hovering this entity
+        if let Some(hover_pos) = response.hover_pos() {
+            if entity_rect.contains(hover_pos) {
+                hovered_entity = Some(*entity);
+            }
+        }
+
+        // Draw transparent entity
+        if world.meshes.contains_key(entity) {
+            render_mesh_entity(&painter, *entity, transform, world, screen_x, screen_y, scene_camera, *selected_entity == Some(*entity), scene_view_mode, projection_mode);
+        } else {
+            render_entity(&painter, *entity, transform, world, screen_x, screen_y, scene_camera, *selected_entity == Some(*entity), scene_view_mode);
+        }
+        
+        // Draw gizmos (but not selection outlines yet)
+        if *show_colliders && *selected_entity != Some(*entity) {
+            render_collider_gizmo(&painter, *entity, world, screen_x, screen_y, scene_camera, false);
+        }
+        
+        if *show_velocities {
+            render_velocity_gizmo(&painter, *entity, world, screen_x, screen_y);
+        }
+    }
+    
+    // === SELECTION OUTLINES AND GIZMOS === (Requirements 8.3, 8.4)
+    // Render selection outlines and transform gizmos on top of all entities
+    if let Some(sel_entity) = *selected_entity {
+        if let Some(transform) = world.transforms.get(&sel_entity) {
+            let (screen_x, screen_y) = if *scene_view_mode == SceneViewMode::Mode3D {
+                let pos_3d = Point3D::new(
+                    transform.x() - scene_camera.position.x,
+                    transform.y(),
+                    transform.position[2] - scene_camera.position.y,
+                );
+
+                let yaw = scene_camera.rotation.to_radians();
+                let pitch = scene_camera.pitch.to_radians();
+                let rotated = pos_3d
+                    .rotate_y(-yaw)
+                    .rotate_x(pitch);
+
+                let distance = 500.0;
+                let perspective_z = rotated.z + distance;
+                let scale = if perspective_z > 10.0 {
+                    (distance / perspective_z) * scene_camera.zoom
+                } else {
+                    scene_camera.zoom
+                };
+
+                (
+                    center.x + rotated.x * scale,
+                    center.y + rotated.y * scale,
+                )
+            } else {
+                let world_pos = glam::Vec2::new(transform.x(), transform.y());
+                let screen_pos = scene_camera.world_to_screen(world_pos);
+                (center.x + screen_pos.x, center.y + screen_pos.y)
+            };
+            
+            // Draw selection outline on top
+            if let Some(sprite) = world.sprites.get(&sel_entity) {
+                let size = if *scene_view_mode == SceneViewMode::Mode3D {
+                    let pos_3d = Point3D::new(
+                        transform.x() - scene_camera.position.x,
+                        transform.y(),
+                        transform.position[2] - scene_camera.position.y,
+                    );
+                    let yaw = scene_camera.rotation.to_radians();
+                    let pitch = scene_camera.pitch.to_radians();
+                    let rotated = pos_3d.rotate_y(-yaw).rotate_x(pitch);
+                    let distance = 500.0;
+                    let perspective_z = rotated.z + distance;
+                    let scale = if perspective_z > 10.0 {
+                        (distance / perspective_z) * scene_camera.zoom
+                    } else {
+                        scene_camera.zoom
+                    };
+                    egui::vec2(sprite.width * scale, sprite.height * scale)
+                } else {
+                    egui::vec2(sprite.width * scene_camera.zoom, sprite.height * scene_camera.zoom)
+                };
+                
+                painter.rect_stroke(
+                    egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), size + egui::vec2(4.0, 4.0)),
+                    2.0,
+                    egui::Stroke::new(2.0, egui::Color32::from_rgb(255, 200, 0)),
+                );
+            } else if world.meshes.contains_key(&sel_entity) {
+                let scale = glam::Vec3::from(transform.scale);
+                let world_size = 2.0;
+                let base_size = world_size * scene_camera.zoom * scale.x.max(scale.y).max(scale.z);
+                let selection_size = base_size + 8.0;
+                painter.rect_stroke(
+                    egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), egui::vec2(selection_size, selection_size)),
+                    2.0,
+                    egui::Stroke::new(2.0, egui::Color32::from_rgb(255, 200, 0)),
+                );
+            }
+            
+            // Draw selected entity's collider gizmo on top
+            if *show_colliders {
+                render_collider_gizmo(&painter, sel_entity, world, screen_x, screen_y, scene_camera, true);
+            }
         }
     }
 
@@ -845,23 +1023,10 @@ fn render_entity(
             );
         }
 
-        if is_selected {
-            painter.rect_stroke(
-                egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), size + egui::vec2(4.0, 4.0)),
-                2.0,
-                egui::Stroke::new(2.0, egui::Color32::from_rgb(255, 200, 0)),
-            );
-        }
+        // Selection outline removed - now rendered separately on top (Requirements 8.3)
     } else {
         painter.circle_filled(egui::pos2(screen_x, screen_y), 5.0 * scene_camera.zoom, egui::Color32::from_rgb(150, 150, 150));
-
-        if is_selected {
-            painter.circle_stroke(
-                egui::pos2(screen_x, screen_y),
-                8.0 * scene_camera.zoom,
-                egui::Stroke::new(2.0, egui::Color32::from_rgb(255, 200, 0)),
-            );
-        }
+        // Selection outline removed - now rendered separately on top (Requirements 8.3)
     }
 }
 
@@ -1261,26 +1426,7 @@ fn render_mesh_entity(
             }
         }
         
-        // Selection outline
-        if is_selected {
-            if let Some(bounds) = mesh_bounds {
-                // Use calculated 3D bounds for selection box
-                let expanded_bounds = bounds.expand(4.0);
-                painter.rect_stroke(
-                    expanded_bounds,
-                    2.0,
-                    egui::Stroke::new(2.0, egui::Color32::from_rgb(255, 200, 0)),
-                );
-            } else {
-                // Fallback to simple square selection
-                let selection_size = base_size + 8.0;
-                painter.rect_stroke(
-                    egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), egui::vec2(selection_size, selection_size)),
-                    2.0,
-                    egui::Stroke::new(2.0, egui::Color32::from_rgb(255, 200, 0)),
-                );
-            }
-        }
+        // Selection outline removed - now rendered separately on top (Requirements 8.3)
     }
 }
 

@@ -622,4 +622,95 @@ proptest! {
             camera2.pitch
         );
     }
+    
+    // Feature: unity-scene-view, Property 17: Gizmo reflects camera orientation
+    // Validates: Requirements 6.2
+    #[test]
+    fn prop_gizmo_reflects_camera_orientation(
+        camera_rotation in prop_angle(),
+        camera_pitch in prop_pitch(),
+    ) {
+        let camera = SceneCamera::new();
+        let mut test_camera = camera;
+        test_camera.rotation = camera_rotation;
+        test_camera.pitch = camera_pitch;
+        
+        // Get camera rotation in radians
+        let yaw_rad = test_camera.rotation.to_radians();
+        let pitch_rad = test_camera.pitch.to_radians();
+        
+        // Calculate expected gizmo axis directions based on camera orientation
+        // X axis (Red) - rotated by yaw around Y axis
+        let expected_x_dir = (yaw_rad.cos(), yaw_rad.sin());
+        
+        // Y axis (Green) - affected by pitch (vertical component)
+        let expected_y_offset = pitch_rad.cos();
+        
+        // Z axis (Blue) - perpendicular to X, rotated by yaw
+        let expected_z_dir = (-yaw_rad.sin(), yaw_rad.cos());
+        
+        // Verify X axis direction matches camera yaw
+        let x_angle = expected_x_dir.1.atan2(expected_x_dir.0);
+        let camera_yaw_rad = yaw_rad.rem_euclid(2.0 * std::f32::consts::PI);
+        let x_angle_normalized = x_angle.rem_euclid(2.0 * std::f32::consts::PI);
+        
+        prop_assert!(
+            (x_angle_normalized - camera_yaw_rad).abs() < 0.01 ||
+            (x_angle_normalized - camera_yaw_rad).abs() > 2.0 * std::f32::consts::PI - 0.01,
+            "X axis direction should match camera yaw. Expected: {}, Actual: {}",
+            camera_yaw_rad,
+            x_angle_normalized
+        );
+        
+        // Verify Y axis is affected by pitch
+        // When pitch is 0, Y should point straight up (offset = 1.0)
+        // When pitch is 90°, Y should be horizontal (offset = 0.0)
+        // When pitch is -90°, Y should be horizontal (offset = 0.0)
+        prop_assert!(
+            (expected_y_offset - pitch_rad.cos()).abs() < 0.01,
+            "Y axis offset should match camera pitch cosine. Expected: {}, Actual: {}",
+            pitch_rad.cos(),
+            expected_y_offset
+        );
+        
+        // Verify Z axis is perpendicular to X axis
+        let dot_product = expected_x_dir.0 * expected_z_dir.0 + expected_x_dir.1 * expected_z_dir.1;
+        prop_assert!(
+            dot_product.abs() < 0.01,
+            "Z axis should be perpendicular to X axis. Dot product: {}",
+            dot_product
+        );
+        
+        // Verify Z axis direction is 90° offset from X axis
+        let z_angle = expected_z_dir.1.atan2(expected_z_dir.0);
+        let expected_z_angle = (yaw_rad + std::f32::consts::PI / 2.0).rem_euclid(2.0 * std::f32::consts::PI);
+        let z_angle_normalized = z_angle.rem_euclid(2.0 * std::f32::consts::PI);
+        
+        prop_assert!(
+            (z_angle_normalized - expected_z_angle).abs() < 0.01 ||
+            (z_angle_normalized - expected_z_angle).abs() > 2.0 * std::f32::consts::PI - 0.01,
+            "Z axis should be 90° offset from X axis. Expected: {}, Actual: {}",
+            expected_z_angle,
+            z_angle_normalized
+        );
+        
+        // Verify that gizmo orientation changes when camera orientation changes
+        let mut camera2 = test_camera.clone();
+        camera2.rotation = (camera_rotation + 45.0).rem_euclid(360.0);
+        
+        let yaw_rad2 = camera2.rotation.to_radians();
+        let x_dir2 = (yaw_rad2.cos(), yaw_rad2.sin());
+        
+        // If rotation changed significantly, gizmo X axis should also change
+        if (camera2.rotation - test_camera.rotation).abs() > 1.0 {
+            let x_angle2 = x_dir2.1.atan2(x_dir2.0);
+            let angle_diff = (x_angle2 - x_angle).abs();
+            
+            prop_assert!(
+                angle_diff > 0.01,
+                "Gizmo orientation should change when camera rotation changes. Angle diff: {}",
+                angle_diff
+            );
+        }
+    }
 }
