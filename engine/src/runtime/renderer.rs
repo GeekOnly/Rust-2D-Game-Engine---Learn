@@ -163,10 +163,72 @@ fn render_perspective(
     cam_pos: [f32; 3],
     center: egui::Pos2,
 ) {
-    // Simple 3D projection
-    let fov_scale = 500.0 / camera.fov;
+    // Calculate FOV scale for perspective projection
+    let fov_rad = camera.fov.to_radians();
+    let fov_scale = 1.0 / (fov_rad / 2.0).tan();
 
-    // TODO: Implement proper 3D perspective projection
-    // For now, just use orthographic as fallback
-    render_orthographic(world, painter, camera, cam_pos, center);
+    // Perspective distance
+    let perspective_distance = 500.0;
+
+    // Render all entities
+    for (entity, transform) in &world.transforms {
+        // Skip if not active
+        if !world.active.get(entity).copied().unwrap_or(true) {
+            continue;
+        }
+
+        // Calculate world position relative to camera
+        let world_x = transform.position[0] - cam_pos[0];
+        let world_y = transform.position[1] - cam_pos[1];
+        let world_z = transform.position[2] - cam_pos[2];
+
+        // Calculate perspective depth (Z distance from camera)
+        let depth = world_z + perspective_distance;
+
+        // Skip if behind camera or too close
+        if depth <= camera.near_clip || depth > camera.far_clip {
+            continue;
+        }
+
+        // Apply perspective division
+        let perspective_scale = perspective_distance / depth;
+        let screen_scale = fov_scale * perspective_scale * 100.0;
+
+        let screen_x = center.x + world_x * screen_scale;
+        let screen_y = center.y - world_y * screen_scale; // Flip Y axis
+
+        // Render sprite if exists
+        if let Some(sprite) = world.sprites.get(entity) {
+            let size = egui::vec2(sprite.width * screen_scale, sprite.height * screen_scale);
+            let color = egui::Color32::from_rgba_unmultiplied(
+                (sprite.color[0] * 255.0) as u8,
+                (sprite.color[1] * 255.0) as u8,
+                (sprite.color[2] * 255.0) as u8,
+                (sprite.color[3] * 255.0) as u8,
+            );
+
+            painter.rect_filled(
+                egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), size),
+                2.0,
+                color,
+            );
+        }
+
+        // Render mesh if exists
+        if let Some(mesh) = world.meshes.get(entity) {
+            let size = 50.0 * screen_scale;
+            let color = egui::Color32::from_rgba_unmultiplied(
+                (mesh.color[0] * 255.0) as u8,
+                (mesh.color[1] * 255.0) as u8,
+                (mesh.color[2] * 255.0) as u8,
+                (mesh.color[3] * 255.0) as u8,
+            );
+
+            painter.rect_filled(
+                egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), egui::vec2(size, size)),
+                2.0,
+                color,
+            );
+        }
+    }
 }
