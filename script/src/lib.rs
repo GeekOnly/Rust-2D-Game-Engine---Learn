@@ -367,6 +367,22 @@ impl ScriptEngine {
             globals.set("log", print_log)?;
 
             // ================================================================
+            // INJECT SCRIPT PARAMETERS AS GLOBALS
+            // ================================================================
+
+            // Inject script parameters into Lua globals
+            if let Some(script) = world_cell.borrow().scripts.get(&entity) {
+                for (name, value) in &script.parameters {
+                    match value {
+                        ecs::ScriptParameter::Float(v) => globals.set(name.as_str(), *v)?,
+                        ecs::ScriptParameter::Int(v) => globals.set(name.as_str(), *v)?,
+                        ecs::ScriptParameter::String(v) => globals.set(name.as_str(), v.clone())?,
+                        ecs::ScriptParameter::Bool(v) => globals.set(name.as_str(), *v)?,
+                    }
+                }
+            }
+
+            // ================================================================
             // CALL ON_UPDATE
             // ================================================================
 
