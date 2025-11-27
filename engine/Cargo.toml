@@ -27,5 +27,8 @@ serde_json = "1.0"
 chrono = "0.4"
 glam = { version = "0.30.9", features = ["serde"] }
 
+[dev-dependencies]
+proptest = "1.4"
+
 [features]
 default = []

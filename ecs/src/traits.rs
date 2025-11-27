@@ -3,97 +3,183 @@
 //! Provides a thin abstraction layer over different ECS backends.
 //! This allows switching between Custom HashMap-based, hecs, Specs, or Bevy ECS.
 
-use std::any::TypeId;
+use std::fmt;
 
-/// Entity ID trait - must be Copy, Eq, Hash for lookups
-pub trait EntityId: Copy + Eq + std::hash::Hash + std::fmt::Debug + Send + Sync + 'static {
-    /// Create an entity ID from a u32 (for compatibility)
-    fn from_u32(id: u32) -> Self;
+// ============================================================================
+// Error Types
+// ============================================================================
 
-    /// Convert entity ID to u32 (for serialization)
-    fn to_u32(&self) -> u32;
+/// Errors that can occur during ECS operations
+#[derive(Debug, Clone)]
+pub enum EcsError {
+    /// Entity was not found in the world
+    EntityNotFound,
+    /// Component was not found on the entity
+    ComponentNotFound,
+    /// Invalid parent-child hierarchy operation (e.g., circular reference)
+    InvalidHierarchy,
+    /// Serialization or deserialization error
+    SerializationError(String),
 }
 
-// Implement for u32 (our current Entity type)
-impl EntityId for u32 {
-    fn from_u32(id: u32) -> Self { id }
-    fn to_u32(&self) -> u32 { *self }
+impl fmt::Display for EcsError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            EcsError::EntityNotFound => write!(f, "Entity not found"),
+            EcsError::ComponentNotFound => write!(f, "Component not found"),
+            EcsError::InvalidHierarchy => write!(f, "Invalid parent-child hierarchy"),
+            EcsError::SerializationError(msg) => write!(f, "Serialization error: {}", msg),
+        }
+    }
 }
 
-/// Component marker trait
-/// All components must be Send + Sync + 'static for thread safety
-pub trait Component: Send + Sync + 'static {}
+impl std::error::Error for EcsError {}
 
-// Blanket implementation for all types that meet requirements
-impl<T: Send + Sync + 'static> Component for T {}
+// ============================================================================
+// Core Traits
+// ============================================================================
 
-/// ECS World trait - core abstraction over different backends
-pub trait EcsWorld: Send + Sync {
-    type Entity: EntityId;
-
+/// ECS World trait - defines fundamental operations for entity and world management
+pub trait EcsWorld {
+    /// The entity type used by this world
+    type Entity: Copy + Clone + PartialEq + Eq + std::hash::Hash + fmt::Debug;
+    
+    /// The error type used by this world
+    type Error: std::error::Error;
+    
     // ========================================
-    // Entity Management
+    // Entity Lifecycle
     // ========================================
-
-    /// Spawn a new entity
+    
+    /// Spawn a new entity and return its ID
     fn spawn(&mut self) -> Self::Entity;
-
-    /// Despawn an entity (removes all components)
-    fn despawn(&mut self, entity: Self::Entity);
-
-    /// Check if entity is alive
+    
+    /// Despawn an entity, removing it and all its components
+    /// Returns an error if the entity doesn't exist
+    fn despawn(&mut self, entity: Self::Entity) -> Result<(), Self::Error>;
+    
+    /// Check if an entity is alive (exists in the world)
     fn is_alive(&self, entity: Self::Entity) -> bool;
-
-    /// Clear all entities and components
+    
+    // ========================================
+    // World Operations
+    // ========================================
+    
+    /// Clear all entities and components from the world
     fn clear(&mut self);
-
+    
+    /// Get the total number of entities in the world
+    fn entity_count(&self) -> usize;
+    
     // ========================================
-    // Component Access (Type-erased for flexibility)
+    // Hierarchy Operations
     // ========================================
-
-    /// Insert a component (type-erased)
-    fn insert_component<C: Component>(&mut self, entity: Self::Entity, component: C);
-
-    /// Remove a component (type-erased)
-    fn remove_component<C: Component>(&mut self, entity: Self::Entity) -> Option<C>;
-
-    /// Get immutable reference to component
-    fn get_component<C: Component>(&self, entity: Self::Entity) -> Option<&C>;
-
-    /// Get mutable reference to component
-    fn get_component_mut<C: Component>(&mut self, entity: Self::Entity) -> Option<&mut C>;
-
-    /// Check if entity has component
-    fn has_component<C: Component>(&self, entity: Self::Entity) -> bool;
+    
+    /// Set the parent of a child entity
+    /// Pass None to remove the parent
+    fn set_parent(&mut self, child: Self::Entity, parent: Option<Self::Entity>) -> Result<(), Self::Error>;
+    
+    /// Get the parent of an entity, if it has one
+    fn get_parent(&self, entity: Self::Entity) -> Option<Self::Entity>;
+    
+    /// Get all direct children of an entity
+    fn get_children(&self, entity: Self::Entity) -> Vec<Self::Entity>;
 }
 
-/// Backend factory trait
-pub trait EcsBackend {
-    type World: EcsWorld;
-
-    /// Create a new world instance
-    fn create_world() -> Self::World;
-
-    /// Get backend name (for debugging/benchmarking)
-    fn name() -> &'static str;
-
-    /// Get backend description
-    fn description() -> &'static str;
+/// ComponentAccess trait - provides type-safe component operations
+pub trait ComponentAccess<T> {
+    /// The entity type
+    type Entity;
+    
+    /// The error type
+    type Error;
+    
+    /// Insert a component for an entity
+    /// Returns the previous component value if one existed
+    fn insert(&mut self, entity: Self::Entity, component: T) -> Result<Option<T>, Self::Error>;
+    
+    /// Get an immutable reference to a component
+    fn get(&self, entity: Self::Entity) -> Option<&T>;
+    
+    /// Get a mutable reference to a component
+    fn get_mut(&mut self, entity: Self::Entity) -> Option<&mut T>;
+    
+    /// Remove a component from an entity
+    /// Returns the component value if it existed
+    fn remove(&mut self, entity: Self::Entity) -> Result<Option<T>, Self::Error>;
+    
+    /// Check if an entity has a component
+    fn has(&self, entity: Self::Entity) -> bool;
 }
 
-/// Query trait for iterating entities with specific components
+/// Query trait - enables efficient iteration over entities with specific components (immutable)
 pub trait Query<'w> {
+    /// The item type yielded by the iterator
     type Item;
+    
+    /// The iterator type
+    type Iter: Iterator<Item = Self::Item>;
+    
+    /// Create an iterator over the query results
+    fn iter(&'w self) -> Self::Iter;
+}
 
-    fn iter(&self) -> Box<dyn Iterator<Item = Self::Item> + 'w>;
+/// QueryMut trait - enables efficient iteration over entities with specific components (mutable)
+pub trait QueryMut<'w> {
+    /// The item type yielded by the iterator
+    type Item;
+    
+    /// The iterator type
+    type Iter: Iterator<Item = Self::Item>;
+    
+    /// Create a mutable iterator over the query results
+    fn iter_mut(&'w mut self) -> Self::Iter;
+}
+
+/// Serializable trait - handles world persistence
+pub trait Serializable {
+    /// Serialize the world to JSON format
+    fn save_to_json(&self) -> Result<String, Box<dyn std::error::Error>>;
+    
+    /// Deserialize the world from JSON format
+    fn load_from_json(&mut self, json: &str) -> Result<(), Box<dyn std::error::Error>>;
 }
 
 // ============================================================================
-// Optional: System trait (for future System scheduling)
+// Macro for implementing ComponentAccess
 // ============================================================================
 
-/// System trait for automatic scheduling (future feature)
-pub trait System: Send + Sync {
-    fn run(&mut self, world: &mut dyn EcsWorld<Entity = u32>);
-    fn name(&self) -> &str;
+/// Macro to reduce boilerplate when implementing ComponentAccess for HashMap-based storage
+#[macro_export]
+macro_rules! impl_component_access {
+    ($world_type:ty, $component_type:ty, $field:ident) => {
+        impl $crate::traits::ComponentAccess<$component_type> for $world_type {
+            type Entity = $crate::Entity;
+            type Error = $crate::traits::EcsError;
+            
+            fn insert(&mut self, entity: Self::Entity, component: $component_type) 
+                -> Result<Option<$component_type>, Self::Error> 
+            {
+                Ok(self.$field.insert(entity, component))
+            }
+            
+            fn get(&self, entity: Self::Entity) -> Option<&$component_type> {
+                self.$field.get(&entity)
+            }
+            
+            fn get_mut(&mut self, entity: Self::Entity) -> Option<&mut $component_type> {
+                self.$field.get_mut(&entity)
+            }
+            
+            fn remove(&mut self, entity: Self::Entity) 
+                -> Result<Option<$component_type>, Self::Error> 
+            {
+                Ok(self.$field.remove(&entity))
+            }
+            
+            fn has(&self, entity: Self::Entity) -> bool {
+                self.$field.contains_key(&entity)
+            }
+        }
+    };
 }

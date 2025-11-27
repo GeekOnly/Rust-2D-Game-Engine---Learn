@@ -1,5 +1,5 @@
 /// Scene camera controller for Unity-like editor
-use glam::Vec2;
+use glam::{Vec2, Vec3, Mat4};
 
 #[derive(Debug, Clone)]
 pub struct SceneCamera {
@@ -23,14 +23,23 @@ pub struct SceneCamera {
     // Rotation state (for 3D view)
     is_rotating: bool,
     is_orbiting: bool,
-    rotation_sensitivity: f32,
+    
+    // Settings
+    pub rotation_sensitivity: f32,
+    pub zoom_sensitivity: f32,
+    pub pan_speed: f32,
+    
+    // Smooth interpolation
+    target_zoom: f32,
+    zoom_interpolation_speed: f32,
 }
 
 impl SceneCamera {
     pub fn new() -> Self {
+        let initial_zoom = 50.0;
         Self {
             position: Vec2::ZERO,
-            zoom: 50.0,       // Zoom to convert world units to screen pixels (50 pixels per unit)
+            zoom: initial_zoom,       // Zoom to convert world units to screen pixels (50 pixels per unit)
             rotation: 45.0,   // Default 45° angle
             pitch: 30.0,      // Default 30° pitch
             distance: 500.0,  // Default distance
@@ -44,6 +53,10 @@ impl SceneCamera {
             is_rotating: false,
             is_orbiting: false,
             rotation_sensitivity: 0.5,
+            zoom_sensitivity: 0.1,
+            pan_speed: 1.0,
+            target_zoom: initial_zoom,
+            zoom_interpolation_speed: 10.0,
         }
     }
     
@@ -82,18 +95,41 @@ impl SceneCamera {
         self.is_panning = false;
     }
     
-    /// Zoom in/out (scroll wheel) - improved version
-    pub fn zoom(&mut self, delta: f32, _mouse_pos: Vec2) {
+    /// Zoom in/out (scroll wheel) - improved version with cursor-based zooming
+    pub fn zoom(&mut self, delta: f32, mouse_pos: Vec2) {
+        // Calculate world position under cursor before zoom
+        let world_pos_before = self.screen_to_world(mouse_pos);
+        
         // Smooth exponential zoom with better sensitivity
-        let zoom_speed = 0.1; // Reduced from 0.15 for smoother control
         let zoom_factor = if delta > 0.0 {
-            1.0 + zoom_speed
+            1.0 + self.zoom_sensitivity
         } else {
-            1.0 / (1.0 + zoom_speed) // Use division for symmetric zoom
+            1.0 / (1.0 + self.zoom_sensitivity)
         };
         
-        self.zoom *= zoom_factor;
-        self.zoom = self.zoom.clamp(self.min_zoom, self.max_zoom);
+        self.target_zoom *= zoom_factor;
+        self.target_zoom = self.target_zoom.clamp(self.min_zoom, self.max_zoom);
+        
+        // Apply zoom immediately for now (interpolation happens in update)
+        self.zoom = self.target_zoom;
+        
+        // Calculate world position under cursor after zoom
+        let world_pos_after = self.screen_to_world(mouse_pos);
+        
+        // Adjust camera position to keep world point under cursor stationary
+        let world_delta = world_pos_after - world_pos_before;
+        self.position -= world_delta;
+    }
+    
+    /// Update camera state (call each frame for smooth interpolation)
+    pub fn update(&mut self, delta_time: f32) {
+        // Smooth zoom interpolation
+        if (self.zoom - self.target_zoom).abs() > 0.01 {
+            let t = 1.0 - (-self.zoom_interpolation_speed * delta_time).exp();
+            self.zoom = self.zoom + (self.target_zoom - self.zoom) * t;
+        } else {
+            self.zoom = self.target_zoom;
+        }
     }
     
     /// Start rotation (right mouse button pressed)
@@ -135,12 +171,24 @@ impl SceneCamera {
         if self.is_orbiting {
             let delta = mouse_pos - self.last_mouse_pos;
             
+            // Store the distance before rotation
+            let initial_distance = (self.position - self.pivot).length();
+            
             // Rotate around pivot
             self.rotation += delta.x * self.rotation_sensitivity;
             self.rotation = self.rotation.rem_euclid(360.0);
             
             self.pitch -= delta.y * self.rotation_sensitivity;
             self.pitch = self.pitch.clamp(self.min_pitch, self.max_pitch);
+            
+            // Update camera position to maintain distance from pivot
+            let yaw_rad = self.rotation.to_radians();
+            let offset_x = initial_distance * yaw_rad.cos();
+            let offset_z = initial_distance * yaw_rad.sin();
+            self.position = self.pivot + Vec2::new(offset_x, offset_z);
+            
+            // Update the distance field as well
+            self.distance = initial_distance;
             
             self.last_mouse_pos = mouse_pos;
         }
@@ -151,26 +199,33 @@ impl SceneCamera {
         self.is_orbiting = false;
     }
     
-    /// Focus on object (F key)
-    pub fn focus_on(&mut self, target_pos: Vec2, object_size: f32) {
+    /// Focus on object (F key) - frames entity appropriately in viewport
+    pub fn focus_on(&mut self, target_pos: Vec2, object_size: f32, viewport_size: Vec2) {
         self.pivot = target_pos;
         self.position = target_pos;
         
-        // Set appropriate distance based on object size
-        self.distance = object_size * 3.0;
+        // Calculate zoom to frame object with some padding (1.5x the object size)
+        let target_screen_size = object_size * 1.5;
+        let viewport_min = viewport_size.x.min(viewport_size.y);
         
-        // Adjust zoom to frame object nicely
-        self.zoom = 1.0;
+        // Zoom should make the object take up a reasonable portion of the viewport
+        self.target_zoom = viewport_min / target_screen_size;
+        self.target_zoom = self.target_zoom.clamp(self.min_zoom, self.max_zoom);
+        self.zoom = self.target_zoom;
+        
+        // Set appropriate distance based on object size for 3D mode
+        self.distance = object_size * 3.0;
     }
     
-    /// Frame selected object (F key)
+    /// Frame selected object (F key) - alternative with explicit size
     pub fn frame_object(&mut self, object_pos: Vec2, object_size: Vec2, viewport_size: Vec2) {
         self.position = object_pos;
         
-        // Calculate zoom to fit object in view
+        // Calculate zoom to fit object in view with padding
         let zoom_x = viewport_size.x / (object_size.x * 1.5);
         let zoom_y = viewport_size.y / (object_size.y * 1.5);
-        self.zoom = zoom_x.min(zoom_y).clamp(self.min_zoom, self.max_zoom);
+        self.target_zoom = zoom_x.min(zoom_y).clamp(self.min_zoom, self.max_zoom);
+        self.zoom = self.target_zoom;
     }
     
     /// Convert screen coordinates to world coordinates
@@ -210,6 +265,56 @@ impl SceneCamera {
     pub fn get_pitch_radians(&self) -> f32 {
         self.pitch.to_radians()
     }
+    
+    /// Get view matrix for 3D rendering
+    pub fn get_view_matrix(&self) -> Mat4 {
+        let yaw_rad = self.rotation.to_radians();
+        let pitch_rad = self.pitch.to_radians();
+        
+        // Calculate camera position in 3D space
+        let cam_x = self.position.x + self.distance * yaw_rad.cos() * pitch_rad.cos();
+        let cam_y = self.distance * pitch_rad.sin();
+        let cam_z = self.position.y + self.distance * yaw_rad.sin() * pitch_rad.cos();
+        
+        let eye = Vec3::new(cam_x, cam_y, cam_z);
+        let target = Vec3::new(self.position.x, 0.0, self.position.y);
+        let up = Vec3::Y;
+        
+        Mat4::look_at_rh(eye, target, up)
+    }
+    
+    /// Get projection matrix for 3D rendering
+    pub fn get_projection_matrix(&self, aspect: f32, mode: ProjectionMode) -> Mat4 {
+        match mode {
+            ProjectionMode::Perspective => {
+                let fov = 60.0_f32.to_radians();
+                let near = 0.1;
+                let far = 10000.0;
+                Mat4::perspective_rh(fov, aspect, near, far)
+            }
+            ProjectionMode::Isometric => {
+                let height = 1000.0 / self.zoom;
+                let width = height * aspect;
+                let near = -1000.0;
+                let far = 1000.0;
+                Mat4::orthographic_rh(
+                    -width / 2.0,
+                    width / 2.0,
+                    -height / 2.0,
+                    height / 2.0,
+                    near,
+                    far,
+                )
+            }
+        }
+    }
+}
+
+/// Projection mode for 3D rendering
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum ProjectionMode {
+    Perspective,
+    Isometric,
 }
 
 impl Default for SceneCamera {

@@ -1,11 +1,11 @@
 {
-  "next_entity": 18,
+  "next_entity": 29,
   "transforms": [
     [
-      16,
+      28,
       {
         "position": [
-          3.928981,
+          0.0,
           0.0,
           0.0
         ],
@@ -22,12 +22,12 @@
       }
     ],
     [
-      17,
+      27,
       {
         "position": [
           0.0,
           0.0,
-          0.0
+          10.1
         ],
         "rotation": [
           0.0,
@@ -42,40 +42,93 @@
       }
     ]
   ],
-  "velocities": [],
-  "sprites": [],
-  "colliders": [],
-  "tags": [],
-  "scripts": [],
+  "velocities": [
+    [
+      28,
+      [
+        0.0,
+        0.0
+      ]
+    ]
+  ],
+  "sprites": [
+    [
+      28,
+      {
+        "texture_id": "player",
+        "width": 40.0,
+        "height": 40.0,
+        "color": [
+          0.19999999,
+          0.5999998,
+          1.0,
+          1.0
+        ],
+        "billboard": true
+      }
+    ]
+  ],
+  "colliders": [
+    [
+      28,
+      {
+        "width": 40.0,
+        "height": 40.0
+      }
+    ]
+  ],
+  "tags": [
+    [
+      28,
+      "Player"
+    ]
+  ],
+  "scripts": [
+    [
+      28,
+      {
+        "script_name": "Script_21",
+        "enabled": true,
+        "parameters": {
+          "vx": {
+            "Float": 0.0
+          },
+          "vy": {
+            "Float": 0.0
+          }
+        }
+      }
+    ]
+  ],
   "active": [
     [
-      17,
+      27,
       true
     ],
     [
-      16,
+      28,
       true
     ]
   ],
   "layers": [
     [
-      17,
+      27,
       0
     ],
     [
-      16,
+      28,
       0
     ]
   ],
   "parents": [],
   "names": [
     [
-      16,
-      "Cube"
+      27,
+      "Camera"
     ],
     [
-      17,
-      "Camera"
+      28,
+      "Player"
     ]
   ]
 }

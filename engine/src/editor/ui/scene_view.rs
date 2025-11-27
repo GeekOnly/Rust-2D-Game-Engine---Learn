@@ -237,7 +237,8 @@ pub fn render_scene_view(
                 } else {
                     10.0
                 };
-                scene_camera.focus_on(pos, size);
+                let viewport_size = glam::Vec2::new(rect.width(), rect.height());
+                scene_camera.focus_on(pos, size, viewport_size);
             }
         }
     }

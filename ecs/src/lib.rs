@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
 
+pub mod traits;
+
 pub type Entity = u32;
 
 /// Prefab system for reusable entity templates
@@ -526,5 +528,288 @@ impl World {
         }
 
         Ok(())
+    }
+}
+
+// ============================================================================
+// Trait Implementations for World
+// ============================================================================
+
+use traits::{EcsWorld, EcsError, Serializable};
+
+impl EcsWorld for World {
+    type Entity = Entity;
+    type Error = EcsError;
+    
+    fn spawn(&mut self) -> Self::Entity {
+        World::spawn(self)
+    }
+    
+    fn despawn(&mut self, entity: Self::Entity) -> Result<(), Self::Error> {
+        // Check if entity exists
+        if !self.is_alive(entity) {
+            return Err(EcsError::EntityNotFound);
+        }
+        
+        World::despawn(self, entity);
+        Ok(())
+    }
+    
+    fn is_alive(&self, entity: Self::Entity) -> bool {
+        // An entity is alive if it has at least one component or is in the active map
+        self.transforms.contains_key(&entity) ||
+        self.sprites.contains_key(&entity) ||
+        self.colliders.contains_key(&entity) ||
+        self.meshes.contains_key(&entity) ||
+        self.cameras.contains_key(&entity) ||
+        self.active.contains_key(&entity)
+    }
+    
+    fn clear(&mut self) {
+        World::clear(self);
+    }
+    
+    fn entity_count(&self) -> usize {
+        self.active.len()
+    }
+    
+    fn set_parent(&mut self, child: Self::Entity, parent: Option<Self::Entity>) -> Result<(), Self::Error> {
+        // Check for circular reference if setting a parent
+        if let Some(p) = parent {
+            // Check if parent is actually a descendant of child
+            let mut current = Some(p);
+            while let Some(ancestor) = current {
+                if ancestor == child {
+                    return Err(EcsError::InvalidHierarchy);
+                }
+                current = self.get_parent(ancestor);
+            }
+        }
+        
+        World::set_parent(self, child, parent);
+        Ok(())
+    }
+    
+    fn get_parent(&self, entity: Self::Entity) -> Option<Self::Entity> {
+        World::get_parent(self, entity)
+    }
+    
+    fn get_children(&self, entity: Self::Entity) -> Vec<Self::Entity> {
+        World::get_children(self, entity).to_vec()
+    }
+}
+
+impl Serializable for World {
+    fn save_to_json(&self) -> Result<String, Box<dyn std::error::Error>> {
+        World::save_to_json(self).map_err(|e| Box::new(e) as Box<dyn std::error::Error>)
+    }
+    
+    fn load_from_json(&mut self, json: &str) -> Result<(), Box<dyn std::error::Error>> {
+        World::load_from_json(self, json).map_err(|e| Box::new(e) as Box<dyn std::error::Error>)
+    }
+}
+
+// Implement ComponentAccess for all component types using the macro
+impl_component_access!(World, Transform, transforms);
+impl_component_access!(World, Sprite, sprites);
+impl_component_access!(World, Collider, colliders);
+impl_component_access!(World, Mesh, meshes);
+impl_component_access!(World, Camera, cameras);
+impl_component_access!(World, Script, scripts);
+impl_component_access!(World, EntityTag, tags);
+
+// Manual implementations for tuple and primitive types
+impl traits::ComponentAccess<(f32, f32)> for World {
+    type Entity = Entity;
+    type Error = EcsError;
+    
+    fn insert(&mut self, entity: Self::Entity, component: (f32, f32)) 
+        -> Result<Option<(f32, f32)>, Self::Error> 
+    {
+        Ok(self.velocities.insert(entity, component))
+    }
+    
+    fn get(&self, entity: Self::Entity) -> Option<&(f32, f32)> {
+        self.velocities.get(&entity)
+    }
+    
+    fn get_mut(&mut self, entity: Self::Entity) -> Option<&mut (f32, f32)> {
+        self.velocities.get_mut(&entity)
+    }
+    
+    fn remove(&mut self, entity: Self::Entity) 
+        -> Result<Option<(f32, f32)>, Self::Error> 
+    {
+        Ok(self.velocities.remove(&entity))
+    }
+    
+    fn has(&self, entity: Self::Entity) -> bool {
+        self.velocities.contains_key(&entity)
+    }
+}
+
+impl traits::ComponentAccess<bool> for World {
+    type Entity = Entity;
+    type Error = EcsError;
+    
+    fn insert(&mut self, entity: Self::Entity, component: bool) 
+        -> Result<Option<bool>, Self::Error> 
+    {
+        Ok(self.active.insert(entity, component))
+    }
+    
+    fn get(&self, entity: Self::Entity) -> Option<&bool> {
+        self.active.get(&entity)
+    }
+    
+    fn get_mut(&mut self, entity: Self::Entity) -> Option<&mut bool> {
+        self.active.get_mut(&entity)
+    }
+    
+    fn remove(&mut self, entity: Self::Entity) 
+        -> Result<Option<bool>, Self::Error> 
+    {
+        Ok(self.active.remove(&entity))
+    }
+    
+    fn has(&self, entity: Self::Entity) -> bool {
+        self.active.contains_key(&entity)
+    }
+}
+
+impl traits::ComponentAccess<u8> for World {
+    type Entity = Entity;
+    type Error = EcsError;
+    
+    fn insert(&mut self, entity: Self::Entity, component: u8) 
+        -> Result<Option<u8>, Self::Error> 
+    {
+        Ok(self.layers.insert(entity, component))
+    }
+    
+    fn get(&self, entity: Self::Entity) -> Option<&u8> {
+        self.layers.get(&entity)
+    }
+    
+    fn get_mut(&mut self, entity: Self::Entity) -> Option<&mut u8> {
+        self.layers.get_mut(&entity)
+    }
+    
+    fn remove(&mut self, entity: Self::Entity) 
+        -> Result<Option<u8>, Self::Error> 
+    {
+        Ok(self.layers.remove(&entity))
+    }
+    
+    fn has(&self, entity: Self::Entity) -> bool {
+        self.layers.contains_key(&entity)
+    }
+}
+
+impl traits::ComponentAccess<String> for World {
+    type Entity = Entity;
+    type Error = EcsError;
+    
+    fn insert(&mut self, entity: Self::Entity, component: String) 
+        -> Result<Option<String>, Self::Error> 
+    {
+        Ok(self.names.insert(entity, component))
+    }
+    
+    fn get(&self, entity: Self::Entity) -> Option<&String> {
+        self.names.get(&entity)
+    }
+    
+    fn get_mut(&mut self, entity: Self::Entity) -> Option<&mut String> {
+        self.names.get_mut(&entity)
+    }
+    
+    fn remove(&mut self, entity: Self::Entity) 
+        -> Result<Option<String>, Self::Error> 
+    {
+        Ok(self.names.remove(&entity))
+    }
+    
+    fn has(&self, entity: Self::Entity) -> bool {
+        self.names.contains_key(&entity)
+    }
+}
+
+
+// ============================================================================
+// Property-Based Tests
+// ============================================================================
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use traits::EcsWorld;
+    
+    #[cfg(test)]
+    mod property_tests {
+        use super::*;
+        use proptest::prelude::*;
+        
+        // **Feature: ecs-abstraction, Property 2: Entity spawn increases count**
+        // **Validates: Requirements 1.1**
+        proptest! {
+            #![proptest_config(ProptestConfig::with_cases(100))]
+            
+            #[test]
+            fn entity_spawn_increases_count(spawn_count in 1usize..100) {
+                let mut world = World::new();
+                let initial_count = world.entity_count();
+                
+                // Spawn entities
+                for _ in 0..spawn_count {
+                    world.spawn();
+                }
+                
+                let final_count = world.entity_count();
+                
+                // Property: spawning N entities should increase count by exactly N
+                prop_assert_eq!(final_count, initial_count + spawn_count);
+            }
+        }
+        
+        // **Feature: ecs-abstraction, Property 3: Entity despawn decreases count**
+        // **Validates: Requirements 1.1**
+        proptest! {
+            #![proptest_config(ProptestConfig::with_cases(100))]
+            
+            #[test]
+            fn entity_despawn_decreases_count(
+                spawn_count in 1usize..50,
+                despawn_indices in prop::collection::vec(any::<prop::sample::Index>(), 1..20)
+            ) {
+                let mut world = World::new();
+                
+                // Spawn entities
+                let mut entities = Vec::new();
+                for _ in 0..spawn_count {
+                    entities.push(world.spawn());
+                }
+                
+                let count_after_spawn = world.entity_count();
+                prop_assert_eq!(count_after_spawn, spawn_count);
+                
+                // Despawn some entities (without duplicates)
+                let mut despawned = std::collections::HashSet::new();
+                for index in despawn_indices {
+                    let entity = entities[index.index(entities.len())];
+                    if despawned.insert(entity) {
+                        let _ = world.despawn(entity);
+                    }
+                }
+                
+                let final_count = world.entity_count();
+                let expected_count = spawn_count - despawned.len();
+                
+                // Property: despawning entities should decrease count appropriately
+                // Note: This accounts for children being despawned recursively
+                prop_assert!(final_count <= expected_count, 
+                    "Expected count <= {}, got {}", expected_count, final_count);
+            }
+        }
     }
 }
