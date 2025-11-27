@@ -6,7 +6,7 @@
 -- set_velocity(vx, vy) - Set entity velocity
 -- get_tag(entity) - Get entity tag
 -- destroy_entity(entity) - Destroy an entity
-local let speed = 200.0  -- Movement speed in units per second
+local let speed = 10.0  -- Movement speed in units per second
 
 function on_start()
     -- Called when the game starts

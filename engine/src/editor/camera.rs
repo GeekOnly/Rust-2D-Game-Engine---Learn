@@ -609,6 +609,66 @@ impl SceneCamera {
         self.rotation_sensitivity = self.settings.rotation_sensitivity;
         self.zoom_sensitivity = self.settings.zoom_sensitivity;
     }
+    
+    // ============================================================================
+    // PRESET CAMERA VIEWS (Crown Engine inspired)
+    // ============================================================================
+    
+    /// Set camera to front view (looking along +Z axis)
+    pub fn set_view_front(&mut self) {
+        self.target_rotation = 0.0;
+        self.target_pitch = 0.0;
+        self.rotation = 0.0;
+        self.pitch = 0.0;
+    }
+    
+    /// Set camera to back view (looking along -Z axis)
+    pub fn set_view_back(&mut self) {
+        self.target_rotation = 180.0;
+        self.target_pitch = 0.0;
+        self.rotation = 180.0;
+        self.pitch = 0.0;
+    }
+    
+    /// Set camera to right view (looking along +X axis)
+    pub fn set_view_right(&mut self) {
+        self.target_rotation = 90.0;
+        self.target_pitch = 0.0;
+        self.rotation = 90.0;
+        self.pitch = 0.0;
+    }
+    
+    /// Set camera to left view (looking along -X axis)
+    pub fn set_view_left(&mut self) {
+        self.target_rotation = -90.0;
+        self.target_pitch = 0.0;
+        self.rotation = -90.0;
+        self.pitch = 0.0;
+    }
+    
+    /// Set camera to top view (looking down along -Y axis)
+    pub fn set_view_top(&mut self) {
+        self.target_rotation = 0.0;
+        self.target_pitch = 90.0;
+        self.rotation = 0.0;
+        self.pitch = 90.0;
+    }
+    
+    /// Set camera to bottom view (looking up along +Y axis)
+    pub fn set_view_bottom(&mut self) {
+        self.target_rotation = 0.0;
+        self.target_pitch = -90.0;
+        self.rotation = 0.0;
+        self.pitch = -90.0;
+    }
+    
+    /// Set camera to default perspective view (isometric-like)
+    pub fn set_view_perspective(&mut self) {
+        self.target_rotation = 45.0;
+        self.target_pitch = 30.0;
+        self.rotation = 45.0;
+        self.pitch = 30.0;
+    }
 }
 
 /// Projection mode for 3D rendering

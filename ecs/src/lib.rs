@@ -15,6 +15,7 @@ pub struct Prefab {
     pub velocity: Option<(f32, f32)>,
     pub tag: Option<EntityTag>,
     pub script: Option<Script>,
+    pub camera: Option<Camera>,
 }
 
 impl Prefab {
@@ -28,6 +29,7 @@ impl Prefab {
             velocity: None,
             tag: None,
             script: None,
+            camera: None,
         }
     }
 
@@ -47,6 +49,7 @@ impl Prefab {
             velocity: Some((0.0, 0.0)),
             tag: Some(EntityTag::Player),
             script: None,
+            camera: None,
         }
     }
 
@@ -66,6 +69,7 @@ impl Prefab {
             velocity: None,
             tag: Some(EntityTag::Item),
             script: None,
+            camera: None,
         }
     }
 
@@ -79,6 +83,7 @@ impl Prefab {
             velocity: None,
             tag: None,
             script: None,
+            camera: Some(Camera::orthographic_2d()),
         }
     }
 
@@ -92,6 +97,7 @@ impl Prefab {
             velocity: None,
             tag: None,
             script: None,
+            camera: Some(Camera::perspective_3d()),
         }
     }
 
@@ -99,6 +105,7 @@ impl Prefab {
     pub fn spawn(&self, world: &mut World) -> Entity {
         let entity = world.spawn();
         world.transforms.insert(entity, self.transform.clone());
+        world.names.insert(entity, self.name.clone());
 
         if let Some(sprite) = &self.sprite {
             world.sprites.insert(entity, sprite.clone());
@@ -114,6 +121,9 @@ impl Prefab {
         }
         if let Some(script) = &self.script {
             world.scripts.insert(entity, script.clone());
+        }
+        if let Some(camera) = &self.camera {
+            world.cameras.insert(entity, camera.clone());
         }
 
         entity
