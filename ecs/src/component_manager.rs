@@ -108,6 +108,8 @@ impl ComponentManager for World {
                 });
             }
             ComponentType::Rigidbody => {
+                // Add both new Rigidbody2D and legacy velocity
+                self.rigidbodies.insert(entity, crate::Rigidbody2D::default());
                 self.velocities.insert(entity, (0.0, 0.0));
             }
             ComponentType::Mesh => {
@@ -158,6 +160,7 @@ impl ComponentManager for World {
                 self.colliders.remove(&entity);
             }
             ComponentType::Rigidbody => {
+                self.rigidbodies.remove(&entity);
                 self.velocities.remove(&entity);
             }
             ComponentType::Mesh => {
@@ -182,7 +185,7 @@ impl ComponentManager for World {
             ComponentType::Transform => self.transforms.contains_key(&entity),
             ComponentType::Sprite => self.sprites.contains_key(&entity),
             ComponentType::BoxCollider => self.colliders.contains_key(&entity),
-            ComponentType::Rigidbody => self.velocities.contains_key(&entity),
+            ComponentType::Rigidbody => self.rigidbodies.contains_key(&entity) || self.velocities.contains_key(&entity),
             ComponentType::Mesh => self.meshes.contains_key(&entity),
             ComponentType::Camera => self.cameras.contains_key(&entity),
             ComponentType::Script => self.scripts.contains_key(&entity),

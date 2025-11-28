@@ -210,6 +210,28 @@ pub struct Collider {
     pub height: f32,
 }
 
+/// Rigidbody 2D properties (Unity-like)
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Rigidbody2D {
+    pub velocity: (f32, f32),      // Current velocity (vx, vy)
+    pub gravity_scale: f32,         // Gravity multiplier (0 = no gravity, 1 = normal)
+    pub mass: f32,                  // Mass (affects collision response)
+    pub is_kinematic: bool,         // If true, not affected by physics (but still collides)
+    pub freeze_rotation: bool,      // Prevent rotation (for 2D games)
+}
+
+impl Default for Rigidbody2D {
+    fn default() -> Self {
+        Self {
+            velocity: (0.0, 0.0),
+            gravity_scale: 1.0,
+            mass: 1.0,
+            is_kinematic: false,
+            freeze_rotation: true,
+        }
+    }
+}
+
 /// 3D Mesh component
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Mesh {
@@ -330,7 +352,8 @@ impl Camera {
 pub struct World {
     next_entity: Entity,
     pub transforms: HashMap<Entity, Transform>,
-    pub velocities: HashMap<Entity, (f32, f32)>,
+    pub velocities: HashMap<Entity, (f32, f32)>,  // Legacy - kept for backward compatibility
+    pub rigidbodies: HashMap<Entity, Rigidbody2D>, // New Rigidbody2D component
     pub sprites: HashMap<Entity, Sprite>,
     pub colliders: HashMap<Entity, Collider>,
     pub meshes: HashMap<Entity, Mesh>,      // 3D meshes
@@ -374,6 +397,7 @@ impl World {
 
         self.transforms.remove(&e);
         self.velocities.remove(&e);
+        self.rigidbodies.remove(&e);
         self.sprites.remove(&e);
         self.colliders.remove(&e);
         self.meshes.remove(&e);
@@ -388,6 +412,7 @@ impl World {
     pub fn clear(&mut self) {
         self.transforms.clear();
         self.velocities.clear();
+        self.rigidbodies.clear();
         self.sprites.clear();
         self.colliders.clear();
         self.meshes.clear();

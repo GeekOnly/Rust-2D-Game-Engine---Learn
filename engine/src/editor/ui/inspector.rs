@@ -1,6 +1,7 @@
 use ecs::{World, Entity, EntityTag, Script, ScriptParameter, ComponentType, ComponentManager};
 use egui;
 use std::collections::HashMap;
+use arboard::Clipboard;
 
 /// Renders the Inspector panel showing entity properties and components
 pub fn render_inspector(
@@ -15,6 +16,16 @@ pub fn render_inspector(
     ui.horizontal(|ui| {
         ui.heading("Inspector");
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+            // Copy button for debugging
+            if let Some(entity) = *selected_entity {
+                if ui.button("📋 Copy All").on_hover_text("Copy all component values to clipboard").clicked() {
+                    let debug_info = format_entity_debug_info(world, entity, entity_names);
+                    if let Ok(mut clipboard) = Clipboard::new() {
+                        let _ = clipboard.set_text(debug_info);
+                    }
+                }
+            }
+            
             // Options menu
             ui.menu_button("⋮", |ui| {
                 if ui.button("Reset").clicked() {
@@ -211,6 +222,33 @@ pub fn render_inspector(
                             ui.end_row();
                         });
 
+                    ui.add_space(5.0);
+                    
+                    // Copy buttons for Transform
+                    ui.horizontal(|ui| {
+                        if ui.small_button("📋 Pos").on_hover_text("Copy position").clicked() {
+                            let text = format!("{:.2}, {:.2}, {:.2}", 
+                                transform.position[0], transform.position[1], transform.position[2]);
+                            if let Ok(mut clipboard) = Clipboard::new() {
+                                let _ = clipboard.set_text(text);
+                            }
+                        }
+                        if ui.small_button("📋 Rot").on_hover_text("Copy rotation").clicked() {
+                            let text = format!("{:.2}, {:.2}, {:.2}", 
+                                transform.rotation[0], transform.rotation[1], transform.rotation[2]);
+                            if let Ok(mut clipboard) = Clipboard::new() {
+                                let _ = clipboard.set_text(text);
+                            }
+                        }
+                        if ui.small_button("📋 Scale").on_hover_text("Copy scale").clicked() {
+                            let text = format!("{:.2}, {:.2}, {:.2}", 
+                                transform.scale[0], transform.scale[1], transform.scale[2]);
+                            if let Ok(mut clipboard) = Clipboard::new() {
+                                let _ = clipboard.set_text(text);
+                            }
+                        }
+                    });
+
                     ui.add_space(10.0);
                 }
 
@@ -321,33 +359,82 @@ pub fn render_inspector(
                     let _ = world.remove_component(entity, ComponentType::BoxCollider);
                 }
 
-                // Velocity Component (Rigidbody) - Unity-style
-                let has_velocity = world.has_component(entity, ComponentType::Rigidbody);
-                let mut remove_velocity = false;
+                // Rigidbody 2D Component - Unity-style with full properties
+                let has_rigidbody = world.has_component(entity, ComponentType::Rigidbody);
+                let mut remove_rigidbody = false;
                 
-                if has_velocity {
-                    let velocity_id = ui.make_persistent_id("velocity_component");
+                if has_rigidbody {
+                    let rigidbody_id = ui.make_persistent_id("rigidbody_component");
                     let is_open = egui::collapsing_header::CollapsingState::load_with_default_open(
-                        ui.ctx(), velocity_id, true
+                        ui.ctx(), rigidbody_id, true
                     );
                     
                     render_component_header(ui, "Rigidbody 2D", "⚡", false);
                     
                     if is_open.is_open() {
-                        if let Some(velocity) = world.velocities.get_mut(&entity) {
-                            ui.indent("velocity_indent", |ui| {
-                                egui::Grid::new("velocity_grid")
+                        // Ensure rigidbody exists (create if only legacy velocity exists)
+                        if !world.rigidbodies.contains_key(&entity) {
+                            let vel = world.velocities.get(&entity).copied().unwrap_or((0.0, 0.0));
+                            let mut rb = ecs::Rigidbody2D::default();
+                            rb.velocity = vel;
+                            world.rigidbodies.insert(entity, rb);
+                        }
+
+                        if let Some(rigidbody) = world.rigidbodies.get_mut(&entity) {
+                            ui.indent("rigidbody_indent", |ui| {
+                                egui::Grid::new("rigidbody_grid")
                                     .num_columns(2)
                                     .spacing([10.0, 8.0])
                                     .show(ui, |ui| {
                                         ui.label("Velocity X");
-                                        ui.add(egui::DragValue::new(&mut velocity.0).speed(0.1));
+                                        ui.add(egui::DragValue::new(&mut rigidbody.velocity.0).speed(0.1));
                                         ui.end_row();
                                         
                                         ui.label("Velocity Y");
-                                        ui.add(egui::DragValue::new(&mut velocity.1).speed(0.1));
+                                        ui.add(egui::DragValue::new(&mut rigidbody.velocity.1).speed(0.1));
+                                        ui.end_row();
+
+                                        ui.label("Gravity Scale");
+                                        ui.add(egui::DragValue::new(&mut rigidbody.gravity_scale).speed(0.1).clamp_range(0.0..=10.0))
+                                            .on_hover_text("0 = no gravity, 1 = normal gravity");
+                                        ui.end_row();
+
+                                        ui.label("Mass");
+                                        ui.add(egui::DragValue::new(&mut rigidbody.mass).speed(0.1).clamp_range(0.1..=100.0))
+                                            .on_hover_text("Affects collision response");
+                                        ui.end_row();
+
+                                        ui.label("Is Kinematic");
+                                        ui.checkbox(&mut rigidbody.is_kinematic, "")
+                                            .on_hover_text("If checked, not affected by physics forces");
+                                        ui.end_row();
+
+                                        ui.label("Freeze Rotation");
+                                        ui.checkbox(&mut rigidbody.freeze_rotation, "")
+                                            .on_hover_text("Prevent rotation (for 2D games)");
                                         ui.end_row();
                                     });
+
+                                // Sync with legacy velocity
+                                world.velocities.insert(entity, rigidbody.velocity);
+                                
+                                ui.add_space(10.0);
+                                
+                                // Debug info
+                                ui.label(egui::RichText::new("Debug Info:").color(egui::Color32::GRAY).small());
+                                ui.horizontal(|ui| {
+                                    ui.label(egui::RichText::new(format!(
+                                        "Speed: {:.2} px/s", 
+                                        (rigidbody.velocity.0.powi(2) + rigidbody.velocity.1.powi(2)).sqrt()
+                                    )).small().color(egui::Color32::GRAY));
+                                    
+                                    if ui.small_button("📋").on_hover_text("Copy velocity").clicked() {
+                                        let text = format!("{:.2}, {:.2}", rigidbody.velocity.0, rigidbody.velocity.1);
+                                        if let Ok(mut clipboard) = Clipboard::new() {
+                                            let _ = clipboard.set_text(text);
+                                        }
+                                    }
+                                });
                                 
                                 ui.add_space(5.0);
                                 ui.horizontal(|ui| {
@@ -355,7 +442,7 @@ pub fn render_inspector(
                                         // Component menu
                                     }
                                     if ui.button("❌ Remove Component").clicked() {
-                                        remove_velocity = true;
+                                        remove_rigidbody = true;
                                     }
                                 });
                             });
@@ -364,7 +451,7 @@ pub fn render_inspector(
                     }
                 }
                 
-                if remove_velocity {
+                if remove_rigidbody {
                     let _ = world.remove_component(entity, ComponentType::Rigidbody);
                 }
 
@@ -755,6 +842,126 @@ fn render_component_header(ui: &mut egui::Ui, name: &str, icon: &str, always_ope
             });
         });
     ui.add_space(8.0);
+}
+
+/// Format entity debug information for copying to clipboard
+fn format_entity_debug_info(
+    world: &World,
+    entity: ecs::Entity,
+    entity_names: &HashMap<ecs::Entity, String>,
+) -> String {
+    let mut info = String::new();
+    
+    // Entity header
+    let name = entity_names.get(&entity).map(|s| s.as_str()).unwrap_or("Unnamed");
+    info.push_str(&format!("=== Entity {} ({}) ===\n\n", entity, name));
+    
+    // Active state
+    let is_active = world.active.get(&entity).copied().unwrap_or(true);
+    info.push_str(&format!("Active: {}\n", is_active));
+    
+    // Layer
+    let layer = world.layers.get(&entity).copied().unwrap_or(0);
+    info.push_str(&format!("Layer: {}\n\n", layer));
+    
+    // Transform
+    if let Some(transform) = world.transforms.get(&entity) {
+        info.push_str("Transform:\n");
+        info.push_str(&format!("  Position: [{:.2}, {:.2}, {:.2}]\n", 
+            transform.position[0], transform.position[1], transform.position[2]));
+        info.push_str(&format!("  Rotation: [{:.2}, {:.2}, {:.2}]\n", 
+            transform.rotation[0], transform.rotation[1], transform.rotation[2]));
+        info.push_str(&format!("  Scale: [{:.2}, {:.2}, {:.2}]\n\n", 
+            transform.scale[0], transform.scale[1], transform.scale[2]));
+    }
+    
+    // Sprite
+    if let Some(sprite) = world.sprites.get(&entity) {
+        info.push_str("Sprite Renderer:\n");
+        info.push_str(&format!("  Texture: {}\n", sprite.texture_id));
+        info.push_str(&format!("  Size: {:.1} x {:.1}\n", sprite.width, sprite.height));
+        info.push_str(&format!("  Color: [{:.2}, {:.2}, {:.2}, {:.2}]\n", 
+            sprite.color[0], sprite.color[1], sprite.color[2], sprite.color[3]));
+        info.push_str(&format!("  Billboard: {}\n\n", sprite.billboard));
+    }
+    
+    // Box Collider
+    if let Some(collider) = world.colliders.get(&entity) {
+        info.push_str("Box Collider 2D:\n");
+        info.push_str(&format!("  Width: {:.1}\n", collider.width));
+        info.push_str(&format!("  Height: {:.1}\n\n", collider.height));
+    }
+    
+    // Rigidbody
+    if let Some(rigidbody) = world.rigidbodies.get(&entity) {
+        info.push_str("Rigidbody 2D:\n");
+        info.push_str(&format!("  Velocity: [{:.2}, {:.2}]\n", 
+            rigidbody.velocity.0, rigidbody.velocity.1));
+        info.push_str(&format!("  Gravity Scale: {:.2}\n", rigidbody.gravity_scale));
+        info.push_str(&format!("  Mass: {:.2}\n", rigidbody.mass));
+        info.push_str(&format!("  Is Kinematic: {}\n", rigidbody.is_kinematic));
+        info.push_str(&format!("  Freeze Rotation: {}\n\n", rigidbody.freeze_rotation));
+    } else if let Some(velocity) = world.velocities.get(&entity) {
+        info.push_str("Velocity (Legacy):\n");
+        info.push_str(&format!("  [{:.2}, {:.2}]\n\n", velocity.0, velocity.1));
+    }
+    
+    // Mesh
+    if let Some(mesh) = world.meshes.get(&entity) {
+        info.push_str("Mesh Renderer:\n");
+        info.push_str(&format!("  Type: {:?}\n", mesh.mesh_type));
+        info.push_str(&format!("  Color: [{:.2}, {:.2}, {:.2}, {:.2}]\n\n", 
+            mesh.color[0], mesh.color[1], mesh.color[2], mesh.color[3]));
+    }
+    
+    // Camera
+    if let Some(camera) = world.cameras.get(&entity) {
+        info.push_str("Camera:\n");
+        info.push_str(&format!("  Projection: {:?}\n", camera.projection));
+        info.push_str(&format!("  FOV: {:.1}°\n", camera.fov));
+        info.push_str(&format!("  Orthographic Size: {:.1}\n", camera.orthographic_size));
+        info.push_str(&format!("  Near Clip: {:.2}\n", camera.near_clip));
+        info.push_str(&format!("  Far Clip: {:.1}\n", camera.far_clip));
+        info.push_str(&format!("  Depth: {}\n\n", camera.depth));
+    }
+    
+    // Script
+    if let Some(script) = world.scripts.get(&entity) {
+        info.push_str("Script:\n");
+        info.push_str(&format!("  Name: {}\n", script.script_name));
+        info.push_str(&format!("  Enabled: {}\n", script.enabled));
+        if !script.parameters.is_empty() {
+            info.push_str("  Parameters:\n");
+            for (key, value) in &script.parameters {
+                info.push_str(&format!("    {}: {:?}\n", key, value));
+            }
+        }
+        info.push_str("\n");
+    }
+    
+    // Tag
+    if let Some(tag) = world.tags.get(&entity) {
+        info.push_str(&format!("Tag: {:?}\n\n", tag));
+    }
+    
+    // Hierarchy
+    if let Some(parent) = world.parents.get(&entity) {
+        let parent_name = entity_names.get(parent).map(|s| s.as_str()).unwrap_or("Unnamed");
+        info.push_str(&format!("Parent: {} ({})\n", parent, parent_name));
+    }
+    
+    let children = world.children.get(&entity);
+    if let Some(children) = children {
+        if !children.is_empty() {
+            info.push_str(&format!("Children: {}\n", children.len()));
+            for child in children {
+                let child_name = entity_names.get(child).map(|s| s.as_str()).unwrap_or("Unnamed");
+                info.push_str(&format!("  - {} ({})\n", child, child_name));
+            }
+        }
+    }
+    
+    info
 }
 
 /// Parse Lua script file to extract variable declarations (Unity-like parameters)
