@@ -452,12 +452,16 @@ impl SceneCamera {
     
     /// Convert screen coordinates to world coordinates
     pub fn screen_to_world(&self, screen_pos: Vec2) -> Vec2 {
-        self.position + screen_pos / self.zoom
+        // In 2D mode (rotation = 0), Y axis points up (standard convention)
+        // Screen Y increases downward, so we need to invert it
+        self.position + Vec2::new(screen_pos.x, -screen_pos.y) / self.zoom
     }
     
     /// Convert world coordinates to screen coordinates
     pub fn world_to_screen(&self, world_pos: Vec2) -> Vec2 {
-        (world_pos - self.position) * self.zoom
+        // Convert world to screen, inverting Y axis
+        let world_delta = world_pos - self.position;
+        Vec2::new(world_delta.x, -world_delta.y) * self.zoom
     }
     
     /// Reset camera to default

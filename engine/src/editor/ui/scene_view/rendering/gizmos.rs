@@ -106,8 +106,8 @@ pub fn render_transform_gizmo(
     transform_space: &TransformSpace,
     transform: &ecs::Transform,
 ) {
-    let gizmo_size = 50.0;
-    let handle_size = 8.0;
+    let gizmo_size = 60.0; // Increased for easier clicking
+    let handle_size = 10.0; // Increased for easier clicking
     
     // Get rotation angle based on space mode
     let rotation_rad = match transform_space {
@@ -117,82 +117,59 @@ pub fn render_transform_gizmo(
                 // 3D: combine object rotation with camera rotation
                 scene_camera.get_rotation_radians() + transform.rotation[2].to_radians()
             } else {
-                // 2D: only object rotation
+                // 2D: only object rotation (Z axis)
                 transform.rotation[2].to_radians()
             }
         }
         TransformSpace::World => {
-            // World space: gizmo aligned with world axes (no rotation)
-            0.0
+            // World space: gizmo aligned with world axes
+            if *scene_view_mode == SceneViewMode::Mode3D {
+                // In 3D, still need camera rotation for proper axis display
+                scene_camera.get_rotation_radians()
+            } else {
+                // In 2D, no rotation
+                0.0
+            }
         }
-    };
-
-    match current_tool {
-        TransformTool::View => {}
-        TransformTool::Move => {
-            // X axis (Red) - rotated
-            let x_dir = glam::Vec2::new(rotation_rad.cos(), rotation_rad.sin());
-            let x_end = egui::pos2(
-                screen_x + x_dir.x * gizmo_size, 
-                screen_y + x_dir.y * gizmo_size
-            );
-            painter.line_segment(
-                [egui::pos2(screen_x, screen_y), x_end],
-                egui::Stroke::new(3.0, egui::Color32::from_rgb(255, 0, 0)),
-            );
-            painter.circle_filled(x_end, handle_size, egui::Color32::from_rgb(255, 0, 0));
-            
-            // Label
-            painter.text(
-                egui::pos2(x_end.x + 10.0, x_end.y),
-                egui::Align2::LEFT_CENTER,
-                "X",
-                egui::FontId::proportional(12.0),
-                egui::Color32::from_rgb(255, 0, 0),
-            );
-
-            // Y axis (Green) - always up in screen space
-            let y_end = egui::pos2(screen_x, screen_y - gizmo_size);
-            painter.line_segment(
                 [egui::pos2(screen_x, screen_y), y_end],
-                egui::Stroke::new(3.0, egui::Color32::from_rgb(0, 255, 0)),
+                egui::Stroke::new(4.0, egui::Color32::from_rgb(0, 255, 0)),
             );
             painter.circle_filled(y_end, handle_size, egui::Color32::from_rgb(0, 255, 0));
             
             // Label
             painter.text(
-                egui::pos2(y_end.x, y_end.y - 10.0),
+                egui::pos2(y_end.x, y_end.y - 12.0),
                 egui::Align2::CENTER_BOTTOM,
                 "Y",
-                egui::FontId::proportional(12.0),
+                egui::FontId::proportional(14.0),
                 egui::Color32::from_rgb(0, 255, 0),
             );
             
             // Z axis (Blue) - perpendicular to X in 3D mode
             if *scene_view_mode == SceneViewMode::Mode3D {
-                let z_dir = glam::Vec2::new(-rotation_rad.sin(), rotation_rad.cos());
+                let z_dir = glam::Vec2::new(rotation_rad.sin(), rotation_rad.cos()); // Perpendicular to X
                 let z_end = egui::pos2(
                     screen_x + z_dir.x * gizmo_size, 
                     screen_y + z_dir.y * gizmo_size
                 );
                 painter.line_segment(
                     [egui::pos2(screen_x, screen_y), z_end],
-                    egui::Stroke::new(3.0, egui::Color32::from_rgb(0, 0, 255)),
+                    egui::Stroke::new(4.0, egui::Color32::from_rgb(0, 0, 255)),
                 );
                 painter.circle_filled(z_end, handle_size, egui::Color32::from_rgb(0, 0, 255));
                 
                 // Label
                 painter.text(
-                    egui::pos2(z_end.x + 10.0, z_end.y),
+                    egui::pos2(z_end.x + 12.0, z_end.y),
                     egui::Align2::LEFT_CENTER,
                     "Z",
-                    egui::FontId::proportional(12.0),
+                    egui::FontId::proportional(14.0),
                     egui::Color32::from_rgb(0, 0, 255),
                 );
             }
 
-            // Center (Yellow)
-            painter.circle_filled(egui::pos2(screen_x, screen_y), handle_size, egui::Color32::from_rgb(255, 255, 0));
+            // Center handle for free movement (Yellow)
+            painter.circle_filled(egui::pos2(screen_x, screen_y), handle_size * 1.2, egui::Color32::from_rgb(255, 255, 0));
         }
         TransformTool::Rotate => {
             let radius = gizmo_size * 0.8;
@@ -223,38 +200,11 @@ pub fn render_transform_gizmo(
                 );
             }
         }
-        TransformTool::Scale => {
-            // Scale gizmo with axis handles
-            let axis_length = gizmo_size;
-            
-            // X axis (Red) - rotated
-            let x_dir = glam::Vec2::new(rotation_rad.cos(), rotation_rad.sin());
-            let x_end = egui::pos2(
-                screen_x + x_dir.x * axis_length,
-                screen_y + x_dir.y * axis_length
-            );
-            painter.line_segment(
-                [egui::pos2(screen_x, screen_y), x_end],
-                egui::Stroke::new(3.0, egui::Color32::from_rgb(255, 0, 0)),
-            );
-            painter.rect_filled(
-                egui::Rect::from_center_size(x_end, egui::vec2(handle_size * 1.5, handle_size * 1.5)),
-                0.0,
-                egui::Color32::from_rgb(255, 0, 0)
-            );
-            
-            // Y axis (Green) - perpendicular to X
-            let y_dir = glam::Vec2::new(-rotation_rad.sin(), rotation_rad.cos());
-            let y_end = egui::pos2(
-                screen_x + y_dir.x * axis_length,
-                screen_y + y_dir.y * axis_length
-            );
-            painter.line_segment(
                 [egui::pos2(screen_x, screen_y), y_end],
-                egui::Stroke::new(3.0, egui::Color32::from_rgb(0, 255, 0)),
+                egui::Stroke::new(4.0, egui::Color32::from_rgb(0, 255, 0)),
             );
             painter.rect_filled(
-                egui::Rect::from_center_size(y_end, egui::vec2(handle_size * 1.5, handle_size * 1.5)),
+                egui::Rect::from_center_size(y_end, egui::vec2(handle_size * 1.8, handle_size * 1.8)),
                 0.0,
                 egui::Color32::from_rgb(0, 255, 0)
             );
@@ -263,7 +213,7 @@ pub fn render_transform_gizmo(
             painter.rect_filled(
                 egui::Rect::from_center_size(
                     egui::pos2(screen_x, screen_y),
-                    egui::vec2(handle_size * 2.0, handle_size * 2.0)
+                    egui::vec2(handle_size * 2.2, handle_size * 2.2)
                 ),
                 0.0,
                 egui::Color32::from_rgb(255, 255, 255)

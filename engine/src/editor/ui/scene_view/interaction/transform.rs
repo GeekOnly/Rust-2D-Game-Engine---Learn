@@ -26,10 +26,10 @@ pub fn handle_gizmo_interaction_stateful(
         return;
     }
 
-    // Calculate rotation for gizmo handles
+    // Calculate rotation for gizmo handles (must match rendering)
     let rotation_rad = match transform_space {
         TransformSpace::Local => {
-            // Local space: rotate with object
+            // Local space: rotate with object (Z rotation only in 2D)
             transform.rotation[2].to_radians()
         }
         TransformSpace::World => {
@@ -41,36 +41,39 @@ pub fn handle_gizmo_interaction_stateful(
     // Start dragging - determine which handle
     if response.drag_started() {
         if let Some(hover_pos) = response.hover_pos() {
-            let gizmo_size = 50.0;
-            let handle_size = 8.0;
+            let gizmo_size = 60.0; // Match rendering size
+            let handle_size = 10.0; // Match rendering size
             let center = egui::pos2(screen_x, screen_y);
             
             match current_tool {
                 TransformTool::Move => {
-                    // Calculate rotated handle positions
-                    let x_dir = glam::Vec2::new(rotation_rad.cos(), rotation_rad.sin());
-                    let y_dir = glam::Vec2::new(-rotation_rad.sin(), rotation_rad.cos()); // Perpendicular to X
+                    // Calculate rotated handle positions (MUST MATCH RENDERING)
+                    // X axis direction (inverted Y for screen space)
+                    let x_dir = glam::Vec2::new(rotation_rad.cos(), -rotation_rad.sin());
+                    // Y axis direction (perpendicular to X, inverted Y for screen space)
+                    let y_dir = glam::Vec2::new(-rotation_rad.sin(), -rotation_rad.cos());
                     
                     let x_handle = egui::pos2(
                         screen_x + x_dir.x * gizmo_size,
                         screen_y + x_dir.y * gizmo_size
                     );
                     let y_handle = egui::pos2(
-                        screen_x - gizmo_size * rotation_rad.sin(),
-                        screen_y - gizmo_size * rotation_rad.cos()
+                        screen_x + y_dir.x * gizmo_size,
+                        screen_y + y_dir.y * gizmo_size
                     );
                     
                     let dist_x = hover_pos.distance(x_handle);
                     let dist_y = hover_pos.distance(y_handle);
                     let dist_center = hover_pos.distance(center);
                     
-                    if dist_center < handle_size * 1.5 {
+                    // Increased hit detection radius for easier clicking
+                    if dist_center < handle_size * 1.8 {
                         *dragging_entity = Some(entity);
-                        *drag_axis = Some(2); // Both axes
-                    } else if dist_x < handle_size * 1.5 {
+                        *drag_axis = Some(2); // Both axes (free movement)
+                    } else if dist_x < handle_size * 1.8 {
                         *dragging_entity = Some(entity);
                         *drag_axis = Some(0); // X only
-                    } else if dist_y < handle_size * 1.5 {
+                    } else if dist_y < handle_size * 1.8 {
                         *dragging_entity = Some(entity);
                         *drag_axis = Some(1); // Y only
                     }
@@ -81,18 +84,20 @@ pub fn handle_gizmo_interaction_stateful(
                     let dist_from_center = hover_pos.distance(center);
                     let dist_from_circle = (dist_from_center - radius).abs();
                     
-                    // If mouse is near the circle (within 25 pixels for easier clicking)
+                    // If mouse is near the circle (within 30 pixels for easier clicking)
                     // OR if mouse is anywhere inside the gizmo area
-                    if dist_from_circle < 25.0 || dist_from_center < radius {
+                    if dist_from_circle < 30.0 || dist_from_center < radius {
                         *dragging_entity = Some(entity);
                         *drag_axis = Some(0); // Use axis 0 for rotation
                     }
                 }
                 TransformTool::Scale => {
-                    // Calculate handle positions
+                    // Calculate handle positions (MUST MATCH RENDERING)
                     let axis_length = gizmo_size;
-                    let x_dir = glam::Vec2::new(rotation_rad.cos(), rotation_rad.sin());
-                    let y_dir = glam::Vec2::new(-rotation_rad.sin(), rotation_rad.cos());
+                    // X axis direction (inverted Y for screen space)
+                    let x_dir = glam::Vec2::new(rotation_rad.cos(), -rotation_rad.sin());
+                    // Y axis direction (perpendicular to X, inverted Y for screen space)
+                    let y_dir = glam::Vec2::new(-rotation_rad.sin(), -rotation_rad.cos());
                     
                     let x_handle = egui::pos2(
                         screen_x + x_dir.x * axis_length,
@@ -107,13 +112,14 @@ pub fn handle_gizmo_interaction_stateful(
                     let dist_y = hover_pos.distance(y_handle);
                     let dist_center = hover_pos.distance(center);
                     
-                    if dist_center < handle_size * 2.0 {
+                    // Increased hit detection radius for easier clicking
+                    if dist_center < handle_size * 2.5 {
                         *dragging_entity = Some(entity);
                         *drag_axis = Some(2); // Uniform scale
-                    } else if dist_x < handle_size * 2.0 {
+                    } else if dist_x < handle_size * 2.5 {
                         *dragging_entity = Some(entity);
                         *drag_axis = Some(0); // X axis scale
-                    } else if dist_y < handle_size * 2.0 {
+                    } else if dist_y < handle_size * 2.5 {
                         *dragging_entity = Some(entity);
                         *drag_axis = Some(1); // Y axis scale
                     }
@@ -130,8 +136,9 @@ pub fn handle_gizmo_interaction_stateful(
         if let Some(transform_mut) = world.transforms.get_mut(&entity) {
             match current_tool {
                 TransformTool::Move => {
-                    // Step 1: Convert screen delta to world space (no rotation yet)
-                    let screen_delta = glam::Vec2::new(delta.x, delta.y);
+                    // Convert screen delta to world space
+                    // Screen Y is inverted (down is positive), so we need to flip it
+                    let screen_delta = glam::Vec2::new(delta.x, -delta.y);
                     let world_delta = screen_delta / scene_camera.zoom;
                     
                     if let Some(axis) = *drag_axis {
@@ -145,10 +152,10 @@ pub fn handle_gizmo_interaction_stateful(
                                         
                                         // Calculate local axis direction in world space
                                         let local_axis = if axis == 0 {
-                                            // X axis
+                                            // X axis in world space
                                             glam::Vec2::new(rotation_rad.cos(), rotation_rad.sin())
                                         } else {
-                                            // Y axis (perpendicular to X)
+                                            // Y axis in world space (perpendicular to X, rotated 90° CCW)
                                             glam::Vec2::new(-rotation_rad.sin(), rotation_rad.cos())
                                         };
                                         
@@ -162,8 +169,10 @@ pub fn handle_gizmo_interaction_stateful(
                                     TransformSpace::World => {
                                         // World space: move along world axes
                                         if axis == 0 {
+                                            // X axis only
                                             transform_mut.position[0] += world_delta.x;
                                         } else {
+                                            // Y axis only
                                             transform_mut.position[1] += world_delta.y;
                                         }
                                     }
@@ -202,8 +211,8 @@ pub fn handle_gizmo_interaction_stateful(
                     }
                 }
                 TransformTool::Scale => {
-                    // Convert screen delta to world space
-                    let screen_delta = glam::Vec2::new(delta.x, delta.y);
+                    // Convert screen delta to world space (invert Y)
+                    let screen_delta = glam::Vec2::new(delta.x, -delta.y);
                     let world_delta = screen_delta / scene_camera.zoom;
                     
                     if let Some(axis) = *drag_axis {
@@ -216,6 +225,7 @@ pub fn handle_gizmo_interaction_stateful(
                                     TransformSpace::Local => transform.rotation[2].to_radians(),
                                     TransformSpace::World => 0.0,
                                 };
+                                // X axis direction in world space
                                 let x_axis = glam::Vec2::new(rotation_rad.cos(), rotation_rad.sin());
                                 let scale_delta = world_delta.dot(x_axis) * scale_speed;
                                 transform_mut.scale[0] = (transform_mut.scale[0] + scale_delta).max(0.1);
@@ -226,13 +236,14 @@ pub fn handle_gizmo_interaction_stateful(
                                     TransformSpace::Local => transform.rotation[2].to_radians(),
                                     TransformSpace::World => 0.0,
                                 };
+                                // Y axis direction in world space (perpendicular to X)
                                 let y_axis = glam::Vec2::new(-rotation_rad.sin(), rotation_rad.cos());
                                 let scale_delta = world_delta.dot(y_axis) * scale_speed;
                                 transform_mut.scale[1] = (transform_mut.scale[1] + scale_delta).max(0.1);
                             }
                             2 => {
-                                // Uniform scale
-                                let scale_delta = (world_delta.x + world_delta.y) * scale_speed;
+                                // Uniform scale - use average of both axes
+                                let scale_delta = (world_delta.x + world_delta.y) * 0.5 * scale_speed;
                                 transform_mut.scale[0] = (transform_mut.scale[0] + scale_delta).max(0.1);
                                 transform_mut.scale[1] = (transform_mut.scale[1] + scale_delta).max(0.1);
                             }

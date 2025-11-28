@@ -198,14 +198,14 @@ fn render_entity_2d(
             }
         }
     } else {
-        // Default placeholder
+        // Default placeholder - only for non-camera entities
+        // Camera entities should not be rendered in the scene view
         let is_camera = world.names.get(&entity)
             .map(|name| name.contains("Camera") || name.contains("camera"))
             .unwrap_or(false);
         
-        if is_camera {
-            render_camera_gizmo(painter, screen_x, screen_y, scene_camera, &SceneViewMode::Mode2D);
-        } else {
+        if !is_camera {
+            // Only render placeholder for non-camera entities
             painter.circle_filled(egui::pos2(screen_x, screen_y), 5.0 * scene_camera.zoom, egui::Color32::from_rgb(150, 150, 150));
         }
     }
