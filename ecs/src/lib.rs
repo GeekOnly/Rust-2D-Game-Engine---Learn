@@ -3,9 +3,12 @@ use serde::{Serialize, Deserialize};
 
 pub mod traits;
 pub mod component_manager;
+pub mod components;
+pub mod loaders;
 
 // Re-export สำหรับใช้งานง่าย
 pub use component_manager::{ComponentType, ComponentManager};
+pub use components::*;
 
 pub type Entity = u32;
 
@@ -365,6 +368,11 @@ pub struct World {
     pub parents: HashMap<Entity, Entity>,   // Parent entity
     pub children: HashMap<Entity, Vec<Entity>>, // Children entities
     pub names: HashMap<Entity, String>,     // Entity names (for editor)
+    // Sprite sheet and tilemap components
+    pub sprite_sheets: HashMap<Entity, SpriteSheet>,
+    pub animated_sprites: HashMap<Entity, AnimatedSprite>,
+    pub tilemaps: HashMap<Entity, Tilemap>,
+    pub tilesets: HashMap<Entity, TileSet>,
 }
 
 impl World {
@@ -407,6 +415,10 @@ impl World {
         self.active.remove(&e);
         self.layers.remove(&e);
         self.names.remove(&e);
+        self.sprite_sheets.remove(&e);
+        self.animated_sprites.remove(&e);
+        self.tilemaps.remove(&e);
+        self.tilesets.remove(&e);
     }
 
     pub fn clear(&mut self) {
@@ -424,6 +436,10 @@ impl World {
         self.parents.clear();
         self.children.clear();
         self.names.clear();
+        self.sprite_sheets.clear();
+        self.animated_sprites.clear();
+        self.tilemaps.clear();
+        self.tilesets.clear();
         self.next_entity = 0;
     }
 
@@ -670,6 +686,10 @@ impl_component_access!(World, Mesh, meshes);
 impl_component_access!(World, Camera, cameras);
 impl_component_access!(World, Script, scripts);
 impl_component_access!(World, EntityTag, tags);
+impl_component_access!(World, SpriteSheet, sprite_sheets);
+impl_component_access!(World, AnimatedSprite, animated_sprites);
+impl_component_access!(World, Tilemap, tilemaps);
+impl_component_access!(World, TileSet, tilesets);
 
 // Manual implementations for tuple and primitive types
 impl traits::ComponentAccess<(f32, f32)> for World {
