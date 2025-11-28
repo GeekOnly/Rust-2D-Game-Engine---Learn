@@ -165,21 +165,27 @@ impl SceneCamera {
         if self.is_panning {
             let delta = mouse_pos - self.last_mouse_pos;
 
-            // In 3D mode, pan should respect camera rotation
             // Convert screen space delta to world space delta
+            let pan_speed = self.settings.pan_sensitivity / self.zoom;
+            
+            // In 2D mode (rotation = 0), this simplifies to direct X/Y movement
+            // In 3D mode, pan respects camera rotation
             let yaw_rad = self.rotation.to_radians();
             let cos_yaw = yaw_rad.cos();
             let sin_yaw = yaw_rad.sin();
 
             // Pan along camera's local X and Z axes
             // Inverted to match Unity behavior (drag right = move camera right = world moves left)
-            let pan_speed = self.settings.pan_sensitivity / self.zoom;
             let world_delta_x = -(delta.x * cos_yaw + delta.y * sin_yaw) * pan_speed;
             let world_delta_z = -(-delta.x * sin_yaw + delta.y * cos_yaw) * pan_speed;
 
             // Update target position instead of direct position
             self.target_position.x += world_delta_x;
             self.target_position.y += world_delta_z; // position.y maps to world Z
+            
+            // Also update current position immediately for responsive feel
+            self.position.x += world_delta_x;
+            self.position.y += world_delta_z;
             
             // Add to velocity for inertia
             if self.settings.enable_inertia {

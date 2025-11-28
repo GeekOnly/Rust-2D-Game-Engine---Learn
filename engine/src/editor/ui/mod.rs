@@ -121,6 +121,10 @@ impl EditorUI {
 
         // Center Panel - Scene/Game View
         egui::CentralPanel::default().show(ctx, |ui| {
+            // Update camera with delta time for smooth interpolation
+            let delta_time = ui.input(|i| i.stable_dt);
+            scene_camera.update(delta_time);
+            
             // Dummy drag state for old layout (not used)
             let mut dummy_dragging_entity = None;
             let mut dummy_drag_axis = None;
