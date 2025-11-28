@@ -20,25 +20,37 @@ pub fn render_grid_2d(
         (scene_grid.color[3] * 255.0) as u8,
     );
 
+    // Calculate grid offset based on camera position
+    // The grid should move opposite to camera movement
+    let center = rect.center();
+    let offset_x = (-scene_camera.position.x * scene_camera.zoom) % grid_size;
+    let offset_y = (-scene_camera.position.y * scene_camera.zoom) % grid_size;
+
     // Vertical lines
-    let start_x = ((rect.min.x - scene_camera.position.x * scene_camera.zoom) / grid_size).floor() * grid_size;
+    let start_x = ((rect.min.x - center.x - offset_x) / grid_size).floor() * grid_size;
     let mut x = start_x;
-    while x < rect.max.x {
-        painter.line_segment(
-            [egui::pos2(x, rect.min.y), egui::pos2(x, rect.max.y)],
-            egui::Stroke::new(1.0, grid_color),
-        );
+    while x < rect.max.x - center.x + grid_size {
+        let screen_x = center.x + x + offset_x;
+        if screen_x >= rect.min.x && screen_x <= rect.max.x {
+            painter.line_segment(
+                [egui::pos2(screen_x, rect.min.y), egui::pos2(screen_x, rect.max.y)],
+                egui::Stroke::new(1.0, grid_color),
+            );
+        }
         x += grid_size;
     }
 
     // Horizontal lines
-    let start_y = ((rect.min.y - scene_camera.position.y * scene_camera.zoom) / grid_size).floor() * grid_size;
+    let start_y = ((rect.min.y - center.y - offset_y) / grid_size).floor() * grid_size;
     let mut y = start_y;
-    while y < rect.max.y {
-        painter.line_segment(
-            [egui::pos2(rect.min.x, y), egui::pos2(rect.max.x, y)],
-            egui::Stroke::new(1.0, grid_color),
-        );
+    while y < rect.max.y - center.y + grid_size {
+        let screen_y = center.y + y + offset_y;
+        if screen_y >= rect.min.y && screen_y <= rect.max.y {
+            painter.line_segment(
+                [egui::pos2(rect.min.x, screen_y), egui::pos2(rect.max.x, screen_y)],
+                egui::Stroke::new(1.0, grid_color),
+            );
+        }
         y += grid_size;
     }
 }
