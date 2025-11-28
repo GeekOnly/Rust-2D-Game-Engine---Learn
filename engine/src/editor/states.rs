@@ -99,6 +99,7 @@ pub struct EditorState {
     pub transform_space: super::ui::scene_view::TransformSpace, // Local or World space
     pub undo_stack: super::undo::UndoStack,  // Undo/Redo system
     pub selection: super::selection::SelectionManager,  // Multi-selection system
+    pub clipboard: super::clipboard::Clipboard,  // Copy/Paste/Duplicate system
 }
 
 #[allow(dead_code)]
@@ -157,6 +158,7 @@ impl EditorState {
             transform_space: super::ui::scene_view::TransformSpace::Local,
             undo_stack: super::undo::UndoStack::new(),
             selection: super::selection::SelectionManager::new(),
+            clipboard: super::clipboard::Clipboard::new(),
         }
     }
 
