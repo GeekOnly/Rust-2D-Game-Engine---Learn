@@ -83,6 +83,26 @@ impl GameState {
             items.push(item);
         }
 
+        // Spawn ground
+        let ground = world.spawn();
+        world.transforms.insert(ground, Transform {
+            position: [500.0, 600.0, 0.0], // Bottom of screen (assuming 1000x700 window)
+            rotation: [0.0, 0.0, 0.0],
+            scale: [1.0, 1.0, 1.0],
+        });
+        world.sprites.insert(ground, Sprite {
+            texture_id: "white".to_string(),
+            width: 1000.0,
+            height: 50.0,
+            color: [0.5, 0.5, 0.5, 1.0], // Gray
+            billboard: false,
+        });
+        world.colliders.insert(ground, Collider {
+            width: 1000.0,
+            height: 50.0,
+        });
+        // No tag for ground, or reuse Item if needed, but better to leave untagged if not needed for logic
+
         Self {
             world,
             player: Some(player),
