@@ -97,6 +97,7 @@ pub struct EditorState {
     pub scene_view_mode: super::ui::scene_view::SceneViewMode, // 2D or 3D mode
     pub projection_mode: super::ui::scene_view::ProjectionMode, // Isometric or Perspective
     pub transform_space: super::ui::scene_view::TransformSpace, // Local or World space
+    pub undo_stack: super::undo::UndoStack,  // Undo/Redo system
 }
 
 #[allow(dead_code)]
@@ -153,6 +154,7 @@ impl EditorState {
             scene_view_mode: super::ui::scene_view::SceneViewMode::Mode2D,
             projection_mode: super::ui::scene_view::ProjectionMode::Perspective,
             transform_space: super::ui::scene_view::TransformSpace::Local,
+            undo_stack: super::undo::UndoStack::new(),
         }
     }
 

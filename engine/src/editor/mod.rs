@@ -11,6 +11,7 @@ pub mod autosave;
 pub mod asset_manager;
 pub mod drag_drop;
 pub mod rendering_3d;
+pub mod undo;
 
 // Re-exports for convenience
 pub use console::Console;
@@ -25,3 +26,4 @@ pub use autosave::AutoSave;
 pub use asset_manager::AssetManager;
 pub use drag_drop::{DragDropState, DraggedAsset};
 pub use rendering_3d::{Point3D, Face3D, depth_sort_faces};
+pub use undo::{UndoStack, Command, CreateEntityCommand, DeleteEntityCommand, MoveEntityCommand, RotateEntityCommand, ScaleEntityCommand, RenameEntityCommand, BatchCommand};
