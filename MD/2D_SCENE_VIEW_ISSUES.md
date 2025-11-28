@@ -77,16 +77,16 @@
 
 ## ลำดับความสำคัญ
 
-### Priority 1 (Critical) - แก้ก่อน
+### Priority 1 (Critical) - ✅ เสร็จแล้ว
 1. ✅ แกน camera สลับบนล่าง (ปัญหา #5)
 2. ✅ Gizmo Move ใช้งานไม่ได้ (ปัญหา #3, #6)
 3. ✅ Gizmo ไม่หมุนตาม object (ปัญหา #8)
 
-### Priority 2 (Important) - แก้ถัดไป
-4. ⚠️ Zoom และ drag ไม่ smooth (ปัญหา #4)
-5. 📝 Camera ไม่ save ใน scene (ปัญหา #1)
+### Priority 2 (Important) - ✅ เสร็จแล้ว
+4. ✅ Zoom และ drag ไม่ smooth (ปัญหา #4)
+5. ✅ Camera ไม่ save ใน scene (ปัญหา #1)
 
-### Priority 3 (Feature) - ทำทีหลัง
+### Priority 3 (Feature) - 🔜 ต่อไป
 6. 🆕 ระบบ sprite/tilemap (ปัญหา #7)
 
 ## การทดสอบ
@@ -141,9 +141,23 @@
 
 ## Timeline
 
-- **Day 1:** แก้ปัญหา Priority 1 (#5, #3, #6, #8)
-- **Day 2:** แก้ปัญหา Priority 2 (#4, #1)
-- **Day 3-5:** ทำ Feature Priority 3 (#7)
+- **Day 1:** ✅ แก้ปัญหา Priority 1 (#5, #3, #6, #8) - เสร็จแล้ว
+- **Day 2:** ✅ แก้ปัญหา Priority 2 (#4, #1) - เสร็จแล้ว
+- **Day 3-5:** 🔜 ทำ Feature Priority 3 (#7) - รอดำเนินการ
+
+## สถานะปัจจุบัน
+
+### ✅ เสร็จสมบูรณ์
+- Y-axis inversion แก้แล้ว
+- Gizmo rotation ทำงานถูกต้อง
+- Gizmo interaction (Move, Rotate, Scale) ใช้งานได้
+- Zoom และ Pan smooth แล้ว
+- Camera serialization ทำงานแล้ว
+
+### 🔜 รอดำเนินการ
+- ระบบ Sprite/Tilemap (LDTK, Tiled)
+- Sprite Atlas
+- Auto-generate Colliders
 
 ## Notes
 
