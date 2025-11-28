@@ -458,6 +458,8 @@ impl World {
             velocities: Vec<(Entity, (f32, f32))>,
             sprites: Vec<(Entity, Sprite)>,
             colliders: Vec<(Entity, Collider)>,
+            cameras: Vec<(Entity, Camera)>,  // Added camera serialization
+            meshes: Vec<(Entity, Mesh)>,     // Added mesh serialization
             tags: Vec<(Entity, EntityTag)>,
             scripts: Vec<(Entity, Script)>,
             active: Vec<(Entity, bool)>,
@@ -472,6 +474,8 @@ impl World {
             velocities: self.velocities.iter().map(|(k, v)| (*k, *v)).collect(),
             sprites: self.sprites.iter().map(|(k, v)| (*k, v.clone())).collect(),
             colliders: self.colliders.iter().map(|(k, v)| (*k, v.clone())).collect(),
+            cameras: self.cameras.iter().map(|(k, v)| (*k, v.clone())).collect(),
+            meshes: self.meshes.iter().map(|(k, v)| (*k, v.clone())).collect(),
             tags: self.tags.iter().map(|(k, v)| (*k, v.clone())).collect(),
             scripts: self.scripts.iter().map(|(k, v)| (*k, v.clone())).collect(),
             active: self.active.iter().map(|(k, v)| (*k, *v)).collect(),
@@ -496,6 +500,10 @@ impl World {
             sprites: Vec<(Entity, Sprite)>,
             #[serde(default)]
             colliders: Vec<(Entity, Collider)>,
+            #[serde(default)]
+            cameras: Vec<(Entity, Camera)>,  // Added camera deserialization
+            #[serde(default)]
+            meshes: Vec<(Entity, Mesh)>,     // Added mesh deserialization
             #[serde(default)]
             tags: Vec<(Entity, EntityTag)>,
             #[serde(default)]
@@ -537,6 +545,12 @@ impl World {
         }
         for (entity, collider) in data.colliders {
             self.colliders.insert(entity, collider);
+        }
+        for (entity, camera) in data.cameras {
+            self.cameras.insert(entity, camera);
+        }
+        for (entity, mesh) in data.meshes {
+            self.meshes.insert(entity, mesh);
         }
         for (entity, name) in data.names {
             self.names.insert(entity, name);

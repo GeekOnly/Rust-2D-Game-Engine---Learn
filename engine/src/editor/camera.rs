@@ -29,14 +29,14 @@ impl Default for CameraSettings {
         Self {
             pan_sensitivity: 1.0,
             rotation_sensitivity: 0.5,
-            zoom_sensitivity: 0.1,
-            pan_damping: 0.15,
+            zoom_sensitivity: 0.15, // Increased for smoother zoom
+            pan_damping: 0.08,      // Reduced for more responsive panning
             rotation_damping: 0.12,
-            zoom_damping: 0.2,
-            enable_inertia: true,
-            inertia_decay: 0.95,
+            zoom_damping: 0.12,     // Reduced for smoother zoom
+            enable_inertia: false,  // Disabled by default for more predictable behavior
+            inertia_decay: 0.92,    // Faster decay when enabled
             zoom_to_cursor: true,
-            zoom_speed: 10.0,
+            zoom_speed: 15.0,       // Increased for faster zoom response
         }
     }
 }
@@ -166,7 +166,11 @@ impl SceneCamera {
             let delta = mouse_pos - self.last_mouse_pos;
 
             // Convert screen space delta to world space delta
-            let pan_speed = self.settings.pan_sensitivity / self.zoom;
+            // Improved pan speed calculation: more responsive at all zoom levels
+            let base_pan_speed = self.settings.pan_sensitivity / self.zoom;
+            // Add a minimum speed to prevent too slow panning when zoomed in
+            let min_speed = 0.5 / self.zoom.max(10.0);
+            let pan_speed = base_pan_speed.max(min_speed);
             
             // In 2D mode (rotation = 0), this simplifies to direct X/Y movement
             // In 3D mode, pan respects camera rotation
@@ -179,17 +183,18 @@ impl SceneCamera {
             let world_delta_x = -(delta.x * cos_yaw + delta.y * sin_yaw) * pan_speed;
             let world_delta_z = -(-delta.x * sin_yaw + delta.y * cos_yaw) * pan_speed;
 
-            // Update target position instead of direct position
+            // Update target position for smooth interpolation
             self.target_position.x += world_delta_x;
             self.target_position.y += world_delta_z; // position.y maps to world Z
             
-            // Also update current position immediately for responsive feel
-            self.position.x += world_delta_x;
-            self.position.y += world_delta_z;
+            // Update current position with reduced damping for immediate response
+            let immediate_factor = 0.7; // 70% immediate, 30% smoothed
+            self.position.x += world_delta_x * immediate_factor;
+            self.position.y += world_delta_z * immediate_factor;
             
-            // Add to velocity for inertia
+            // Add to velocity for inertia (if enabled)
             if self.settings.enable_inertia {
-                self.velocity.pan_velocity += Vec2::new(world_delta_x, world_delta_z);
+                self.velocity.pan_velocity += Vec2::new(world_delta_x, world_delta_z) * 0.3;
             }
 
             self.last_mouse_pos = mouse_pos;
@@ -204,11 +209,12 @@ impl SceneCamera {
     
     /// Zoom in/out (scroll wheel) - improved version with cursor-based zooming
     pub fn zoom(&mut self, delta: f32, mouse_pos: Vec2) {
-        if self.settings.zoom_to_cursor {
-            // Calculate world position under cursor before zoom
-            let world_pos_before = self.screen_to_world(mouse_pos);
-            self.last_cursor_world_pos = Some(world_pos_before);
-        }
+        // Store world position under cursor before zoom (for zoom-to-cursor)
+        let world_pos_before = if self.settings.zoom_to_cursor {
+            Some(self.screen_to_world(mouse_pos))
+        } else {
+            None
+        };
         
         // Smooth exponential zoom with better sensitivity
         let zoom_factor = if delta > 0.0 {
@@ -217,13 +223,33 @@ impl SceneCamera {
             1.0 / (1.0 + self.settings.zoom_sensitivity)
         };
         
+        let old_zoom = self.zoom;
         self.target_zoom *= zoom_factor;
         self.target_zoom = self.target_zoom.clamp(self.min_zoom, self.max_zoom);
         
-        // Add to velocity for inertia
+        // Apply zoom immediately with interpolation for smoothness
+        let immediate_factor = 0.6; // 60% immediate, 40% smoothed
+        self.zoom = self.zoom * (1.0 - immediate_factor) + self.target_zoom * immediate_factor;
+        self.zoom = self.zoom.clamp(self.min_zoom, self.max_zoom);
+        
+        // Adjust camera position to zoom towards cursor
+        if let Some(world_pos) = world_pos_before {
+            if self.settings.zoom_to_cursor {
+                // Calculate how much the world position moved in screen space
+                let screen_pos_after = self.world_to_screen(world_pos);
+                let screen_offset = mouse_pos - screen_pos_after;
+                
+                // Adjust camera position to keep world position under cursor
+                let world_offset = Vec2::new(screen_offset.x, -screen_offset.y) / self.zoom;
+                self.position += world_offset;
+                self.target_position += world_offset;
+            }
+        }
+        
+        // Add to velocity for inertia (if enabled)
         if self.settings.enable_inertia {
-            let zoom_delta = self.target_zoom - self.zoom;
-            self.velocity.zoom_velocity += zoom_delta * 0.1;
+            let zoom_delta = self.target_zoom - old_zoom;
+            self.velocity.zoom_velocity += zoom_delta * 0.2;
         }
     }
     
