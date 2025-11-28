@@ -14,6 +14,7 @@ pub mod rendering_3d;
 pub mod undo;
 pub mod selection;
 pub mod clipboard;
+pub mod snapping;
 
 // Re-exports for convenience
 pub use console::Console;
@@ -31,3 +32,4 @@ pub use rendering_3d::{Point3D, Face3D, depth_sort_faces};
 pub use undo::{UndoStack, Command, CreateEntityCommand, DeleteEntityCommand, MoveEntityCommand, RotateEntityCommand, ScaleEntityCommand, RenameEntityCommand, BatchCommand};
 pub use selection::{SelectionManager, SelectionMode, BoxSelection, handle_scene_selection, handle_hierarchy_selection};
 pub use clipboard::{Clipboard, ClipboardAction, copy_selected, paste_from_clipboard, duplicate_selected, handle_clipboard_shortcuts};
+pub use snapping::{SnapSettings, SnapMode, snap_position, snap_rotation, snap_scale, render_snap_grid, render_snap_indicator, handle_snap_shortcuts};

@@ -100,6 +100,7 @@ pub struct EditorState {
     pub undo_stack: super::undo::UndoStack,  // Undo/Redo system
     pub selection: super::selection::SelectionManager,  // Multi-selection system
     pub clipboard: super::clipboard::Clipboard,  // Copy/Paste/Duplicate system
+    pub snap_settings: super::snapping::SnapSettings,  // Snap to Grid system
 }
 
 #[allow(dead_code)]
@@ -159,6 +160,7 @@ impl EditorState {
             undo_stack: super::undo::UndoStack::new(),
             selection: super::selection::SelectionManager::new(),
             clipboard: super::clipboard::Clipboard::new(),
+            snap_settings: super::snapping::SnapSettings::load().unwrap_or_default(),
         }
     }
 
