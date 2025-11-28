@@ -29,10 +29,12 @@ pub fn handle_gizmo_interaction_stateful(
     // Calculate rotation for gizmo handles
     let rotation_rad = match transform_space {
         TransformSpace::Local => {
-            scene_camera.get_rotation_radians() + transform.rotation[2].to_radians()
+            // Local space: rotate with object
+            transform.rotation[2].to_radians()
         }
         TransformSpace::World => {
-            scene_camera.get_rotation_radians()
+            // World space: no rotation (aligned with world axes)
+            0.0
         }
     };
 
@@ -87,21 +89,33 @@ pub fn handle_gizmo_interaction_stateful(
                     }
                 }
                 TransformTool::Scale => {
-                    // Check if mouse is near any corner handle
-                    let box_size = gizmo_size * 0.7;
-                    let corners = [
-                        egui::pos2(screen_x - box_size, screen_y - box_size), // Top-left
-                        egui::pos2(screen_x + box_size, screen_y - box_size), // Top-right
-                        egui::pos2(screen_x - box_size, screen_y + box_size), // Bottom-left
-                        egui::pos2(screen_x + box_size, screen_y + box_size), // Bottom-right
-                    ];
+                    // Calculate handle positions
+                    let axis_length = gizmo_size;
+                    let x_dir = glam::Vec2::new(rotation_rad.cos(), rotation_rad.sin());
+                    let y_dir = glam::Vec2::new(-rotation_rad.sin(), rotation_rad.cos());
                     
-                    for corner in &corners {
-                        if hover_pos.distance(*corner) < handle_size * 1.5 {
-                            *dragging_entity = Some(entity);
-                            *drag_axis = Some(0); // Use axis 0 for uniform scale
-                            break;
-                        }
+                    let x_handle = egui::pos2(
+                        screen_x + x_dir.x * axis_length,
+                        screen_y + x_dir.y * axis_length
+                    );
+                    let y_handle = egui::pos2(
+                        screen_x + y_dir.x * axis_length,
+                        screen_y + y_dir.y * axis_length
+                    );
+                    
+                    let dist_x = hover_pos.distance(x_handle);
+                    let dist_y = hover_pos.distance(y_handle);
+                    let dist_center = hover_pos.distance(center);
+                    
+                    if dist_center < handle_size * 2.0 {
+                        *dragging_entity = Some(entity);
+                        *drag_axis = Some(2); // Uniform scale
+                    } else if dist_x < handle_size * 2.0 {
+                        *dragging_entity = Some(entity);
+                        *drag_axis = Some(0); // X axis scale
+                    } else if dist_y < handle_size * 2.0 {
+                        *dragging_entity = Some(entity);
+                        *drag_axis = Some(1); // Y axis scale
                     }
                 }
                 _ => {}
@@ -116,42 +130,49 @@ pub fn handle_gizmo_interaction_stateful(
         if let Some(transform_mut) = world.transforms.get_mut(&entity) {
             match current_tool {
                 TransformTool::Move => {
-                    // Convert screen delta to world delta (accounting for zoom)
+                    // Step 1: Convert screen delta to world space (no rotation yet)
                     let screen_delta = glam::Vec2::new(delta.x, delta.y);
-                    
-                    // Calculate rotation for axis-aligned movement
-                    let rotation_rad = match transform_space {
-                        TransformSpace::Local => {
-                            // In 2D mode, only use object rotation (no camera rotation)
-                            transform.rotation[2].to_radians()
-                        }
-                        TransformSpace::World => {
-                            // World space: no rotation
-                            0.0
-                        }
-                    };
-                    
-                    // Rotate screen delta to world space
-                    let cos_r = rotation_rad.cos();
-                    let sin_r = rotation_rad.sin();
-                    let world_delta_x = (screen_delta.x * cos_r + screen_delta.y * sin_r) / scene_camera.zoom;
-                    let world_delta_y = (-screen_delta.x * sin_r + screen_delta.y * cos_r) / scene_camera.zoom;
+                    let world_delta = screen_delta / scene_camera.zoom;
                     
                     if let Some(axis) = *drag_axis {
                         match axis {
-                            0 => {
-                                // X axis only - project delta onto X axis
-                                transform_mut.position[0] += world_delta_x;
-                            }
-                            1 => {
-                                // Y axis only - project delta onto Y axis
-                                // Fixed: Remove negative sign for correct Y movement
-                                transform_mut.position[1] += world_delta_y;
+                            0 | 1 => {
+                                // Single axis movement - project onto the axis
+                                match transform_space {
+                                    TransformSpace::Local => {
+                                        // Local space: use object rotation
+                                        let rotation_rad = transform.rotation[2].to_radians();
+                                        
+                                        // Calculate local axis direction in world space
+                                        let local_axis = if axis == 0 {
+                                            // X axis
+                                            glam::Vec2::new(rotation_rad.cos(), rotation_rad.sin())
+                                        } else {
+                                            // Y axis (perpendicular to X)
+                                            glam::Vec2::new(-rotation_rad.sin(), rotation_rad.cos())
+                                        };
+                                        
+                                        // Project world delta onto local axis
+                                        let projection = world_delta.dot(local_axis);
+                                        let movement = local_axis * projection;
+                                        
+                                        transform_mut.position[0] += movement.x;
+                                        transform_mut.position[1] += movement.y;
+                                    }
+                                    TransformSpace::World => {
+                                        // World space: move along world axes
+                                        if axis == 0 {
+                                            transform_mut.position[0] += world_delta.x;
+                                        } else {
+                                            transform_mut.position[1] += world_delta.y;
+                                        }
+                                    }
+                                }
                             }
                             2 => {
-                                // Both axes - free movement
-                                transform_mut.position[0] += world_delta_x;
-                                transform_mut.position[1] += world_delta_y;
+                                // Both axes - free movement (no projection needed)
+                                transform_mut.position[0] += world_delta.x;
+                                transform_mut.position[1] += world_delta.y;
                             }
                             _ => {}
                         }
@@ -181,13 +202,43 @@ pub fn handle_gizmo_interaction_stateful(
                     }
                 }
                 TransformTool::Scale => {
-                    // Increased scale speed for better control
-                    let scale_speed = 0.005;
-                    let scale_delta = (delta.x + delta.y) * scale_speed;
-                    transform_mut.scale[0] += scale_delta;
-                    transform_mut.scale[1] += scale_delta;
-                    transform_mut.scale[0] = transform_mut.scale[0].max(0.1);
-                    transform_mut.scale[1] = transform_mut.scale[1].max(0.1);
+                    // Convert screen delta to world space
+                    let screen_delta = glam::Vec2::new(delta.x, delta.y);
+                    let world_delta = screen_delta / scene_camera.zoom;
+                    
+                    if let Some(axis) = *drag_axis {
+                        let scale_speed = 0.01;
+                        
+                        match axis {
+                            0 => {
+                                // X axis scale only
+                                let rotation_rad = match transform_space {
+                                    TransformSpace::Local => transform.rotation[2].to_radians(),
+                                    TransformSpace::World => 0.0,
+                                };
+                                let x_axis = glam::Vec2::new(rotation_rad.cos(), rotation_rad.sin());
+                                let scale_delta = world_delta.dot(x_axis) * scale_speed;
+                                transform_mut.scale[0] = (transform_mut.scale[0] + scale_delta).max(0.1);
+                            }
+                            1 => {
+                                // Y axis scale only
+                                let rotation_rad = match transform_space {
+                                    TransformSpace::Local => transform.rotation[2].to_radians(),
+                                    TransformSpace::World => 0.0,
+                                };
+                                let y_axis = glam::Vec2::new(-rotation_rad.sin(), rotation_rad.cos());
+                                let scale_delta = world_delta.dot(y_axis) * scale_speed;
+                                transform_mut.scale[1] = (transform_mut.scale[1] + scale_delta).max(0.1);
+                            }
+                            2 => {
+                                // Uniform scale
+                                let scale_delta = (world_delta.x + world_delta.y) * scale_speed;
+                                transform_mut.scale[0] = (transform_mut.scale[0] + scale_delta).max(0.1);
+                                transform_mut.scale[1] = (transform_mut.scale[1] + scale_delta).max(0.1);
+                            }
+                            _ => {}
+                        }
+                    }
                 }
                 _ => {}
             }

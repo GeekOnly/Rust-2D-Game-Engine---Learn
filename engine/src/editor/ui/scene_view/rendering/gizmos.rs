@@ -110,22 +110,20 @@ pub fn render_transform_gizmo(
     let handle_size = 8.0;
     
     // Get rotation angle based on space mode
-    let rotation_rad = if *scene_view_mode == SceneViewMode::Mode3D {
-        match transform_space {
-            TransformSpace::Local => {
-                // Local space: combine object rotation with camera rotation
+    let rotation_rad = match transform_space {
+        TransformSpace::Local => {
+            // Local space: rotate gizmo with object
+            if *scene_view_mode == SceneViewMode::Mode3D {
+                // 3D: combine object rotation with camera rotation
                 scene_camera.get_rotation_radians() + transform.rotation[2].to_radians()
-            }
-            TransformSpace::World => {
-                // World space: only camera rotation
-                scene_camera.get_rotation_radians()
+            } else {
+                // 2D: only object rotation
+                transform.rotation[2].to_radians()
             }
         }
-    } else {
-        // 2D mode
-        match transform_space {
-            TransformSpace::Local => transform.rotation[2].to_radians(),
-            TransformSpace::World => 0.0,
+        TransformSpace::World => {
+            // World space: gizmo aligned with world axes (no rotation)
+            0.0
         }
     };
 
@@ -226,18 +224,50 @@ pub fn render_transform_gizmo(
             }
         }
         TransformTool::Scale => {
-            let box_size = gizmo_size * 0.7;
-            let rect = egui::Rect::from_center_size(
-                egui::pos2(screen_x, screen_y),
-                egui::vec2(box_size * 2.0, box_size * 2.0),
-            );
-            painter.rect_stroke(rect, 0.0, egui::Stroke::new(2.0, egui::Color32::from_rgb(255, 150, 0)));
+            // Scale gizmo with axis handles
+            let axis_length = gizmo_size;
             
-            // Corner handles
-            painter.circle_filled(rect.left_top(), handle_size, egui::Color32::from_rgb(255, 150, 0));
-            painter.circle_filled(rect.right_top(), handle_size, egui::Color32::from_rgb(255, 150, 0));
-            painter.circle_filled(rect.left_bottom(), handle_size, egui::Color32::from_rgb(255, 150, 0));
-            painter.circle_filled(rect.right_bottom(), handle_size, egui::Color32::from_rgb(255, 150, 0));
+            // X axis (Red) - rotated
+            let x_dir = glam::Vec2::new(rotation_rad.cos(), rotation_rad.sin());
+            let x_end = egui::pos2(
+                screen_x + x_dir.x * axis_length,
+                screen_y + x_dir.y * axis_length
+            );
+            painter.line_segment(
+                [egui::pos2(screen_x, screen_y), x_end],
+                egui::Stroke::new(3.0, egui::Color32::from_rgb(255, 0, 0)),
+            );
+            painter.rect_filled(
+                egui::Rect::from_center_size(x_end, egui::vec2(handle_size * 1.5, handle_size * 1.5)),
+                0.0,
+                egui::Color32::from_rgb(255, 0, 0)
+            );
+            
+            // Y axis (Green) - perpendicular to X
+            let y_dir = glam::Vec2::new(-rotation_rad.sin(), rotation_rad.cos());
+            let y_end = egui::pos2(
+                screen_x + y_dir.x * axis_length,
+                screen_y + y_dir.y * axis_length
+            );
+            painter.line_segment(
+                [egui::pos2(screen_x, screen_y), y_end],
+                egui::Stroke::new(3.0, egui::Color32::from_rgb(0, 255, 0)),
+            );
+            painter.rect_filled(
+                egui::Rect::from_center_size(y_end, egui::vec2(handle_size * 1.5, handle_size * 1.5)),
+                0.0,
+                egui::Color32::from_rgb(0, 255, 0)
+            );
+            
+            // Center handle for uniform scale (White)
+            painter.rect_filled(
+                egui::Rect::from_center_size(
+                    egui::pos2(screen_x, screen_y),
+                    egui::vec2(handle_size * 2.0, handle_size * 2.0)
+                ),
+                0.0,
+                egui::Color32::from_rgb(255, 255, 255)
+            );
         }
     }
 }
