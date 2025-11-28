@@ -98,6 +98,7 @@ pub struct EditorState {
     pub projection_mode: super::ui::scene_view::ProjectionMode, // Isometric or Perspective
     pub transform_space: super::ui::scene_view::TransformSpace, // Local or World space
     pub undo_stack: super::undo::UndoStack,  // Undo/Redo system
+    pub selection: super::selection::SelectionManager,  // Multi-selection system
 }
 
 #[allow(dead_code)]
@@ -155,6 +156,7 @@ impl EditorState {
             projection_mode: super::ui::scene_view::ProjectionMode::Perspective,
             transform_space: super::ui::scene_view::TransformSpace::Local,
             undo_stack: super::undo::UndoStack::new(),
+            selection: super::selection::SelectionManager::new(),
         }
     }
 
