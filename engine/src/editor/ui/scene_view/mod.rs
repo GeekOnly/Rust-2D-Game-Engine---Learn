@@ -146,19 +146,36 @@ pub fn render_scene_view(
     let center = rect.center();
     let mut hovered_entity: Option<Entity> = None;
     
-    rendering::entity::render_all_entities(
-        &painter,
-        world,
-        scene_camera,
-        scene_view_mode,
-        projection_mode,
-        center,
-        selected_entity,
-        show_colliders,
-        show_velocities,
-        &mut hovered_entity,
-        &response,
-    );
+    // Render entities based on mode
+    match scene_view_mode {
+        SceneViewMode::Mode2D => {
+            rendering::view_2d::render_scene_2d(
+                &painter,
+                world,
+                scene_camera,
+                center,
+                selected_entity,
+                show_colliders,
+                show_velocities,
+                &mut hovered_entity,
+                &response,
+            );
+        }
+        SceneViewMode::Mode3D => {
+            rendering::view_3d::render_scene_3d(
+                &painter,
+                world,
+                scene_camera,
+                projection_mode,
+                center,
+                selected_entity,
+                show_colliders,
+                show_velocities,
+                &mut hovered_entity,
+                &response,
+            );
+        }
+    }
 
     // Focus on selected entity (F key)
     if focus_pressed {
