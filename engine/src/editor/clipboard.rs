@@ -248,7 +248,8 @@ impl Clipboard {
             hierarchy: Vec::new(),
         };
         
-        let new_entities = self.paste_data(&data, world, entity_names, Some([10.0, 10.0, 0.0]), Some("(Copy)"));
+        // No offset - duplicate at same position
+        let new_entities = self.paste_data(&data, world, entity_names, None, Some("(Copy)"));
         new_entities.first().copied()
     }
     
