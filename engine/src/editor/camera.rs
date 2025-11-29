@@ -27,7 +27,7 @@ pub struct CameraSettings {
 impl Default for CameraSettings {
     fn default() -> Self {
         Self {
-            pan_sensitivity: 1.0,
+            pan_sensitivity: 0.5,   // Reduced for slower, more precise panning
             rotation_sensitivity: 0.5,
             zoom_sensitivity: 0.12, // Optimized for 2D mode
             pan_damping: 0.08,      // Reduced for more responsive panning

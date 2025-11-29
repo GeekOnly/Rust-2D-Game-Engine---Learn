@@ -252,4 +252,26 @@ pub fn render_scene_view(
         *dragging_entity = None;
         *drag_axis = None;
     }
+    
+    // Camera controls overlay (bottom-left corner)
+    let overlay_margin = 10.0;
+    let overlay_pos = egui::pos2(rect.min.x + overlay_margin, rect.max.y - 60.0);
+    
+    ui.allocate_ui_at_rect(
+        egui::Rect::from_min_size(overlay_pos, egui::vec2(300.0, 50.0)),
+        |ui| {
+            // Semi-transparent background
+            ui.style_mut().visuals.window_fill = egui::Color32::from_rgba_premultiplied(30, 30, 35, 200);
+            ui.style_mut().visuals.window_stroke = egui::Stroke::new(1.0, egui::Color32::from_rgba_premultiplied(80, 80, 90, 200));
+            
+            egui::Frame::none()
+                .fill(egui::Color32::from_rgba_premultiplied(30, 30, 35, 200))
+                .stroke(egui::Stroke::new(1.0, egui::Color32::from_rgba_premultiplied(80, 80, 90, 200)))
+                .rounding(4.0)
+                .inner_margin(8.0)
+                .show(ui, |ui| {
+                    crate::editor::ui::camera_settings::render_scene_view_controls(ui, scene_camera);
+                });
+        }
+    );
 }
