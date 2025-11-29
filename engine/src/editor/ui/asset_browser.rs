@@ -6,7 +6,7 @@ use crate::editor::{UnityTheme, DragDropState, DraggedAsset};
 pub struct AssetBrowser;
 
 impl AssetBrowser {
-    /// Render asset browser panel
+    /// Render asset browser panel (Unity-like 2-column layout)
     pub fn render(
         ui: &mut egui::Ui,
         asset_manager: &mut AssetManager,
@@ -14,7 +14,7 @@ impl AssetBrowser {
     ) {
         let colors = UnityTheme::colors();
         
-        // Toolbar
+        // Toolbar (above both columns)
         ui.horizontal(|ui| {
             // Navigation buttons
             if ui.button("⬅").clicked() {
@@ -76,8 +76,23 @@ impl AssetBrowser {
         
         ui.separator();
         
-        // Asset list
-        egui::ScrollArea::vertical().show(ui, |ui| {
+        // Unity-like 2-column layout: Folder tree (left) + Asset view (right)
+        ui.horizontal(|ui| {
+            // Left panel: Folder tree
+            egui::ScrollArea::vertical()
+                .id_source("folder_tree")
+                .max_width(200.0)
+                .show(ui, |ui| {
+                    ui.set_min_width(200.0);
+                    Self::render_folder_tree(ui, asset_manager, colors);
+                });
+            
+            ui.separator();
+            
+            // Right panel: Asset list
+            egui::ScrollArea::vertical()
+                .id_source("asset_list")
+                .show(ui, |ui| {
             let assets = asset_manager.get_assets();
             
             if assets.is_empty() {
@@ -95,7 +110,88 @@ impl AssetBrowser {
                     Self::render_list_view(ui, asset_manager, &assets, colors, drag_drop);
                 }
             }
+            });
         });
+    }
+    
+    /// Render folder tree (Unity-like hierarchy)
+    fn render_folder_tree(
+        ui: &mut egui::Ui,
+        asset_manager: &mut AssetManager,
+        colors: crate::editor::theme::UnityColors,
+    ) {
+        ui.label(egui::RichText::new("Folders").strong());
+        ui.separator();
+        
+        // Get project root (go up from current path until we find project root)
+        let mut project_root = asset_manager.current_path.clone();
+        while project_root.parent().is_some() {
+            // Check if this looks like project root (has scenes, scripts, etc.)
+            if project_root.join("scenes").exists() || project_root.join("scripts").exists() {
+                break;
+            }
+            if let Some(parent) = project_root.parent() {
+                project_root = parent.to_path_buf();
+            } else {
+                break;
+            }
+        }
+        
+        // Assets folder (project root)
+        Self::render_folder_tree_node(ui, asset_manager, &project_root, "Assets", 0, colors);
+        
+        // Packages folder (if exists)
+        let packages_path = project_root.join("packages");
+        if packages_path.exists() {
+            Self::render_folder_tree_node(ui, asset_manager, &packages_path, "Packages", 0, colors);
+        }
+    }
+    
+    /// Render single folder tree node (recursive)
+    fn render_folder_tree_node(
+        ui: &mut egui::Ui,
+        asset_manager: &mut AssetManager,
+        path: &std::path::PathBuf,
+        name: &str,
+        depth: usize,
+        colors: crate::editor::theme::UnityColors,
+    ) {
+        let indent = depth as f32 * 16.0;
+        let is_current = asset_manager.current_path == *path;
+        
+        ui.horizontal(|ui| {
+            ui.add_space(indent);
+            
+            // Folder icon and name
+            let icon = if path.is_dir() { "📁" } else { "📄" };
+            let text = format!("{} {}", icon, name);
+            
+            let response = ui.selectable_label(is_current, text);
+            
+            if response.clicked() {
+                asset_manager.navigate_to(path);
+            }
+        });
+        
+        // Show subfolders if this is a directory
+        if path.is_dir() {
+            if let Ok(entries) = std::fs::read_dir(path) {
+                let mut folders: Vec<_> = entries
+                    .filter_map(|e| e.ok())
+                    .filter(|e| e.path().is_dir())
+                    .collect();
+                
+                folders.sort_by(|a, b| {
+                    a.file_name().cmp(&b.file_name())
+                });
+                
+                for entry in folders {
+                    let sub_path = entry.path();
+                    let sub_name = entry.file_name().to_string_lossy().to_string();
+                    Self::render_folder_tree_node(ui, asset_manager, &sub_path, &sub_name, depth + 1, colors);
+                }
+            }
+        }
     }
     
     /// Render grid view
