@@ -40,6 +40,9 @@ impl PhysicsWorld {
         // Update positions based on velocity
         self.update_positions(scaled_dt, world);
 
+        // Apply world bounds to prevent objects from falling infinitely
+        self.apply_world_bounds(world);
+
         // Check and resolve collisions
         self.check_collisions(world);
     }
@@ -89,6 +92,74 @@ impl PhysicsWorld {
                     // Update position
                     transform.position[0] += rigidbody.velocity.0 * dt;
                     transform.position[1] += rigidbody.velocity.1 * dt;
+                }
+            }
+        }
+    }
+
+    /// Apply world bounds to prevent objects from falling infinitely
+    fn apply_world_bounds(&self, world: &mut World) {
+        // Define world bounds (can be made configurable later)
+        let min_y = -100.0;  // Bottom bound
+        let max_y = 100.0;   // Top bound (optional)
+        let min_x = -100.0;  // Left bound (optional)
+        let max_x = 100.0;   // Right bound (optional)
+
+        let entities: Vec<Entity> = world.rigidbodies.keys().cloned().collect();
+
+        for entity in entities {
+            if let Some(rigidbody) = world.rigidbodies.get_mut(&entity) {
+                // Skip kinematic bodies
+                if rigidbody.is_kinematic {
+                    continue;
+                }
+
+                if let Some(transform) = world.transforms.get_mut(&entity) {
+                    let mut clamped = false;
+
+                    // Clamp Y position (prevent falling infinitely)
+                    if transform.position[1] < min_y {
+                        transform.position[1] = min_y;
+                        // Stop downward velocity
+                        if rigidbody.velocity.1 < 0.0 {
+                            rigidbody.velocity.1 = 0.0;
+                            world.velocities.insert(entity, rigidbody.velocity);
+                        }
+                        clamped = true;
+                    } else if transform.position[1] > max_y {
+                        transform.position[1] = max_y;
+                        // Stop upward velocity
+                        if rigidbody.velocity.1 > 0.0 {
+                            rigidbody.velocity.1 = 0.0;
+                            world.velocities.insert(entity, rigidbody.velocity);
+                        }
+                        clamped = true;
+                    }
+
+                    // Clamp X position (optional side bounds)
+                    if transform.position[0] < min_x {
+                        transform.position[0] = min_x;
+                        // Stop leftward velocity
+                        if rigidbody.velocity.0 < 0.0 {
+                            rigidbody.velocity.0 = 0.0;
+                            world.velocities.insert(entity, rigidbody.velocity);
+                        }
+                        clamped = true;
+                    } else if transform.position[0] > max_x {
+                        transform.position[0] = max_x;
+                        // Stop rightward velocity
+                        if rigidbody.velocity.0 > 0.0 {
+                            rigidbody.velocity.0 = 0.0;
+                            world.velocities.insert(entity, rigidbody.velocity);
+                        }
+                        clamped = true;
+                    }
+
+                    // Optional: Add bounce effect
+                    // if clamped {
+                    //     rigidbody.velocity.0 *= -0.5; // Bounce with 50% energy loss
+                    //     rigidbody.velocity.1 *= -0.5;
+                    // }
                 }
             }
         }
