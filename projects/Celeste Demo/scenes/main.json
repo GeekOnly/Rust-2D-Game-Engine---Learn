@@ -1,0 +1,195 @@
+{
+  "entities": [
+    {
+      "id": 1,
+      "name": "Player",
+      "active": true,
+      "layer": 0,
+      "components": {
+        "Transform": {
+          "position": [400.0, 200.0, 0.0],
+          "rotation": [0.0, 0.0, 0.0],
+          "scale": [1.0, 1.0, 1.0]
+        },
+        "Sprite": {
+          "texture_id": "player",
+          "width": 32.0,
+          "height": 32.0,
+          "color": [0.3, 0.6, 1.0, 1.0],
+          "billboard": false
+        },
+        "Collider": {
+          "width": 32.0,
+          "height": 32.0
+        },
+        "Rigidbody": {
+          "velocity": [0.0, 0.0],
+          "gravity_scale": 1.0,
+          "mass": 1.0,
+          "is_kinematic": false,
+          "freeze_rotation": true
+        },
+        "Script": {
+          "script_name": "player_controller",
+          "enabled": true,
+          "parameters": {}
+        }
+      }
+    },
+    {
+      "id": 2,
+      "name": "Ground",
+      "active": true,
+      "layer": 0,
+      "components": {
+        "Transform": {
+          "position": [400.0, 550.0, 0.0],
+          "rotation": [0.0, 0.0, 0.0],
+          "scale": [1.0, 1.0, 1.0]
+        },
+        "Sprite": {
+          "texture_id": "ground",
+          "width": 800.0,
+          "height": 50.0,
+          "color": [0.3, 0.3, 0.3, 1.0],
+          "billboard": false
+        },
+        "Collider": {
+          "width": 800.0,
+          "height": 50.0
+        },
+        "Rigidbody": {
+          "velocity": [0.0, 0.0],
+          "gravity_scale": 0.0,
+          "mass": 1.0,
+          "is_kinematic": true,
+          "freeze_rotation": true
+        }
+      }
+    },
+    {
+      "id": 3,
+      "name": "Platform 1",
+      "active": true,
+      "layer": 0,
+      "components": {
+        "Transform": {
+          "position": [200.0, 400.0, 0.0],
+          "rotation": [0.0, 0.0, 0.0],
+          "scale": [1.0, 1.0, 1.0]
+        },
+        "Sprite": {
+          "texture_id": "platform",
+          "width": 150.0,
+          "height": 20.0,
+          "color": [0.5, 0.5, 0.5, 1.0],
+          "billboard": false
+        },
+        "Collider": {
+          "width": 150.0,
+          "height": 20.0
+        },
+        "Rigidbody": {
+          "velocity": [0.0, 0.0],
+          "gravity_scale": 0.0,
+          "mass": 1.0,
+          "is_kinematic": true,
+          "freeze_rotation": true
+        }
+      }
+    },
+    {
+      "id": 4,
+      "name": "Platform 2",
+      "active": true,
+      "layer": 0,
+      "components": {
+        "Transform": {
+          "position": [600.0, 350.0, 0.0],
+          "rotation": [0.0, 0.0, 0.0],
+          "scale": [1.0, 1.0, 1.0]
+        },
+        "Sprite": {
+          "texture_id": "platform",
+          "width": 150.0,
+          "height": 20.0,
+          "color": [0.5, 0.5, 0.5, 1.0],
+          "billboard": false
+        },
+        "Collider": {
+          "width": 150.0,
+          "height": 20.0
+        },
+        "Rigidbody": {
+          "velocity": [0.0, 0.0],
+          "gravity_scale": 0.0,
+          "mass": 1.0,
+          "is_kinematic": true,
+          "freeze_rotation": true
+        }
+      }
+    },
+    {
+      "id": 5,
+      "name": "Wall Left",
+      "active": true,
+      "layer": 0,
+      "components": {
+        "Transform": {
+          "position": [100.0, 300.0, 0.0],
+          "rotation": [0.0, 0.0, 0.0],
+          "scale": [1.0, 1.0, 1.0]
+        },
+        "Sprite": {
+          "texture_id": "wall",
+          "width": 20.0,
+          "height": 300.0,
+          "color": [0.4, 0.4, 0.4, 1.0],
+          "billboard": false
+        },
+        "Collider": {
+          "width": 20.0,
+          "height": 300.0
+        },
+        "Rigidbody": {
+          "velocity": [0.0, 0.0],
+          "gravity_scale": 0.0,
+          "mass": 1.0,
+          "is_kinematic": true,
+          "freeze_rotation": true
+        }
+      }
+    },
+    {
+      "id": 6,
+      "name": "Wall Right",
+      "active": true,
+      "layer": 0,
+      "components": {
+        "Transform": {
+          "position": [700.0, 300.0, 0.0],
+          "rotation": [0.0, 0.0, 0.0],
+          "scale": [1.0, 1.0, 1.0]
+        },
+        "Sprite": {
+          "texture_id": "wall",
+          "width": 20.0,
+          "height": 300.0,
+          "color": [0.4, 0.4, 0.4, 1.0],
+          "billboard": false
+        },
+        "Collider": {
+          "width": 20.0,
+          "height": 300.0
+        },
+        "Rigidbody": {
+          "velocity": [0.0, 0.0],
+          "gravity_scale": 0.0,
+          "mass": 1.0,
+          "is_kinematic": true,
+          "freeze_rotation": true
+        }
+      }
+    }
+  ]
+}
