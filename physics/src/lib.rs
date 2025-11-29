@@ -34,6 +34,16 @@ impl PhysicsWorld {
 
         let scaled_dt = dt * self.time_scale;
 
+        // Debug: Log entities with rigidbodies
+        let rb_count = world.rigidbodies.len();
+        if rb_count > 0 {
+            log::debug!("Physics step: {} rigidbodies, dt={:.4}", rb_count, scaled_dt);
+            for (entity, rb) in &world.rigidbodies {
+                log::trace!("  Entity {}: vel={:?}, kinematic={}, gravity_scale={}", 
+                    entity, rb.velocity, rb.is_kinematic, rb.gravity_scale);
+            }
+        }
+
         // Apply gravity to all entities with Rigidbody (velocity component)
         self.apply_gravity(scaled_dt, world);
 
@@ -55,17 +65,21 @@ impl PhysicsWorld {
             // Skip if entity is not active
             let is_active = world.active.get(&entity).copied().unwrap_or(true);
             if !is_active {
+                log::trace!("Entity {} skipped (not active)", entity);
                 continue;
             }
 
             if let Some(rigidbody) = world.rigidbodies.get_mut(&entity) {
                 // Skip if kinematic (not affected by physics)
                 if rigidbody.is_kinematic {
+                    log::trace!("Entity {} skipped (kinematic)", entity);
                     continue;
                 }
 
+                let old_vel = rigidbody.velocity.1;
                 // Apply gravity to Y velocity with gravity scale
                 rigidbody.velocity.1 -= self.gravity * rigidbody.gravity_scale * dt;
+                log::debug!("Entity {}: gravity applied, vel.y {} -> {}", entity, old_vel, rigidbody.velocity.1);
             }
 
             // Sync rigidbody velocity to world velocities (after mutable borrow ends)
@@ -112,6 +126,8 @@ impl PhysicsWorld {
         let min_x = -100.0;  // Left bound (optional)
         let max_x = 100.0;   // Right bound (optional)
 
+        log::trace!("World bounds: x=[{}, {}], y=[{}, {}]", min_x, max_x, min_y, max_y);
+
         let entities: Vec<Entity> = world.rigidbodies.keys().cloned().collect();
 
         for entity in entities {
@@ -138,6 +154,7 @@ impl PhysicsWorld {
 
             // Check and adjust Y bounds
             if position[1] < min_y {
+                log::warn!("Entity {} hit bottom bound: pos.y={:.2} < {:.2}, vel={:?}", entity, position[1], min_y, new_velocity);
                 if let Some(transform) = world.transforms.get_mut(&entity) {
                     transform.position[1] = min_y;
                 }

@@ -1321,13 +1321,23 @@ fn main() -> Result<()> {
                                 // Handle stop request - exit play mode
                                 if stop_request {
                                     if editor_state.is_playing {
+                                        // Debug: Log rigidbody states before restore
+                                        log::info!("Exiting play mode - current world state:");
+                                        for (entity, rb) in &editor_state.world.rigidbodies {
+                                            log::debug!("  Entity {}: vel={:?}", entity, rb.velocity);
+                                        }
+                                        
                                         // Restore world from backup and switch to Scene tab
                                         if let Some(backup_world) = editor_state.play_world.take() {
+                                            log::info!("Restoring world from backup:");
+                                            for (entity, rb) in &backup_world.rigidbodies {
+                                                log::debug!("  Backup Entity {}: vel={:?}", entity, rb.velocity);
+                                            }
                                             editor_state.world = backup_world;
                                         }
                                         editor_state.is_playing = false;
                                         editor_state.scene_view_tab = 0; // Switch back to Scene tab
-                                        log::info!("Exiting play mode in editor");
+                                        log::info!("Exited play mode in editor");
                                         editor_state.console.info("⏹️ Exited Play Mode");
                                     }
                                 }
