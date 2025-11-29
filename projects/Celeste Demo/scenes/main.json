@@ -1,214 +1,85 @@
 {
-  "entities": [
-    {
-      "id": 0,
-      "name": "Main Camera",
-      "active": true,
-      "layer": 0,
-      "components": {
-        "Transform": {
-          "position": [400.0, 300.0, -10.0],
-          "rotation": [0.0, 0.0, 0.0],
-          "scale": [1.0, 1.0, 1.0]
-        },
-        "Camera": {
-          "is_main": true,
-          "orthographic_size": 300.0,
-          "near_plane": 0.1,
-          "far_plane": 1000.0
-        }
-      }
-    },
-    {
-      "id": 1,
-      "name": "Player",
-      "active": true,
-      "layer": 0,
-      "components": {
-        "Transform": {
-          "position": [400.0, 200.0, 0.0],
-          "rotation": [0.0, 0.0, 0.0],
-          "scale": [1.0, 1.0, 1.0]
-        },
-        "Sprite": {
-          "texture_id": "player",
-          "width": 32.0,
-          "height": 32.0,
-          "color": [0.3, 0.6, 1.0, 1.0],
-          "billboard": false
-        },
-        "Collider": {
-          "width": 32.0,
-          "height": 32.0
-        },
-        "Rigidbody": {
-          "velocity": [0.0, 0.0],
-          "gravity_scale": 1.0,
-          "mass": 1.0,
-          "is_kinematic": false,
-          "freeze_rotation": true
-        },
-        "Script": {
-          "script_name": "player_controller",
-          "enabled": true,
-          "parameters": {}
-        }
-      }
-    },
-    {
-      "id": 2,
-      "name": "Ground",
-      "active": true,
-      "layer": 0,
-      "components": {
-        "Transform": {
-          "position": [400.0, 550.0, 0.0],
-          "rotation": [0.0, 0.0, 0.0],
-          "scale": [1.0, 1.0, 1.0]
-        },
-        "Sprite": {
-          "texture_id": "ground",
-          "width": 800.0,
-          "height": 50.0,
-          "color": [0.3, 0.3, 0.3, 1.0],
-          "billboard": false
-        },
-        "Collider": {
-          "width": 800.0,
-          "height": 50.0
-        },
-        "Rigidbody": {
-          "velocity": [0.0, 0.0],
-          "gravity_scale": 0.0,
-          "mass": 1.0,
-          "is_kinematic": true,
-          "freeze_rotation": true
-        }
-      }
-    },
-    {
-      "id": 3,
-      "name": "Platform 1",
-      "active": true,
-      "layer": 0,
-      "components": {
-        "Transform": {
-          "position": [200.0, 400.0, 0.0],
-          "rotation": [0.0, 0.0, 0.0],
-          "scale": [1.0, 1.0, 1.0]
-        },
-        "Sprite": {
-          "texture_id": "platform",
-          "width": 150.0,
-          "height": 20.0,
-          "color": [0.5, 0.5, 0.5, 1.0],
-          "billboard": false
-        },
-        "Collider": {
-          "width": 150.0,
-          "height": 20.0
-        },
-        "Rigidbody": {
-          "velocity": [0.0, 0.0],
-          "gravity_scale": 0.0,
-          "mass": 1.0,
-          "is_kinematic": true,
-          "freeze_rotation": true
-        }
-      }
-    },
-    {
-      "id": 4,
-      "name": "Platform 2",
-      "active": true,
-      "layer": 0,
-      "components": {
-        "Transform": {
-          "position": [600.0, 350.0, 0.0],
-          "rotation": [0.0, 0.0, 0.0],
-          "scale": [1.0, 1.0, 1.0]
-        },
-        "Sprite": {
-          "texture_id": "platform",
-          "width": 150.0,
-          "height": 20.0,
-          "color": [0.5, 0.5, 0.5, 1.0],
-          "billboard": false
-        },
-        "Collider": {
-          "width": 150.0,
-          "height": 20.0
-        },
-        "Rigidbody": {
-          "velocity": [0.0, 0.0],
-          "gravity_scale": 0.0,
-          "mass": 1.0,
-          "is_kinematic": true,
-          "freeze_rotation": true
-        }
-      }
-    },
-    {
-      "id": 5,
-      "name": "Wall Left",
-      "active": true,
-      "layer": 0,
-      "components": {
-        "Transform": {
-          "position": [100.0, 300.0, 0.0],
-          "rotation": [0.0, 0.0, 0.0],
-          "scale": [1.0, 1.0, 1.0]
-        },
-        "Sprite": {
-          "texture_id": "wall",
-          "width": 20.0,
-          "height": 300.0,
-          "color": [0.4, 0.4, 0.4, 1.0],
-          "billboard": false
-        },
-        "Collider": {
-          "width": 20.0,
-          "height": 300.0
-        },
-        "Rigidbody": {
-          "velocity": [0.0, 0.0],
-          "gravity_scale": 0.0,
-          "mass": 1.0,
-          "is_kinematic": true,
-          "freeze_rotation": true
-        }
-      }
-    },
-    {
-      "id": 6,
-      "name": "Wall Right",
-      "active": true,
-      "layer": 0,
-      "components": {
-        "Transform": {
-          "position": [700.0, 300.0, 0.0],
-          "rotation": [0.0, 0.0, 0.0],
-          "scale": [1.0, 1.0, 1.0]
-        },
-        "Sprite": {
-          "texture_id": "wall",
-          "width": 20.0,
-          "height": 300.0,
-          "color": [0.4, 0.4, 0.4, 1.0],
-          "billboard": false
-        },
-        "Collider": {
-          "width": 20.0,
-          "height": 300.0
-        },
-        "Rigidbody": {
-          "velocity": [0.0, 0.0],
-          "gravity_scale": 0.0,
-          "mass": 1.0,
-          "is_kinematic": true,
-          "freeze_rotation": true
-        }
-      }
-    }
-  ]
+  "next_entity": 7,
+  "transforms": [
+    [0, {"position": [400.0, 300.0, -10.0], "rotation": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0]}],
+    [1, {"position": [400.0, 200.0, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0]}],
+    [2, {"position": [400.0, 550.0, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0]}],
+    [3, {"position": [200.0, 400.0, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0]}],
+    [4, {"position": [600.0, 350.0, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0]}],
+    [5, {"position": [100.0, 300.0, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0]}],
+    [6, {"position": [700.0, 300.0, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0]}]
+  ],
+  "sprites": [
+    [1, {"texture_id": "player", "width": 32.0, "height": 32.0, "color": [0.3, 0.6, 1.0, 1.0], "billboard": false}],
+    [2, {"texture_id": "ground", "width": 800.0, "height": 50.0, "color": [0.3, 0.3, 0.3, 1.0], "billboard": false}],
+    [3, {"texture_id": "platform", "width": 150.0, "height": 20.0, "color": [0.5, 0.5, 0.5, 1.0], "billboard": false}],
+    [4, {"texture_id": "platform", "width": 150.0, "height": 20.0, "color": [0.5, 0.5, 0.5, 1.0], "billboard": false}],
+    [5, {"texture_id": "wall", "width": 20.0, "height": 300.0, "color": [0.4, 0.4, 0.4, 1.0], "billboard": false}],
+    [6, {"texture_id": "wall", "width": 20.0, "height": 300.0, "color": [0.4, 0.4, 0.4, 1.0], "billboard": false}]
+  ],
+  "colliders": [
+    [1, {"width": 32.0, "height": 32.0}],
+    [2, {"width": 800.0, "height": 50.0}],
+    [3, {"width": 150.0, "height": 20.0}],
+    [4, {"width": 150.0, "height": 20.0}],
+    [5, {"width": 20.0, "height": 300.0}],
+    [6, {"width": 20.0, "height": 300.0}]
+  ],
+  "rigidbodies": [
+    [1, {"velocity": [0.0, 0.0], "gravity_scale": 1.0, "mass": 1.0, "is_kinematic": false, "freeze_rotation": true}],
+    [2, {"velocity": [0.0, 0.0], "gravity_scale": 0.0, "mass": 1.0, "is_kinematic": true, "freeze_rotation": true}],
+    [3, {"velocity": [0.0, 0.0], "gravity_scale": 0.0, "mass": 1.0, "is_kinematic": true, "freeze_rotation": true}],
+    [4, {"velocity": [0.0, 0.0], "gravity_scale": 0.0, "mass": 1.0, "is_kinematic": true, "freeze_rotation": true}],
+    [5, {"velocity": [0.0, 0.0], "gravity_scale": 0.0, "mass": 1.0, "is_kinematic": true, "freeze_rotation": true}],
+    [6, {"velocity": [0.0, 0.0], "gravity_scale": 0.0, "mass": 1.0, "is_kinematic": true, "freeze_rotation": true}]
+  ],
+  "cameras": [
+    [0, {
+      "projection": "Orthographic",
+      "fov": 60.0,
+      "orthographic_size": 300.0,
+      "near_clip": 0.1,
+      "far_clip": 1000.0,
+      "viewport_rect": [0.0, 0.0, 1.0, 1.0],
+      "depth": 0,
+      "clear_flags": "SolidColor",
+      "background_color": [0.15, 0.16, 0.18, 1.0]
+    }]
+  ],
+  "scripts": [
+    [1, {"script_name": "player_controller", "enabled": true, "parameters": {}}]
+  ],
+  "tags": [
+    [1, "Player"]
+  ],
+  "active": [
+    [0, true],
+    [1, true],
+    [2, true],
+    [3, true],
+    [4, true],
+    [5, true],
+    [6, true]
+  ],
+  "layers": [
+    [0, 0],
+    [1, 0],
+    [2, 0],
+    [3, 0],
+    [4, 0],
+    [5, 0],
+    [6, 0]
+  ],
+  "names": [
+    [0, "Main Camera"],
+    [1, "Player"],
+    [2, "Ground"],
+    [3, "Platform 1"],
+    [4, "Platform 2"],
+    [5, "Wall Left"],
+    [6, "Wall Right"]
+  ],
+  "meshes": [],
+  "parents": [],
+  "velocities": []
 }
