@@ -317,17 +317,11 @@ fn main() -> Result<()> {
                                             }
                                             EditorShortcut::Duplicate => {
                                                 if let Some(entity) = editor_state.selected_entity {
-                                                    editor_state.clipboard.duplicate_entity(
+                                                    if let Some(new_entity) = editor_state.clipboard.duplicate_entity(
                                                         entity,
                                                         &mut editor_state.world,
                                                         &mut editor_state.entity_names
-                                                    );
-                                                    let new_entities = editor_state.clipboard.paste(
-                                                        &mut editor_state.world,
-                                                        &mut editor_state.entity_names,
-                                                        Some([10.0, 10.0, 0.0]) // Offset by 10 pixels
-                                                    );
-                                                    if let Some(&new_entity) = new_entities.first() {
+                                                    ) {
                                                         editor_state.selected_entity = Some(new_entity);
                                                         editor_state.scene_modified = true;
                                                         editor_state.console.info("Entity duplicated (Ctrl+D)".to_string());
