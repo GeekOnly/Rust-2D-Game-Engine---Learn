@@ -35,7 +35,7 @@ impl Default for CameraSettings {
             zoom_damping: 0.08,     // Further reduced for instant zoom response
             enable_inertia: false,  // Disabled by default for more predictable behavior
             inertia_decay: 0.92,    // Faster decay when enabled
-            zoom_to_cursor: true,
+            zoom_to_cursor: false,  // Zoom to center (Unity 2D mode) - better for 2D editing
             zoom_speed: 20.0,       // Increased for faster zoom response in 2D
         }
     }

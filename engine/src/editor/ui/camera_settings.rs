@@ -54,10 +54,19 @@ pub fn render_camera_settings(
         }
     });
     
-    // Zoom Mode Toggle
+    // Zoom Mode Toggle (Radio Buttons)
+    ui.label("Zoom Mode:");
     ui.horizontal(|ui| {
-        ui.label("Zoom Mode:");
-        if ui.checkbox(&mut scene_camera.settings.zoom_to_cursor, "Zoom to Cursor").changed() {
+        if ui.radio_value(&mut scene_camera.settings.zoom_to_cursor, false, "🎯 Zoom to Center")
+            .on_hover_text("Zoom in/out from viewport center (Unity 2D mode)")
+            .changed() 
+        {
+            changed = true;
+        }
+        if ui.radio_value(&mut scene_camera.settings.zoom_to_cursor, true, "🖱 Zoom to Cursor")
+            .on_hover_text("Zoom in/out towards mouse cursor (Unity 3D mode)")
+            .changed() 
+        {
             changed = true;
         }
     });
