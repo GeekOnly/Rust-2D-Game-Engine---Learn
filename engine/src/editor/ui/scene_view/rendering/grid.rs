@@ -22,9 +22,10 @@ pub fn render_grid_2d(
 
     // Calculate grid offset based on camera position
     // The grid should move opposite to camera movement
+    // Y axis is inverted (world Y up = screen Y down)
     let center = rect.center();
     let offset_x = (-scene_camera.position.x * scene_camera.zoom) % grid_size;
-    let offset_y = (-scene_camera.position.y * scene_camera.zoom) % grid_size;
+    let offset_y = (scene_camera.position.y * scene_camera.zoom) % grid_size;
 
     // Vertical lines
     let start_x = ((rect.min.x - center.x - offset_x) / grid_size).floor() * grid_size;
