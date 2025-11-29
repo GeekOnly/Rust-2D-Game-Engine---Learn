@@ -228,7 +228,18 @@ pub fn handle_gizmo_interaction_stateful(
                                 // X axis direction in world space
                                 let x_axis = glam::Vec2::new(rotation_rad.cos(), rotation_rad.sin());
                                 let scale_delta = world_delta.dot(x_axis) * scale_speed;
-                                transform_mut.scale[0] = (transform_mut.scale[0] + scale_delta).max(0.1);
+                                let new_scale_x = (transform_mut.scale[0] + scale_delta).max(0.1);
+                                let scale_factor_x = new_scale_x / transform_mut.scale[0];
+                                transform_mut.scale[0] = new_scale_x;
+                                
+                                // Scale sprite width
+                                if let Some(sprite) = world.sprites.get_mut(&entity) {
+                                    sprite.width *= scale_factor_x;
+                                }
+                                // Scale collider width
+                                if let Some(collider) = world.colliders.get_mut(&entity) {
+                                    collider.width *= scale_factor_x;
+                                }
                             }
                             1 => {
                                 // Y axis scale only
@@ -239,13 +250,39 @@ pub fn handle_gizmo_interaction_stateful(
                                 // Y axis direction in world space (perpendicular to X)
                                 let y_axis = glam::Vec2::new(-rotation_rad.sin(), rotation_rad.cos());
                                 let scale_delta = world_delta.dot(y_axis) * scale_speed;
-                                transform_mut.scale[1] = (transform_mut.scale[1] + scale_delta).max(0.1);
+                                let new_scale_y = (transform_mut.scale[1] + scale_delta).max(0.1);
+                                let scale_factor_y = new_scale_y / transform_mut.scale[1];
+                                transform_mut.scale[1] = new_scale_y;
+                                
+                                // Scale sprite height
+                                if let Some(sprite) = world.sprites.get_mut(&entity) {
+                                    sprite.height *= scale_factor_y;
+                                }
+                                // Scale collider height
+                                if let Some(collider) = world.colliders.get_mut(&entity) {
+                                    collider.height *= scale_factor_y;
+                                }
                             }
                             2 => {
                                 // Uniform scale - use average of both axes
                                 let scale_delta = (world_delta.x + world_delta.y) * 0.5 * scale_speed;
-                                transform_mut.scale[0] = (transform_mut.scale[0] + scale_delta).max(0.1);
-                                transform_mut.scale[1] = (transform_mut.scale[1] + scale_delta).max(0.1);
+                                let new_scale_x = (transform_mut.scale[0] + scale_delta).max(0.1);
+                                let new_scale_y = (transform_mut.scale[1] + scale_delta).max(0.1);
+                                let scale_factor_x = new_scale_x / transform_mut.scale[0];
+                                let scale_factor_y = new_scale_y / transform_mut.scale[1];
+                                transform_mut.scale[0] = new_scale_x;
+                                transform_mut.scale[1] = new_scale_y;
+                                
+                                // Scale sprite
+                                if let Some(sprite) = world.sprites.get_mut(&entity) {
+                                    sprite.width *= scale_factor_x;
+                                    sprite.height *= scale_factor_y;
+                                }
+                                // Scale collider
+                                if let Some(collider) = world.colliders.get_mut(&entity) {
+                                    collider.width *= scale_factor_x;
+                                    collider.height *= scale_factor_y;
+                                }
                             }
                             _ => {}
                         }
