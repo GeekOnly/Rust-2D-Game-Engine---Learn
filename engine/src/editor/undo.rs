@@ -33,6 +33,12 @@ pub trait Command: Send + Sync {
     
     /// Merge with another command (for optimization)
     fn merge(&mut self, _other: Box<dyn Command>) {}
+
+    /// Helper for downcasting
+    fn as_any(&self) -> &dyn std::any::Any;
+    
+    /// Helper for downcasting
+    fn into_any(self: Box<Self>) -> Box<dyn std::any::Any>;
 }
 
 /// Undo/Redo stack manager
@@ -302,6 +308,14 @@ impl Command for CreateEntityCommand {
             "Create Entity".to_string()
         }
     }
+
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
+    }
+
+    fn into_any(self: Box<Self>) -> Box<dyn std::any::Any> {
+        self
+    }
 }
 
 // ============================================================================
@@ -339,6 +353,14 @@ impl Command for DeleteEntityCommand {
         } else {
             "Delete Entity".to_string()
         }
+    }
+
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
+    }
+
+    fn into_any(self: Box<Self>) -> Box<dyn std::any::Any> {
+        self
     }
 }
 
@@ -383,7 +405,7 @@ impl Command for MoveEntityCommand {
     
     fn can_merge(&self, other: &dyn Command) -> bool {
         // Try to downcast to MoveEntityCommand
-        if let Some(other_move) = (other as &dyn std::any::Any).downcast_ref::<MoveEntityCommand>() {
+        if let Some(other_move) = other.as_any().downcast_ref::<MoveEntityCommand>() {
             // Can merge if same entity and positions are close
             if self.entity == other_move.entity {
                 let dx = self.new_position[0] - other_move.old_position[0];
@@ -397,10 +419,18 @@ impl Command for MoveEntityCommand {
     }
     
     fn merge(&mut self, other: Box<dyn Command>) {
-        if let Ok(other_move) = other.downcast::<MoveEntityCommand>() {
+        if let Ok(other_move) = other.into_any().downcast::<MoveEntityCommand>() {
             // Keep old_position from self, update new_position from other
             self.new_position = other_move.new_position;
         }
+    }
+
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
+    }
+
+    fn into_any(self: Box<Self>) -> Box<dyn std::any::Any> {
+        self
     }
 }
 
@@ -440,6 +470,14 @@ impl Command for RotateEntityCommand {
     fn description(&self) -> String {
         format!("Rotate Entity {}", self.entity)
     }
+
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
+    }
+
+    fn into_any(self: Box<Self>) -> Box<dyn std::any::Any> {
+        self
+    }
 }
 
 // ============================================================================
@@ -478,6 +516,14 @@ impl Command for ScaleEntityCommand {
     fn description(&self) -> String {
         format!("Scale Entity {}", self.entity)
     }
+
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
+    }
+
+    fn into_any(self: Box<Self>) -> Box<dyn std::any::Any> {
+        self
+    }
 }
 
 // ============================================================================
@@ -513,6 +559,14 @@ impl Command for RenameEntityCommand {
     
     fn description(&self) -> String {
         format!("Rename {} to {}", self.old_name, self.new_name)
+    }
+
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
+    }
+
+    fn into_any(self: Box<Self>) -> Box<dyn std::any::Any> {
+        self
     }
 }
 
@@ -554,5 +608,13 @@ impl Command for BatchCommand {
     
     fn description(&self) -> String {
         self.description.clone()
+    }
+
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
+    }
+
+    fn into_any(self: Box<Self>) -> Box<dyn std::any::Any> {
+        self
     }
 }

@@ -1,6 +1,14 @@
 use anyhow::{Context, Result};
 use winit::window::Window;
 
+pub mod texture;
+pub mod sprite_renderer;
+pub mod tilemap_renderer;
+
+pub use texture::{Texture, TextureManager};
+pub use sprite_renderer::SpriteRenderer;
+pub use tilemap_renderer::TilemapRenderer;
+
 pub struct RenderModule {
     pub surface: wgpu::Surface<'static>,
     pub device: wgpu::Device,
@@ -10,6 +18,9 @@ pub struct RenderModule {
     pub render_pipeline: wgpu::RenderPipeline,
     pub depth_texture: wgpu::Texture,
     pub depth_view: wgpu::TextureView,
+    pub texture_manager: TextureManager,
+    pub sprite_renderer: SpriteRenderer,
+    pub tilemap_renderer: TilemapRenderer,
 }
 
 impl RenderModule {
@@ -137,6 +148,10 @@ impl RenderModule {
             multiview: None,
         });
 
+        let texture_manager = TextureManager::new(Some(&device));
+        let sprite_renderer = SpriteRenderer::new(&device, &config);
+        let tilemap_renderer = TilemapRenderer::new(&device, &config);
+
         Ok(Self {
             surface,
             device,
@@ -146,6 +161,9 @@ impl RenderModule {
             render_pipeline,
             depth_texture,
             depth_view,
+            texture_manager,
+            sprite_renderer,
+            tilemap_renderer,
         })
     }
     

@@ -239,7 +239,7 @@ impl Clipboard {
         &self,
         entity: Entity,
         world: &mut World,
-        entity_names: &HashMap<Entity, String>,
+        entity_names: &mut HashMap<Entity, String>,
     ) -> Option<Entity> {
         let entity_data = EntityClipboardData::from_world(entity, world, entity_names);
         
@@ -257,7 +257,7 @@ impl Clipboard {
         &self,
         entities: &[Entity],
         world: &mut World,
-        entity_names: &HashMap<Entity, String>,
+        entity_names: &mut HashMap<Entity, String>,
     ) -> Vec<Entity> {
         if entities.is_empty() {
             return Vec::new();
@@ -375,7 +375,7 @@ pub fn duplicate_selected(
     clipboard: &Clipboard,
     selected: &[Entity],
     world: &mut World,
-    entity_names: &HashMap<Entity, String>,
+    entity_names: &mut HashMap<Entity, String>,
 ) -> Vec<Entity> {
     if selected.is_empty() {
         return Vec::new();

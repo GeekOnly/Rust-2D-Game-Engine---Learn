@@ -91,17 +91,17 @@ impl TiledLoader {
     fn load_tilesets(map: &Map, world: &mut World) -> Result<Vec<Entity>, String> {
         let mut entities = Vec::new();
 
-        for tileset in map.tilesets() {
+        for (i, tileset) in map.tilesets().iter().enumerate() {
             let entity = world.spawn();
 
             let tile_set = TileSet::new(
                 tileset.name.as_str(),
                 tileset.image.as_ref().map(|img| img.source.to_string_lossy().to_string()).unwrap_or_default(),
-                format!("tileset_{}", tileset.first_gid()),
+                format!("tileset_{}_{}", i, tileset.name),
                 tileset.tile_width,
                 tileset.tile_height,
                 tileset.columns,
-                tileset.tilecount().unwrap_or(0),
+                tileset.tilecount,
             );
 
             world.tilesets.insert(entity, tile_set);

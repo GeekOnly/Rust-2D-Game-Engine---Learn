@@ -10,3 +10,6 @@ pollster = "0.3"
 env_logger = "0.11"
 log = "0.4"
 anyhow = "1.0"
+image = { workspace = true }
+ecs = { path = "../ecs" }
+bytemuck = { version = "1.14", features = ["derive"] }

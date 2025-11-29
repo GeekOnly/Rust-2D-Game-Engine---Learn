@@ -22,32 +22,35 @@ impl LdtkLoader {
 
         // Load each level in the project
         for level in &project.levels {
-            // Create a tilemap entity for each layer in the level
-            for layer_instance in &level.layer_instances {
-                let entity = world.spawn();
+            // Process each layer in the level
+            if let Some(layer_instances) = &level.layer_instances {
+                for layer_instance in layer_instances {
+                    // Create a basic tilemap entity for each layer
+                    let entity = world.spawn();
 
-                let width = layer_instance.c_wid as u32;
-                let height = layer_instance.c_hei as u32;
+                    let width = layer_instance.c_wid as u32;
+                    let height = layer_instance.c_hei as u32;
 
-                let tilemap = Tilemap::new(
-                    &layer_instance.identifier,
-                    format!("tileset_{}", layer_instance.layer_def_uid),
-                    width,
-                    height,
-                );
+                    let tilemap = Tilemap::new(
+                        &layer_instance.identifier,
+                        format!("tileset_{}", layer_instance.layer_def_uid),
+                        width,
+                        height,
+                    );
 
-                world.tilemaps.insert(entity, tilemap);
-                world.names.insert(entity, format!("LDTK Layer: {}", layer_instance.identifier));
+                    world.tilemaps.insert(entity, tilemap);
+                    world.names.insert(entity, format!("LDTK Layer: {}", layer_instance.identifier));
 
-                // Add transform at layer offset
-                let transform = Transform::with_position(
-                    layer_instance.px_total_offset_x as f32,
-                    layer_instance.px_total_offset_y as f32,
-                    0.0,
-                );
-                world.transforms.insert(entity, transform);
+                    // Add transform at layer offset
+                    let transform = Transform::with_position(
+                        layer_instance.px_total_offset_x as f32,
+                        layer_instance.px_total_offset_y as f32,
+                        0.0,
+                    );
+                    world.transforms.insert(entity, transform);
 
-                entities.push(entity);
+                    entities.push(entity);
+                }
             }
         }
 

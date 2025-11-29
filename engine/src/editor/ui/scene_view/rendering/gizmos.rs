@@ -131,12 +131,45 @@ pub fn render_transform_gizmo(
                 0.0
             }
         }
+    };
+
+    match current_tool {
+        TransformTool::View => {
+            // No gizmo
+        }
+        TransformTool::Move => {
+            // X Axis (Red)
+            let x_dir = (rotation_rad.cos(), rotation_rad.sin());
+            let x_end = egui::pos2(
+                screen_x + x_dir.0 * gizmo_size,
+                screen_y + x_dir.1 * gizmo_size,
+            );
+            painter.line_segment(
+                [egui::pos2(screen_x, screen_y), x_end],
+                egui::Stroke::new(4.0, egui::Color32::from_rgb(255, 0, 0)),
+            );
+            painter.circle_filled(x_end, handle_size, egui::Color32::from_rgb(255, 0, 0));
+            painter.text(
+                egui::pos2(x_end.x + 12.0, x_end.y),
+                egui::Align2::LEFT_CENTER,
+                "X",
+                egui::FontId::proportional(14.0),
+                egui::Color32::from_rgb(255, 0, 0),
+            );
+
+            // Y Axis (Green) - Perpendicular to X (Up in 2D usually means negative Y in screen space)
+            // We rotate -90 degrees (PI/2) from X to get Y pointing "Up" relative to X
+            let y_angle = rotation_rad - std::f32::consts::PI / 2.0;
+            let y_dir = (y_angle.cos(), y_angle.sin());
+            let y_end = egui::pos2(
+                screen_x + y_dir.0 * gizmo_size,
+                screen_y + y_dir.1 * gizmo_size,
+            );
+            painter.line_segment(
                 [egui::pos2(screen_x, screen_y), y_end],
                 egui::Stroke::new(4.0, egui::Color32::from_rgb(0, 255, 0)),
             );
             painter.circle_filled(y_end, handle_size, egui::Color32::from_rgb(0, 255, 0));
-            
-            // Label
             painter.text(
                 egui::pos2(y_end.x, y_end.y - 12.0),
                 egui::Align2::CENTER_BOTTOM,
@@ -144,31 +177,8 @@ pub fn render_transform_gizmo(
                 egui::FontId::proportional(14.0),
                 egui::Color32::from_rgb(0, 255, 0),
             );
-            
-            // Z axis (Blue) - perpendicular to X in 3D mode
-            if *scene_view_mode == SceneViewMode::Mode3D {
-                let z_dir = glam::Vec2::new(rotation_rad.sin(), rotation_rad.cos()); // Perpendicular to X
-                let z_end = egui::pos2(
-                    screen_x + z_dir.x * gizmo_size, 
-                    screen_y + z_dir.y * gizmo_size
-                );
-                painter.line_segment(
-                    [egui::pos2(screen_x, screen_y), z_end],
-                    egui::Stroke::new(4.0, egui::Color32::from_rgb(0, 0, 255)),
-                );
-                painter.circle_filled(z_end, handle_size, egui::Color32::from_rgb(0, 0, 255));
-                
-                // Label
-                painter.text(
-                    egui::pos2(z_end.x + 12.0, z_end.y),
-                    egui::Align2::LEFT_CENTER,
-                    "Z",
-                    egui::FontId::proportional(14.0),
-                    egui::Color32::from_rgb(0, 0, 255),
-                );
-            }
 
-            // Center handle for free movement (Yellow)
+            // Center handle (Yellow)
             painter.circle_filled(egui::pos2(screen_x, screen_y), handle_size * 1.2, egui::Color32::from_rgb(255, 255, 0));
         }
         TransformTool::Rotate => {
@@ -190,7 +200,7 @@ pub fn render_transform_gizmo(
             
             // Draw rotation indicators (4 dots on circle)
             for i in 0..4 {
-                let angle = (i as f32) * std::f32::consts::PI / 2.0;
+                let angle = (i as f32) * std::f32::consts::PI / 2.0 + rotation_rad;
                 let dot_x = screen_x + radius * angle.cos();
                 let dot_y = screen_y + radius * angle.sin();
                 painter.circle_filled(
@@ -200,6 +210,31 @@ pub fn render_transform_gizmo(
                 );
             }
         }
+        TransformTool::Scale => {
+            // X Axis (Red)
+            let x_dir = (rotation_rad.cos(), rotation_rad.sin());
+            let x_end = egui::pos2(
+                screen_x + x_dir.0 * gizmo_size,
+                screen_y + x_dir.1 * gizmo_size,
+            );
+            painter.line_segment(
+                [egui::pos2(screen_x, screen_y), x_end],
+                egui::Stroke::new(4.0, egui::Color32::from_rgb(255, 0, 0)),
+            );
+            painter.rect_filled(
+                egui::Rect::from_center_size(x_end, egui::vec2(handle_size * 1.8, handle_size * 1.8)),
+                0.0,
+                egui::Color32::from_rgb(255, 0, 0)
+            );
+
+            // Y Axis (Green)
+            let y_angle = rotation_rad - std::f32::consts::PI / 2.0;
+            let y_dir = (y_angle.cos(), y_angle.sin());
+            let y_end = egui::pos2(
+                screen_x + y_dir.0 * gizmo_size,
+                screen_y + y_dir.1 * gizmo_size,
+            );
+            painter.line_segment(
                 [egui::pos2(screen_x, screen_y), y_end],
                 egui::Stroke::new(4.0, egui::Color32::from_rgb(0, 255, 0)),
             );
