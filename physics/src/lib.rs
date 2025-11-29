@@ -53,7 +53,8 @@ impl PhysicsWorld {
 
         for entity in entities {
             // Skip if entity is not active
-            if !world.active.get(&entity).copied().unwrap_or(true) {
+            let is_active = world.active.get(&entity).copied().unwrap_or(true);
+            if !is_active {
                 continue;
             }
 
@@ -65,8 +66,10 @@ impl PhysicsWorld {
 
                 // Apply gravity to Y velocity with gravity scale
                 rigidbody.velocity.1 -= self.gravity * rigidbody.gravity_scale * dt;
+            }
 
-                // Sync with legacy velocity
+            // Sync rigidbody velocity to world velocities (after mutable borrow ends)
+            if let Some(rigidbody) = world.rigidbodies.get(&entity) {
                 world.velocities.insert(entity, rigidbody.velocity);
             }
         }
@@ -82,17 +85,21 @@ impl PhysicsWorld {
                 continue;
             }
 
-            if let Some(rigidbody) = world.rigidbodies.get(&entity) {
+            // Get velocity from rigidbody
+            let velocity = if let Some(rigidbody) = world.rigidbodies.get(&entity) {
                 // Skip if kinematic (controlled manually)
                 if rigidbody.is_kinematic {
                     continue;
                 }
+                rigidbody.velocity
+            } else {
+                continue;
+            };
 
-                if let Some(transform) = world.transforms.get_mut(&entity) {
-                    // Update position
-                    transform.position[0] += rigidbody.velocity.0 * dt;
-                    transform.position[1] += rigidbody.velocity.1 * dt;
-                }
+            // Update position using the velocity
+            if let Some(transform) = world.transforms.get_mut(&entity) {
+                transform.position[0] += velocity.0 * dt;
+                transform.position[1] += velocity.1 * dt;
             }
         }
     }
@@ -108,59 +115,71 @@ impl PhysicsWorld {
         let entities: Vec<Entity> = world.rigidbodies.keys().cloned().collect();
 
         for entity in entities {
-            if let Some(rigidbody) = world.rigidbodies.get_mut(&entity) {
-                // Skip kinematic bodies
-                if rigidbody.is_kinematic {
-                    continue;
-                }
+            // Check if kinematic first
+            let is_kinematic = world.rigidbodies.get(&entity)
+                .map(|rb| rb.is_kinematic)
+                .unwrap_or(true);
+            
+            if is_kinematic {
+                continue;
+            }
 
+            // Get current position
+            let position = if let Some(transform) = world.transforms.get(&entity) {
+                transform.position
+            } else {
+                continue;
+            };
+
+            let mut needs_clamp = false;
+            let mut new_velocity = world.rigidbodies.get(&entity)
+                .map(|rb| rb.velocity)
+                .unwrap_or((0.0, 0.0));
+
+            // Check and adjust Y bounds
+            if position[1] < min_y {
                 if let Some(transform) = world.transforms.get_mut(&entity) {
-                    let mut clamped = false;
-
-                    // Clamp Y position (prevent falling infinitely)
-                    if transform.position[1] < min_y {
-                        transform.position[1] = min_y;
-                        // Stop downward velocity
-                        if rigidbody.velocity.1 < 0.0 {
-                            rigidbody.velocity.1 = 0.0;
-                            world.velocities.insert(entity, rigidbody.velocity);
-                        }
-                        clamped = true;
-                    } else if transform.position[1] > max_y {
-                        transform.position[1] = max_y;
-                        // Stop upward velocity
-                        if rigidbody.velocity.1 > 0.0 {
-                            rigidbody.velocity.1 = 0.0;
-                            world.velocities.insert(entity, rigidbody.velocity);
-                        }
-                        clamped = true;
-                    }
-
-                    // Clamp X position (optional side bounds)
-                    if transform.position[0] < min_x {
-                        transform.position[0] = min_x;
-                        // Stop leftward velocity
-                        if rigidbody.velocity.0 < 0.0 {
-                            rigidbody.velocity.0 = 0.0;
-                            world.velocities.insert(entity, rigidbody.velocity);
-                        }
-                        clamped = true;
-                    } else if transform.position[0] > max_x {
-                        transform.position[0] = max_x;
-                        // Stop rightward velocity
-                        if rigidbody.velocity.0 > 0.0 {
-                            rigidbody.velocity.0 = 0.0;
-                            world.velocities.insert(entity, rigidbody.velocity);
-                        }
-                        clamped = true;
-                    }
-
-                    // Optional: Add bounce effect
-                    // if clamped {
-                    //     rigidbody.velocity.0 *= -0.5; // Bounce with 50% energy loss
-                    //     rigidbody.velocity.1 *= -0.5;
-                    // }
+                    transform.position[1] = min_y;
                 }
+                if new_velocity.1 < 0.0 {
+                    new_velocity.1 = 0.0;
+                    needs_clamp = true;
+                }
+            } else if position[1] > max_y {
+                if let Some(transform) = world.transforms.get_mut(&entity) {
+                    transform.position[1] = max_y;
+                }
+                if new_velocity.1 > 0.0 {
+                    new_velocity.1 = 0.0;
+                    needs_clamp = true;
+                }
+            }
+
+            // Check and adjust X bounds
+            if position[0] < min_x {
+                if let Some(transform) = world.transforms.get_mut(&entity) {
+                    transform.position[0] = min_x;
+                }
+                if new_velocity.0 < 0.0 {
+                    new_velocity.0 = 0.0;
+                    needs_clamp = true;
+                }
+            } else if position[0] > max_x {
+                if let Some(transform) = world.transforms.get_mut(&entity) {
+                    transform.position[0] = max_x;
+                }
+                if new_velocity.0 > 0.0 {
+                    new_velocity.0 = 0.0;
+                    needs_clamp = true;
+                }
+            }
+
+            // Update velocity if clamped
+            if needs_clamp {
+                if let Some(rigidbody) = world.rigidbodies.get_mut(&entity) {
+                    rigidbody.velocity = new_velocity;
+                }
+                world.velocities.insert(entity, new_velocity);
             }
         }
     }
@@ -359,12 +378,11 @@ impl PhysicsWorld {
             return collisions;
         }
 
-        for (other_entity, _) in &world.colliders {
-            if *other_entity != entity {
-                if Self::check_collision(world, entity, *other_entity) {
+        for other_entity in world.colliders.keys() {
+            if *other_entity != entity
+                && Self::check_collision(world, entity, *other_entity) {
                     collisions.push(*other_entity);
                 }
-            }
         }
 
         collisions
@@ -392,7 +410,11 @@ pub mod helpers {
 
     /// Apply impulse to an entity (instant velocity change)
     pub fn apply_impulse(world: &mut World, entity: Entity, impulse_x: f32, impulse_y: f32) {
-        if let Some(velocity) = world.velocities.get_mut(&entity) {
+        if let Some(rigidbody) = world.rigidbodies.get_mut(&entity) {
+            rigidbody.velocity.0 += impulse_x;
+            rigidbody.velocity.1 += impulse_y;
+            world.velocities.insert(entity, rigidbody.velocity);
+        } else if let Some(velocity) = world.velocities.get_mut(&entity) {
             velocity.0 += impulse_x;
             velocity.1 += impulse_y;
         }
@@ -400,7 +422,11 @@ pub mod helpers {
 
     /// Set velocity directly
     pub fn set_velocity(world: &mut World, entity: Entity, vel_x: f32, vel_y: f32) {
-        if let Some(velocity) = world.velocities.get_mut(&entity) {
+        if let Some(rigidbody) = world.rigidbodies.get_mut(&entity) {
+            rigidbody.velocity.0 = vel_x;
+            rigidbody.velocity.1 = vel_y;
+            world.velocities.insert(entity, rigidbody.velocity);
+        } else if let Some(velocity) = world.velocities.get_mut(&entity) {
             velocity.0 = vel_x;
             velocity.1 = vel_y;
         }
@@ -408,12 +434,18 @@ pub mod helpers {
 
     /// Get velocity
     pub fn get_velocity(world: &World, entity: Entity) -> Option<(f32, f32)> {
-        world.velocities.get(&entity).copied()
+        world.rigidbodies.get(&entity)
+            .map(|rb| rb.velocity)
+            .or_else(|| world.velocities.get(&entity).copied())
     }
 
     /// Stop entity movement
     pub fn stop(world: &mut World, entity: Entity) {
-        if let Some(velocity) = world.velocities.get_mut(&entity) {
+        if let Some(rigidbody) = world.rigidbodies.get_mut(&entity) {
+            rigidbody.velocity.0 = 0.0;
+            rigidbody.velocity.1 = 0.0;
+            world.velocities.insert(entity, rigidbody.velocity);
+        } else if let Some(velocity) = world.velocities.get_mut(&entity) {
             velocity.0 = 0.0;
             velocity.1 = 0.0;
         }
@@ -421,7 +453,11 @@ pub mod helpers {
 
     /// Apply force (continuous acceleration)
     pub fn apply_force(world: &mut World, entity: Entity, force_x: f32, force_y: f32, dt: f32) {
-        if let Some(velocity) = world.velocities.get_mut(&entity) {
+        if let Some(rigidbody) = world.rigidbodies.get_mut(&entity) {
+            rigidbody.velocity.0 += force_x * dt;
+            rigidbody.velocity.1 += force_y * dt;
+            world.velocities.insert(entity, rigidbody.velocity);
+        } else if let Some(velocity) = world.velocities.get_mut(&entity) {
             velocity.0 += force_x * dt;
             velocity.1 += force_y * dt;
         }
@@ -429,7 +465,15 @@ pub mod helpers {
 
     /// Clamp velocity to max speed
     pub fn clamp_velocity(world: &mut World, entity: Entity, max_speed: f32) {
-        if let Some(velocity) = world.velocities.get_mut(&entity) {
+        if let Some(rigidbody) = world.rigidbodies.get_mut(&entity) {
+            let speed = (rigidbody.velocity.0 * rigidbody.velocity.0 + rigidbody.velocity.1 * rigidbody.velocity.1).sqrt();
+            if speed > max_speed {
+                let scale = max_speed / speed;
+                rigidbody.velocity.0 *= scale;
+                rigidbody.velocity.1 *= scale;
+            }
+            world.velocities.insert(entity, rigidbody.velocity);
+        } else if let Some(velocity) = world.velocities.get_mut(&entity) {
             let speed = (velocity.0 * velocity.0 + velocity.1 * velocity.1).sqrt();
             if speed > max_speed {
                 let scale = max_speed / speed;
@@ -441,8 +485,12 @@ pub mod helpers {
 
     /// Apply friction/damping
     pub fn apply_damping(world: &mut World, entity: Entity, damping: f32, dt: f32) {
-        if let Some(velocity) = world.velocities.get_mut(&entity) {
-            let factor = 1.0 - (damping * dt).min(1.0);
+        let factor = 1.0 - (damping * dt).min(1.0);
+        if let Some(rigidbody) = world.rigidbodies.get_mut(&entity) {
+            rigidbody.velocity.0 *= factor;
+            rigidbody.velocity.1 *= factor;
+            world.velocities.insert(entity, rigidbody.velocity);
+        } else if let Some(velocity) = world.velocities.get_mut(&entity) {
             velocity.0 *= factor;
             velocity.1 *= factor;
         }
@@ -463,15 +511,23 @@ mod tests {
         world.add_component(entity, ComponentType::Transform).unwrap();
         world.add_component(entity, ComponentType::Rigidbody).unwrap();
 
-        // Initial velocity
+        // Initial velocity - set in rigidbody
+        if let Some(rigidbody) = world.rigidbodies.get_mut(&entity) {
+            rigidbody.velocity = (0.0, 0.0);
+        }
         world.velocities.insert(entity, (0.0, 0.0));
 
-        // Apply physics for 1 second
-        physics.step(1.0, &mut world);
+        // Apply physics for a small time step (0.016s ~= 60fps)
+        // Using small dt to avoid hitting world bounds
+        physics.step(0.016, &mut world);
 
         // Check that gravity was applied
         let velocity = world.velocities.get(&entity).unwrap();
-        assert!(velocity.1 < 0.0, "Gravity should pull down (negative Y)");
+        assert!(velocity.1 < 0.0, "Gravity should pull down (negative Y), got: {:?}", velocity);
+        
+        // Verify the velocity is approximately correct
+        // Expected: -980 * 0.016 = -15.68
+        assert!((velocity.1 + 15.68).abs() < 0.1, "Velocity should be approximately -15.68, got: {}", velocity.1);
     }
 
     #[test]
@@ -484,8 +540,11 @@ mod tests {
         world.add_component(entity, ComponentType::Transform).unwrap();
         world.add_component(entity, ComponentType::Rigidbody).unwrap();
 
-        // Set initial position and velocity
+        // Set initial position and velocity - set in rigidbody
         world.transforms.get_mut(&entity).unwrap().position = [0.0, 0.0, 0.0];
+        if let Some(rigidbody) = world.rigidbodies.get_mut(&entity) {
+            rigidbody.velocity = (100.0, 50.0);
+        }
         world.velocities.insert(entity, (100.0, 50.0));
 
         // Update for 1 second
