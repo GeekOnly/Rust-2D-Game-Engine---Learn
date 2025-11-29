@@ -8,6 +8,7 @@ pub mod bottom_panel;
 pub mod project_settings;
 pub mod asset_browser;
 pub mod dock_layout;
+pub mod camera_settings;
 
 // Re-exports
 use ecs::{World, Entity, EntityTag};

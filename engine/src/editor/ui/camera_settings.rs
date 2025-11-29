@@ -1,0 +1,282 @@
+//! Camera Settings UI Panel
+//!
+//! Provides UI for adjusting camera settings including:
+//! - Zoom sensitivity
+//! - Pan sensitivity
+//! - Rotation sensitivity
+//! - Zoom mode (to cursor / to center)
+
+use egui;
+use crate::editor::SceneCamera;
+
+/// Render camera settings panel
+pub fn render_camera_settings(
+    ui: &mut egui::Ui,
+    scene_camera: &mut SceneCamera,
+) -> bool {
+    let mut changed = false;
+    
+    ui.heading("Camera Settings");
+    ui.separator();
+    
+    // ========================================================================
+    // ZOOM SETTINGS
+    // ========================================================================
+    
+    ui.label("Zoom Settings");
+    ui.add_space(4.0);
+    
+    // Zoom Sensitivity Slider
+    ui.horizontal(|ui| {
+        ui.label("Zoom Speed:");
+        let mut sensitivity = scene_camera.get_zoom_sensitivity();
+        if ui.add(
+            egui::Slider::new(&mut sensitivity, 0.01..=0.5)
+                .text("sensitivity")
+                .step_by(0.01)
+        ).changed() {
+            scene_camera.set_zoom_sensitivity(sensitivity);
+            changed = true;
+        }
+    });
+    
+    // Zoom Speed Slider
+    ui.horizontal(|ui| {
+        ui.label("Zoom Smoothness:");
+        let mut speed = scene_camera.settings.zoom_speed;
+        if ui.add(
+            egui::Slider::new(&mut speed, 1.0..=50.0)
+                .text("speed")
+                .step_by(1.0)
+        ).changed() {
+            scene_camera.set_zoom_speed(speed);
+            changed = true;
+        }
+    });
+    
+    // Zoom Mode Toggle
+    ui.horizontal(|ui| {
+        ui.label("Zoom Mode:");
+        if ui.checkbox(&mut scene_camera.settings.zoom_to_cursor, "Zoom to Cursor").changed() {
+            changed = true;
+        }
+    });
+    
+    ui.add_space(8.0);
+    
+    // ========================================================================
+    // PAN SETTINGS
+    // ========================================================================
+    
+    ui.label("Pan Settings");
+    ui.add_space(4.0);
+    
+    // Pan Sensitivity Slider
+    ui.horizontal(|ui| {
+        ui.label("Pan Speed:");
+        let mut sensitivity = scene_camera.settings.pan_sensitivity;
+        if ui.add(
+            egui::Slider::new(&mut sensitivity, 0.1..=5.0)
+                .text("sensitivity")
+                .step_by(0.1)
+        ).changed() {
+            scene_camera.settings.pan_sensitivity = sensitivity;
+            changed = true;
+        }
+    });
+    
+    // Pan Damping Slider
+    ui.horizontal(|ui| {
+        ui.label("Pan Smoothness:");
+        let mut damping = scene_camera.settings.pan_damping;
+        if ui.add(
+            egui::Slider::new(&mut damping, 0.0..=0.5)
+                .text("damping")
+                .step_by(0.01)
+        ).changed() {
+            scene_camera.settings.pan_damping = damping;
+            changed = true;
+        }
+    });
+    
+    ui.add_space(8.0);
+    
+    // ========================================================================
+    // ROTATION SETTINGS (3D Mode)
+    // ========================================================================
+    
+    ui.label("Rotation Settings (3D)");
+    ui.add_space(4.0);
+    
+    // Rotation Sensitivity Slider
+    ui.horizontal(|ui| {
+        ui.label("Rotation Speed:");
+        let mut sensitivity = scene_camera.settings.rotation_sensitivity;
+        if ui.add(
+            egui::Slider::new(&mut sensitivity, 0.1..=2.0)
+                .text("sensitivity")
+                .step_by(0.1)
+        ).changed() {
+            scene_camera.settings.rotation_sensitivity = sensitivity;
+            changed = true;
+        }
+    });
+    
+    ui.add_space(8.0);
+    
+    // ========================================================================
+    // PRESETS
+    // ========================================================================
+    
+    ui.label("Presets");
+    ui.add_space(4.0);
+    
+    ui.horizontal(|ui| {
+        if ui.button("Slow").clicked() {
+            apply_preset_slow(scene_camera);
+            changed = true;
+        }
+        if ui.button("Normal").clicked() {
+            apply_preset_normal(scene_camera);
+            changed = true;
+        }
+        if ui.button("Fast").clicked() {
+            apply_preset_fast(scene_camera);
+            changed = true;
+        }
+    });
+    
+    ui.add_space(8.0);
+    
+    // ========================================================================
+    // ADVANCED SETTINGS
+    // ========================================================================
+    
+    ui.collapsing("Advanced", |ui| {
+        // Zoom Damping
+        ui.horizontal(|ui| {
+            ui.label("Zoom Damping:");
+            let mut damping = scene_camera.settings.zoom_damping;
+            if ui.add(
+                egui::Slider::new(&mut damping, 0.0..=0.5)
+                    .step_by(0.01)
+            ).changed() {
+                scene_camera.settings.zoom_damping = damping;
+                changed = true;
+            }
+        });
+        
+        // Rotation Damping
+        ui.horizontal(|ui| {
+            ui.label("Rotation Damping:");
+            let mut damping = scene_camera.settings.rotation_damping;
+            if ui.add(
+                egui::Slider::new(&mut damping, 0.0..=0.5)
+                    .step_by(0.01)
+            ).changed() {
+                scene_camera.settings.rotation_damping = damping;
+                changed = true;
+            }
+        });
+        
+        // Inertia
+        if ui.checkbox(&mut scene_camera.settings.enable_inertia, "Enable Inertia").changed() {
+            changed = true;
+        }
+        
+        if scene_camera.settings.enable_inertia {
+            ui.horizontal(|ui| {
+                ui.label("Inertia Decay:");
+                let mut decay = scene_camera.settings.inertia_decay;
+                if ui.add(
+                    egui::Slider::new(&mut decay, 0.8..=0.99)
+                        .step_by(0.01)
+                ).changed() {
+                    scene_camera.settings.inertia_decay = decay;
+                    changed = true;
+                }
+            });
+        }
+    });
+    
+    ui.add_space(8.0);
+    
+    // ========================================================================
+    // SAVE/LOAD
+    // ========================================================================
+    
+    ui.horizontal(|ui| {
+        if ui.button("Save Settings").clicked() {
+            if let Err(e) = scene_camera.save_settings() {
+                eprintln!("Failed to save camera settings: {}", e);
+            }
+        }
+        
+        if ui.button("Load Settings").clicked() {
+            if let Err(e) = scene_camera.load_settings() {
+                eprintln!("Failed to load camera settings: {}", e);
+            }
+            changed = true;
+        }
+        
+        if ui.button("Reset to Default").clicked() {
+            scene_camera.reset_settings_to_default();
+            changed = true;
+        }
+    });
+    
+    changed
+}
+
+/// Render compact camera settings (for toolbar)
+pub fn render_camera_settings_compact(
+    ui: &mut egui::Ui,
+    scene_camera: &mut SceneCamera,
+) -> bool {
+    let mut changed = false;
+    
+    ui.horizontal(|ui| {
+        ui.label("Zoom:");
+        let mut sensitivity = scene_camera.get_zoom_sensitivity();
+        if ui.add(
+            egui::Slider::new(&mut sensitivity, 0.01..=0.5)
+                .step_by(0.01)
+        ).changed() {
+            scene_camera.set_zoom_sensitivity(sensitivity);
+            changed = true;
+        }
+    });
+    
+    changed
+}
+
+// ============================================================================
+// PRESETS
+// ============================================================================
+
+fn apply_preset_slow(camera: &mut SceneCamera) {
+    camera.settings.zoom_sensitivity = 0.08;
+    camera.settings.pan_sensitivity = 0.5;
+    camera.settings.rotation_sensitivity = 0.3;
+    camera.settings.zoom_speed = 10.0;
+    camera.settings.pan_damping = 0.12;
+    camera.settings.zoom_damping = 0.12;
+}
+
+fn apply_preset_normal(camera: &mut SceneCamera) {
+    camera.settings.zoom_sensitivity = 0.12;
+    camera.settings.pan_sensitivity = 1.0;
+    camera.settings.rotation_sensitivity = 0.5;
+    camera.settings.zoom_speed = 20.0;
+    camera.settings.pan_damping = 0.08;
+    camera.settings.zoom_damping = 0.08;
+}
+
+fn apply_preset_fast(camera: &mut SceneCamera) {
+    camera.settings.zoom_sensitivity = 0.18;
+    camera.settings.pan_sensitivity = 2.0;
+    camera.settings.rotation_sensitivity = 0.8;
+    camera.settings.zoom_speed = 35.0;
+    camera.settings.pan_damping = 0.05;
+    camera.settings.zoom_damping = 0.05;
+}

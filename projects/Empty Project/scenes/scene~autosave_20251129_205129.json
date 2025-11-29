@@ -1,26 +1,6 @@
 {
-  "next_entity": 37,
+  "next_entity": 36,
   "transforms": [
-    [
-      36,
-      {
-        "position": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
     [
       29,
       {
@@ -175,32 +155,7 @@
       }
     ]
   ],
-  "cameras": [
-    [
-      36,
-      {
-        "projection": "Orthographic",
-        "fov": 60.0,
-        "orthographic_size": 5.0,
-        "near_clip": 0.3,
-        "far_clip": 1000.0,
-        "viewport_rect": [
-          0.0,
-          0.0,
-          1.0,
-          1.0
-        ],
-        "depth": 0,
-        "clear_flags": "SolidColor",
-        "background_color": [
-          0.15,
-          0.16,
-          0.18,
-          1.0
-        ]
-      }
-    ]
-  ],
+  "cameras": [],
   "meshes": [],
   "tags": [
     [
@@ -239,10 +194,6 @@
       true
     ],
     [
-      36,
-      true
-    ],
-    [
       33,
       true
     ],
@@ -252,10 +203,6 @@
     ]
   ],
   "layers": [
-    [
-      36,
-      0
-    ],
     [
       33,
       0
@@ -278,10 +225,6 @@
     [
       31,
       "Item 31"
-    ],
-    [
-      36,
-      "Camera"
     ],
     [
       33,

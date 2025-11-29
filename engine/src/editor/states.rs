@@ -73,6 +73,7 @@ pub struct EditorState {
     pub show_create_menu: bool,
     pub show_rename_dialog: bool,
     pub rename_buffer: String,
+    pub show_camera_settings: bool,  // Camera settings dialog
     
     // NEW: Unity-like editor features
     pub shortcut_manager: super::shortcuts::ShortcutManager,
@@ -133,6 +134,7 @@ impl EditorState {
             show_create_menu: false,
             show_rename_dialog: false,
             rename_buffer: String::new(),
+            show_camera_settings: false,
             
             // NEW: Initialize Unity-like features
             shortcut_manager: super::shortcuts::ShortcutManager::new(),
