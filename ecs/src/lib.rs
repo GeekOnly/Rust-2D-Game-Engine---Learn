@@ -19,7 +19,8 @@ pub struct Prefab {
     pub transform: Transform,
     pub sprite: Option<Sprite>,
     pub collider: Option<Collider>,
-    pub velocity: Option<(f32, f32)>,
+    pub rigidbody: Option<Rigidbody2D>,
+    pub velocity: Option<(f32, f32)>,  // Legacy - kept for backward compatibility
     pub tag: Option<EntityTag>,
     pub script: Option<Script>,
     pub camera: Option<Camera>,
@@ -33,6 +34,7 @@ impl Prefab {
             transform: Transform::default(),
             sprite: None,
             collider: None,
+            rigidbody: None,
             velocity: None,
             tag: None,
             script: None,
@@ -40,7 +42,7 @@ impl Prefab {
         }
     }
 
-    /// Create a Player prefab
+    /// Create a Player prefab with Rigidbody
     pub fn player() -> Self {
         Self {
             name: "Player".to_string(),
@@ -53,6 +55,7 @@ impl Prefab {
                 billboard: true, // Player sprite faces camera (good for 3D mode)
             }),
             collider: Some(Collider { width: 40.0, height: 40.0 }),
+            rigidbody: Some(Rigidbody2D::default()),  // Add rigidbody with default values
             velocity: Some((0.0, 0.0)),
             tag: Some(EntityTag::Player),
             script: None,
@@ -73,6 +76,7 @@ impl Prefab {
                 billboard: true, // Item sprite faces camera
             }),
             collider: Some(Collider { width: 30.0, height: 30.0 }),
+            rigidbody: None,
             velocity: None,
             tag: Some(EntityTag::Item),
             script: None,
@@ -87,6 +91,7 @@ impl Prefab {
             transform: Transform::with_position(0.0, 0.0, -10.0), // Camera behind objects
             sprite: None,
             collider: None,
+            rigidbody: None,
             velocity: None,
             tag: None,
             script: None,
@@ -101,6 +106,7 @@ impl Prefab {
             transform: Transform::with_position(0.0, 5.0, -10.0), // Camera above and behind
             sprite: None,
             collider: None,
+            rigidbody: None,
             velocity: None,
             tag: None,
             script: None,
@@ -120,7 +126,12 @@ impl Prefab {
         if let Some(collider) = &self.collider {
             world.colliders.insert(entity, collider.clone());
         }
-        if let Some(velocity) = self.velocity {
+        if let Some(rigidbody) = &self.rigidbody {
+            world.rigidbodies.insert(entity, rigidbody.clone());
+            // Sync velocity from rigidbody
+            world.velocities.insert(entity, rigidbody.velocity);
+        } else if let Some(velocity) = self.velocity {
+            // Legacy velocity support
             world.velocities.insert(entity, velocity);
         }
         if let Some(tag) = &self.tag {

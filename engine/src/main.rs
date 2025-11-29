@@ -1281,8 +1281,10 @@ fn main() -> Result<()> {
 
                                                     // Initialize physics - sync rigidbody velocities to world.velocities
                                                     let entities_with_rigidbodies: Vec<_> = editor_state.world.rigidbodies.keys().cloned().collect();
+                                                    log::info!("Initializing physics for {} entities with rigidbodies", entities_with_rigidbodies.len());
                                                     for entity in entities_with_rigidbodies {
                                                         if let Some(rigidbody) = editor_state.world.rigidbodies.get(&entity) {
+                                                            log::debug!("Entity {}: syncing velocity {:?}", entity, rigidbody.velocity);
                                                             editor_state.world.velocities.insert(entity, rigidbody.velocity);
                                                         }
                                                     }
