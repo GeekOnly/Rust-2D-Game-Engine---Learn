@@ -183,6 +183,10 @@ fn main() -> Result<()> {
     let mut physics = PhysicsWorld::new();
 
     let mut last_frame_time = std::time::Instant::now();
+    
+    // Fixed timestep for physics (60 Hz = 0.0167 seconds per step)
+    const FIXED_TIMESTEP: f32 = 1.0 / 60.0;
+    let mut physics_accumulator: f32 = 0.0;
 
     // Initialize renderer with window
     let mut renderer = pollster::block_on(RenderModule::new(&window))?;
@@ -1358,12 +1362,31 @@ fn main() -> Result<()> {
                                     let dt = (now - last_frame_time).as_secs_f32();
                                     last_frame_time = now;
 
-                                    // Update physics
-                                    let rb_count = editor_state.world.rigidbodies.len();
-                                    if rb_count > 0 {
-                                        editor_state.console.debug(format!("Physics: {} rigidbodies, dt={:.4}", rb_count, dt));
+                                    // Accumulate frame time for fixed timestep physics
+                                    physics_accumulator += dt;
+                                    
+                                    // Update physics with fixed timestep (may run multiple times per frame)
+                                    let mut physics_steps = 0;
+                                    while physics_accumulator >= FIXED_TIMESTEP {
+                                        physics.step(FIXED_TIMESTEP, &mut editor_state.world);
+                                        physics_accumulator -= FIXED_TIMESTEP;
+                                        physics_steps += 1;
+                                        
+                                        // Safety: prevent spiral of death (too many physics steps)
+                                        if physics_steps >= 5 {
+                                            physics_accumulator = 0.0;
+                                            break;
+                                        }
                                     }
-                                    physics.step(dt, &mut editor_state.world);
+                                    
+                                    // Debug log physics info
+                                    let rb_count = editor_state.world.rigidbodies.len();
+                                    if rb_count > 0 && physics_steps > 0 {
+                                        editor_state.console.debug(format!(
+                                            "Physics: {} rigidbodies, {} steps, dt={:.4}, fixed_dt={:.4}", 
+                                            rb_count, physics_steps, dt, FIXED_TIMESTEP
+                                        ));
+                                    }
 
                                     // Check collisions and call collision callbacks
                                     let entities_with_colliders: Vec<_> = editor_state.world.colliders.keys().cloned().collect();
