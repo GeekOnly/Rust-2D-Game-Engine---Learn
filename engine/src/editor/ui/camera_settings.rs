@@ -275,13 +275,73 @@ pub fn render_camera_settings_compact(
     let mut changed = false;
     
     ui.horizontal(|ui| {
-        ui.label("Zoom:");
+        ui.label("🔍 Zoom:");
         let mut sensitivity = scene_camera.get_zoom_sensitivity();
         if ui.add(
             egui::Slider::new(&mut sensitivity, 0.01..=0.5)
                 .step_by(0.01)
         ).changed() {
             scene_camera.set_zoom_sensitivity(sensitivity);
+            changed = true;
+        }
+    });
+    
+    ui.horizontal(|ui| {
+        ui.label("🖱 Pan:");
+        if ui.add(
+            egui::Slider::new(&mut scene_camera.settings.pan_sensitivity, 0.1..=5.0)
+                .step_by(0.1)
+        ).changed() {
+            changed = true;
+        }
+    });
+    
+    changed
+}
+
+/// Render minimal camera controls for scene view overlay
+pub fn render_scene_view_controls(
+    ui: &mut egui::Ui,
+    scene_camera: &mut SceneCamera,
+) -> bool {
+    let mut changed = false;
+    
+    ui.horizontal(|ui| {
+        ui.label("🔍");
+        let mut zoom_sens = scene_camera.get_zoom_sensitivity();
+        if ui.add(
+            egui::Slider::new(&mut zoom_sens, 0.01..=0.5)
+                .show_value(false)
+        ).on_hover_text(format!("Zoom Speed: {:.2}", zoom_sens))
+        .changed() {
+            scene_camera.set_zoom_sensitivity(zoom_sens);
+            changed = true;
+        }
+        
+        ui.separator();
+        
+        ui.label("🖱");
+        if ui.add(
+            egui::Slider::new(&mut scene_camera.settings.pan_sensitivity, 0.1..=5.0)
+                .show_value(false)
+        ).on_hover_text(format!("Pan Speed: {:.1}", scene_camera.settings.pan_sensitivity))
+        .changed() {
+            changed = true;
+        }
+        
+        ui.separator();
+        
+        // Quick preset buttons
+        if ui.small_button("S").on_hover_text("Slow preset").clicked() {
+            apply_preset_slow(scene_camera);
+            changed = true;
+        }
+        if ui.small_button("N").on_hover_text("Normal preset").clicked() {
+            apply_preset_normal(scene_camera);
+            changed = true;
+        }
+        if ui.small_button("F").on_hover_text("Fast preset").clicked() {
+            apply_preset_fast(scene_camera);
             changed = true;
         }
     });

@@ -35,7 +35,7 @@ impl Default for CameraSettings {
             zoom_damping: 0.08,     // Further reduced for instant zoom response
             enable_inertia: false,  // Disabled by default for more predictable behavior
             inertia_decay: 0.92,    // Faster decay when enabled
-            zoom_to_cursor: false,  // Zoom to center (Unity 2D mode) - better for 2D editing
+            zoom_to_cursor: true,   // Zoom to cursor (better for precise editing)
             zoom_speed: 20.0,       // Increased for faster zoom response in 2D
         }
     }
@@ -165,36 +165,20 @@ impl SceneCamera {
         if self.is_panning {
             let delta = mouse_pos - self.last_mouse_pos;
 
+            // Simple pan calculation for 2D mode
             // Convert screen space delta to world space delta
-            // Improved pan speed calculation: more responsive at all zoom levels
-            let base_pan_speed = self.settings.pan_sensitivity / self.zoom;
-            // Add a minimum speed to prevent too slow panning when zoomed in
-            let min_speed = 0.5 / self.zoom.max(10.0);
-            let pan_speed = base_pan_speed.max(min_speed);
+            let pan_speed = self.settings.pan_sensitivity / self.zoom;
             
-            // In 2D mode (rotation = 0), this simplifies to direct X/Y movement
-            // In 3D mode, pan respects camera rotation
-            let yaw_rad = self.rotation.to_radians();
-            let cos_yaw = yaw_rad.cos();
-            let sin_yaw = yaw_rad.sin();
+            // Direct X/Y movement (inverted to match Unity: drag right = world moves left)
+            let world_delta = Vec2::new(-delta.x, delta.y) * pan_speed;
 
-            // Pan along camera's local X and Z axes
-            // Inverted to match Unity behavior (drag right = move camera right = world moves left)
-            let world_delta_x = -(delta.x * cos_yaw + delta.y * sin_yaw) * pan_speed;
-            let world_delta_z = -(-delta.x * sin_yaw + delta.y * cos_yaw) * pan_speed;
-
-            // Update target position for smooth interpolation
-            self.target_position.x += world_delta_x;
-            self.target_position.y += world_delta_z; // position.y maps to world Z
-            
-            // Update current position with reduced damping for immediate response
-            let immediate_factor = 0.7; // 70% immediate, 30% smoothed
-            self.position.x += world_delta_x * immediate_factor;
-            self.position.y += world_delta_z * immediate_factor;
+            // Update position immediately for responsive panning
+            self.position += world_delta;
+            self.target_position = self.position;
             
             // Add to velocity for inertia (if enabled)
             if self.settings.enable_inertia {
-                self.velocity.pan_velocity += Vec2::new(world_delta_x, world_delta_z) * 0.3;
+                self.velocity.pan_velocity += world_delta * 0.3;
             }
 
             self.last_mouse_pos = mouse_pos;
