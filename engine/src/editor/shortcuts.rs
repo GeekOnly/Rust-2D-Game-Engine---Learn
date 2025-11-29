@@ -24,6 +24,8 @@ pub enum EditorShortcut {
     // Edit operations
     Undo,          // Ctrl+Z
     Redo,          // Ctrl+Y or Ctrl+Shift+Z
+    Copy,          // Ctrl+C
+    Paste,         // Ctrl+V
     Duplicate,     // Ctrl+D
     Delete,        // Delete
     SelectAll,     // Ctrl+A
@@ -81,6 +83,8 @@ impl ShortcutManager {
             (KeyCode::KeyZ, true, false, false) => Some(EditorShortcut::Undo),
             (KeyCode::KeyY, true, false, false) => Some(EditorShortcut::Redo),
             (KeyCode::KeyZ, true, true, false) => Some(EditorShortcut::Redo),
+            (KeyCode::KeyC, true, false, false) => Some(EditorShortcut::Copy),
+            (KeyCode::KeyV, true, false, false) => Some(EditorShortcut::Paste),
             (KeyCode::KeyD, true, false, false) => Some(EditorShortcut::Duplicate),
             (KeyCode::Delete, false, false, false) => Some(EditorShortcut::Delete),
             (KeyCode::KeyA, true, false, false) => Some(EditorShortcut::SelectAll),

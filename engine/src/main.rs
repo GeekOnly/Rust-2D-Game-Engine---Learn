@@ -316,8 +316,74 @@ fn main() -> Result<()> {
                                                 editor_state.console.info(format!("Grid: {}", status));
                                             }
                                             EditorShortcut::Duplicate => {
-                                                if let Some(_entity) = editor_state.selected_entity {
-                                                    editor_state.console.info("Duplicate (Ctrl+D) - Not yet implemented".to_string());
+                                                if let Some(entity) = editor_state.selected_entity {
+                                                    editor_state.clipboard.duplicate_entity(
+                                                        entity,
+                                                        &mut editor_state.world,
+                                                        &mut editor_state.entity_names
+                                                    );
+                                                    let new_entities = editor_state.clipboard.paste(
+                                                        &mut editor_state.world,
+                                                        &mut editor_state.entity_names,
+                                                        Some([10.0, 10.0, 0.0]) // Offset by 10 pixels
+                                                    );
+                                                    if let Some(&new_entity) = new_entities.first() {
+                                                        editor_state.selected_entity = Some(new_entity);
+                                                        editor_state.scene_modified = true;
+                                                        editor_state.console.info("Entity duplicated (Ctrl+D)".to_string());
+                                                    }
+                                                }
+                                            }
+                                            EditorShortcut::Copy => {
+                                                if let Some(entity) = editor_state.selected_entity {
+                                                    editor_state.clipboard.copy_entity(
+                                                        entity,
+                                                        &editor_state.world,
+                                                        &editor_state.entity_names
+                                                    );
+                                                    editor_state.console.info("Entity copied (Ctrl+C)".to_string());
+                                                }
+                                            }
+                                            EditorShortcut::Paste => {
+                                                let new_entities = editor_state.clipboard.paste(
+                                                    &mut editor_state.world,
+                                                    &mut editor_state.entity_names,
+                                                    Some([10.0, 10.0, 0.0]) // Offset by 10 pixels
+                                                );
+                                                if let Some(&new_entity) = new_entities.first() {
+                                                    editor_state.selected_entity = Some(new_entity);
+                                                    editor_state.scene_modified = true;
+                                                    editor_state.console.info("Entity pasted (Ctrl+V)".to_string());
+                                                }
+                                            }
+                                            EditorShortcut::Undo => {
+                                                if editor_state.undo_stack.undo(
+                                                    &mut editor_state.world,
+                                                    &mut editor_state.entity_names
+                                                ) {
+                                                    editor_state.scene_modified = true;
+                                                    if let Some(desc) = editor_state.undo_stack.undo_description() {
+                                                        editor_state.console.info(format!("Undo: {} (Ctrl+Z)", desc));
+                                                    } else {
+                                                        editor_state.console.info("Undo (Ctrl+Z)".to_string());
+                                                    }
+                                                } else {
+                                                    editor_state.console.warning("Nothing to undo".to_string());
+                                                }
+                                            }
+                                            EditorShortcut::Redo => {
+                                                if editor_state.undo_stack.redo(
+                                                    &mut editor_state.world,
+                                                    &mut editor_state.entity_names
+                                                ) {
+                                                    editor_state.scene_modified = true;
+                                                    if let Some(desc) = editor_state.undo_stack.redo_description() {
+                                                        editor_state.console.info(format!("Redo: {} (Ctrl+Y)", desc));
+                                                    } else {
+                                                        editor_state.console.info("Redo (Ctrl+Y)".to_string());
+                                                    }
+                                                } else {
+                                                    editor_state.console.warning("Nothing to redo".to_string());
                                                 }
                                             }
                                             EditorShortcut::SaveScene => {

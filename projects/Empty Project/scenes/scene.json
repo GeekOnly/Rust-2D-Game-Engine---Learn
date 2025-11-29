@@ -1,28 +1,8 @@
 {
-  "next_entity": 37,
+  "next_entity": 43,
   "transforms": [
     [
-      29,
-      {
-        "position": [
-          -1.2367222,
-          0.8300339,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          29.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      36,
+      37,
       {
         "position": [
           0.0,
@@ -42,17 +22,17 @@
       }
     ],
     [
-      33,
+      39,
       {
         "position": [
-          1.7581924,
-          0.18982601,
+          0.0,
+          0.0,
           0.0
         ],
         "rotation": [
-          -11.0,
-          -17.0,
-          215.12427
+          0.0,
+          0.0,
+          0.0
         ],
         "scale": [
           1.0,
@@ -62,17 +42,37 @@
       }
     ],
     [
-      31,
+      42,
       {
         "position": [
-          0.44065344,
-          2.0670276,
+          1.4821261,
+          -1.5105785,
           0.0
         ],
         "rotation": [
           0.0,
           0.0,
-          -70.63017
+          0.0
+        ],
+        "scale": [
+          1.1633044,
+          1.41,
+          -10.93
+        ]
+      }
+    ],
+    [
+      40,
+      {
+        "position": [
+          1.4634563,
+          3.2016149,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
         ],
         "scale": [
           1.0,
@@ -84,21 +84,21 @@
   ],
   "velocities": [
     [
-      31,
-      [
-        0.0,
-        0.1
-      ]
-    ],
-    [
-      33,
+      39,
       [
         0.0,
         0.0
       ]
     ],
     [
-      29,
+      40,
+      [
+        0.0,
+        0.0
+      ]
+    ],
+    [
+      42,
       [
         0.0,
         0.0
@@ -107,22 +107,22 @@
   ],
   "sprites": [
     [
-      33,
+      39,
       {
-        "texture_id": "item",
+        "texture_id": "player",
         "width": 1.0,
         "height": 1.0,
         "color": [
-          0.24828629,
-          0.076175585,
-          0.49876878,
+          0.19999999,
+          0.5999998,
+          1.0,
           1.0
         ],
         "billboard": true
       }
     ],
     [
-      31,
+      40,
       {
         "texture_id": "item",
         "width": 1.0,
@@ -137,47 +137,88 @@
       }
     ],
     [
-      29,
+      42,
       {
-        "texture_id": "player",
+        "texture_id": "sprite",
         "width": 1.0,
         "height": 1.0,
         "color": [
-          0.19999999,
-          0.5999998,
+          1.0,
+          1.0,
           1.0,
           1.0
         ],
-        "billboard": true
+        "billboard": false
       }
     ]
   ],
   "colliders": [
     [
-      33,
+      42,
       {
         "width": 1.0,
         "height": 1.0
       }
     ],
     [
-      29,
+      39,
       {
         "width": 1.0,
         "height": 1.0
       }
     ],
     [
-      31,
+      40,
       {
         "width": 1.0,
         "height": 1.0
       }
     ]
   ],
+  "rigidbodies": [
+    [
+      40,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 1.0,
+        "mass": 1.0,
+        "is_kinematic": false,
+        "freeze_rotation": true
+      }
+    ],
+    [
+      42,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 1.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true
+      }
+    ],
+    [
+      39,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 1.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true
+      }
+    ]
+  ],
   "cameras": [
     [
-      36,
+      37,
       {
         "projection": "Orthographic",
         "fov": 60.0,
@@ -204,88 +245,77 @@
   "meshes": [],
   "tags": [
     [
-      31,
-      "Item"
-    ],
-    [
-      33,
-      "Item"
-    ],
-    [
-      29,
+      39,
       "Player"
+    ],
+    [
+      40,
+      "Item"
     ]
   ],
   "scripts": [
     [
-      29,
+      39,
       {
-        "script_name": "Script_21",
+        "script_name": "NewScript",
         "enabled": true,
-        "parameters": {
-          "vx": {
-            "Float": 0.0
-          },
-          "vy": {
-            "Float": 0.0
-          }
-        }
+        "parameters": {}
       }
     ]
   ],
   "active": [
     [
-      33,
+      39,
       true
     ],
     [
-      29,
+      40,
       true
     ],
     [
-      31,
+      42,
       true
     ],
     [
-      36,
+      37,
       true
     ]
   ],
   "layers": [
     [
-      36,
+      37,
       0
     ],
     [
-      33,
+      40,
       0
     ],
     [
-      29,
+      39,
       0
     ],
     [
-      31,
+      42,
       0
     ]
   ],
   "parents": [],
   "names": [
     [
-      29,
-      "Player"
-    ],
-    [
-      33,
-      "Item 33"
-    ],
-    [
-      36,
+      37,
       "Camera"
     ],
     [
-      31,
-      "Item 31"
+      42,
+      "Sprite"
+    ],
+    [
+      40,
+      "Item 40"
+    ],
+    [
+      39,
+      "Player"
     ]
   ]
 }
