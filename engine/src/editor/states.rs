@@ -128,7 +128,7 @@ impl EditorState {
             show_colliders: true,
             show_velocities: false,
             console,
-            bottom_panel_tab: 0,
+            bottom_panel_tab: 1,  // Default to Console tab to show logs
             show_project_settings: false,
             show_unsaved_changes_dialog: false,
             pending_action: None,
