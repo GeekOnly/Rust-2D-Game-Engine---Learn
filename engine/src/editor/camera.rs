@@ -193,15 +193,10 @@ impl SceneCamera {
     
     /// Zoom in/out (scroll wheel) - improved version with cursor-based zooming
     pub fn zoom(&mut self, delta: f32, mouse_pos: Vec2) {
-        // Store world position under cursor before zoom (for zoom-to-cursor)
-        let world_pos_before = if self.settings.zoom_to_cursor {
-            Some(self.screen_to_world(mouse_pos))
-        } else {
-            None
-        };
+        // Calculate world position under cursor BEFORE zoom
+        let world_pos_before = self.screen_to_world(mouse_pos);
         
-        // Smooth exponential zoom with better sensitivity
-        // Use zoom_sensitivity for fine control
+        // Calculate zoom factor
         let zoom_factor = if delta > 0.0 {
             1.0 + self.settings.zoom_sensitivity
         } else {
@@ -209,32 +204,26 @@ impl SceneCamera {
         };
         
         let old_zoom = self.zoom;
-        self.target_zoom *= zoom_factor;
-        self.target_zoom = self.target_zoom.clamp(self.min_zoom, self.max_zoom);
         
-        // Apply zoom more immediately for 2D mode (less interpolation)
-        let immediate_factor = 0.85; // 85% immediate for snappier response
-        self.zoom = self.zoom * (1.0 - immediate_factor) + self.target_zoom * immediate_factor;
+        // Apply zoom immediately for responsive feel
+        self.zoom *= zoom_factor;
         self.zoom = self.zoom.clamp(self.min_zoom, self.max_zoom);
+        self.target_zoom = self.zoom;
         
-        // Adjust camera position to zoom towards cursor
-        if let Some(world_pos) = world_pos_before {
-            if self.settings.zoom_to_cursor {
-                // Calculate how much the world position moved in screen space
-                let screen_pos_after = self.world_to_screen(world_pos);
-                let screen_offset = mouse_pos - screen_pos_after;
-                
-                // Adjust camera position to keep world position under cursor
-                // Apply immediately for better zoom-to-cursor feel
-                let world_offset = Vec2::new(screen_offset.x, -screen_offset.y) / self.zoom;
-                self.position += world_offset;
-                self.target_position = self.position; // Sync target immediately
-            }
+        // Adjust camera position to zoom towards cursor (if enabled)
+        if self.settings.zoom_to_cursor {
+            // Calculate world position under cursor AFTER zoom
+            let world_pos_after = self.screen_to_world(mouse_pos);
+            
+            // Adjust camera position to keep the same world point under cursor
+            let world_offset = world_pos_before - world_pos_after;
+            self.position += world_offset;
+            self.target_position = self.position;
         }
         
         // Add to velocity for inertia (if enabled)
         if self.settings.enable_inertia {
-            let zoom_delta = self.target_zoom - old_zoom;
+            let zoom_delta = self.zoom - old_zoom;
             self.velocity.zoom_velocity += zoom_delta * 0.2;
         }
     }
