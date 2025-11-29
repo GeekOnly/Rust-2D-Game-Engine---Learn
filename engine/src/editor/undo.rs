@@ -7,6 +7,8 @@ use ecs::{World, Entity, Transform, Sprite, Collider, Camera, Mesh, EntityTag, S
 use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
 
+#[allow(dead_code)]
+
 /// Maximum number of undo steps to keep in memory
 const MAX_UNDO_STEPS: usize = 100;
 

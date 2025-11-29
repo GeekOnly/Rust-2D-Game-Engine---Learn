@@ -160,6 +160,19 @@ pub fn render_scene_view(
                 &mut hovered_entity,
                 &response,
             );
+            
+            // Render transform gizmo for selected entity
+            if let Some(entity) = *selected_entity {
+                rendering::view_2d::render_transform_gizmo_2d(
+                    &painter,
+                    entity,
+                    world,
+                    scene_camera,
+                    center,
+                    current_tool,
+                    transform_space,
+                );
+            }
         }
         SceneViewMode::Mode3D => {
             rendering::view_3d::render_scene_3d(

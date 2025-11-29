@@ -7,6 +7,8 @@
 //! - Box selection (drag)
 //! - Select all (Ctrl+A)
 
+#![allow(dead_code)]
+
 use ecs::{World, Entity};
 use egui;
 use std::collections::HashSet;

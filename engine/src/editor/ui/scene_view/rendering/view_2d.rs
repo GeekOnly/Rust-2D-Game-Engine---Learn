@@ -81,6 +81,35 @@ pub fn render_scene_2d(
     }
 }
 
+/// Render transform gizmo for selected entity in 2D
+pub fn render_transform_gizmo_2d(
+    painter: &egui::Painter,
+    entity: Entity,
+    world: &World,
+    scene_camera: &SceneCamera,
+    center: egui::Pos2,
+    current_tool: &super::super::super::TransformTool,
+    transform_space: &super::super::types::TransformSpace,
+) {
+    if let Some(transform) = world.transforms.get(&entity) {
+        let world_pos = glam::Vec2::new(transform.x(), transform.y());
+        let screen_pos = scene_camera.world_to_screen(world_pos);
+        let screen_x = center.x + screen_pos.x;
+        let screen_y = center.y + screen_pos.y;
+        
+        super::gizmos::render_transform_gizmo(
+            painter,
+            screen_x,
+            screen_y,
+            current_tool,
+            scene_camera,
+            &super::super::types::SceneViewMode::Mode2D,
+            transform_space,
+            transform,
+        );
+    }
+}
+
 fn render_entity_2d(
     painter: &egui::Painter,
     entity: Entity,
