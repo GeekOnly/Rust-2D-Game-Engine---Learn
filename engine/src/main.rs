@@ -1279,6 +1279,14 @@ fn main() -> Result<()> {
                                                     log::info!("Entering play mode in editor");
                                                     editor_state.console.info("▶️ Entering Play Mode...");
 
+                                                    // Initialize physics - sync rigidbody velocities to world.velocities
+                                                    let entities_with_rigidbodies: Vec<_> = editor_state.world.rigidbodies.keys().cloned().collect();
+                                                    for entity in entities_with_rigidbodies {
+                                                        if let Some(rigidbody) = editor_state.world.rigidbodies.get(&entity) {
+                                                            editor_state.world.velocities.insert(entity, rigidbody.velocity);
+                                                        }
+                                                    }
+
                                                     // Load and initialize all scripts
                                                     let entities_with_scripts: Vec<_> = editor_state.world.scripts.keys().cloned().collect();
                                                     for entity in entities_with_scripts {
@@ -1460,7 +1468,13 @@ fn main() -> Result<()> {
                     target.exit();
                 }
                 
+                // Always request redraw for continuous updates
                 window.request_redraw();
+                
+                // When playing, ensure continuous updates
+                if editor_state.is_playing {
+                    target.set_control_flow(ControlFlow::Poll);
+                }
             }
             _ => {}
         }
