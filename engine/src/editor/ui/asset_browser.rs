@@ -77,22 +77,18 @@ impl AssetBrowser {
         ui.separator();
         
         // Unity-like 2-column layout: Folder tree (left) + Asset view (right)
-        ui.horizontal(|ui| {
-            // Left panel: Folder tree
+        ui.columns(2, |columns| {
+            // Left column: Folder tree
             egui::ScrollArea::vertical()
                 .id_source("folder_tree")
-                .max_width(200.0)
-                .show(ui, |ui| {
-                    ui.set_min_width(200.0);
+                .show(&mut columns[0], |ui| {
                     Self::render_folder_tree(ui, asset_manager, colors);
                 });
             
-            ui.separator();
-            
-            // Right panel: Asset list
+            // Right column: Asset list
             egui::ScrollArea::vertical()
                 .id_source("asset_list")
-                .show(ui, |ui| {
+                .show(&mut columns[1], |ui| {
             let assets = asset_manager.get_assets();
             
             if assets.is_empty() {
@@ -110,7 +106,7 @@ impl AssetBrowser {
                     Self::render_list_view(ui, asset_manager, &assets, colors, drag_drop);
                 }
             }
-            });
+                });
         });
     }
     
