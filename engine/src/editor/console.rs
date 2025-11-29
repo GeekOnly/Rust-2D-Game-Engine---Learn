@@ -71,7 +71,7 @@ impl Console {
             show_info: true,
             show_warning: true,
             show_error: true,
-            show_debug: false,
+            show_debug: true,  // Enable debug logs by default for physics debugging
             collapse: false,
             auto_scroll: true,
             filter: String::new(),

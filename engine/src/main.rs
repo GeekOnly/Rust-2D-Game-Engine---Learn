@@ -1282,9 +1282,11 @@ fn main() -> Result<()> {
                                                     // Initialize physics - sync rigidbody velocities to world.velocities
                                                     let entities_with_rigidbodies: Vec<_> = editor_state.world.rigidbodies.keys().cloned().collect();
                                                     log::info!("Initializing physics for {} entities with rigidbodies", entities_with_rigidbodies.len());
+                                                    editor_state.console.debug(format!("🔧 Initializing physics: {} rigidbodies", entities_with_rigidbodies.len()));
                                                     for entity in entities_with_rigidbodies {
                                                         if let Some(rigidbody) = editor_state.world.rigidbodies.get(&entity) {
                                                             log::debug!("Entity {}: syncing velocity {:?}", entity, rigidbody.velocity);
+                                                            editor_state.console.debug(format!("  Entity {}: vel={:?}, kinematic={}", entity, rigidbody.velocity, rigidbody.is_kinematic));
                                                             editor_state.world.velocities.insert(entity, rigidbody.velocity);
                                                         }
                                                     }
@@ -1323,15 +1325,19 @@ fn main() -> Result<()> {
                                     if editor_state.is_playing {
                                         // Debug: Log rigidbody states before restore
                                         log::info!("Exiting play mode - current world state:");
+                                        editor_state.console.debug("⏹️ Exiting play mode - current state:".to_string());
                                         for (entity, rb) in &editor_state.world.rigidbodies {
                                             log::debug!("  Entity {}: vel={:?}", entity, rb.velocity);
+                                            editor_state.console.debug(format!("  Entity {}: vel={:?}", entity, rb.velocity));
                                         }
                                         
                                         // Restore world from backup and switch to Scene tab
                                         if let Some(backup_world) = editor_state.play_world.take() {
                                             log::info!("Restoring world from backup:");
+                                            editor_state.console.debug("🔄 Restoring from backup:".to_string());
                                             for (entity, rb) in &backup_world.rigidbodies {
                                                 log::debug!("  Backup Entity {}: vel={:?}", entity, rb.velocity);
+                                                editor_state.console.debug(format!("  Backup Entity {}: vel={:?}", entity, rb.velocity));
                                             }
                                             editor_state.world = backup_world;
                                         }
@@ -1349,6 +1355,10 @@ fn main() -> Result<()> {
                                     last_frame_time = now;
 
                                     // Update physics
+                                    let rb_count = editor_state.world.rigidbodies.len();
+                                    if rb_count > 0 {
+                                        editor_state.console.debug(format!("Physics: {} rigidbodies, dt={:.4}", rb_count, dt));
+                                    }
                                     physics.step(dt, &mut editor_state.world);
 
                                     // Check collisions and call collision callbacks
