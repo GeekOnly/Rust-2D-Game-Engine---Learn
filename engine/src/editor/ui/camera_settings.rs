@@ -202,24 +202,54 @@ pub fn render_camera_settings(
     ui.add_space(8.0);
     
     // ========================================================================
+    // QUICK ACTIONS
+    // ========================================================================
+    
+    ui.label("Quick Actions");
+    ui.add_space(4.0);
+    
+    ui.horizontal(|ui| {
+        if ui.button("🏠 Reset View")
+            .on_hover_text("Reset camera to default position and zoom (Home key)")
+            .clicked() 
+        {
+            scene_camera.reset();
+            changed = true;
+        }
+        
+        if ui.button("📐 Frame All")
+            .on_hover_text("Frame all objects in view (Shift+F)")
+            .clicked() 
+        {
+            // This will be handled by the caller with world data
+            // For now, just reset to a reasonable default view
+            scene_camera.set_zoom_level(50.0);
+            scene_camera.position = glam::Vec2::ZERO;
+            changed = true;
+        }
+    });
+    
+    ui.add_space(8.0);
+    
+    // ========================================================================
     // SAVE/LOAD
     // ========================================================================
     
     ui.horizontal(|ui| {
-        if ui.button("Save Settings").clicked() {
+        if ui.button("💾 Save Settings").clicked() {
             if let Err(e) = scene_camera.save_settings() {
                 eprintln!("Failed to save camera settings: {}", e);
             }
         }
         
-        if ui.button("Load Settings").clicked() {
+        if ui.button("📂 Load Settings").clicked() {
             if let Err(e) = scene_camera.load_settings() {
                 eprintln!("Failed to load camera settings: {}", e);
             }
             changed = true;
         }
         
-        if ui.button("Reset to Default").clicked() {
+        if ui.button("🔄 Reset to Default").clicked() {
             scene_camera.reset_settings_to_default();
             changed = true;
         }

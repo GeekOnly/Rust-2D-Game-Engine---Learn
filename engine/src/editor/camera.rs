@@ -478,6 +478,32 @@ impl SceneCamera {
         self.zoom = self.target_zoom;
     }
     
+    /// Frame all objects in scene - calculates bounding box and frames it
+    pub fn frame_all(&mut self, objects: &[(Vec2, Vec2)], viewport_size: Vec2) {
+        if objects.is_empty() {
+            // No objects, reset to default view
+            self.reset();
+            return;
+        }
+        
+        // Calculate bounding box of all objects
+        let mut min = Vec2::new(f32::MAX, f32::MAX);
+        let mut max = Vec2::new(f32::MIN, f32::MIN);
+        
+        for (pos, size) in objects {
+            let half_size = *size * 0.5;
+            min = min.min(*pos - half_size);
+            max = max.max(*pos + half_size);
+        }
+        
+        // Calculate center and size of bounding box
+        let center = (min + max) * 0.5;
+        let size = max - min;
+        
+        // Frame the bounding box
+        self.frame_object(center, size, viewport_size);
+    }
+    
     /// Convert screen coordinates to world coordinates
     pub fn screen_to_world(&self, screen_pos: Vec2) -> Vec2 {
         // In 2D mode (rotation = 0), Y axis points up (standard convention)
