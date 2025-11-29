@@ -1,6 +1,25 @@
 {
   "entities": [
     {
+      "id": 0,
+      "name": "Main Camera",
+      "active": true,
+      "layer": 0,
+      "components": {
+        "Transform": {
+          "position": [400.0, 300.0, -10.0],
+          "rotation": [0.0, 0.0, 0.0],
+          "scale": [1.0, 1.0, 1.0]
+        },
+        "Camera": {
+          "is_main": true,
+          "orthographic_size": 300.0,
+          "near_plane": 0.1,
+          "far_plane": 1000.0
+        }
+      }
+    },
+    {
       "id": 1,
       "name": "Player",
       "active": true,

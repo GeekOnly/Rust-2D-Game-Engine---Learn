@@ -2,6 +2,8 @@
   "name": "Celeste Demo",
   "description": "Platformer demo with Celeste-style movement (Run, Jump, Dash)",
   "version": "1.0.0",
-  "engine_version": "0.1.0",
+  "editor_startup_scene": null,
+  "game_startup_scene": null,
+  "last_opened_scene": "scenes/main.json",
   "startup_scene": "scenes/main.json"
 }
