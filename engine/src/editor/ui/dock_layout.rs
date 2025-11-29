@@ -116,12 +116,8 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                 crate::runtime::render_game_view(ui, self.context.world);
             }
             EditorTab::Console => {
-                // Render console (simple version for now)
-                ui.label("Console");
-                ui.separator();
-                egui::ScrollArea::vertical().auto_shrink([false, false]).show(ui, |ui| {
-                    ui.label("Console messages will appear here");
-                });
+                // Render console with full functionality
+                self.context.console.render(ui);
             }
             EditorTab::Project => {
                 if let Some(ref mut manager) = self.context.asset_manager {
