@@ -163,6 +163,8 @@ impl EngineModule for SampleModule {
 fn main() -> Result<()> {
     env_logger::init();
     println!("Starting Game Engine...");
+    log::info!("=== Rust 2D Game Engine Starting ===");
+    log::info!("Logging initialized");
 
     let event_loop = EventLoop::new()?;
     let window = WindowBuilder::new()
@@ -453,8 +455,10 @@ fn main() -> Result<()> {
                                                         editor_state.current_project_path = Some(folder.clone());
 
                                                         // Log to console
-                                                        editor_state.console.info(format!("Project opened: {}", folder.display()));
-                                                        editor_state.console.info("Welcome to Rust 2D Game Engine!");
+                                                        log::info!("Project opened: {}", folder.display());
+                                                        editor_state.console.info(format!("📁 Project opened: {}", folder.display()));
+                                                        editor_state.console.info("👋 Welcome to Rust 2D Game Engine!");
+                                                        editor_state.console.debug("Debug logging enabled".to_string());
 
                                                         // Load editor layout
                                                         editor_state.load_editor_layout();

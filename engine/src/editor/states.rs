@@ -107,6 +107,11 @@ pub struct EditorState {
 #[allow(dead_code)]
 impl EditorState {
     pub fn new() -> Self {
+        let mut console = super::console::Console::new();
+        // Add initial message to test console
+        console.info("🚀 Editor initialized");
+        console.debug("Console logging is working!");
+        
         Self {
             world: World::new(),
             selected_entity: None,
@@ -122,7 +127,7 @@ impl EditorState {
             input_system: input::InputSystem::new(),
             show_colliders: true,
             show_velocities: false,
-            console: super::console::Console::new(),
+            console,
             bottom_panel_tab: 0,
             show_project_settings: false,
             show_unsaved_changes_dialog: false,
