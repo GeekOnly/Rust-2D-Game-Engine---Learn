@@ -29,14 +29,14 @@ impl Default for CameraSettings {
         Self {
             pan_sensitivity: 1.0,
             rotation_sensitivity: 0.5,
-            zoom_sensitivity: 0.15, // Increased for smoother zoom
+            zoom_sensitivity: 0.12, // Optimized for 2D mode
             pan_damping: 0.08,      // Reduced for more responsive panning
             rotation_damping: 0.12,
-            zoom_damping: 0.12,     // Reduced for smoother zoom
+            zoom_damping: 0.08,     // Further reduced for instant zoom response
             enable_inertia: false,  // Disabled by default for more predictable behavior
             inertia_decay: 0.92,    // Faster decay when enabled
             zoom_to_cursor: true,
-            zoom_speed: 15.0,       // Increased for faster zoom response
+            zoom_speed: 20.0,       // Increased for faster zoom response in 2D
         }
     }
 }
@@ -217,6 +217,7 @@ impl SceneCamera {
         };
         
         // Smooth exponential zoom with better sensitivity
+        // Use zoom_sensitivity for fine control
         let zoom_factor = if delta > 0.0 {
             1.0 + self.settings.zoom_sensitivity
         } else {
@@ -227,8 +228,8 @@ impl SceneCamera {
         self.target_zoom *= zoom_factor;
         self.target_zoom = self.target_zoom.clamp(self.min_zoom, self.max_zoom);
         
-        // Apply zoom immediately with interpolation for smoothness
-        let immediate_factor = 0.6; // 60% immediate, 40% smoothed
+        // Apply zoom more immediately for 2D mode (less interpolation)
+        let immediate_factor = 0.85; // 85% immediate for snappier response
         self.zoom = self.zoom * (1.0 - immediate_factor) + self.target_zoom * immediate_factor;
         self.zoom = self.zoom.clamp(self.min_zoom, self.max_zoom);
         
@@ -240,9 +241,10 @@ impl SceneCamera {
                 let screen_offset = mouse_pos - screen_pos_after;
                 
                 // Adjust camera position to keep world position under cursor
+                // Apply immediately for better zoom-to-cursor feel
                 let world_offset = Vec2::new(screen_offset.x, -screen_offset.y) / self.zoom;
                 self.position += world_offset;
-                self.target_position += world_offset;
+                self.target_position = self.position; // Sync target immediately
             }
         }
         
@@ -696,6 +698,46 @@ impl SceneCamera {
         self.target_pitch = -90.0;
         self.rotation = 0.0;
         self.pitch = -90.0;
+    }
+    
+    // ============================================================================
+    // ZOOM CONTROL METHODS
+    // ============================================================================
+    
+    /// Set zoom sensitivity (0.01 - 0.5)
+    pub fn set_zoom_sensitivity(&mut self, sensitivity: f32) {
+        self.settings.zoom_sensitivity = sensitivity.clamp(0.01, 0.5);
+    }
+    
+    /// Get current zoom sensitivity
+    pub fn get_zoom_sensitivity(&self) -> f32 {
+        self.settings.zoom_sensitivity
+    }
+    
+    /// Increase zoom sensitivity
+    pub fn increase_zoom_sensitivity(&mut self, amount: f32) {
+        self.settings.zoom_sensitivity = (self.settings.zoom_sensitivity + amount).clamp(0.01, 0.5);
+    }
+    
+    /// Decrease zoom sensitivity
+    pub fn decrease_zoom_sensitivity(&mut self, amount: f32) {
+        self.settings.zoom_sensitivity = (self.settings.zoom_sensitivity - amount).clamp(0.01, 0.5);
+    }
+    
+    /// Set zoom speed (1.0 - 50.0)
+    pub fn set_zoom_speed(&mut self, speed: f32) {
+        self.settings.zoom_speed = speed.clamp(1.0, 50.0);
+    }
+    
+    /// Get current zoom level
+    pub fn get_zoom_level(&self) -> f32 {
+        self.zoom
+    }
+    
+    /// Set zoom level directly
+    pub fn set_zoom_level(&mut self, zoom: f32) {
+        self.zoom = zoom.clamp(self.min_zoom, self.max_zoom);
+        self.target_zoom = self.zoom;
     }
     
     /// Set camera to default perspective view (isometric-like)
