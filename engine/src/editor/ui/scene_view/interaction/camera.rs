@@ -94,7 +94,15 @@ pub fn handle_camera_controls(
     if scroll_delta.abs() > 0.1 {
         let mouse_pos = response.hover_pos().unwrap_or(rect.center());
         let zoom_direction = if scroll_delta > 0.0 { 1.0 } else { -1.0 };
-        scene_camera.zoom(zoom_direction, glam::Vec2::new(mouse_pos.x, mouse_pos.y));
+        
+        // Convert absolute screen position to relative position from rect center
+        let center = rect.center();
+        let relative_pos = glam::Vec2::new(
+            mouse_pos.x - center.x,
+            mouse_pos.y - center.y
+        );
+        
+        scene_camera.zoom(zoom_direction, relative_pos);
     }
 }
 
