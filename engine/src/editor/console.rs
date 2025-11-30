@@ -216,23 +216,19 @@ impl Console {
                         }
                     }
 
-                    // Render message with selectable text (like Inspector)
+                    // Render message with selectable text using monospace (selectable by default)
                     ui.horizontal(|ui| {
                         ui.label(egui::RichText::new(msg.level.icon()).color(msg.level.color()));
                         ui.label(egui::RichText::new(&msg.timestamp).color(egui::Color32::GRAY));
 
-                        let mut text = if msg.count > 1 {
+                        let text = if msg.count > 1 {
                             format!("{} ({})", msg.message, msg.count)
                         } else {
                             msg.message.clone()
                         };
 
-                        // Use TextEdit like Inspector does - fully selectable and copyable
-                        let response = ui.add(
-                            egui::TextEdit::singleline(&mut text)
-                                .desired_width(f32::INFINITY)
-                                .frame(false)
-                        );
+                        // Use monospace label which is selectable
+                        let response = ui.monospace(&text);
 
                         // Context menu for quick copy
                         response.context_menu(|ui| {
