@@ -463,7 +463,7 @@ impl ScriptEngine {
             globals.set("get_delta_time", get_delta_time)?;
 
             let print_log = scope.create_function(|_, msg: String| {
-                println!("[Lua] {}", msg);
+                log::info!("[Lua] {}", msg);
                 Ok(())
             })?;
             globals.set("log", print_log)?;
