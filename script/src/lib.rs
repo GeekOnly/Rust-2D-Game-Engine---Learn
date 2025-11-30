@@ -1,14 +1,19 @@
-use mlua::{Lua, Function};
+use mlua::{Lua, Function, Table};
 use anyhow::Result;
 use ecs::{World, Entity, EntityTag};
 use input::{InputSystem, Key, MouseButton, GamepadButton};
 use std::cell::RefCell;
 use std::collections::HashMap;
 
+#[cfg(feature = "rapier")]
+mod rapier_bindings;
+
 pub struct ScriptEngine {
     lua: Lua,
     // Per-entity Lua states for proper lifecycle management
     entity_states: HashMap<Entity, Lua>,
+    // Store ground state for Rapier (temporary solution)
+    pub ground_states: HashMap<Entity, bool>,
 }
 
 impl ScriptEngine {
@@ -17,7 +22,13 @@ impl ScriptEngine {
         Ok(Self { 
             lua,
             entity_states: HashMap::new(),
+            ground_states: HashMap::new(),
         })
+    }
+    
+    /// Set ground state for entity (called by engine with Rapier result)
+    pub fn set_ground_state(&mut self, entity: Entity, is_grounded: bool) {
+        self.ground_states.insert(entity, is_grounded);
     }
 
     pub fn exec(&self, src: &str) -> Result<()> {
@@ -469,6 +480,14 @@ impl ScriptEngine {
                 Ok(())
             })?;
             globals.set("log", print_log)?;
+
+            // ================================================================
+            // PHYSICS - GROUND CHECK (Rapier support)
+            // ================================================================
+            
+            // Get ground state from script engine (set by engine with Rapier result)
+            let is_grounded = self.ground_states.get(&entity).copied().unwrap_or(false);
+            globals.set("is_grounded_rapier", is_grounded)?;
 
             // ================================================================
             // INJECT SCRIPT PARAMETERS AS GLOBALS

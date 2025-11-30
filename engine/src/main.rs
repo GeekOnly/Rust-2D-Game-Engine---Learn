@@ -5,6 +5,9 @@ use anyhow::Result;
 use engine_core::{EngineContext, EngineModule, project::ProjectManager};
 use ecs::{World, Entity, Transform, Sprite, Collider, EntityTag};
 use script::ScriptEngine;
+#[cfg(feature = "rapier")]
+use physics::rapier_backend::RapierPhysicsWorld;
+#[cfg(not(feature = "rapier"))]
 use physics::PhysicsWorld;
 use render::RenderModule;
 use ::editor::EditorModule as EditorMod;  // From editor crate (workspace)
@@ -174,6 +177,9 @@ fn main() -> Result<()> {
     let mut sample_module: Option<SampleModule> = None;
 
     let mut script_engine = ScriptEngine::new()?;
+    #[cfg(feature = "rapier")]
+    let mut physics = RapierPhysicsWorld::new();
+    #[cfg(not(feature = "rapier"))]
     let mut physics = PhysicsWorld::new();
 
     let mut last_frame_time = std::time::Instant::now();
@@ -1444,6 +1450,16 @@ fn main() -> Result<()> {
                                     let dt = (now - last_frame_time).as_secs_f32();
                                     last_frame_time = now;
 
+                                    // Update ground states for Rapier (before running scripts)
+                                    #[cfg(feature = "rapier")]
+                                    {
+                                        let entities_with_rigidbodies: Vec<_> = editor_state.world.rigidbodies.keys().cloned().collect();
+                                        for entity in entities_with_rigidbodies {
+                                            let is_grounded = physics.is_grounded(entity, &editor_state.world);
+                                            script_engine.set_ground_state(entity, is_grounded);
+                                        }
+                                    }
+                                    
                                     // Run scripts FIRST (before physics) so they can set velocities
                                     let entities_with_scripts: Vec<_> = editor_state.world.scripts.keys().cloned().collect();
                                     

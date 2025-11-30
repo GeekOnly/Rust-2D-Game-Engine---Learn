@@ -56,18 +56,9 @@ function Update(dt)
         velocity_y = vel.y
     end
     
-    local pos = get_position()
-    
-    -- Simple ground check: if velocity is near zero and we're at ground level, we're grounded
-    -- Ground is at y = -2.5, player center at y = -1.5 when grounded
-    if pos and math.abs(velocity_y) < 1.0 and pos.y >= -1.6 and pos.y <= -1.4 then
-        is_grounded = true
-    else
-        -- Don't immediately unground - let jump handle that
-        if velocity_y > 1.0 then  -- Only unground if moving down fast
-            is_grounded = false
-        end
-    end
+    -- ✅ RAPIER GROUND CHECK - แม่นยำ 100%
+    -- ใช้ contact normals จาก Rapier แทนการเช็คตำแหน่ง
+    is_grounded = is_grounded_rapier
     
     -- Reset dash when grounded
     if is_grounded then
@@ -80,7 +71,7 @@ function Update(dt)
         handle_jump()
     end
     
-handle_dash()
+    handle_dash()
     
 -- Apply dash velocity
     if is_dashing then

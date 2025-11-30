@@ -1,8 +1,18 @@
 //! 2D Physics System for Game Runtime
 //! 
 //! Provides gravity, velocity, and collision detection for 2D games
+//! 
+//! Features:
+//! - Simple backend: Custom lightweight physics (default for learning)
+//! - Rapier backend: Production-ready physics engine (recommended for production)
 
 use ecs::{World, Entity};
+
+#[cfg(feature = "rapier")]
+pub mod rapier_backend;
+
+#[cfg(feature = "rapier")]
+pub use rapier_backend::RapierPhysicsWorld;
 
 /// Physics World - manages physics simulation
 pub struct PhysicsWorld {

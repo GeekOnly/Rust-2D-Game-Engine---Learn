@@ -7,7 +7,7 @@ edition = "2021"
 engine_core = { path = "../engine_core" }
 ecs = { path = "../ecs" }
 script = { path = "../script" }
-physics = { path = "../physics" }
+physics = { path = "../physics", features = ["rapier"] }
 render = { path = "../render" }
 editor = { path = "../editor" }
 input = { path = "../input" }

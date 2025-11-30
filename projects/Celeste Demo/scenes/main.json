@@ -2,26 +2,6 @@
   "next_entity": 9,
   "transforms": [
     [
-      7,
-      {
-        "position": [
-          0.0,
-          -2.5,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          8.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
       0,
       {
         "position": [
@@ -42,11 +22,11 @@
       }
     ],
     [
-      1,
+      7,
       {
         "position": [
           0.0,
-          0.0,
+          -2.5,
           0.0
         ],
         "rotation": [
@@ -55,7 +35,7 @@
           0.0
         ],
         "scale": [
-          1.0,
+          8.0,
           1.0,
           1.0
         ]
@@ -80,9 +60,36 @@
           1.0
         ]
       }
+    ],
+    [
+      1,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
     ]
   ],
   "velocities": [
+    [
+      7,
+      [
+        0.0,
+        0.0
+      ]
+    ],
     [
       8,
       [
@@ -96,16 +103,26 @@
         0.0,
         0.0
       ]
-    ],
-    [
-      7,
-      [
-        0.0,
-        0.0
-      ]
     ]
   ],
   "sprites": [
+    [
+      7,
+      {
+        "texture_id": "sprite",
+        "width": 1.0,
+        "height": 1.0,
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "billboard": false,
+        "flip_x": false,
+        "flip_y": false
+      }
+    ],
     [
       8,
       {
@@ -139,26 +156,24 @@
         "flip_x": false,
         "flip_y": false
       }
-    ],
-    [
-      7,
-      {
-        "texture_id": "sprite",
-        "width": 1.0,
-        "height": 1.0,
-        "color": [
-          1.0,
-          1.0,
-          1.0,
-          1.0
-        ],
-        "billboard": false,
-        "flip_x": false,
-        "flip_y": false
-      }
     ]
   ],
   "colliders": [
+    [
+      7,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          1.0,
+          1.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
     [
       1,
       {
@@ -176,21 +191,6 @@
     ],
     [
       8,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          1.0,
-          1.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      7,
       {
         "offset": [
           0.0,
@@ -207,19 +207,6 @@
   ],
   "rigidbodies": [
     [
-      8,
-      {
-        "velocity": [
-          0.0,
-          0.0
-        ],
-        "gravity_scale": 1.0,
-        "mass": 1.0,
-        "is_kinematic": false,
-        "freeze_rotation": true
-      }
-    ],
-    [
       7,
       {
         "velocity": [
@@ -234,6 +221,19 @@
     ],
     [
       1,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 1.0,
+        "mass": 1.0,
+        "is_kinematic": false,
+        "freeze_rotation": true
+      }
+    ],
+    [
+      8,
       {
         "velocity": [
           0.0,
@@ -275,12 +275,12 @@
   "meshes": [],
   "tags": [
     [
-      8,
-      "Item"
-    ],
-    [
       1,
       "Player"
+    ],
+    [
+      8,
+      "Item"
     ]
   ],
   "scripts": [
@@ -290,7 +290,40 @@
         "script_name": "player_controller",
         "enabled": true,
         "parameters": {
+          "dash_y": {
+            "Float": 1.0
+          },
+          "wall_slide_speed": {
+            "Float": 50.0
+          },
+          "dash_x": {
+            "Float": 1.0
+          },
+          "wall_direction": {
+            "Int": 0
+          },
+          "jump_force": {
+            "Float": 1.0
+          },
+          "dash_speed": {
+            "Float": 500.0
+          },
+          "dash_direction_x": {
+            "Float": 0.0
+          },
+          "dash_timer": {
+            "Float": 0.0
+          },
           "can_dash": {
+            "Bool": false
+          },
+          "velocity_y": {
+            "Float": 0.0
+          },
+          "is_grounded": {
+            "Bool": false
+          },
+          "is_touching_wall": {
             "Bool": false
           },
           "dash_direction_y": {
@@ -299,49 +332,16 @@
           "move_speed": {
             "Float": 1.0
           },
-          "dash_y": {
-            "Float": 1.0
-          },
-          "is_touching_wall": {
-            "Bool": false
-          },
           "gravity_scale": {
             "Float": 1.0
-          },
-          "dash_duration": {
-            "Float": 0.2
-          },
-          "dash_x": {
-            "Float": 1.0
-          },
-          "wall_direction": {
-            "Int": 0
           },
           "velocity_x": {
             "Float": 0.0
           },
+          "dash_duration": {
+            "Float": 0.2
+          },
           "is_dashing": {
-            "Bool": false
-          },
-          "dash_timer": {
-            "Float": 0.0
-          },
-          "wall_slide_speed": {
-            "Float": 50.0
-          },
-          "dash_direction_x": {
-            "Float": 0.0
-          },
-          "jump_force": {
-            "Float": 1.0
-          },
-          "velocity_y": {
-            "Float": 0.0
-          },
-          "dash_speed": {
-            "Float": 500.0
-          },
-          "is_grounded": {
             "Bool": false
           }
         }
@@ -350,7 +350,7 @@
   ],
   "active": [
     [
-      1,
+      8,
       true
     ],
     [
@@ -362,7 +362,7 @@
       true
     ],
     [
-      8,
+      1,
       true
     ]
   ],
@@ -395,12 +395,12 @@
       "Sprite"
     ],
     [
-      1,
-      "Player"
-    ],
-    [
       8,
       "Item 8"
+    ],
+    [
+      1,
+      "Player"
     ]
   ]
 }
