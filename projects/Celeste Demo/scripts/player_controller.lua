@@ -3,10 +3,10 @@
 
 -- Movement parameters
 local move_speed = 3.0  -- Units per second (reduced for better control)
-local jump_force = 8.0  -- Jump velocity
+local jump_force = 10.0  -- Jump velocity (increased)
 local dash_speed = 10.0 -- Dash velocity
 local wall_slide_speed = 1.0
-local gravity_scale = 1.0
+local gravity_scale = 0.5  -- Reduced gravity for better jump feel
 
 -- State
 local velocity_x = 0.0
@@ -79,6 +79,12 @@ function on_update(entity, dt)
     
     -- Apply velocity
     set_velocity(velocity_x, velocity_y)
+    
+    -- Debug: verify velocity was set
+    local check_vel = get_velocity()
+    if check_vel and (math.abs(check_vel.y - velocity_y) > 0.01) then
+        print("WARNING: Velocity not set correctly! Expected: " .. velocity_y .. ", Got: " .. check_vel.y)
+    end
 end
 
 function handle_movement(dt)
