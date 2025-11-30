@@ -48,17 +48,28 @@ function Update(dt)
         end
     end
     
-    -- Get current velocity
+    -- Get current velocity and position
     local vel = get_velocity()
     if vel then
         velocity_x = vel.x
         velocity_y = vel.y
     end
     
-    -- Check if grounded based on velocity
-    -- If velocity_y is very small, we're likely on ground (gravity would pull us down otherwise)
+    local pos = get_position()
+    if pos then
+        -- Debug: print position and velocity every 60 frames (about once per second)
+        if math.random() < 0.016 then
+            print(string.format("Pos: (%.2f, %.2f), Vel: (%.2f, %.2f), Grounded: %s", 
+                pos.x, pos.y, velocity_x, velocity_y, tostring(is_grounded)))
+        end
+    end
+    
+    -- Check if grounded based on position
+    -- Ground is at y = -2.5 with height 1.0, so top of ground is at y = -2.0
+    -- Player has height 1.0, so player's bottom is at y - 0.5
+    -- Player is grounded if bottom is at or below ground top: (y - 0.5) >= -2.0, or y >= -1.5
     local was_grounded = is_grounded
-    if math.abs(velocity_y) < 0.5 then
+    if pos and pos.y >= -1.6 and velocity_y >= -0.1 then
         is_grounded = true
     else
         is_grounded = false
