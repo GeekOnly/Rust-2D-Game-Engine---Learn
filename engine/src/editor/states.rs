@@ -391,15 +391,16 @@ impl GameState {
         world.transforms.insert(player, ecs::Transform {
             position: [0.0, 0.0, 0.0],
             rotation: [0.0, 0.0, 0.0],
-            scale: [1.0, 1.0, 1.0],
+            scale: [40.0, 40.0, 1.0], // Use scale for sprite size
         });
         world.velocities.insert(player, (0.0, 0.0));
         world.sprites.insert(player, ecs::Sprite {
             texture_id: "player".to_string(),
-            width: 40.0,
-            height: 40.0,
+            width: 1.0,  // Base size
+            height: 1.0,
             color: [0.2, 0.6, 1.0, 1.0],
             billboard: true, // Player sprite faces camera
+            ..Default::default()
         });
 
         Self {

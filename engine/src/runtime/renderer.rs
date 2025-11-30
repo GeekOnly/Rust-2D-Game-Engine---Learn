@@ -121,7 +121,8 @@ fn render_orthographic(
 
         // Render sprite if exists
         if let Some(sprite) = world.sprites.get(entity) {
-            let size = egui::vec2(sprite.width * zoom, sprite.height * zoom);
+            let transform_scale = glam::Vec2::new(transform.scale[0], transform.scale[1]);
+            let size = egui::vec2(transform_scale.x * zoom, transform_scale.y * zoom);
             let color = egui::Color32::from_rgba_unmultiplied(
                 (sprite.color[0] * 255.0) as u8,
                 (sprite.color[1] * 255.0) as u8,
@@ -199,7 +200,8 @@ fn render_perspective(
 
         // Render sprite if exists
         if let Some(sprite) = world.sprites.get(entity) {
-            let size = egui::vec2(sprite.width * screen_scale, sprite.height * screen_scale);
+            let transform_scale = glam::Vec2::new(transform.scale[0], transform.scale[1]);
+            let size = egui::vec2(transform_scale.x * screen_scale, transform_scale.y * screen_scale);
             let color = egui::Color32::from_rgba_unmultiplied(
                 (sprite.color[0] * 255.0) as u8,
                 (sprite.color[1] * 255.0) as u8,

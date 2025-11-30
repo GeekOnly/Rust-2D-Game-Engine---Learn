@@ -83,9 +83,10 @@ pub fn render_scene_3d(
             let (screen_x, screen_y) = project_point_3d(transform, scene_camera, center);
             
             // Draw selection outline
-            if let Some(sprite) = world.sprites.get(&sel_entity) {
+            if let Some(_sprite) = world.sprites.get(&sel_entity) {
                 let scale = calculate_perspective_scale(transform, scene_camera);
-                let size = egui::vec2(sprite.width * scale, sprite.height * scale);
+                let transform_scale = glam::Vec2::new(transform.scale[0], transform.scale[1]);
+                let size = egui::vec2(transform_scale.x * scale, transform_scale.y * scale);
                 
                 painter.rect_stroke(
                     egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), size + egui::vec2(4.0, 4.0)),
@@ -131,9 +132,10 @@ fn render_entity_3d(
     let (screen_x, screen_y) = project_point_3d(transform, scene_camera, center);
 
     // Get entity bounds for click detection
-    let entity_rect = if let Some(sprite) = world.sprites.get(&entity) {
+    let entity_rect = if let Some(_sprite) = world.sprites.get(&entity) {
         let scale = calculate_perspective_scale(transform, scene_camera);
-        let size = egui::vec2(sprite.width * scale, sprite.height * scale);
+        let transform_scale = glam::Vec2::new(transform.scale[0], transform.scale[1]);
+        let size = egui::vec2(transform_scale.x * scale, transform_scale.y * scale);
         egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), size)
     } else if world.meshes.contains_key(&entity) {
         let scale_vec = glam::Vec3::from(transform.scale);
@@ -155,7 +157,8 @@ fn render_entity_3d(
     // Render Sprite
     if let Some(sprite) = world.sprites.get(&entity) {
         let scale = calculate_perspective_scale(transform, scene_camera);
-        let size = egui::vec2(sprite.width * scale, sprite.height * scale);
+        let transform_scale = glam::Vec2::new(transform.scale[0], transform.scale[1]);
+        let size = egui::vec2(transform_scale.x * scale, transform_scale.y * scale);
         let color = egui::Color32::from_rgba_unmultiplied(
             (sprite.color[0] * 255.0) as u8,
             (sprite.color[1] * 255.0) as u8,

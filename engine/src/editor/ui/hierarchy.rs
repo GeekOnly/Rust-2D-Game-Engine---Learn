@@ -68,6 +68,8 @@ pub fn render_hierarchy(
                     height: 1.0,
                     color: [1.0, 1.0, 1.0, 1.0],
                     billboard: false, // Default sprite, not billboard
+                    flip_x: false,
+                    flip_y: false,
                 });
                 entity_names.insert(entity, "Sprite".to_string());
                 *selected_entity = Some(entity);

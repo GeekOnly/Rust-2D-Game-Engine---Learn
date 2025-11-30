@@ -34,14 +34,15 @@ impl GameState {
         world.transforms.insert(player, Transform {
             position: [400.0, 300.0, 0.0],
             rotation: [0.0, 0.0, 0.0],
-            scale: [1.0, 1.0, 1.0],
+            scale: [40.0, 40.0, 1.0], // Use scale for sprite size
         });
         world.sprites.insert(player, Sprite {
             texture_id: "player".to_string(),
-            width: 40.0,
-            height: 40.0,
+            width: 1.0,  // Base size
+            height: 1.0,
             color: [0.2, 0.6, 1.0, 1.0], // Blue
             billboard: true, // Player sprite faces camera
+            ..Default::default()
         });
         world.colliders.insert(player, Collider {
             width: 40.0,
@@ -66,14 +67,15 @@ impl GameState {
             world.transforms.insert(item, Transform {
                 position: [*x, *y, 0.0],
                 rotation: [0.0, 0.0, 0.0],
-                scale: [1.0, 1.0, 1.0],
+                scale: [30.0, 30.0, 1.0], // Use scale for sprite size
             });
             world.sprites.insert(item, Sprite {
                 texture_id: "item".to_string(),
-                width: 30.0,
-                height: 30.0,
+                width: 1.0,  // Base size
+                height: 1.0,
                 color: [1.0, 0.8, 0.0, 1.0], // Gold
                 billboard: true, // Item sprite faces camera
+                ..Default::default()
             });
             world.colliders.insert(item, Collider {
                 width: 30.0,
@@ -88,14 +90,15 @@ impl GameState {
         world.transforms.insert(ground, Transform {
             position: [500.0, 600.0, 0.0], // Bottom of screen (assuming 1000x700 window)
             rotation: [0.0, 0.0, 0.0],
-            scale: [1.0, 1.0, 1.0],
+            scale: [1000.0, 50.0, 1.0], // Use scale for sprite size
         });
         world.sprites.insert(ground, Sprite {
             texture_id: "white".to_string(),
-            width: 1000.0,
-            height: 50.0,
+            width: 1.0,  // Base size
+            height: 1.0,
             color: [0.5, 0.5, 0.5, 1.0], // Gray
             billboard: false,
+            ..Default::default()
         });
         world.colliders.insert(ground, Collider {
             width: 1000.0,

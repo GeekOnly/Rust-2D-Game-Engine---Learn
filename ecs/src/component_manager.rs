@@ -95,10 +95,12 @@ impl ComponentManager for World {
             ComponentType::Sprite => {
                 self.sprites.insert(entity, Sprite {
                     texture_id: "default".to_string(),
-                    width: 32.0,
-                    height: 32.0,
+                    width: 1.0,  // Base size
+                    height: 1.0,
                     color: [1.0, 1.0, 1.0, 1.0],
                     billboard: false,
+                    flip_x: false,
+                    flip_y: false,
                 });
             }
             ComponentType::BoxCollider => {

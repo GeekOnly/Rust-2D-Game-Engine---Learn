@@ -271,22 +271,57 @@ pub fn render_inspector(
                                     .num_columns(2)
                                     .spacing([10.0, 8.0])
                                     .show(ui, |ui| {
+                                        // Sprite picker (Unity-style)
                                         ui.label("Sprite");
-                                        ui.text_edit_singleline(&mut sprite.texture_id);
+                                        ui.horizontal(|ui| {
+                                            // Show current sprite name with icon
+                                            let sprite_display = if sprite.texture_id.is_empty() {
+                                                "None (Sprite)".to_string()
+                                            } else {
+                                                sprite.texture_id.clone()
+                                            };
+                                            
+                                            // Clickable sprite field (Unity-style)
+                                            if ui.button(&sprite_display).clicked() {
+                                                // TODO: Open sprite picker dialog
+                                            }
+                                            
+                                            // Manual text edit option
+                                            ui.menu_button("⋮", |ui| {
+                                                ui.label("Edit manually:");
+                                                ui.text_edit_singleline(&mut sprite.texture_id);
+                                            });
+                                        });
                                         ui.end_row();
                                         
+                                        // Color tint
                                         ui.label("Color");
                                         ui.color_edit_button_rgba_unmultiplied(&mut sprite.color);
                                         ui.end_row();
                                         
-                                        ui.label("Width");
-                                        ui.add(egui::DragValue::new(&mut sprite.width).speed(1.0));
-                                        ui.end_row();
-                                        
-                                        ui.label("Height");
-                                        ui.add(egui::DragValue::new(&mut sprite.height).speed(1.0));
+                                        // Flip options (Unity-style)
+                                        ui.label("Flip");
+                                        ui.horizontal(|ui| {
+                                            ui.label("X");
+                                            ui.checkbox(&mut sprite.flip_x, "");
+                                            ui.label("Y");
+                                            ui.checkbox(&mut sprite.flip_y, "");
+                                        });
                                         ui.end_row();
 
+                                        // Draw Mode
+                                        ui.label("Draw Mode");
+                                        egui::ComboBox::from_id_source("draw_mode")
+                                            .selected_text("Simple")
+                                            .width(150.0)
+                                            .show_ui(ui, |ui| {
+                                                ui.selectable_label(true, "Simple");
+                                                ui.selectable_label(false, "Sliced");
+                                                ui.selectable_label(false, "Tiled");
+                                            });
+                                        ui.end_row();
+
+                                        // Billboard (3D mode)
                                         ui.label("Billboard");
                                         ui.checkbox(&mut sprite.billboard, "")
                                             .on_hover_text("Always face camera in 3D mode");
@@ -294,9 +329,19 @@ pub fn render_inspector(
                                     });
                                 
                                 ui.add_space(5.0);
+                                
+                                // Info message about scale
+                                ui.label(egui::RichText::new("💡 Use Transform Scale to resize sprite")
+                                    .small()
+                                    .color(egui::Color32::from_rgb(150, 150, 150)));
+                                
+                                ui.add_space(5.0);
                                 ui.horizontal(|ui| {
                                     if ui.button("⚙️").on_hover_text("Component Settings").clicked() {
                                         // Component menu
+                                    }
+                                    if ui.button("🎨 Open Sprite Editor").clicked() {
+                                        // TODO: Open sprite editor
                                     }
                                     if ui.button("❌ Remove Component").clicked() {
                                         remove_sprite = true;

@@ -46,13 +46,18 @@ impl Prefab {
     pub fn player() -> Self {
         Self {
             name: "Player".to_string(),
-            transform: Transform::default(), // Use default transform (0, 0, 0) to work in both 2D and 3D
+            transform: Transform {
+                position: [0.0, 0.0, 0.0],
+                rotation: [0.0, 0.0, 0.0],
+                scale: [40.0, 40.0, 1.0], // Use scale for sprite size
+            },
             sprite: Some(Sprite {
                 texture_id: "player".to_string(),
-                width: 40.0,
-                height: 40.0,
+                width: 1.0,  // Base size
+                height: 1.0,
                 color: [0.2, 0.6, 1.0, 1.0],
                 billboard: true, // Player sprite faces camera (good for 3D mode)
+                ..Default::default()
             }),
             collider: Some(Collider { width: 40.0, height: 40.0 }),
             rigidbody: Some(Rigidbody2D::default()),  // Add rigidbody with default values
@@ -67,13 +72,18 @@ impl Prefab {
     pub fn item() -> Self {
         Self {
             name: "Item".to_string(),
-            transform: Transform::default(), // Use default transform (0, 0, 0) to work in both 2D and 3D
+            transform: Transform {
+                position: [0.0, 0.0, 0.0],
+                rotation: [0.0, 0.0, 0.0],
+                scale: [30.0, 30.0, 1.0], // Use scale for sprite size
+            },
             sprite: Some(Sprite {
                 texture_id: "item".to_string(),
-                width: 30.0,
-                height: 30.0,
+                width: 1.0,  // Base size
+                height: 1.0,
                 color: [1.0, 0.8, 0.2, 1.0],
                 billboard: true, // Item sprite faces camera
+                ..Default::default()
             }),
             collider: Some(Collider { width: 30.0, height: 30.0 }),
             rigidbody: None,
@@ -200,21 +210,53 @@ impl Transform {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Sprite {
     pub texture_id: String,
+    /// Original sprite width in pixels (use Transform.scale for sizing)
     pub width: f32,
+    /// Original sprite height in pixels (use Transform.scale for sizing)
     pub height: f32,
     pub color: [f32; 4], // RGBA
     pub billboard: bool, // If true, sprite always faces camera (3D mode only)
+    /// Flip sprite horizontally
+    #[serde(default)]
+    pub flip_x: bool,
+    /// Flip sprite vertically
+    #[serde(default)]
+    pub flip_y: bool,
 }
 
 impl Default for Sprite {
     fn default() -> Self {
         Self {
             texture_id: String::new(),
-            width: 0.0,
-            height: 0.0,
+            width: 1.0,  // Default 1x1 unit size
+            height: 1.0,
             color: [1.0, 1.0, 1.0, 1.0],
-            billboard: false, // Default: not a billboard
+            billboard: false,
+            flip_x: false,
+            flip_y: false,
         }
+    }
+}
+
+impl Sprite {
+    /// Create a new sprite with texture ID and original size
+    pub fn new(texture_id: impl Into<String>, width: f32, height: f32) -> Self {
+        Self {
+            texture_id: texture_id.into(),
+            width,
+            height,
+            ..Default::default()
+        }
+    }
+    
+    /// Get the actual rendered width (original width * scale)
+    pub fn get_rendered_width(&self, scale_x: f32) -> f32 {
+        self.width * scale_x * if self.flip_x { -1.0 } else { 1.0 }
+    }
+    
+    /// Get the actual rendered height (original height * scale)
+    pub fn get_rendered_height(&self, scale_y: f32) -> f32 {
+        self.height * scale_y * if self.flip_y { -1.0 } else { 1.0 }
     }
 }
 

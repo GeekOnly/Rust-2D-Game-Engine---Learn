@@ -91,7 +91,9 @@
           1.0,
           1.0
         ],
-        "billboard": false
+        "billboard": false,
+        "flip_x": false,
+        "flip_y": false
       }
     ],
     [
@@ -106,7 +108,9 @@
           1.0,
           1.0
         ],
-        "billboard": false
+        "billboard": false,
+        "flip_x": false,
+        "flip_y": false
       }
     ]
   ],

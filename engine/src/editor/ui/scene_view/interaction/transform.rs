@@ -232,11 +232,7 @@ pub fn handle_gizmo_interaction_stateful(
                                 let scale_factor_x = new_scale_x / transform_mut.scale[0];
                                 transform_mut.scale[0] = new_scale_x;
                                 
-                                // Scale sprite width
-                                if let Some(sprite) = world.sprites.get_mut(&entity) {
-                                    sprite.width *= scale_factor_x;
-                                }
-                                // Scale collider width
+                                // Scale collider width (collider size is independent of transform)
                                 if let Some(collider) = world.colliders.get_mut(&entity) {
                                     collider.width *= scale_factor_x;
                                 }
@@ -254,11 +250,7 @@ pub fn handle_gizmo_interaction_stateful(
                                 let scale_factor_y = new_scale_y / transform_mut.scale[1];
                                 transform_mut.scale[1] = new_scale_y;
                                 
-                                // Scale sprite height
-                                if let Some(sprite) = world.sprites.get_mut(&entity) {
-                                    sprite.height *= scale_factor_y;
-                                }
-                                // Scale collider height
+                                // Scale collider height (collider size is independent of transform)
                                 if let Some(collider) = world.colliders.get_mut(&entity) {
                                     collider.height *= scale_factor_y;
                                 }
@@ -273,12 +265,7 @@ pub fn handle_gizmo_interaction_stateful(
                                 transform_mut.scale[0] = new_scale_x;
                                 transform_mut.scale[1] = new_scale_y;
                                 
-                                // Scale sprite
-                                if let Some(sprite) = world.sprites.get_mut(&entity) {
-                                    sprite.width *= scale_factor_x;
-                                    sprite.height *= scale_factor_y;
-                                }
-                                // Scale collider
+                                // Scale collider (collider size is independent of transform)
                                 if let Some(collider) = world.colliders.get_mut(&entity) {
                                     collider.width *= scale_factor_x;
                                     collider.height *= scale_factor_y;
