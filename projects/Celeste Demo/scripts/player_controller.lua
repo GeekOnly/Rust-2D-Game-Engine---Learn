@@ -48,8 +48,15 @@ function on_update(entity, dt)
         velocity_y = vel.y
     end
     
-    -- Check if grounded (simple check - velocity.y near 0 and moving down)
-    is_grounded = math.abs(velocity_y) < 10.0 and velocity_y >= 0
+    -- Check if grounded (simple check - velocity.y near 0)
+    -- In a real game, you'd use collision detection
+    local was_grounded = is_grounded
+    is_grounded = math.abs(velocity_y) < 0.1
+    
+    -- Debug: print when grounded state changes
+    if was_grounded ~= is_grounded then
+        print("Grounded: " .. tostring(is_grounded) .. ", velocity_y: " .. velocity_y)
+    end
     
     -- Reset dash when grounded
     if is_grounded then
@@ -90,17 +97,17 @@ function handle_movement(dt)
 end
 
 function handle_jump()
-    -- Jump
-    if is_key_pressed("Space") and is_grounded then
+    -- Jump (use is_key_just_pressed for single press detection)
+    if is_key_just_pressed("Space") then
         velocity_y = -jump_force
         is_grounded = false
-        print("Jump!")
+        print("Jump! velocity_y = " .. velocity_y)
     end
 end
 
 function handle_dash()
-    -- Dash (Shift key)
-    if is_key_pressed("LShift") and can_dash then
+    -- Dash (Shift key - use is_key_just_pressed for single press)
+    if is_key_just_pressed("LShift") and can_dash then
         -- Get dash direction from input
         local dash_x = 0.0
         local dash_y = 0.0
