@@ -179,20 +179,25 @@ impl Console {
                         }
                     }
 
-                    // Render message
+                    // Render message with selectable text
                     ui.horizontal(|ui| {
                         ui.label(egui::RichText::new(msg.level.icon()).color(msg.level.color()));
                         ui.label(egui::RichText::new(&msg.timestamp).color(egui::Color32::GRAY));
 
-                        let text = if msg.count > 1 {
+                        let mut text = if msg.count > 1 {
                             format!("{} ({})", msg.message, msg.count)
                         } else {
                             msg.message.clone()
                         };
 
-                        // Make text selectable for copying
-                        let response = ui.selectable_label(false, &text)
-                            .on_hover_text("Right-click to copy");
+                        // Use TextEdit for selectable text (read-only)
+                        let text_edit = egui::TextEdit::multiline(&mut text)
+                            .desired_width(f32::INFINITY)
+                            .desired_rows(1)
+                            .interactive(false)
+                            .frame(false);
+                        
+                        let response = ui.add(text_edit);
 
                         // Context menu for copy
                         response.context_menu(|ui| {
