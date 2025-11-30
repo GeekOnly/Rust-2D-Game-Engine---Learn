@@ -1,0 +1,352 @@
+﻿cargo : warning: unused import: `Tile`
+At line:1 char:1
++ cargo check --bin engine 2>&1 | Out-File 
+-Encoding utf8 check_output_ ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified 
+   : (warning: unused import: `Tile`:Stri  
+  ng) [], RemoteException
+    + FullyQualifiedErrorId : NativeComman 
+   dError
+ 
+ --> render\src\tilemap_renderer.rs:4:29
+  |
+4 | use ecs::{Tilemap, TileSet, Tile};
+  |                             ^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by 
+default
+
+warning: unused variable: `tex_width`
+  --> render\src\tilemap_renderer.rs:86:13
+   |
+86 |         let tex_width = 
+(tileset.columns * tileset.tile_width) as 
+f32;
+   |             ^^^^^^^^^ help: if this 
+is intentional, prefix it with an 
+underscore: `_tex_width`
+   |
+   = note: `#[warn(unused_variables)]` on 
+by default
+
+warning: field `bind_group_layout` is 
+never read
+  --> render\src\sprite_renderer.rs:37:5
+   |
+32 | pub struct SpriteRenderer {
+   |            -------------- field in 
+this struct
+...
+37 |     bind_group_layout: 
+wgpu::BindGroupLayout,
+   |     ^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by 
+default
+
+warning: field `bind_group_layout` is 
+never read
+ --> render\src\tilemap_renderer.rs:8:5
+  |
+6 | pub struct TilemapRenderer {
+  |            --------------- field in 
+this struct
+7 |     render_pipeline: 
+wgpu::RenderPipeline,
+8 |     bind_group_layout: 
+wgpu::BindGroupLayout,
+  |     ^^^^^^^^^^^^^^^^^
+
+warning: `render` (lib) generated 4 
+warnings (run `cargo fix --lib -p render` 
+to apply 1 suggestion)
+    Checking engine v0.1.0 
+(K:\XSGameStudio\2025 Project\Game 
+Engine\Rust 2D Game Engine\engine)
+warning: unused import: `Prefab`
+ --> engine\src\editor\ui\hierarchy.rs:1:26
+  |
+1 | use ecs::{World, Entity, Prefab};
+  |                          ^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by 
+default
+
+warning: unused import: `Script`
+ --> engine\src\editor\ui\inspector.rs:1:37
+  |
+1 | use ecs::{World, Entity, EntityTag, 
+Script, ScriptParameter, ComponentType, 
+ComponentManager};
+  |                                     
+^^^^^^
+
+warning: unused imports: `Response` and 
+`Stroke`
+ --> 
+engine\src\editor\ui\asset_browser.rs:2:27
+  |
+2 | use egui::{Color32, Rect, Response, 
+Sense, Stroke, Vec2};
+  |                           ^^^^^^^^     
+    ^^^^^^
+
+warning: unused import: `DockArea`
+ --> 
+engine\src\editor\ui\dock_layout.rs:1:17
+  |
+1 | use egui_dock::{DockArea, DockState, 
+NodeIndex, Style, TabViewer};
+  |                 ^^^^^^^^
+
+warning: unused imports: 
+`create_2_column_layout`, 
+`create_tall_layout`, 
+`create_wide_layout`, and 
+`save_custom_layout`
+  --> engine\src\editor\ui\mod.rs:20:28
+   |
+20 |     create_default_layout, 
+create_2_column_layout, 
+create_tall_layout, create_wide_layout,
+   |                            
+^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^ 
+ ^^^^^^^^^^^^^^^^^^
+21 |     get_dock_style, 
+save_default_layout, 
+load_default_layout_name, 
+get_layout_by_name,
+22 |     save_custom_layout, 
+load_custom_layouts, 
+save_custom_layout_state, 
+load_custom_layout_state
+   |     ^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `ProjectionMode`, 
+`SceneViewMode`, and `TransformSpace`
+  --> engine\src\editor\ui\mod.rs:24:22
+   |
+24 | pub use scene_view::{SceneViewMode, 
+ProjectionMode, TransformSpace};
+   |                      ^^^^^^^^^^^^^  
+^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^
+
+warning: unexpected `cfg` condition value: 
+`system-clipboard`
+   --> engine\src\editor\clipboard.rs:507:7
+    |
+507 | #[cfg(feature = "system-clipboard")]
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: expected values for `feature` 
+are: `default`
+    = help: consider adding 
+`system-clipboard` as a feature in 
+`Cargo.toml`
+    = note: see <https://doc.rust-lang.org/
+nightly/rustc/check-cfg/cargo-specifics.htm
+l> for more information about checking 
+conditional configuration
+    = note: `#[warn(unexpected_cfgs)]` on 
+by default
+
+warning: unused imports: `Clipboard`, 
+`SelectionManager`, and `UndoStack`
+  --> engine\src\editor\shortcuts_handler.r
+s:10:18
+   |
+10 |     EditorState, UndoStack, 
+SelectionManager, SelectionMode, Clipboard,
+   |                  ^^^^^^^^^  
+^^^^^^^^^^^^^^^^                 ^^^^^^^^^
+
+warning: unused import: `ecs::World`
+  --> 
+engine\src\editor\shortcuts_handler.rs:14:5
+   |
+14 | use ecs::World;
+   |     ^^^^^^^^^^
+
+warning: unused import: `ShortcutManager`
+  --> engine\src\editor\mod.rs:24:21
+   |
+24 | pub use shortcuts::{ShortcutManager, 
+EditorShortcut};
+   |                     ^^^^^^^^^^^^^^^
+
+warning: unused import: `toolbar::Toolbar`
+  --> engine\src\editor\mod.rs:28:9
+   |
+28 | pub use toolbar::Toolbar;
+   |         ^^^^^^^^^^^^^^^^
+
+warning: unused import: 
+`autosave::AutoSave`
+  --> engine\src\editor\mod.rs:29:9
+   |
+29 | pub use autosave::AutoSave;
+   |         ^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `Face3D`, 
+`Point3D`, and `depth_sort_faces`
+  --> engine\src\editor\mod.rs:32:24
+   |
+32 | pub use rendering_3d::{Point3D, 
+Face3D, depth_sort_faces};
+   |                        ^^^^^^^  
+^^^^^^  ^^^^^^^^^^^^^^^^
+
+warning: unused imports: `Command`, 
+`MoveEntityCommand`, 
+`RenameEntityCommand`, 
+`RotateEntityCommand`, and 
+`ScaleEntityCommand`
+  --> engine\src\editor\mod.rs:33:27
+   |
+33 | ...k, Command, CreateEntityCommand, 
+DeleteEntityCommand, MoveEntityCommand, 
+RotateEntityCommand, ScaleEntityCommand, 
+RenameEntityCommand, B...
+   |       ^^^^^^^                         
+                   ^^^^^^^^^^^^^^^^^  
+^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^  
+^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `BoxSelection`, 
+`handle_hierarchy_selection`, and 
+`handle_scene_selection`
+  --> engine\src\editor\mod.rs:34:54
+   |
+34 | pub use selection::{SelectionManager, 
+SelectionMode, BoxSelection, 
+handle_scene_selection, 
+handle_hierarchy_selection};
+   |                                       
+               ^^^^^^^^^^^^  
+^^^^^^^^^^^^^^^^^^^^^^  
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `ClipboardAction` 
+and `handle_clipboard_shortcuts`
+  --> engine\src\editor\mod.rs:35:32
+   |
+35 | pub use clipboard::{Clipboard, 
+ClipboardAction, copy_selected, 
+paste_from_clipboard, duplicate_selected, 
+handle_clipboard_shortcuts};
+   |                                
+^^^^^^^^^^^^^^^                            
+                               
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `SnapMode`, 
+`SnapSettings`, `handle_snap_shortcuts`, 
+`render_snap_grid`, 
+`render_snap_indicator`, `snap_position`, 
+`snap_rotation`, and `snap_scale`
+  --> engine\src\editor\mod.rs:36:20
+   |
+36 | ...::{SnapSettings, SnapMode, 
+snap_position, snap_rotation, snap_scale, 
+render_snap_grid, render_snap_indicator, 
+handle_snap_shortcuts};
+   |       ^^^^^^^^^^^^  ^^^^^^^^  
+^^^^^^^^^^^^^  ^^^^^^^^^^^^^  ^^^^^^^^^^  
+^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^  
+^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: 
+`get_shortcut_hints`, 
+`handle_editor_shortcuts`, and 
+`render_shortcuts_help`
+  --> engine\src\editor\mod.rs:37:29
+   |
+37 | pub use shortcuts_handler::{handle_edi
+tor_shortcuts, get_shortcut_hints, 
+render_shortcuts_help};
+   |                             
+^^^^^^^^^^^^^^^^^^^^^^^  
+^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: 
+`load_all_scripts` and `run_all_scripts`
+ --> engine\src\runtime\mod.rs:5:25
+  |
+5 | pub use 
+script_loader::{load_all_scripts, 
+run_all_scripts};
+  |                         
+^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^
+
+error[E0599]: no method named `read_only` 
+found for struct `egui::TextEdit` in the 
+current scope
+   --> engine\src\editor\console.rs:233:30
+    |
+230 | /                         
+egui::TextEdit::multiline(&mut text_buffer)
+231 | |                             
+.font(egui::TextStyle::Monospace)
+232 | |                             
+.frame(false)
+233 | |                             
+.read_only(true)
+    | |                             
+-^^^^^^^^^ method not found in 
+`egui::TextEdit<'_>`
+    | |_____________________________|
+    |
+
+warning: use of deprecated method 
+`egui::Response::drag_released_by`: 
+Renamed 'dragged_stopped_by'
+   --> 
+engine\src\editor\selection.rs:416:17
+    |
+416 |     if response.drag_released_by(egui
+::PointerButton::Primary) {
+    |                 ^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(deprecated)]` on by 
+default
+
+warning: unused variable: `back_width`
+   --> engine\src\editor\ui\scene_view\rend
+ering\gizmos.rs:387:13
+    |
+387 |         let back_width = size * 0.8;
+    |             ^^^^^^^^^^ help: if this 
+is intentional, prefix it with an 
+underscore: `_back_width`
+    |
+    = note: `#[warn(unused_variables)]` on 
+by default
+
+warning: unused variable: 
+`world_pos_before`
+   --> engine\src\editor\camera.rs:245:21
+    |
+245 |         if let 
+Some(world_pos_before) = 
+self.last_cursor_world_pos {
+    |                     ^^^^^^^^^^^^^^^^ 
+help: if this is intentional, prefix it 
+with an underscore: `_world_pos_before`
+
+warning: unused variable: `camera_entity`
+  --> engine\src\runtime\renderer.rs:20:18
+   |
+20 |     if let Some((camera_entity, 
+camera, transform)) = main_camera {
+   |                  ^^^^^^^^^^^^^ help: 
+if this is intentional, prefix it with an 
+underscore: `_camera_entity`
+
+For more information about this error, try 
+`rustc --explain E0599`.
+warning: `engine` (bin "engine") generated 
+23 warnings
+error: could not compile `engine` (bin 
+"engine") due to 1 previous error; 23 
+warnings emitted

@@ -216,7 +216,8 @@ impl Console {
                         }
                     }
 
-                    // Render message with selectable text using monospace (selectable by default)
+                    // Construct the full text for the TextEdit (used for copy)
+                    // Render message with selectable text using monospace
                     ui.horizontal(|ui| {
                         ui.label(egui::RichText::new(msg.level.icon()).color(msg.level.color()));
                         ui.label(egui::RichText::new(&msg.timestamp).color(egui::Color32::GRAY));
