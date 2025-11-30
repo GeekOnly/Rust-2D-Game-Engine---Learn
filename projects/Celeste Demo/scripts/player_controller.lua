@@ -71,6 +71,14 @@ function Update(dt)
         is_grounded = false
     end
     
+    -- Debug: log position and grounded state occasionally
+    if math.random() < 0.02 then
+        if pos then
+            log(string.format("Pos: (%.2f, %.2f), Vel: (%.2f, %.2f), Grounded: %s", 
+                pos.x, pos.y, velocity_x, velocity_y, tostring(is_grounded)))
+        end
+    end
+    
     -- Reset dash when grounded
     if was_grounded then
         can_dash = true
@@ -111,10 +119,13 @@ end
 
 function handle_jump()
     -- Jump (use is_key_just_pressed for single press detection)
-    if is_key_just_pressed("Space") and is_grounded then
-        log("JUMP!")
-        velocity_y = -jump_force
-        is_grounded = false
+    if is_key_just_pressed("Space") then
+        log("Space pressed! is_grounded=" .. tostring(is_grounded))
+        if is_grounded then
+            log("JUMP!")
+            velocity_y = -jump_force
+            is_grounded = false
+        end
     end
 end
 

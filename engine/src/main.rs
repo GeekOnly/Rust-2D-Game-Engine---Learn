@@ -248,12 +248,32 @@ fn main() -> Result<()> {
                         // Update InputSystem
                         if let winit::keyboard::PhysicalKey::Code(key_code) = key_event.physical_key {
                             let key_str = format!("{:?}", key_code);
+                            
+                            // Debug: log Space key presses in play mode
+                            if app_state == AppState::Editor && editor_state.is_playing && key_str.contains("Space") && key_event.state == ElementState::Pressed {
+                                editor_state.console.debug(format!("🔍 Space key detected: key_str={}", key_str));
+                            }
+                            
                             if let Some(key) = Key::from_str(&key_str) {
                                 if key_event.state == ElementState::Pressed {
                                     ctx.input.press_key(key);
+                                    // Also update editor input system when in play mode
+                                    if app_state == AppState::Editor && editor_state.is_playing {
+                                        editor_state.input_system.press_key(key);
+                                        // Debug: log key press
+                                        if key_str.contains("Space") {
+                                            editor_state.console.debug(format!("✅ Space key pressed in input_system"));
+                                        }
+                                    }
                                 } else {
                                     ctx.input.release_key(key);
+                                    // Also update editor input system when in play mode
+                                    if app_state == AppState::Editor && editor_state.is_playing {
+                                        editor_state.input_system.release_key(key);
+                                    }
                                 }
+                            } else if app_state == AppState::Editor && editor_state.is_playing && key_str.contains("Space") {
+                                editor_state.console.warning(format!("❌ Space key not mapped: key_str={}", key_str));
                             }
                         }
 
@@ -404,21 +424,11 @@ fn main() -> Result<()> {
                         if app_state == AppState::Playing {
                             // Input is now handled via ctx.input in update()
                         } else if app_state == AppState::Editor && editor_state.is_playing {
-                            // Track keyboard input in editor play mode
+                            // Input is now handled above in the main InputSystem update section
+                            // Track in legacy keyboard_state HashMap for backward compatibility
                             if let winit::keyboard::PhysicalKey::Code(key_code) = key_event.physical_key {
                                 let key_name = format!("{:?}", key_code);
                                 let is_pressed = key_event.state == winit::event::ElementState::Pressed;
-
-                                // Update InputSystem for scripts
-                                if let Some(key) = Key::from_str(&key_name) {
-                                    if is_pressed {
-                                        editor_state.input_system.press_key(key);
-                                    } else {
-                                        editor_state.input_system.release_key(key);
-                                    }
-                                }
-
-                                // Track in legacy keyboard_state HashMap
                                 editor_state.keyboard_state.insert(key_name, is_pressed);
                             }
                         }
@@ -1427,6 +1437,10 @@ fn main() -> Result<()> {
 
                                 // Game loop update when playing
                                 if editor_state.is_playing {
+                                    // Clear per-frame input state
+                                    editor_state.input_system.begin_frame();
+                                    editor_state.input_system.update_gamepads();
+                                    
                                     let now = std::time::Instant::now();
                                     let dt = (now - last_frame_time).as_secs_f32();
                                     last_frame_time = now;
