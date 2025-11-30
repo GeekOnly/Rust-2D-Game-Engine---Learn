@@ -68,12 +68,40 @@ impl ScriptEngine {
     }
 
     /// Call Start() for an entity (should be called after all Awake() calls)
-    pub fn call_start_for_entity(&self, entity: Entity) -> Result<()> {
+    /// This needs world access to inject API functions
+    pub fn call_start_for_entity(&self, entity: Entity, world: &mut World) -> Result<()> {
         if let Some(lua) = self.entity_states.get(&entity) {
-            let globals = lua.globals();
-            if let Ok(start) = globals.get::<_, Function>("Start") {
-                start.call::<_, ()>(())?;
-            }
+            // Use RefCell to work around borrow checker
+            let world_cell = RefCell::new(&mut *world);
+            
+            lua.scope(|scope| {
+                let globals = lua.globals();
+                
+                // Inject essential API functions for Start()
+                let set_velocity = scope.create_function_mut(|_, (vx, vy): (f32, f32)| {
+                    world_cell.borrow_mut().velocities.insert(entity, (vx, vy));
+                    if let Some(rigidbody) = world_cell.borrow_mut().rigidbodies.get_mut(&entity) {
+                        rigidbody.velocity = (vx, vy);
+                    }
+                    Ok(())
+                })?;
+                globals.set("set_velocity", set_velocity)?;
+                
+                let set_gravity_scale = scope.create_function_mut(|_, scale: f32| {
+                    if let Some(rigidbody) = world_cell.borrow_mut().rigidbodies.get_mut(&entity) {
+                        rigidbody.gravity_scale = scale;
+                    }
+                    Ok(())
+                })?;
+                globals.set("set_gravity_scale", set_gravity_scale)?;
+                
+                // Call Start() if it exists
+                if let Ok(start) = globals.get::<_, Function>("Start") {
+                    start.call::<_, ()>(())?;
+                }
+                
+                Ok(())
+            })?;
         }
         Ok(())
     }

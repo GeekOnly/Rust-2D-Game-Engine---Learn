@@ -6,7 +6,7 @@ use anyhow::Result;
 /// Load and initialize all scripts in the world (Unity-style lifecycle)
 #[allow(dead_code)]
 pub fn load_all_scripts(
-    world: &World,
+    world: &mut World,
     script_engine: &mut ScriptEngine,
     scripts_folder: &PathBuf,
 ) -> Result<()> {
@@ -38,7 +38,7 @@ pub fn load_all_scripts(
     for entity in &entities_with_scripts {
         if let Some(script) = world.scripts.get(entity) {
             if script.enabled {
-                if let Err(e) = script_engine.call_start_for_entity(*entity) {
+                if let Err(e) = script_engine.call_start_for_entity(*entity, world) {
                     log::error!("Failed to call Start() for entity {}: {}", entity, e);
                 }
             }

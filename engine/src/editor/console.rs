@@ -190,22 +190,22 @@ impl Console {
                             msg.message.clone()
                         };
 
-                        let response = ui.label(egui::RichText::new(&text).color(msg.level.color()))
-                            .on_hover_text("Click to copy");
-
-                        // Copy to clipboard on click
-                        if response.clicked() {
-                            ui.ctx().output_mut(|o| o.copied_text = msg.message.clone());
-                        }
+                        // Make text selectable for copying
+                        let response = ui.selectable_label(false, &text)
+                            .on_hover_text("Right-click to copy");
 
                         // Context menu for copy
                         response.context_menu(|ui| {
                             if ui.button("📋 Copy").clicked() {
-                                ui.ctx().output_mut(|o| o.copied_text = msg.message.clone());
+                                ui.output_mut(|o| o.copied_text = msg.message.clone());
                                 ui.close_menu();
                             }
                             if ui.button("📋 Copy with timestamp").clicked() {
-                                ui.ctx().output_mut(|o| o.copied_text = format!("{} {}", msg.timestamp, msg.message));
+                                ui.output_mut(|o| o.copied_text = format!("{} {}", msg.timestamp, msg.message));
+                                ui.close_menu();
+                            }
+                            if ui.button("📋 Copy all").clicked() {
+                                ui.output_mut(|o| o.copied_text = format!("{} {} {}", msg.level.icon(), msg.timestamp, msg.message));
                                 ui.close_menu();
                             }
                         });

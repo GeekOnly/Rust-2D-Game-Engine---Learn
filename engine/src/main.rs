@@ -1382,7 +1382,7 @@ fn main() -> Result<()> {
                                                     for entity in &entities_with_scripts {
                                                         if let Some(script) = editor_state.world.scripts.get(entity) {
                                                             if script.enabled {
-                                                                if let Err(e) = script_engine.call_start_for_entity(*entity) {
+                                                                if let Err(e) = script_engine.call_start_for_entity(*entity, &mut editor_state.world) {
                                                                     log::error!("Failed to call Start() for entity {}: {}", entity, e);
                                                                     editor_state.console.error(format!("Failed to call Start() for entity {}: {}", entity, e));
                                                                 } else {
