@@ -179,7 +179,7 @@ impl Console {
                         }
                     }
 
-                    // Render message with selectable text
+                    // Render message with selectable text (like Inspector)
                     ui.horizontal(|ui| {
                         ui.label(egui::RichText::new(msg.level.icon()).color(msg.level.color()));
                         ui.label(egui::RichText::new(&msg.timestamp).color(egui::Color32::GRAY));
@@ -190,16 +190,14 @@ impl Console {
                             msg.message.clone()
                         };
 
-                        // Use TextEdit for selectable text (read-only)
-                        let text_edit = egui::TextEdit::multiline(&mut text)
-                            .desired_width(f32::INFINITY)
-                            .desired_rows(1)
-                            .interactive(false)
-                            .frame(false);
-                        
-                        let response = ui.add(text_edit);
+                        // Use TextEdit like Inspector does - fully selectable and copyable
+                        let response = ui.add(
+                            egui::TextEdit::singleline(&mut text)
+                                .desired_width(f32::INFINITY)
+                                .frame(false)
+                        );
 
-                        // Context menu for copy
+                        // Context menu for quick copy
                         response.context_menu(|ui| {
                             if ui.button("📋 Copy").clicked() {
                                 ui.output_mut(|o| o.copied_text = msg.message.clone());
