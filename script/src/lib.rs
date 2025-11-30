@@ -137,6 +137,7 @@ impl ScriptEngine {
         world: &mut World,
         input: &InputSystem,
         dt: f32,
+        log_callback: &mut dyn FnMut(String),
     ) -> Result<()> {
         // Get the entity's Lua state
         let lua = match self.entity_states.get(&entity) {
@@ -146,6 +147,7 @@ impl ScriptEngine {
 
         // Use RefCell to work around borrow checker in scope
         let world_cell = RefCell::new(&mut *world);
+        let log_callback_cell = RefCell::new(log_callback);
 
         lua.scope(|scope| {
             let globals = lua.globals();
@@ -462,8 +464,8 @@ impl ScriptEngine {
             })?;
             globals.set("get_delta_time", get_delta_time)?;
 
-            let print_log = scope.create_function(|_, msg: String| {
-                log::info!("[Lua] {}", msg);
+            let print_log = scope.create_function_mut(|_, msg: String| {
+                log_callback_cell.borrow_mut()(format!("[Lua] {}", msg));
                 Ok(())
             })?;
             globals.set("log", print_log)?;

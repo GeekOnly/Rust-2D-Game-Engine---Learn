@@ -1512,7 +1512,10 @@ fn main() -> Result<()> {
                                                 if let Some(scripts_folder) = editor_state.get_scripts_folder() {
                                                     let script_path = scripts_folder.join(format!("{}.lua", script_name));
                                                     if script_path.exists() {
-                                                        if let Err(e) = script_engine.run_script(&script_path, entity, &mut editor_state.world, &editor_state.input_system, dt) {
+                                                        let mut log_callback = |msg: String| {
+                                                            editor_state.console.info(msg);
+                                                        };
+                                                        if let Err(e) = script_engine.run_script(&script_path, entity, &mut editor_state.world, &editor_state.input_system, dt, &mut log_callback) {
                                                             log::error!("Script error for {}: {}", script_name, e);
                                                             editor_state.console.error(format!("Script error for {}: {}", script_name, e));
                                                         }

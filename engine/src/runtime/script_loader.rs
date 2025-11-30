@@ -64,12 +64,16 @@ pub fn run_all_scripts(
             if script.enabled {
                 let script_path = scripts_folder.join(format!("{}.lua", script.script_name));
 
+                let mut log_callback = |msg: String| {
+                    log::info!("{}", msg);
+                };
                 if let Err(e) = script_engine.run_script(
                     &script_path,
                     entity,
                     world,
                     input,
                     dt,
+                    &mut log_callback,
                 ) {
                     log::error!("Script error for entity {}: {}", entity, e);
                 }
