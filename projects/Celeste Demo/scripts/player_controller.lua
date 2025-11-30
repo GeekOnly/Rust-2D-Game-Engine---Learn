@@ -23,15 +23,22 @@ local dash_direction_y = 0.0
 local is_touching_wall = false
 local wall_direction = 0
 
-function on_start(entity)
-    print("Player Controller started!")
+-- Unity-style lifecycle: Awake is called when script is loaded
+function Awake()
+    print("Player Controller: Awake() called")
+end
+
+-- Unity-style lifecycle: Start is called before first Update
+function Start()
+    print("Player Controller: Start() called")
     
     -- Set initial velocity and gravity
     set_velocity(0.0, 0.0)
     set_gravity_scale(gravity_scale)
 end
 
-function on_update(entity, dt)
+-- Unity-style lifecycle: Update is called every frame
+function Update(dt)
     -- Update dash timer
     if is_dashing then
         dash_timer = dash_timer + dt
@@ -108,7 +115,7 @@ end
 
 function handle_jump()
     -- Jump (use is_key_just_pressed for single press detection)
-    if is_key_just_pressed("Space") then
+    if is_key_just_pressed("Space") and is_grounded then
         print("JUMP TRIGGERED! Before: velocity_y = " .. velocity_y)
         velocity_y = -jump_force
         is_grounded = false
@@ -156,7 +163,9 @@ function handle_dash()
     end
 end
 
-function on_collision(entity, other)
+-- Unity-style collision callback
+function OnCollisionEnter(other)
     -- Handle collision with ground/platforms
-    print("Collision detected!")
+    print("Collision detected with entity: " .. tostring(other))
+    is_grounded = true
 end

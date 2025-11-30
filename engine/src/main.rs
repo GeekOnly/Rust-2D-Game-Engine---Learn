@@ -1353,25 +1353,40 @@ fn main() -> Result<()> {
                                                         }
                                                     }
 
-                                                    // Load and initialize all scripts
+                                                    // Load and initialize all scripts (Unity-style lifecycle)
+                                                    // Phase 1: Load scripts and call Awake() for all entities
                                                     let entities_with_scripts: Vec<_> = editor_state.world.scripts.keys().cloned().collect();
-                                                    for entity in entities_with_scripts {
-                                                        if let Some(script) = editor_state.world.scripts.get(&entity) {
+                                                    for entity in &entities_with_scripts {
+                                                        if let Some(script) = editor_state.world.scripts.get(entity) {
                                                             if script.enabled {
                                                                 let script_name = script.script_name.clone();
                                                                 if let Some(scripts_folder) = editor_state.get_scripts_folder() {
                                                                     let script_path = scripts_folder.join(format!("{}.lua", script_name));
                                                                     if script_path.exists() {
-                                                                        // Load script once
+                                                                        // Load script and call Awake()
                                                                         if let Ok(content) = std::fs::read_to_string(&script_path) {
-                                                                            if let Err(e) = script_engine.load_script(&content) {
-                                                                                log::error!("Failed to load script {}: {}", script_name, e);
+                                                                            if let Err(e) = script_engine.load_script_for_entity(*entity, &content, &editor_state.world) {
+                                                                                log::error!("Failed to load script {} for entity {}: {}", script_name, entity, e);
                                                                                 editor_state.console.error(format!("Failed to load script {}: {}", script_name, e));
                                                                             } else {
-                                                                                editor_state.console.debug(format!("Loaded script: {}.lua", script_name));
+                                                                                editor_state.console.debug(format!("Loaded script: {}.lua (Awake called)", script_name));
                                                                             }
                                                                         }
                                                                     }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+
+                                                    // Phase 2: Call Start() for all entities (after all Awake() calls)
+                                                    for entity in &entities_with_scripts {
+                                                        if let Some(script) = editor_state.world.scripts.get(entity) {
+                                                            if script.enabled {
+                                                                if let Err(e) = script_engine.call_start_for_entity(*entity) {
+                                                                    log::error!("Failed to call Start() for entity {}: {}", entity, e);
+                                                                    editor_state.console.error(format!("Failed to call Start() for entity {}: {}", entity, e));
+                                                                } else {
+                                                                    editor_state.console.debug(format!("Called Start() for entity {}", entity));
                                                                 }
                                                             }
                                                         }

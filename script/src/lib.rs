@@ -1,17 +1,23 @@
-use mlua::{Lua, Function, Table};
+use mlua::{Lua, Function};
 use anyhow::Result;
 use ecs::{World, Entity, EntityTag};
 use input::{InputSystem, Key, MouseButton, GamepadButton};
 use std::cell::RefCell;
+use std::collections::HashMap;
 
 pub struct ScriptEngine {
     lua: Lua,
+    // Per-entity Lua states for proper lifecycle management
+    entity_states: HashMap<Entity, Lua>,
 }
 
 impl ScriptEngine {
     pub fn new() -> Result<Self> {
         let lua = Lua::new();
-        Ok(Self { lua })
+        Ok(Self { 
+            lua,
+            entity_states: HashMap::new(),
+        })
     }
 
     pub fn exec(&self, src: &str) -> Result<()> {
@@ -19,17 +25,62 @@ impl ScriptEngine {
         Ok(())
     }
 
-    /// Load a script file and call on_start if it exists
-    pub fn load_script(&self, content: &str) -> Result<()> {
-        self.lua.load(content).exec()?;
+    /// Load a script for a specific entity (Unity-style with backward compatibility)
+    /// This creates a separate Lua state for each entity to properly manage lifecycle
+    pub fn load_script_for_entity(&mut self, entity: Entity, content: &str, world: &World) -> Result<()> {
+        // Create a new Lua state for this entity
+        let lua = Lua::new();
+        
+        // Load the script content
+        lua.load(content).exec()?;
 
-        // Call on_start if it exists
-        let globals = self.lua.globals();
-        if let Ok(on_start) = globals.get::<_, Function>("on_start") {
-            on_start.call::<_, ()>(())?;
+        // Inject script parameters as globals before calling Awake
+        if let Some(script) = world.scripts.get(&entity) {
+            {
+                let globals = lua.globals();
+                for (name, value) in &script.parameters {
+                    match value {
+                        ecs::ScriptParameter::Float(v) => globals.set(name.as_str(), *v)?,
+                        ecs::ScriptParameter::Int(v) => globals.set(name.as_str(), *v)?,
+                        ecs::ScriptParameter::String(v) => globals.set(name.as_str(), v.clone())?,
+                        ecs::ScriptParameter::Bool(v) => globals.set(name.as_str(), *v)?,
+                    }
+                }
+            } // Drop globals here
         }
 
+        // Call Awake() if it exists (Unity-style)
+        {
+            let globals = lua.globals();
+            if let Ok(awake) = globals.get::<_, Function>("Awake") {
+                awake.call::<_, ()>(())?;
+            }
+            // Backward compatibility: call on_start
+            else if let Ok(on_start) = globals.get::<_, Function>("on_start") {
+                on_start.call::<_, ()>((entity,))?;
+            }
+        } // Drop globals here
+
+        // Store the Lua state for this entity
+        self.entity_states.insert(entity, lua);
+
         Ok(())
+    }
+
+    /// Call Start() for an entity (should be called after all Awake() calls)
+    pub fn call_start_for_entity(&self, entity: Entity) -> Result<()> {
+        if let Some(lua) = self.entity_states.get(&entity) {
+            let globals = lua.globals();
+            if let Ok(start) = globals.get::<_, Function>("Start") {
+                start.call::<_, ()>(())?;
+            }
+        }
+        Ok(())
+    }
+
+    /// Remove entity's Lua state when entity is destroyed
+    pub fn remove_entity_state(&mut self, entity: Entity) {
+        self.entity_states.remove(&entity);
     }
 
     pub fn call_update(&self, name: &str, dt: f32, world: &mut World) -> Result<()> {
@@ -49,7 +100,7 @@ impl ScriptEngine {
         Ok(())
     }
 
-    /// Update a script (call on_update) - script should already be loaded
+    /// Update a script (call Update or on_update) - script should already be loaded
     /// Now uses InputSystem instead of HashMap<String, bool>
     pub fn run_script(
         &mut self,
@@ -59,12 +110,17 @@ impl ScriptEngine {
         input: &InputSystem,
         dt: f32,
     ) -> Result<()> {
-        // Don't reload script - just call on_update with current state
+        // Get the entity's Lua state
+        let lua = match self.entity_states.get(&entity) {
+            Some(lua) => lua,
+            None => return Ok(()), // Entity has no loaded script
+        };
+
         // Use RefCell to work around borrow checker in scope
         let world_cell = RefCell::new(&mut *world);
 
-        self.lua.scope(|scope| {
-            let globals = self.lua.globals();
+        lua.scope(|scope| {
+            let globals = lua.globals();
 
             // ================================================================
             // KEYBOARD INPUT
@@ -154,7 +210,7 @@ impl ScriptEngine {
 
             let is_gamepad_button_pressed = scope.create_function(|_, (gamepad_id, button): (usize, String)| {
                 let btn = match button.as_str() {
-                    "South" | "A" | "X" => GamepadButton::South,
+                    "South" | "A" => GamepadButton::South,
                     "East" | "B" | "Circle" => GamepadButton::East,
                     "North" | "Y" | "Triangle" => GamepadButton::North,
                     "West" | "X" | "Square" => GamepadButton::West,
@@ -401,12 +457,16 @@ impl ScriptEngine {
             }
 
             // ================================================================
-            // CALL ON_UPDATE
+            // CALL LIFECYCLE FUNCTIONS (Unity-style with backward compatibility)
             // ================================================================
 
-            // Call on_update if it exists
-            if let Ok(on_update) = globals.get::<_, Function>("on_update") {
-                on_update.call::<_, ()>(dt)?;
+            // Try Unity-style Update() first, then fall back to on_update()
+            if let Ok(update_func) = globals.get::<_, Function>("Update") {
+                // Unity-style: Update(dt)
+                update_func.call::<_, ()>(dt)?;
+            } else if let Ok(on_update) = globals.get::<_, Function>("on_update") {
+                // Backward compatibility: on_update(entity, dt)
+                on_update.call::<_, ()>((entity, dt))?;
             }
 
             Ok(())
@@ -423,11 +483,17 @@ impl ScriptEngine {
         other_entity: Entity,
         world: &mut World,
     ) -> Result<()> {
+        // Get the entity's Lua state
+        let lua = match self.entity_states.get(&entity) {
+            Some(lua) => lua,
+            None => return Ok(()), // Entity has no loaded script
+        };
+
         // Use RefCell to work around borrow checker in scope
         let world_cell = RefCell::new(&mut *world);
 
-        self.lua.scope(|scope| {
-            let globals = self.lua.globals();
+        lua.scope(|scope| {
+            let globals = lua.globals();
 
             // ================================================================
             // ENTITY QUERY API (for collision callback)
