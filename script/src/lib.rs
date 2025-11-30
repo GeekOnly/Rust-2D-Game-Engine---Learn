@@ -519,11 +519,15 @@ impl ScriptEngine {
             globals.set("destroy_entity", destroy_entity)?;
 
             // ================================================================
-            // CALL ON_COLLISION
+            // CALL COLLISION CALLBACKS (Unity-style with backward compatibility)
             // ================================================================
 
-            // Call on_collision if it exists
-            if let Ok(on_collision) = globals.get::<_, Function>("on_collision") {
+            // Try Unity-style OnCollisionEnter first
+            if let Ok(on_collision_enter) = globals.get::<_, Function>("OnCollisionEnter") {
+                on_collision_enter.call::<_, ()>(other_entity)?;
+            }
+            // Backward compatibility: call on_collision
+            else if let Ok(on_collision) = globals.get::<_, Function>("on_collision") {
                 on_collision.call::<_, ()>(other_entity)?;
             }
 

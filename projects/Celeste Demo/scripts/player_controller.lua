@@ -55,18 +55,17 @@ function Update(dt)
         velocity_y = vel.y
     end
     
-    -- Check if grounded (simple check - velocity.y near 0)
-    -- In a real game, you'd use collision detection
+    -- Check if grounded based on velocity
+    -- If velocity_y is very small, we're likely on ground (gravity would pull us down otherwise)
     local was_grounded = is_grounded
-    is_grounded = math.abs(velocity_y) < 0.1
-    
-    -- Debug: print when grounded state changes
-    if was_grounded ~= is_grounded then
-        print("Grounded: " .. tostring(is_grounded) .. ", velocity_y: " .. velocity_y)
+    if math.abs(velocity_y) < 0.5 then
+        is_grounded = true
+    else
+        is_grounded = false
     end
     
     -- Reset dash when grounded
-    if is_grounded then
+    if was_grounded then
         can_dash = true
     end
     
@@ -85,17 +84,7 @@ function Update(dt)
     end
     
     -- Apply velocity
-    print("Setting velocity: x=" .. velocity_x .. ", y=" .. velocity_y)
     set_velocity(velocity_x, velocity_y)
-    
-    -- Debug: verify velocity was set
-    local check_vel = get_velocity()
-    if check_vel then
-        print("Velocity after set: x=" .. check_vel.x .. ", y=" .. check_vel.y)
-        if math.abs(check_vel.y - velocity_y) > 0.01 then
-            print("WARNING: Velocity Y not set correctly! Expected: " .. velocity_y .. ", Got: " .. check_vel.y)
-        end
-    end
 end
 
 function handle_movement(dt)
@@ -115,11 +104,13 @@ end
 
 function handle_jump()
     -- Jump (use is_key_just_pressed for single press detection)
-    if is_key_just_pressed("Space") and is_grounded then
-        print("JUMP TRIGGERED! Before: velocity_y = " .. velocity_y)
-        velocity_y = -jump_force
-        is_grounded = false
-        print("JUMP SET! After: velocity_y = " .. velocity_y)
+    if is_key_just_pressed("Space") then
+        print("Space key pressed! is_grounded = " .. tostring(is_grounded))
+        if is_grounded then
+            print("JUMP! Setting velocity_y to " .. (-jump_force))
+            velocity_y = -jump_force
+            is_grounded = false
+        end
     end
 end
 
@@ -166,6 +157,11 @@ end
 -- Unity-style collision callback
 function OnCollisionEnter(other)
     -- Handle collision with ground/platforms
-    print("Collision detected with entity: " .. tostring(other))
-    is_grounded = true
+    print("Collision! Entity: " .. tostring(other) .. ", velocity_y: " .. velocity_y)
+    
+    -- If we're moving downward or stationary, we're grounded
+    if velocity_y >= -0.1 then
+        is_grounded = true
+        print("Set grounded = true")
+    end
 end
