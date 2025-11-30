@@ -234,21 +234,25 @@ impl PhysicsWorld {
         let c2 = world.colliders.get(&e2).cloned();
 
         if let (Some(t1), Some(t2), Some(c1), Some(c2)) = (t1, t2, c1, c2) {
-            // Calculate overlap
-            let x1 = t1.position[0];
-            let y1 = t1.position[1];
-            let x2 = t2.position[0];
-            let y2 = t2.position[1];
-
-            // Calculate centers
-            let center1_x = x1;
-            let center1_y = y1;
-            let center2_x = x2;
-            let center2_y = y2;
+            // Get world-space collider dimensions
+            let width1 = c1.get_world_width(t1.scale[0]);
+            let height1 = c1.get_world_height(t1.scale[1]);
+            let width2 = c2.get_world_width(t2.scale[0]);
+            let height2 = c2.get_world_height(t2.scale[1]);
+            
+            // Get world-space offsets
+            let offset1 = c1.get_world_offset(t1.scale[0], t1.scale[1]);
+            let offset2 = c2.get_world_offset(t2.scale[0], t2.scale[1]);
+            
+            // Calculate centers (position + offset)
+            let center1_x = t1.position[0] + offset1[0];
+            let center1_y = t1.position[1] + offset1[1];
+            let center2_x = t2.position[0] + offset2[0];
+            let center2_y = t2.position[1] + offset2[1];
 
             // Calculate overlap on each axis
-            let overlap_x = (c1.width / 2.0 + c2.width / 2.0) - (center1_x - center2_x).abs();
-            let overlap_y = (c1.height / 2.0 + c2.height / 2.0) - (center1_y - center2_y).abs();
+            let overlap_x = (width1 / 2.0 + width2 / 2.0) - (center1_x - center2_x).abs();
+            let overlap_y = (height1 / 2.0 + height2 / 2.0) - (center1_y - center2_y).abs();
 
             // Determine which axis has less overlap (separate on that axis)
             let has_rigidbody1 = world.rigidbodies.contains_key(&e1);
@@ -370,17 +374,21 @@ impl PhysicsWorld {
         let c2 = world.colliders.get(&e2);
 
         if let (Some(t1), Some(t2), Some(c1), Some(c2)) = (t1, t2, c1, c2) {
-            // Apply transform.scale to collider size
-            let width1 = c1.width * t1.scale[0];
-            let height1 = c1.height * t1.scale[1];
-            let width2 = c2.width * t2.scale[0];
-            let height2 = c2.height * t2.scale[1];
+            // Get world-space collider dimensions (size * transform.scale)
+            let width1 = c1.get_world_width(t1.scale[0]);
+            let height1 = c1.get_world_height(t1.scale[1]);
+            let width2 = c2.get_world_width(t2.scale[0]);
+            let height2 = c2.get_world_height(t2.scale[1]);
             
-            // Calculate AABB bounds
-            let x1 = t1.position[0] - width1 / 2.0;
-            let y1 = t1.position[1] - height1 / 2.0;
-            let x2 = t2.position[0] - width2 / 2.0;
-            let y2 = t2.position[1] - height2 / 2.0;
+            // Get world-space offsets
+            let offset1 = c1.get_world_offset(t1.scale[0], t1.scale[1]);
+            let offset2 = c2.get_world_offset(t2.scale[0], t2.scale[1]);
+            
+            // Calculate AABB bounds (with offset)
+            let x1 = t1.position[0] + offset1[0] - width1 / 2.0;
+            let y1 = t1.position[1] + offset1[1] - height1 / 2.0;
+            let x2 = t2.position[0] + offset2[0] - width2 / 2.0;
+            let y2 = t2.position[1] + offset2[1] - height2 / 2.0;
 
             // AABB collision test
             let collision = x1 < x2 + width2 &&
