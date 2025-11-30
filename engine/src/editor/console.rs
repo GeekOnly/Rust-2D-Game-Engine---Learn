@@ -216,8 +216,7 @@ impl Console {
                         }
                     }
 
-                    // Construct the full text for the TextEdit (used for copy)
-                    // Render message with selectable text using monospace
+                    // Render message with selectable text and copy button
                     ui.horizontal(|ui| {
                         ui.label(egui::RichText::new(msg.level.icon()).color(msg.level.color()));
                         ui.label(egui::RichText::new(&msg.timestamp).color(egui::Color32::GRAY));
@@ -229,21 +228,12 @@ impl Console {
                         };
 
                         // Use monospace label which is selectable
-                        let response = ui.monospace(&text);
+                        ui.monospace(&text);
 
-                        // Context menu for quick copy
-                        response.context_menu(|ui| {
-                            if ui.button("📋 Copy").clicked() {
+                        // Small copy button at the end
+                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                            if ui.small_button("📋").on_hover_text("Copy message").clicked() {
                                 ui.output_mut(|o| o.copied_text = msg.message.clone());
-                                ui.close_menu();
-                            }
-                            if ui.button("📋 Copy with timestamp").clicked() {
-                                ui.output_mut(|o| o.copied_text = format!("{} {}", msg.timestamp, msg.message));
-                                ui.close_menu();
-                            }
-                            if ui.button("📋 Copy all").clicked() {
-                                ui.output_mut(|o| o.copied_text = format!("{} {} {}", msg.level.icon(), msg.timestamp, msg.message));
-                                ui.close_menu();
                             }
                         });
                     });
