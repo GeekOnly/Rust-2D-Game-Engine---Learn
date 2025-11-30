@@ -107,7 +107,7 @@ end
 function handle_jump()
     -- Jump (use is_key_just_pressed for single press detection)
     if is_key_just_pressed("Space") and is_grounded then
-        print("JUMP!")
+        log("JUMP!")
         velocity_y = -jump_force
         is_grounded = false
     end
@@ -148,7 +148,7 @@ function handle_dash()
         is_dashing = true
         can_dash = false
         dash_timer = 0.0
-        print("DASH!")
+        log("DASH!")
     end
 end
 
