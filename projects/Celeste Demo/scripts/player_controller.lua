@@ -3,10 +3,10 @@
 
 -- Movement parameters
 local move_speed = 3.0  -- Units per second (reduced for better control)
-local jump_force = 10.0  -- Jump velocity (increased)
+local jump_force = 15.0  -- Jump velocity (increased significantly)
 local dash_speed = 10.0 -- Dash velocity
 local wall_slide_speed = 1.0
-local gravity_scale = 0.5  -- Reduced gravity for better jump feel
+local gravity_scale = 0.3  -- Very low gravity for testing
 
 -- State
 local velocity_x = 0.0
@@ -78,12 +78,16 @@ function on_update(entity, dt)
     end
     
     -- Apply velocity
+    print("Setting velocity: x=" .. velocity_x .. ", y=" .. velocity_y)
     set_velocity(velocity_x, velocity_y)
     
     -- Debug: verify velocity was set
     local check_vel = get_velocity()
-    if check_vel and (math.abs(check_vel.y - velocity_y) > 0.01) then
-        print("WARNING: Velocity not set correctly! Expected: " .. velocity_y .. ", Got: " .. check_vel.y)
+    if check_vel then
+        print("Velocity after set: x=" .. check_vel.x .. ", y=" .. check_vel.y)
+        if math.abs(check_vel.y - velocity_y) > 0.01 then
+            print("WARNING: Velocity Y not set correctly! Expected: " .. velocity_y .. ", Got: " .. check_vel.y)
+        end
     end
 end
 
@@ -105,9 +109,10 @@ end
 function handle_jump()
     -- Jump (use is_key_just_pressed for single press detection)
     if is_key_just_pressed("Space") then
+        print("JUMP TRIGGERED! Before: velocity_y = " .. velocity_y)
         velocity_y = -jump_force
         is_grounded = false
-        print("Jump! velocity_y = " .. velocity_y)
+        print("JUMP SET! After: velocity_y = " .. velocity_y)
     end
 end
 
