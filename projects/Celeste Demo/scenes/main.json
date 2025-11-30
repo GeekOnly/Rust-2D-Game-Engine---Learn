@@ -22,26 +22,6 @@
       }
     ],
     [
-      7,
-      {
-        "position": [
-          0.0,
-          -2.5,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          8.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
       0,
       {
         "position": [
@@ -56,6 +36,26 @@
         ],
         "scale": [
           1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      7,
+      {
+        "position": [
+          0.0,
+          -2.5,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          8.0,
           1.0,
           1.0
         ]
@@ -116,7 +116,7 @@
   ],
   "colliders": [
     [
-      7,
+      1,
       {
         "offset": [
           0.0,
@@ -131,7 +131,7 @@
       }
     ],
     [
-      1,
+      7,
       {
         "offset": [
           0.0,
@@ -214,11 +214,8 @@
         "script_name": "player_controller",
         "enabled": true,
         "parameters": {
-          "dash_speed": {
-            "Float": 500.0
-          },
-          "move_speed": {
-            "Float": 1.0
+          "wall_direction": {
+            "Int": 0
           },
           "jump_force": {
             "Float": 4000.0
@@ -226,46 +223,49 @@
           "dash_timer": {
             "Float": 0.0
           },
-          "can_dash": {
-            "Bool": false
-          },
-          "is_touching_wall": {
-            "Bool": false
-          },
           "is_grounded": {
             "Bool": false
-          },
-          "dash_duration": {
-            "Float": 0.2
           },
           "dash_y": {
             "Float": 1.0
           },
-          "dash_direction_x": {
-            "Float": 0.0
-          },
-          "dash_x": {
-            "Float": 1.0
+          "is_touching_wall": {
+            "Bool": false
           },
           "velocity_x": {
             "Float": 0.0
           },
-          "wall_slide_speed": {
-            "Float": 50.0
-          },
           "velocity_y": {
             "Float": 0.0
           },
-          "wall_direction": {
-            "Int": 0
+          "move_speed": {
+            "Float": 1.0
           },
           "is_dashing": {
             "Bool": false
           },
+          "gravity_scale": {
+            "Float": 1.0
+          },
+          "wall_slide_speed": {
+            "Float": 50.0
+          },
+          "dash_speed": {
+            "Float": 500.0
+          },
+          "can_dash": {
+            "Bool": false
+          },
+          "dash_direction_x": {
+            "Float": 0.0
+          },
           "dash_direction_y": {
             "Float": 0.0
           },
-          "gravity_scale": {
+          "dash_duration": {
+            "Float": 0.2
+          },
+          "dash_x": {
             "Float": 1.0
           }
         }
@@ -274,11 +274,11 @@
   ],
   "active": [
     [
-      7,
+      0,
       true
     ],
     [
-      0,
+      7,
       true
     ],
     [
@@ -288,11 +288,11 @@
   ],
   "layers": [
     [
-      0,
+      7,
       0
     ],
     [
-      7,
+      0,
       0
     ],
     [
@@ -303,12 +303,12 @@
   "parents": [],
   "names": [
     [
-      7,
-      "Sprite"
-    ],
-    [
       0,
       "Main Camera"
+    ],
+    [
+      7,
+      "Sprite"
     ],
     [
       1,

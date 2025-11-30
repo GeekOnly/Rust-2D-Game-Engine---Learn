@@ -1,5 +1,6 @@
 use std::collections::VecDeque;
 use chrono::Local;
+use arboard::Clipboard;
 
 /// Log level for console messages
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -160,7 +161,9 @@ impl Console {
                 }
                 
                 if !all_text.is_empty() {
-                    ui.output_mut(|o| o.copied_text = all_text);
+                    if let Ok(mut clipboard) = Clipboard::new() {
+                        let _ = clipboard.set_text(all_text);
+                    }
                 }
             }
 
@@ -233,7 +236,9 @@ impl Console {
                         // Small copy button at the end
                         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                             if ui.small_button("📋").on_hover_text("Copy message").clicked() {
-                                ui.output_mut(|o| o.copied_text = msg.message.clone());
+                                if let Ok(mut clipboard) = Clipboard::new() {
+                                    let _ = clipboard.set_text(&msg.message);
+                                }
                             }
                         });
                     });
