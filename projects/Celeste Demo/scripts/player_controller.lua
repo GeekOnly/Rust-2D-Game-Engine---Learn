@@ -2,10 +2,10 @@
 -- Features: Run, Jump, Dash, Wall Slide, Wall Jump
 
 -- Movement parameters
-local move_speed = 200.0
-local jump_force = 400.0
-local dash_speed = 500.0
-local wall_slide_speed = 50.0
+local move_speed = 3.0  -- Units per second (reduced for better control)
+local jump_force = 8.0  -- Jump velocity
+local dash_speed = 10.0 -- Dash velocity
+local wall_slide_speed = 1.0
 local gravity_scale = 1.0
 
 -- State
