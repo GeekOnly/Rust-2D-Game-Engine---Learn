@@ -1434,7 +1434,28 @@ fn main() -> Result<()> {
                                                 log::debug!("  Backup Entity {}: vel={:?}", entity, rb.velocity);
                                                 editor_state.console.debug(format!("  Backup Entity {}: vel={:?}", entity, rb.velocity));
                                             }
+                                            
+                                            // Log positions before restore
+                                            for (entity, transform) in &backup_world.transforms {
+                                                if backup_world.rigidbodies.contains_key(entity) {
+                                                    editor_state.console.debug(format!("  Backup Entity {}: pos=({:.2}, {:.2})", entity, transform.position[0], transform.position[1]));
+                                                }
+                                            }
+                                            
                                             editor_state.world = backup_world;
+                                            
+                                            // Reinitialize physics backend with restored world state
+                                            #[cfg(feature = "rapier")]
+                                            {
+                                                physics = RapierPhysicsWorld::new();
+                                                physics.sync_from_ecs(&editor_state.world);
+                                                editor_state.console.debug("🔄 Reinitialized physics backend with restored state".to_string());
+                                            }
+                                            #[cfg(not(feature = "rapier"))]
+                                            {
+                                                physics = PhysicsWorld::new();
+                                                editor_state.console.debug("🔄 Reinitialized physics backend with restored state".to_string());
+                                            }
                                         }
                                         editor_state.is_playing = false;
                                         editor_state.scene_view_tab = 0; // Switch back to Scene tab
