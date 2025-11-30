@@ -399,6 +399,17 @@ pub struct Script {
     pub enabled: bool,
     #[serde(default)]
     pub parameters: std::collections::HashMap<String, ScriptParameter>,
+    /// Lifecycle state (not serialized - runtime only)
+    #[serde(skip)]
+    pub lifecycle_state: ScriptLifecycleState,
+}
+
+/// Script lifecycle state (Unity-style)
+#[derive(Clone, Debug, Default)]
+pub struct ScriptLifecycleState {
+    pub awake_called: bool,
+    pub start_called: bool,
+    pub enabled_called: bool,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
