@@ -190,13 +190,25 @@ impl Console {
                             msg.message.clone()
                         };
 
-                        if ui.label(egui::RichText::new(text).color(msg.level.color()))
-                            .on_hover_text(&msg.message)
-                            .clicked()
-                        {
-                            // Copy to clipboard on click
+                        let response = ui.label(egui::RichText::new(&text).color(msg.level.color()))
+                            .on_hover_text("Click to copy");
+
+                        // Copy to clipboard on click
+                        if response.clicked() {
                             ui.output_mut(|o| o.copied_text = msg.message.clone());
                         }
+
+                        // Context menu for copy
+                        response.context_menu(|ui| {
+                            if ui.button("📋 Copy").clicked() {
+                                ui.output_mut(|o| o.copied_text = msg.message.clone());
+                                ui.close_menu();
+                            }
+                            if ui.button("📋 Copy with timestamp").clicked() {
+                                ui.output_mut(|o| o.copied_text = format!("{} {}", msg.timestamp, msg.message));
+                                ui.close_menu();
+                            }
+                        });
                     });
                 }
 

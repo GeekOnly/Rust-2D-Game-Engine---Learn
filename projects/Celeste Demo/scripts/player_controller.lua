@@ -25,13 +25,11 @@ local wall_direction = 0
 
 -- Unity-style lifecycle: Awake is called when script is loaded
 function Awake()
-    print("Player Controller: Awake() called")
+    -- Initialization
 end
 
 -- Unity-style lifecycle: Start is called before first Update
 function Start()
-    print("Player Controller: Start() called")
-    
     -- Set initial velocity and gravity
     set_velocity(0.0, 0.0)
     set_gravity_scale(gravity_scale)
@@ -56,13 +54,6 @@ function Update(dt)
     end
     
     local pos = get_position()
-    if pos then
-        -- Debug: print position and velocity every 60 frames (about once per second)
-        if math.random() < 0.016 then
-            print(string.format("Pos: (%.2f, %.2f), Vel: (%.2f, %.2f), Grounded: %s", 
-                pos.x, pos.y, velocity_x, velocity_y, tostring(is_grounded)))
-        end
-    end
     
     -- Check if grounded based on position
     -- Ground is at y = -2.5 with height 1.0, so top of ground is at y = -2.0
@@ -115,13 +106,10 @@ end
 
 function handle_jump()
     -- Jump (use is_key_just_pressed for single press detection)
-    if is_key_just_pressed("Space") then
-        print("Space key pressed! is_grounded = " .. tostring(is_grounded))
-        if is_grounded then
-            print("JUMP! Setting velocity_y to " .. (-jump_force))
-            velocity_y = -jump_force
-            is_grounded = false
-        end
+    if is_key_just_pressed("Space") and is_grounded then
+        print("JUMP!")
+        velocity_y = -jump_force
+        is_grounded = false
     end
 end
 
@@ -160,19 +148,15 @@ function handle_dash()
         is_dashing = true
         can_dash = false
         dash_timer = 0.0
-        
-        print("Dash! Direction: " .. dash_direction_x .. ", " .. dash_direction_y)
+        print("DASH!")
     end
 end
 
 -- Unity-style collision callback
 function OnCollisionEnter(other)
     -- Handle collision with ground/platforms
-    print("Collision! Entity: " .. tostring(other) .. ", velocity_y: " .. velocity_y)
-    
     -- If we're moving downward or stationary, we're grounded
     if velocity_y >= -0.1 then
         is_grounded = true
-        print("Set grounded = true")
     end
 end
