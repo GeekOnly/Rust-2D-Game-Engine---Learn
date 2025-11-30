@@ -127,6 +127,43 @@ impl Console {
                 self.clear();
             }
 
+            if ui.button("📋 Copy All").clicked() {
+                // Copy all visible messages
+                let mut all_text = String::new();
+                for msg in &self.messages {
+                    // Filter by level
+                    let should_show = match msg.level {
+                        LogLevel::Info => self.show_info,
+                        LogLevel::Warning => self.show_warning,
+                        LogLevel::Error => self.show_error,
+                        LogLevel::Debug => self.show_debug,
+                    };
+
+                    if !should_show {
+                        continue;
+                    }
+
+                    // Filter by search text
+                    if !self.filter.is_empty() {
+                        if !msg.message.to_lowercase().contains(&self.filter.to_lowercase()) {
+                            continue;
+                        }
+                    }
+
+                    // Add message to output
+                    let text = if msg.count > 1 {
+                        format!("{} {} {} ({})\n", msg.level.icon(), msg.timestamp, msg.message, msg.count)
+                    } else {
+                        format!("{} {} {}\n", msg.level.icon(), msg.timestamp, msg.message)
+                    };
+                    all_text.push_str(&text);
+                }
+                
+                if !all_text.is_empty() {
+                    ui.output_mut(|o| o.copied_text = all_text);
+                }
+            }
+
             ui.separator();
 
             // Filter toggles
