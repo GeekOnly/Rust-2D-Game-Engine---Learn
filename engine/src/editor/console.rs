@@ -195,17 +195,17 @@ impl Console {
 
                         // Copy to clipboard on click
                         if response.clicked() {
-                            ui.output_mut(|o| o.copied_text = msg.message.clone());
+                            ui.ctx().output_mut(|o| o.copied_text = msg.message.clone());
                         }
 
                         // Context menu for copy
                         response.context_menu(|ui| {
                             if ui.button("📋 Copy").clicked() {
-                                ui.output_mut(|o| o.copied_text = msg.message.clone());
+                                ui.ctx().output_mut(|o| o.copied_text = msg.message.clone());
                                 ui.close_menu();
                             }
                             if ui.button("📋 Copy with timestamp").clicked() {
-                                ui.output_mut(|o| o.copied_text = format!("{} {}", msg.timestamp, msg.message));
+                                ui.ctx().output_mut(|o| o.copied_text = format!("{} {}", msg.timestamp, msg.message));
                                 ui.close_menu();
                             }
                         });

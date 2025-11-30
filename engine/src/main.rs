@@ -1448,14 +1448,7 @@ fn main() -> Result<()> {
                                         }
                                     }
                                     
-                                    // Debug log physics info
-                                    let rb_count = editor_state.world.rigidbodies.len();
-                                    if rb_count > 0 && physics_steps > 0 {
-                                        editor_state.console.debug(format!(
-                                            "Physics: {} rigidbodies, {} steps, dt={:.4}, fixed_dt={:.4}", 
-                                            rb_count, physics_steps, dt, FIXED_TIMESTEP
-                                        ));
-                                    }
+                                    // Physics step completed (debug logs removed)
 
                                     // Check collisions and call collision callbacks
                                     let entities_with_colliders: Vec<_> = editor_state.world.colliders.keys().cloned().collect();
