@@ -370,17 +370,23 @@ impl PhysicsWorld {
         let c2 = world.colliders.get(&e2);
 
         if let (Some(t1), Some(t2), Some(c1), Some(c2)) = (t1, t2, c1, c2) {
+            // Apply transform.scale to collider size
+            let width1 = c1.width * t1.scale[0];
+            let height1 = c1.height * t1.scale[1];
+            let width2 = c2.width * t2.scale[0];
+            let height2 = c2.height * t2.scale[1];
+            
             // Calculate AABB bounds
-            let x1 = t1.position[0] - c1.width / 2.0;
-            let y1 = t1.position[1] - c1.height / 2.0;
-            let x2 = t2.position[0] - c2.width / 2.0;
-            let y2 = t2.position[1] - c2.height / 2.0;
+            let x1 = t1.position[0] - width1 / 2.0;
+            let y1 = t1.position[1] - height1 / 2.0;
+            let x2 = t2.position[0] - width2 / 2.0;
+            let y2 = t2.position[1] - height2 / 2.0;
 
             // AABB collision test
-            let collision = x1 < x2 + c2.width &&
-                           x1 + c1.width > x2 &&
-                           y1 < y2 + c2.height &&
-                           y1 + c1.height > y2;
+            let collision = x1 < x2 + width2 &&
+                           x1 + width1 > x2 &&
+                           y1 < y2 + height2 &&
+                           y1 + height1 > y2;
 
             return collision;
         }

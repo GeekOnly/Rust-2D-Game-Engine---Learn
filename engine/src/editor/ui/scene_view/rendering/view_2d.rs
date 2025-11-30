@@ -6,7 +6,7 @@ use ecs::{World, Entity, MeshType};
 use egui;
 use crate::editor::SceneCamera;
 use super::super::types::*;
-use super::gizmos::{render_camera_gizmo, render_collider_gizmo, render_velocity_gizmo};
+use super::gizmos::{render_camera_gizmo, render_camera_viewport_bounds, render_collider_gizmo, render_velocity_gizmo};
 
 /// Render the scene in 2D mode
 pub fn render_scene_2d(
@@ -27,6 +27,20 @@ pub fn render_scene_2d(
     let mut entities: Vec<Entity> = world.transforms.keys().cloned().collect();
     entities.sort();
 
+    // First, render camera viewport bounds (behind everything)
+    for entity in &entities {
+        if world.cameras.contains_key(entity) {
+            render_camera_viewport_bounds(
+                painter,
+                *entity,
+                world,
+                scene_camera,
+                center,
+            );
+        }
+    }
+    
+    // Then render all entities
     for entity in entities {
         if let Some(transform) = world.transforms.get(&entity) {
             render_entity_2d(
@@ -54,8 +68,12 @@ pub fn render_scene_2d(
             let screen_y = center.y + screen_pos.y;
 
             // Draw selection outline
-            if let Some(sprite) = world.sprites.get(&sel_entity) {
-                let size = egui::vec2(sprite.width * scene_camera.zoom, sprite.height * scene_camera.zoom);
+            if let Some(_sprite) = world.sprites.get(&sel_entity) {
+                let scale = glam::Vec2::new(transform.scale[0], transform.scale[1]);
+                let size = egui::vec2(
+                    scale.x * scene_camera.zoom,
+                    scale.y * scene_camera.zoom
+                );
                 painter.rect_stroke(
                     egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), size + egui::vec2(4.0, 4.0)),
                     2.0,
@@ -130,8 +148,13 @@ fn render_entity_2d(
     let screen_y = center.y + screen_pos.y;
 
     // Get entity bounds for click detection
-    let entity_rect = if let Some(sprite) = world.sprites.get(&entity) {
-        let size = egui::vec2(sprite.width * scene_camera.zoom, sprite.height * scene_camera.zoom);
+    // Use transform.scale as the authoritative size (matching Game Mode behavior)
+    let entity_rect = if let Some(_sprite) = world.sprites.get(&entity) {
+        let scale = glam::Vec2::new(transform.scale[0], transform.scale[1]);
+        let size = egui::vec2(
+            scale.x * scene_camera.zoom,
+            scale.y * scene_camera.zoom
+        );
         egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), size)
     } else if world.meshes.contains_key(&entity) {
         let scale = glam::Vec3::from(transform.scale);
@@ -150,8 +173,13 @@ fn render_entity_2d(
     }
 
     // Render Sprite
+    // Use transform.scale as the authoritative size (matching Game Mode behavior)
     if let Some(sprite) = world.sprites.get(&entity) {
-        let size = egui::vec2(sprite.width * scene_camera.zoom, sprite.height * scene_camera.zoom);
+        let scale = glam::Vec2::new(transform.scale[0], transform.scale[1]);
+        let size = egui::vec2(
+            scale.x * scene_camera.zoom,
+            scale.y * scene_camera.zoom
+        );
         let color = egui::Color32::from_rgba_unmultiplied(
             (sprite.color[0] * 255.0) as u8,
             (sprite.color[1] * 255.0) as u8,
@@ -227,15 +255,21 @@ fn render_entity_2d(
             }
         }
     } else {
-        // Default placeholder - only for non-camera entities
-        // Camera entities should not be rendered in the scene view
-        let is_camera = world.names.get(&entity)
-            .map(|name| name.contains("Camera") || name.contains("camera"))
-            .unwrap_or(false);
+        // Check if this is a camera entity
+        let is_camera = world.cameras.contains_key(&entity);
         
-        if !is_camera {
-            // Only render placeholder for non-camera entities
-            painter.circle_filled(egui::pos2(screen_x, screen_y), 5.0 * scene_camera.zoom, egui::Color32::from_rgb(150, 150, 150));
+        if is_camera {
+            // Render camera gizmo
+            render_camera_gizmo(
+                painter,
+                screen_x,
+                screen_y,
+                scene_camera,
+                &SceneViewMode::Mode2D,
+            );
+        } else {
+            // Default placeholder for other entities
+            painter.circle_filled(egui::pos2(screen_x, screen_y), 5.0, egui::Color32::from_rgb(150, 150, 150));
         }
     }
 

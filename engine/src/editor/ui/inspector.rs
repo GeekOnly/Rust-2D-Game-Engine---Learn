@@ -582,6 +582,34 @@ pub fn render_inspector(
                                         ui.label("Far Clip");
                                         ui.add(egui::DragValue::new(&mut camera.far_clip).speed(1.0).clamp_range(1.0..=10000.0));
                                         ui.end_row();
+                                        
+                                        // Aspect Ratio Presets
+                                        ui.label("Aspect Ratio");
+                                        ui.horizontal(|ui| {
+                                            // Calculate current aspect ratio
+                                            let current_aspect = camera.viewport_rect[2] / camera.viewport_rect[3];
+                                            
+                                            // Preset buttons
+                                            if ui.small_button("16:9").on_hover_text("Set to 16:9 (1.778)").clicked() {
+                                                camera.viewport_rect[2] = 1.0;
+                                                camera.viewport_rect[3] = 9.0 / 16.0;
+                                            }
+                                            if ui.small_button("16:10").on_hover_text("Set to 16:10 (1.6)").clicked() {
+                                                camera.viewport_rect[2] = 1.0;
+                                                camera.viewport_rect[3] = 10.0 / 16.0;
+                                            }
+                                            if ui.small_button("4:3").on_hover_text("Set to 4:3 (1.333)").clicked() {
+                                                camera.viewport_rect[2] = 1.0;
+                                                camera.viewport_rect[3] = 3.0 / 4.0;
+                                            }
+                                            if ui.small_button("1:1").on_hover_text("Set to 1:1 (Square)").clicked() {
+                                                camera.viewport_rect[2] = 1.0;
+                                                camera.viewport_rect[3] = 1.0;
+                                            }
+                                            
+                                            ui.label(egui::RichText::new(format!("{:.2}:1", current_aspect)).small().color(egui::Color32::GRAY));
+                                        });
+                                        ui.end_row();
                                     });
 
                                 ui.add_space(5.0);

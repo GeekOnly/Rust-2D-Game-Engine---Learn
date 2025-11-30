@@ -268,12 +268,19 @@ pub fn render_collider_gizmo(
     _is_selected: bool,
 ) {
     if let Some(collider) = world.colliders.get(&entity) {
-        let size = egui::vec2(collider.width * scene_camera.zoom, collider.height * scene_camera.zoom);
+        // Get entity transform for rotation and scale
+        let (rotation_rad, scale) = world.transforms.get(&entity)
+            .map(|t| (
+                t.rotation[2].to_radians(),
+                glam::Vec2::new(t.scale[0], t.scale[1])
+            ))
+            .unwrap_or((0.0, glam::Vec2::ONE));
         
-        // Get entity rotation if available
-        let rotation_rad = world.transforms.get(&entity)
-            .map(|t| t.rotation[2].to_radians())
-            .unwrap_or(0.0);
+        // Apply transform.scale to collider size
+        let size = egui::vec2(
+            collider.width * scale.x * scene_camera.zoom,
+            collider.height * scale.y * scene_camera.zoom
+        );
         
         if rotation_rad.abs() < 0.01 {
             // No rotation - use simple rect
@@ -441,6 +448,101 @@ pub fn render_camera_gizmo(
                 egui::pos2(screen_x, screen_y + line_len),
             ],
             egui::Stroke::new(1.0, egui::Color32::from_rgb(150, 150, 150)),
+        );
+    }
+}
+
+/// Render camera viewport bounds (the yellow rectangle showing what the camera sees)
+pub fn render_camera_viewport_bounds(
+    painter: &egui::Painter,
+    camera_entity: Entity,
+    world: &World,
+    scene_camera: &SceneCamera,
+    center: egui::Pos2,
+) {
+    // Get camera component and transform
+    if let (Some(camera), Some(transform)) = (world.cameras.get(&camera_entity), world.transforms.get(&camera_entity)) {
+        // Get camera position in world space
+        let cam_world_pos = glam::Vec2::new(transform.x(), transform.y());
+        
+        // Calculate viewport size in world units based on orthographic_size
+        // orthographic_size is the half-height of the camera view
+        let viewport_height = camera.orthographic_size * 2.0;
+        
+        // Calculate aspect ratio from viewport_rect
+        // viewport_rect is [x, y, width, height] where width and height are normalized (0-1)
+        let viewport_width_normalized = camera.viewport_rect[2];
+        let viewport_height_normalized = camera.viewport_rect[3];
+        
+        // Calculate actual aspect ratio
+        // For a typical game window, we assume 16:9 as base, but scale by viewport rect
+        let base_aspect_ratio = 16.0 / 9.0;
+        let aspect_ratio = if viewport_height_normalized > 0.0 {
+            base_aspect_ratio * (viewport_width_normalized / viewport_height_normalized)
+        } else {
+            base_aspect_ratio
+        };
+        
+        let viewport_width = viewport_height * aspect_ratio;
+        
+        // Convert camera world position to screen position
+        let cam_screen_pos = scene_camera.world_to_screen(cam_world_pos);
+        let cam_screen_x = center.x + cam_screen_pos.x;
+        let cam_screen_y = center.y + cam_screen_pos.y;
+        
+        // Calculate viewport bounds in screen space
+        let half_width = (viewport_width / 2.0) * scene_camera.zoom;
+        let half_height = (viewport_height / 2.0) * scene_camera.zoom;
+        
+        // Draw viewport rectangle (yellow outline)
+        let viewport_rect = egui::Rect::from_center_size(
+            egui::pos2(cam_screen_x, cam_screen_y),
+            egui::vec2(half_width * 2.0, half_height * 2.0),
+        );
+        
+        // Draw yellow outline only (no fill)
+        painter.rect_stroke(
+            viewport_rect,
+            0.0,
+            egui::Stroke::new(2.0, egui::Color32::from_rgb(255, 220, 0)),
+        );
+        
+        // Draw corner markers (Unity style)
+        let corner_size = 10.0;
+        let corners = [
+            (viewport_rect.min.x, viewport_rect.min.y), // Top-left
+            (viewport_rect.max.x, viewport_rect.min.y), // Top-right
+            (viewport_rect.min.x, viewport_rect.max.y), // Bottom-left
+            (viewport_rect.max.x, viewport_rect.max.y), // Bottom-right
+        ];
+        
+        for (x, y) in corners.iter() {
+            // Horizontal line
+            painter.line_segment(
+                [
+                    egui::pos2(x - corner_size, *y),
+                    egui::pos2(x + corner_size, *y),
+                ],
+                egui::Stroke::new(2.0, egui::Color32::from_rgb(255, 220, 0)),
+            );
+            // Vertical line
+            painter.line_segment(
+                [
+                    egui::pos2(*x, y - corner_size),
+                    egui::pos2(*x, y + corner_size),
+                ],
+                egui::Stroke::new(2.0, egui::Color32::from_rgb(255, 220, 0)),
+            );
+        }
+        
+        // Draw aspect ratio label at the top
+        let aspect_text = format!("{:.2}:1", aspect_ratio);
+        painter.text(
+            egui::pos2(cam_screen_x, viewport_rect.min.y - 15.0),
+            egui::Align2::CENTER_BOTTOM,
+            aspect_text,
+            egui::FontId::proportional(12.0),
+            egui::Color32::from_rgb(255, 220, 0),
         );
     }
 }

@@ -58,11 +58,14 @@ pub fn render_hierarchy(
             
             if ui.button("🎮 Sprite").clicked() {
                 let entity = world.spawn();
-                world.transforms.insert(entity, ecs::Transform::default());
+                // Create transform with scale matching sprite size (32x32)
+                let mut transform = ecs::Transform::default();
+                transform.scale = [32.0, 32.0, 1.0];
+                world.transforms.insert(entity, transform);
                 world.sprites.insert(entity, ecs::Sprite {
                     texture_id: "sprite".to_string(),
-                    width: 32.0,
-                    height: 32.0,
+                    width: 1.0,  // Base size, actual size determined by transform.scale
+                    height: 1.0,
                     color: [1.0, 1.0, 1.0, 1.0],
                     billboard: false, // Default sprite, not billboard
                 });

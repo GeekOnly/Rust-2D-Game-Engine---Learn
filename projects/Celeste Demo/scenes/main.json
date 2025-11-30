@@ -1,85 +1,298 @@
 {
-  "next_entity": 7,
+  "next_entity": 8,
   "transforms": [
-    [0, {"position": [400.0, 300.0, -10.0], "rotation": [0.0, 0.0, 0.0], "scale": [1.0, 1.0, 1.0]}],
-    [1, {"position": [400.0, 200.0, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [32.0, 32.0, 1.0]}],
-    [2, {"position": [400.0, 550.0, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [800.0, 50.0, 1.0]}],
-    [3, {"position": [200.0, 400.0, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [150.0, 20.0, 1.0]}],
-    [4, {"position": [600.0, 350.0, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [150.0, 20.0, 1.0]}],
-    [5, {"position": [100.0, 300.0, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [20.0, 300.0, 1.0]}],
-    [6, {"position": [700.0, 300.0, 0.0], "rotation": [0.0, 0.0, 0.0], "scale": [20.0, 300.0, 1.0]}]
+    [
+      1,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      7,
+      {
+        "position": [
+          -0.36000216,
+          -1.3894233,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      0,
+      {
+        "position": [
+          0.9680877,
+          0.0,
+          -10.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ]
+  ],
+  "velocities": [
+    [
+      1,
+      [
+        0.0,
+        0.0
+      ]
+    ],
+    [
+      7,
+      [
+        0.0,
+        0.0
+      ]
+    ]
   ],
   "sprites": [
-    [1, {"texture_id": "player", "width": 1.0, "height": 1.0, "color": [0.3, 0.6, 1.0, 1.0], "billboard": false}],
-    [2, {"texture_id": "ground", "width": 1.0, "height": 1.0, "color": [0.3, 0.3, 0.3, 1.0], "billboard": false}],
-    [3, {"texture_id": "platform", "width": 1.0, "height": 1.0, "color": [0.5, 0.5, 0.5, 1.0], "billboard": false}],
-    [4, {"texture_id": "platform", "width": 1.0, "height": 1.0, "color": [0.5, 0.5, 0.5, 1.0], "billboard": false}],
-    [5, {"texture_id": "wall", "width": 1.0, "height": 1.0, "color": [0.4, 0.4, 0.4, 1.0], "billboard": false}],
-    [6, {"texture_id": "wall", "width": 1.0, "height": 1.0, "color": [0.4, 0.4, 0.4, 1.0], "billboard": false}]
+    [
+      1,
+      {
+        "texture_id": "player",
+        "width": 1.0,
+        "height": 1.0,
+        "color": [
+          0.3,
+          0.6,
+          1.0,
+          1.0
+        ],
+        "billboard": false
+      }
+    ],
+    [
+      7,
+      {
+        "texture_id": "sprite",
+        "width": 1.0,
+        "height": 1.0,
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "billboard": false
+      }
+    ]
   ],
   "colliders": [
-    [1, {"width": 1.0, "height": 1.0}],
-    [2, {"width": 1.0, "height": 1.0}],
-    [3, {"width": 1.0, "height": 1.0}],
-    [4, {"width": 1.0, "height": 1.0}],
-    [5, {"width": 1.0, "height": 1.0}],
-    [6, {"width": 1.0, "height": 1.0}]
+    [
+      1,
+      {
+        "width": 1.0,
+        "height": 1.0
+      }
+    ],
+    [
+      7,
+      {
+        "width": 1.0,
+        "height": 1.0
+      }
+    ]
   ],
   "rigidbodies": [
-    [1, {"velocity": [0.0, 0.0], "gravity_scale": 1.0, "mass": 1.0, "is_kinematic": false, "freeze_rotation": true}],
-    [2, {"velocity": [0.0, 0.0], "gravity_scale": 0.0, "mass": 1.0, "is_kinematic": true, "freeze_rotation": true}],
-    [3, {"velocity": [0.0, 0.0], "gravity_scale": 0.0, "mass": 1.0, "is_kinematic": true, "freeze_rotation": true}],
-    [4, {"velocity": [0.0, 0.0], "gravity_scale": 0.0, "mass": 1.0, "is_kinematic": true, "freeze_rotation": true}],
-    [5, {"velocity": [0.0, 0.0], "gravity_scale": 0.0, "mass": 1.0, "is_kinematic": true, "freeze_rotation": true}],
-    [6, {"velocity": [0.0, 0.0], "gravity_scale": 0.0, "mass": 1.0, "is_kinematic": true, "freeze_rotation": true}]
+    [
+      1,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 1.0,
+        "mass": 1.0,
+        "is_kinematic": false,
+        "freeze_rotation": true
+      }
+    ],
+    [
+      7,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 1.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true
+      }
+    ]
   ],
   "cameras": [
-    [0, {
-      "projection": "Orthographic",
-      "fov": 60.0,
-      "orthographic_size": 300.0,
-      "near_clip": 0.1,
-      "far_clip": 1000.0,
-      "viewport_rect": [0.0, 0.0, 1.0, 1.0],
-      "depth": 0,
-      "clear_flags": "SolidColor",
-      "background_color": [0.15, 0.16, 0.18, 1.0]
-    }]
-  ],
-  "scripts": [
-    [1, {"script_name": "player_controller", "enabled": true, "parameters": {}}]
-  ],
-  "tags": [
-    [1, "Player"]
-  ],
-  "active": [
-    [0, true],
-    [1, true],
-    [2, true],
-    [3, true],
-    [4, true],
-    [5, true],
-    [6, true]
-  ],
-  "layers": [
-    [0, 0],
-    [1, 0],
-    [2, 0],
-    [3, 0],
-    [4, 0],
-    [5, 0],
-    [6, 0]
-  ],
-  "names": [
-    [0, "Main Camera"],
-    [1, "Player"],
-    [2, "Ground"],
-    [3, "Platform 1"],
-    [4, "Platform 2"],
-    [5, "Wall Left"],
-    [6, "Wall Right"]
+    [
+      0,
+      {
+        "projection": "Orthographic",
+        "fov": 60.0,
+        "orthographic_size": 3.0,
+        "near_clip": 0.1,
+        "far_clip": 1000.0,
+        "viewport_rect": [
+          0.0,
+          0.0,
+          1.0,
+          1.0
+        ],
+        "depth": 0,
+        "clear_flags": "SolidColor",
+        "background_color": [
+          0.15,
+          0.16,
+          0.18,
+          1.0
+        ]
+      }
+    ]
   ],
   "meshes": [],
+  "tags": [
+    [
+      1,
+      "Player"
+    ]
+  ],
+  "scripts": [
+    [
+      1,
+      {
+        "script_name": "player_controller",
+        "enabled": true,
+        "parameters": {
+          "move_speed": {
+            "Float": 200.0
+          },
+          "gravity_scale": {
+            "Float": 1.0
+          },
+          "velocity_x": {
+            "Float": 0.0
+          },
+          "dash_direction_x": {
+            "Float": 0.0
+          },
+          "dash_direction_y": {
+            "Float": 0.0
+          },
+          "velocity_y": {
+            "Float": 0.0
+          },
+          "is_touching_wall": {
+            "Bool": false
+          },
+          "jump_force": {
+            "Float": 400.0
+          },
+          "dash_x": {
+            "Float": 1.0
+          },
+          "wall_direction": {
+            "Int": 0
+          },
+          "wall_slide_speed": {
+            "Float": 50.0
+          },
+          "is_grounded": {
+            "Bool": false
+          },
+          "dash_y": {
+            "Float": 1.0
+          },
+          "dash_timer": {
+            "Float": 0.0
+          },
+          "is_dashing": {
+            "Bool": true
+          },
+          "can_dash": {
+            "Bool": false
+          },
+          "dash_duration": {
+            "Float": 0.2
+          },
+          "dash_speed": {
+            "Float": 500.0
+          }
+        }
+      }
+    ]
+  ],
+  "active": [
+    [
+      0,
+      true
+    ],
+    [
+      1,
+      true
+    ],
+    [
+      7,
+      true
+    ]
+  ],
+  "layers": [
+    [
+      0,
+      0
+    ],
+    [
+      7,
+      0
+    ],
+    [
+      1,
+      0
+    ]
+  ],
   "parents": [],
-  "velocities": []
+  "names": [
+    [
+      7,
+      "Sprite"
+    ],
+    [
+      0,
+      "Main Camera"
+    ],
+    [
+      1,
+      "Player"
+    ]
+  ]
 }
