@@ -1495,6 +1495,16 @@ fn main() -> Result<()> {
 
                                     // Run scripts
                                     let entities_with_scripts: Vec<_> = editor_state.world.scripts.keys().cloned().collect();
+                                    
+                                    // Debug: log script count once
+                                    static mut SCRIPT_LOG_ONCE: bool = false;
+                                    unsafe {
+                                        if !SCRIPT_LOG_ONCE && !entities_with_scripts.is_empty() {
+                                            editor_state.console.debug(format!("Running {} scripts per frame", entities_with_scripts.len()));
+                                            SCRIPT_LOG_ONCE = true;
+                                        }
+                                    }
+                                    
                                     for entity in entities_with_scripts {
                                         if let Some(script) = editor_state.world.scripts.get(&entity) {
                                             if script.enabled {
@@ -1504,6 +1514,7 @@ fn main() -> Result<()> {
                                                     if script_path.exists() {
                                                         if let Err(e) = script_engine.run_script(&script_path, entity, &mut editor_state.world, &editor_state.input_system, dt) {
                                                             log::error!("Script error for {}: {}", script_name, e);
+                                                            editor_state.console.error(format!("Script error for {}: {}", script_name, e));
                                                         }
                                                     }
                                                 }
