@@ -37,6 +37,11 @@ end
 
 -- Unity-style lifecycle: Update is called every frame
 function Update(dt)
+    -- Debug: log once to verify Update is being called
+    if math.random() < 0.01 then
+        log("Update() is running")
+    end
+    
     -- Update dash timer
     if is_dashing then
         dash_timer = dash_timer + dt
