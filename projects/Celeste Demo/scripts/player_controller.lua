@@ -123,8 +123,8 @@ function handle_jump()
                 jump_start_y = pos.y
             end
             
-            -- Apply jump force (negative Y = up)
-            velocity_y = -jump_force
+            -- Apply jump force (positive Y = up)
+            velocity_y = jump_force
             is_grounded = false  -- Immediately set to false to prevent double jump
             set_velocity(velocity_x, velocity_y)  -- Apply jump velocity
             log(string.format("✅ JUMPED! velocity_y = %.1f", velocity_y))
@@ -135,7 +135,7 @@ function handle_jump()
     
     -- Variable jump height: if player releases Space while going up, reduce velocity
     -- This gives more control over jump height (Celeste-style)
-    if not is_key_down("Space") and velocity_y < 0.0 then
+    if not is_key_down("Space") and velocity_y > 0.0 then
         -- Player released jump button while going up - cut velocity for shorter jump
         velocity_y = velocity_y * 0.5
         set_velocity(velocity_x, velocity_y)  -- Apply modified velocity
@@ -143,7 +143,7 @@ function handle_jump()
     
     -- Limit max jump height
     local pos = get_position()
-    if pos and velocity_y < 0.0 then
+    if pos and velocity_y > 0.0 then
         local jump_height = jump_start_y - pos.y  -- How high we've jumped
         if jump_height > max_jump_height then
             -- Reached max height - stop upward movement

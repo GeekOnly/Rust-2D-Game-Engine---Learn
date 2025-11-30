@@ -187,8 +187,13 @@ impl ScriptEngine {
 
             let is_key_just_pressed = scope.create_function(|_, key: String| {
                 if let Some(key_enum) = Key::from_str(&key) {
-                    Ok(input.is_key_pressed(key_enum))
+                    let result = input.is_key_pressed(key_enum);
+                    if result {
+                        log::info!("🔍 Key '{}' just pressed!", key);
+                    }
+                    Ok(result)
                 } else {
+                    log::warn!("⚠️ Unknown key: '{}'", key);
                     Ok(false)
                 }
             })?;
