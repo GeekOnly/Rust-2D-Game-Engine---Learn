@@ -27,8 +27,7 @@ function on_start(entity)
     print("Player Controller started!")
     
     -- Set initial velocity
-    set_velocity(entity, 0.0, 0.0)
-    set_gravity_scale(entity, gravity_scale)
+    set_velocity(0.0, 0.0)
 end
 
 function on_update(entity, dt)
@@ -42,9 +41,11 @@ function on_update(entity, dt)
     end
     
     -- Get current velocity
-    local vel = get_velocity(entity)
-    velocity_x = vel.x
-    velocity_y = vel.y
+    local vel = get_velocity()
+    if vel then
+        velocity_x = vel.x
+        velocity_y = vel.y
+    end
     
     -- Check if grounded (simple check - velocity.y near 0 and moving down)
     is_grounded = math.abs(velocity_y) < 10.0 and velocity_y >= 0
@@ -56,11 +57,11 @@ function on_update(entity, dt)
     
     -- Handle input
     if not is_dashing then
-        handle_movement(entity, dt)
-        handle_jump(entity)
+        handle_movement(dt)
+        handle_jump()
     end
     
-    handle_dash(entity)
+    handle_dash()
     
     -- Apply dash velocity
     if is_dashing then
@@ -69,10 +70,10 @@ function on_update(entity, dt)
     end
     
     -- Apply velocity
-    set_velocity(entity, velocity_x, velocity_y)
+    set_velocity(velocity_x, velocity_y)
 end
 
-function handle_movement(entity, dt)
+function handle_movement(dt)
     -- Horizontal movement
     if is_key_down("A") or is_key_down("Left") then
         velocity_x = -move_speed
@@ -87,7 +88,7 @@ function handle_movement(entity, dt)
     end
 end
 
-function handle_jump(entity)
+function handle_jump()
     -- Jump
     if is_key_pressed("Space") and is_grounded then
         velocity_y = -jump_force
@@ -96,7 +97,7 @@ function handle_jump(entity)
     end
 end
 
-function handle_dash(entity)
+function handle_dash()
     -- Dash (Shift key)
     if is_key_pressed("LShift") and can_dash then
         -- Get dash direction from input
