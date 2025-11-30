@@ -14,7 +14,7 @@ pub struct PhysicsWorld {
 impl Default for PhysicsWorld {
     fn default() -> Self {
         Self {
-            gravity: 980.0,     // Unity-like gravity (9.8 m/s² = 980 pixels/s²)
+            gravity: 150.0,     // Further reduced for easier jumping (was 300, originally 980)
             enabled: true,
             time_scale: 1.0,
         }
@@ -66,8 +66,17 @@ impl PhysicsWorld {
                     continue;
                 }
 
+                // Debug: log velocity before and after gravity
+                let vel_before = rigidbody.velocity;
+                
                 // Apply gravity to Y velocity with gravity scale
                 rigidbody.velocity.1 -= self.gravity * rigidbody.gravity_scale * dt;
+                
+                // Debug: log if velocity changed significantly
+                if (vel_before.1 - rigidbody.velocity.1).abs() > 0.1 {
+                    log::debug!("Entity {}: gravity applied, vel before=({:.2}, {:.2}), after=({:.2}, {:.2})", 
+                        entity, vel_before.0, vel_before.1, rigidbody.velocity.0, rigidbody.velocity.1);
+                }
             }
 
             // Sync rigidbody velocity to world velocities (after mutable borrow ends)
@@ -330,9 +339,23 @@ impl PhysicsWorld {
                         transform.position[1] += direction * overlap_y;
                     }
                     if let Some(rb) = world.rigidbodies.get_mut(&e1) {
-                        if direction > 0.0 && rb.velocity.1 < 0.0 || direction < 0.0 && rb.velocity.1 > 0.0 {
+                        // Stop velocity if moving INTO the collision
+                        // In this engine: negative Y = up, positive Y = down
+                        // direction < 0: e1 is above e2 (player above ground)
+                        // direction > 0: e1 is below e2 (player below ceiling)
+                        
+                        // IMPORTANT: Only stop velocity if overlap is significant
+                        // Small overlaps during jump should be ignored
+                        let significant_overlap = overlap_y > 0.05;
+                        
+                        if significant_overlap && direction < 0.0 && rb.velocity.1 > 0.0 {
+                            // e1 above e2 (player above ground), moving down - STOP (landing)
+                            rb.velocity.1 = 0.0;
+                        } else if significant_overlap && direction > 0.0 && rb.velocity.1 < 0.0 {
+                            // e1 below e2 (player below ceiling), moving up - STOP (hit ceiling)
                             rb.velocity.1 = 0.0;
                         }
+                        // If overlap is small or moving away, don't reset (allows jumping)
                         world.velocities.insert(e1, rb.velocity);
                     }
                 } else if has_rigidbody2 && !is_kinematic2 {

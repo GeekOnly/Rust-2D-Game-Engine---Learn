@@ -1437,13 +1437,35 @@ fn main() -> Result<()> {
 
                                 // Game loop update when playing
                                 if editor_state.is_playing {
-                                    // Clear per-frame input state
-                                    editor_state.input_system.begin_frame();
+                                    // Update gamepads (but don't clear input yet - scripts need to read it first)
                                     editor_state.input_system.update_gamepads();
                                     
                                     let now = std::time::Instant::now();
                                     let dt = (now - last_frame_time).as_secs_f32();
                                     last_frame_time = now;
+
+                                    // Run scripts FIRST (before physics) so they can set velocities
+                                    let entities_with_scripts: Vec<_> = editor_state.world.scripts.keys().cloned().collect();
+                                    
+                                    for entity in entities_with_scripts {
+                                        if let Some(script) = editor_state.world.scripts.get(&entity) {
+                                            if script.enabled {
+                                                let script_name = script.script_name.clone();
+                                                if let Some(scripts_folder) = editor_state.get_scripts_folder() {
+                                                    let script_path = scripts_folder.join(format!("{}.lua", script_name));
+                                                    if script_path.exists() {
+                                                        let mut log_callback = |msg: String| {
+                                                            editor_state.console.info(msg);
+                                                        };
+                                                        if let Err(e) = script_engine.run_script(&script_path, entity, &mut editor_state.world, &editor_state.input_system, dt, &mut log_callback) {
+                                                            log::error!("Script error for {}: {}", script_name, e);
+                                                            editor_state.console.error(format!("Script error for {}: {}", script_name, e));
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
 
                                     // Accumulate frame time for fixed timestep physics
                                     physics_accumulator += dt;
@@ -1507,37 +1529,8 @@ fn main() -> Result<()> {
                                         }
                                     }
 
-                                    // Run scripts
-                                    let entities_with_scripts: Vec<_> = editor_state.world.scripts.keys().cloned().collect();
-                                    
-                                    // Debug: log script count once
-                                    static mut SCRIPT_LOG_ONCE: bool = false;
-                                    unsafe {
-                                        if !SCRIPT_LOG_ONCE && !entities_with_scripts.is_empty() {
-                                            editor_state.console.debug(format!("Running {} scripts per frame", entities_with_scripts.len()));
-                                            SCRIPT_LOG_ONCE = true;
-                                        }
-                                    }
-                                    
-                                    for entity in entities_with_scripts {
-                                        if let Some(script) = editor_state.world.scripts.get(&entity) {
-                                            if script.enabled {
-                                                let script_name = script.script_name.clone();
-                                                if let Some(scripts_folder) = editor_state.get_scripts_folder() {
-                                                    let script_path = scripts_folder.join(format!("{}.lua", script_name));
-                                                    if script_path.exists() {
-                                                        let mut log_callback = |msg: String| {
-                                                            editor_state.console.info(msg);
-                                                        };
-                                                        if let Err(e) = script_engine.run_script(&script_path, entity, &mut editor_state.world, &editor_state.input_system, dt, &mut log_callback) {
-                                                            log::error!("Script error for {}: {}", script_name, e);
-                                                            editor_state.console.error(format!("Script error for {}: {}", script_name, e));
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
+                                    // Clear per-frame input state AFTER scripts have run
+                                    editor_state.input_system.begin_frame();
                                 }
                             }
                         }

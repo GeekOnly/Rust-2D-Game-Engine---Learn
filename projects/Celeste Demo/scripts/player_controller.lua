@@ -3,10 +3,12 @@
 
 -- Movement parameters
 local move_speed = 3.0  -- Units per second (reduced for better control)
-local jump_force = 15.0  -- Jump velocity (increased significantly)
+local jump_force = 25.0  -- Jump velocity (high enough to separate from ground in 1 frame)
+local max_jump_height = 2.0  -- Maximum jump height in units (reduced to compensate for higher jump force)
 local dash_speed = 10.0 -- Dash velocity
 local wall_slide_speed = 1.0
-local gravity_scale = 0.3  -- Very low gravity for testing
+local gravity_scale = 1.0  -- Normal gravity
+local jump_start_y = 0.0  -- Track where jump started
 
 -- State
 local velocity_x = 0.0
@@ -18,6 +20,7 @@ local dash_timer = 0.0
 local dash_duration = 0.2
 local dash_direction_x = 0.0
 local dash_direction_y = 0.0
+local just_jumped = false  -- Flag to prevent collision reset on jump frame
 
 -- Wall slide
 local is_touching_wall = false
@@ -37,11 +40,6 @@ end
 
 -- Unity-style lifecycle: Update is called every frame
 function Update(dt)
-    -- Debug: log once to verify Update is being called
-    if math.random() < 0.01 then
-        log("Update() is running")
-    end
-    
     -- Update dash timer
     if is_dashing then
         dash_timer = dash_timer + dt
@@ -60,27 +58,19 @@ function Update(dt)
     
     local pos = get_position()
     
-    -- Check if grounded based on position
-    -- Ground is at y = -2.5 with height 1.0, so top of ground is at y = -2.0
-    -- Player has height 1.0, so player's bottom is at y - 0.5
-    -- Player is grounded if bottom is at or below ground top: (y - 0.5) >= -2.0, or y >= -1.5
-    local was_grounded = is_grounded
-    if pos and pos.y >= -1.6 and velocity_y >= -0.1 then
+    -- Simple ground check: if velocity is near zero and we're at ground level, we're grounded
+    -- Ground is at y = -2.5, player center at y = -1.5 when grounded
+    if pos and math.abs(velocity_y) < 1.0 and pos.y >= -1.6 and pos.y <= -1.4 then
         is_grounded = true
     else
-        is_grounded = false
-    end
-    
-    -- Debug: log position and grounded state occasionally
-    if math.random() < 0.02 then
-        if pos then
-            log(string.format("Pos: (%.2f, %.2f), Vel: (%.2f, %.2f), Grounded: %s", 
-                pos.x, pos.y, velocity_x, velocity_y, tostring(is_grounded)))
+        -- Don't immediately unground - let jump handle that
+        if velocity_y > 1.0 then  -- Only unground if moving down fast
+            is_grounded = false
         end
     end
     
     -- Reset dash when grounded
-    if was_grounded then
+    if is_grounded then
         can_dash = true
     end
     
@@ -90,9 +80,9 @@ function Update(dt)
         handle_jump()
     end
     
-    handle_dash()
+handle_dash()
     
-    -- Apply dash velocity
+-- Apply dash velocity
     if is_dashing then
         velocity_x = dash_direction_x * dash_speed
         velocity_y = dash_direction_y * dash_speed
@@ -120,11 +110,34 @@ end
 function handle_jump()
     -- Jump (use is_key_just_pressed for single press detection)
     if is_key_just_pressed("Space") then
-        log("Space pressed! is_grounded=" .. tostring(is_grounded))
         if is_grounded then
-            log("JUMP!")
+            -- Record jump start position
+            local pos = get_position()
+            if pos then
+                jump_start_y = pos.y
+            end
+            
+            -- Apply jump force
             velocity_y = -jump_force
-            is_grounded = false
+            is_grounded = false  -- Immediately set to false to prevent double jump
+            log(string.format("JUMPED! velocity_y = %.1f", velocity_y))
+        end
+    end
+    
+    -- Variable jump height: if player releases Space while going up, reduce velocity
+    -- This gives more control over jump height (Celeste-style)
+    if not is_key_down("Space") and velocity_y < 0.0 then
+        -- Player released jump button while going up - cut velocity for shorter jump
+        velocity_y = velocity_y * 0.5
+    end
+    
+    -- Limit max jump height
+    local pos = get_position()
+    if pos and velocity_y < 0.0 then
+        local jump_height = jump_start_y - pos.y  -- How high we've jumped
+        if jump_height > max_jump_height then
+            -- Reached max height - stop upward movement
+            velocity_y = 0.0
         end
     end
 end
@@ -170,9 +183,15 @@ end
 
 -- Unity-style collision callback
 function OnCollisionEnter(other)
-    -- Handle collision with ground/platforms
-    -- If we're moving downward or stationary, we're grounded
-    if velocity_y >= -0.1 then
-        is_grounded = true
+    -- Get current velocity to check direction
+    local vel = get_velocity()
+    if vel then
+        -- If we're moving downward or stationary, we're grounded
+        -- velocity.y > 0 means moving down (positive Y is down in this engine)
+        -- velocity.y >= -0.1 means not moving up significantly
+        if vel.y >= -0.1 then
+            is_grounded = true
+            log("Grounded!")
+        end
     end
 end
