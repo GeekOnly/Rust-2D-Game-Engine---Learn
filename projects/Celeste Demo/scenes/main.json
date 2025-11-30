@@ -2,26 +2,6 @@
   "next_entity": 8,
   "transforms": [
     [
-      7,
-      {
-        "position": [
-          0.0,
-          -2.5,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          8.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
       1,
       {
         "position": [
@@ -36,6 +16,26 @@
         ],
         "scale": [
           1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      7,
+      {
+        "position": [
+          0.0,
+          -2.5,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          8.0,
           1.0,
           1.0
         ]
@@ -64,14 +64,14 @@
   ],
   "velocities": [
     [
-      7,
+      1,
       [
         0.0,
         0.0
       ]
     ],
     [
-      1,
+      7,
       [
         0.0,
         0.0
@@ -79,23 +79,6 @@
     ]
   ],
   "sprites": [
-    [
-      1,
-      {
-        "texture_id": "player",
-        "width": 1.0,
-        "height": 1.0,
-        "color": [
-          0.3,
-          0.6,
-          1.0,
-          1.0
-        ],
-        "billboard": false,
-        "flip_x": false,
-        "flip_y": false
-      }
-    ],
     [
       7,
       {
@@ -105,6 +88,23 @@
         "color": [
           1.0,
           1.0,
+          1.0,
+          1.0
+        ],
+        "billboard": false,
+        "flip_x": false,
+        "flip_y": false
+      }
+    ],
+    [
+      1,
+      {
+        "texture_id": "player",
+        "width": 1.0,
+        "height": 1.0,
+        "color": [
+          0.3,
+          0.6,
           1.0,
           1.0
         ],
@@ -214,19 +214,19 @@
         "script_name": "player_controller",
         "enabled": true,
         "parameters": {
-          "gravity_scale": {
+          "dash_direction_y": {
+            "Float": 0.0
+          },
+          "dash_x": {
             "Float": 1.0
           },
           "dash_y": {
             "Float": 1.0
           },
-          "wall_direction": {
-            "Int": 0
+          "jump_force": {
+            "Float": 400.0
           },
-          "move_speed": {
-            "Float": 200.0
-          },
-          "dash_timer": {
+          "velocity_y": {
             "Float": 0.0
           },
           "dash_direction_x": {
@@ -235,38 +235,38 @@
           "dash_duration": {
             "Float": 0.2
           },
+          "is_touching_wall": {
+            "Bool": false
+          },
+          "can_dash": {
+            "Bool": false
+          },
+          "move_speed": {
+            "Float": 200.0
+          },
+          "velocity_x": {
+            "Float": 0.0
+          },
           "dash_speed": {
             "Float": 500.0
           },
-          "jump_force": {
-            "Float": 400.0
+          "wall_direction": {
+            "Int": 0
           },
-          "dash_direction_y": {
-            "Float": 0.0
+          "is_grounded": {
+            "Bool": false
           },
-          "dash_x": {
-            "Float": 1.0
-          },
-          "can_dash": {
+          "is_dashing": {
             "Bool": false
           },
           "wall_slide_speed": {
             "Float": 50.0
           },
-          "velocity_x": {
+          "gravity_scale": {
+            "Float": 1.0
+          },
+          "dash_timer": {
             "Float": 0.0
-          },
-          "is_dashing": {
-            "Bool": true
-          },
-          "is_touching_wall": {
-            "Bool": false
-          },
-          "velocity_y": {
-            "Float": 0.0
-          },
-          "is_grounded": {
-            "Bool": false
           }
         }
       }
@@ -278,11 +278,11 @@
       true
     ],
     [
-      7,
+      1,
       true
     ],
     [
-      1,
+      7,
       true
     ]
   ],
@@ -303,16 +303,16 @@
   "parents": [],
   "names": [
     [
-      0,
-      "Main Camera"
-    ],
-    [
       7,
       "Sprite"
     ],
     [
       1,
       "Player"
+    ],
+    [
+      0,
+      "Main Camera"
     ]
   ]
 }

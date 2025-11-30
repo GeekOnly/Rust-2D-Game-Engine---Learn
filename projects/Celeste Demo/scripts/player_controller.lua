@@ -26,8 +26,9 @@ local wall_direction = 0
 function on_start(entity)
     print("Player Controller started!")
     
-    -- Set initial velocity
+    -- Set initial velocity and gravity
     set_velocity(0.0, 0.0)
+    set_gravity_scale(gravity_scale)
 end
 
 function on_update(entity, dt)

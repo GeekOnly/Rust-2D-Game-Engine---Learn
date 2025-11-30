@@ -225,30 +225,48 @@ impl ScriptEngine {
             // ================================================================
 
             let set_velocity = scope.create_function_mut(|_, (vx, vy): (f32, f32)| {
-                // Initialize velocity if it doesn't exist
-                if !world_cell.borrow().velocities.contains_key(&entity) {
-                    world_cell.borrow_mut().velocities.insert(entity, (0.0, 0.0));
-                }
-
-                if let Some(velocity) = world_cell.borrow_mut().velocities.get_mut(&entity) {
-                    velocity.0 = vx;
-                    velocity.1 = vy;
+                // Set velocity in both legacy and rigidbody systems
+                world_cell.borrow_mut().velocities.insert(entity, (vx, vy));
+                
+                // Sync with rigidbody if it exists
+                if let Some(rigidbody) = world_cell.borrow_mut().rigidbodies.get_mut(&entity) {
+                    rigidbody.velocity = (vx, vy);
                 }
                 Ok(())
             })?;
             globals.set("set_velocity", set_velocity)?;
 
             let get_velocity = scope.create_function(|lua, ()| {
-                if let Some(velocity) = world_cell.borrow().velocities.get(&entity) {
-                    let table = lua.create_table()?;
-                    table.set("x", velocity.0)?;
-                    table.set("y", velocity.1)?;
-                    Ok(Some(table))
+                // Try rigidbody first, then fall back to legacy velocity
+                let velocity = if let Some(rigidbody) = world_cell.borrow().rigidbodies.get(&entity) {
+                    rigidbody.velocity
+                } else {
+                    world_cell.borrow().velocities.get(&entity).copied().unwrap_or((0.0, 0.0))
+                };
+                
+                let table = lua.create_table()?;
+                table.set("x", velocity.0)?;
+                table.set("y", velocity.1)?;
+                Ok(Some(table))
+            })?;
+            globals.set("get_velocity", get_velocity)?;
+
+            let set_gravity_scale = scope.create_function_mut(|_, scale: f32| {
+                if let Some(rigidbody) = world_cell.borrow_mut().rigidbodies.get_mut(&entity) {
+                    rigidbody.gravity_scale = scale;
+                }
+                Ok(())
+            })?;
+            globals.set("set_gravity_scale", set_gravity_scale)?;
+
+            let get_gravity_scale = scope.create_function(|_, ()| {
+                if let Some(rigidbody) = world_cell.borrow().rigidbodies.get(&entity) {
+                    Ok(Some(rigidbody.gravity_scale))
                 } else {
                     Ok(None)
                 }
             })?;
-            globals.set("get_velocity", get_velocity)?;
+            globals.set("get_gravity_scale", get_gravity_scale)?;
 
             let get_position = scope.create_function(|lua, ()| {
                 if let Some(transform) = world_cell.borrow().transforms.get(&entity) {
