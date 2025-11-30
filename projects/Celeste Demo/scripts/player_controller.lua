@@ -49,7 +49,7 @@ function Update(dt)
         end
     end
     
-    -- Get current velocity and position
+    -- Get current velocity from physics (includes gravity)
     local vel = get_velocity()
     if vel then
         velocity_x = vel.x
@@ -59,6 +59,13 @@ function Update(dt)
     -- ✅ RAPIER GROUND CHECK - แม่นยำ 100%
     -- ใช้ contact normals จาก Rapier แทนการเช็คตำแหน่ง
     is_grounded = is_grounded_rapier
+    
+    -- Debug: log ground state
+    if is_grounded then
+        log("🟢 GROUNDED (can jump)")
+    else
+        log("🔴 IN AIR (cannot jump)")
+    end
     
     -- Reset dash when grounded
     if is_grounded then
@@ -73,27 +80,34 @@ function Update(dt)
     
     handle_dash()
     
--- Apply dash velocity
+    -- Apply dash velocity
     if is_dashing then
         velocity_x = dash_direction_x * dash_speed
         velocity_y = dash_direction_y * dash_speed
+        set_velocity(velocity_x, velocity_y)  -- Apply dash velocity
     end
     
-    -- Apply velocity
-    set_velocity(velocity_x, velocity_y)
+    -- Note: We only call set_velocity when we actually want to change it
+    -- This allows physics (gravity) to work naturally
 end
 
 function handle_movement(dt)
     -- Horizontal movement
     if is_key_down("A") or is_key_down("Left") then
         velocity_x = -move_speed
+        set_velocity(velocity_x, velocity_y)  -- Update velocity
     elseif is_key_down("D") or is_key_down("Right") then
         velocity_x = move_speed
+        set_velocity(velocity_x, velocity_y)  -- Update velocity
     else
         -- Deceleration
-        velocity_x = velocity_x * 0.8
-        if math.abs(velocity_x) < 10.0 then
-            velocity_x = 0.0
+        local new_vel_x = velocity_x * 0.8
+        if math.abs(new_vel_x) < 0.1 then
+            new_vel_x = 0.0
+        end
+        if new_vel_x ~= velocity_x then
+            velocity_x = new_vel_x
+            set_velocity(velocity_x, velocity_y)  -- Update velocity
         end
     end
 end
@@ -101,6 +115,7 @@ end
 function handle_jump()
     -- Jump (use is_key_just_pressed for single press detection)
     if is_key_just_pressed("Space") then
+        log(string.format("🎮 SPACE PRESSED! is_grounded=%s", tostring(is_grounded)))
         if is_grounded then
             -- Record jump start position
             local pos = get_position()
@@ -108,10 +123,13 @@ function handle_jump()
                 jump_start_y = pos.y
             end
             
-            -- Apply jump force
+            -- Apply jump force (negative Y = up)
             velocity_y = -jump_force
             is_grounded = false  -- Immediately set to false to prevent double jump
-            log(string.format("JUMPED! velocity_y = %.1f", velocity_y))
+            set_velocity(velocity_x, velocity_y)  -- Apply jump velocity
+            log(string.format("✅ JUMPED! velocity_y = %.1f", velocity_y))
+        else
+            log("❌ CANNOT JUMP - not grounded")
         end
     end
     
@@ -120,6 +138,7 @@ function handle_jump()
     if not is_key_down("Space") and velocity_y < 0.0 then
         -- Player released jump button while going up - cut velocity for shorter jump
         velocity_y = velocity_y * 0.5
+        set_velocity(velocity_x, velocity_y)  -- Apply modified velocity
     end
     
     -- Limit max jump height
@@ -129,6 +148,7 @@ function handle_jump()
         if jump_height > max_jump_height then
             -- Reached max height - stop upward movement
             velocity_y = 0.0
+            set_velocity(velocity_x, velocity_y)  -- Stop upward movement
         end
     end
 end
@@ -172,17 +192,5 @@ function handle_dash()
     end
 end
 
--- Unity-style collision callback
-function OnCollisionEnter(other)
-    -- Get current velocity to check direction
-    local vel = get_velocity()
-    if vel then
-        -- If we're moving downward or stationary, we're grounded
-        -- velocity.y > 0 means moving down (positive Y is down in this engine)
-        -- velocity.y >= -0.1 means not moving up significantly
-        if vel.y >= -0.1 then
-            is_grounded = true
-            log("Grounded!")
-        end
-    end
-end
+-- Note: We use Rapier's contact-based ground detection (is_grounded_rapier)
+-- instead of OnCollisionEnter callbacks, so this function is not needed

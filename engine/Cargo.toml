@@ -32,4 +32,5 @@ arboard = "3.4"
 proptest = "1.4"
 
 [features]
-default = []
+default = ["rapier"]
+rapier = ["physics/rapier"]

@@ -6,7 +6,7 @@
 /// - GetComponent<T>() - ดึงข้อมูล Component
 /// - HasComponent<T>() - ตรวจสอบว่ามี Component หรือไม่
 
-use crate::{World, Entity, Transform, Sprite, Collider, Mesh, Camera, Script, EntityTag};
+use crate::{World, Entity, Transform, Sprite, Collider, Mesh, Camera, Script, ScriptLifecycleState, EntityTag};
 use std::collections::HashMap;
 
 /// Component Type Enum สำหรับระบุประเภท Component
@@ -125,6 +125,7 @@ impl ComponentManager for World {
                     script_name: "NewScript".to_string(),
                     enabled: true,
                     parameters: HashMap::new(),
+                    lifecycle_state: ScriptLifecycleState::default(),
                 });
             }
             ComponentType::Tag => {

@@ -9,6 +9,8 @@ use script::ScriptEngine;
 use physics::rapier_backend::RapierPhysicsWorld;
 #[cfg(not(feature = "rapier"))]
 use physics::PhysicsWorld;
+// Always import PhysicsWorld for helper functions
+use physics::PhysicsWorld as SimplePhysicsWorld;
 use render::RenderModule;
 use ::editor::EditorModule as EditorMod;  // From editor crate (workspace)
 use crate::editor::{EditorUI, TransformTool, AppState, LauncherState, EditorState, EditorAction};  // From local editor module
@@ -125,7 +127,7 @@ impl GameState {
             let mut items_to_remove = Vec::new();
 
             for &item in &self.items {
-                if PhysicsWorld::check_collision(&self.world, player, item) {
+                if SimplePhysicsWorld::check_collision(&self.world, player, item) {
                     items_to_remove.push(item);
                 }
             }
@@ -1457,7 +1459,12 @@ fn main() -> Result<()> {
                                         for entity in entities_with_rigidbodies {
                                             let is_grounded = physics.is_grounded(entity, &editor_state.world);
                                             script_engine.set_ground_state(entity, is_grounded);
+                                            editor_state.console.debug(format!("🔍 Rapier ground check: entity={}, grounded={}", entity, is_grounded));
                                         }
+                                    }
+                                    #[cfg(not(feature = "rapier"))]
+                                    {
+                                        editor_state.console.warning("⚠️ Rapier not enabled! Using simple physics".to_string());
                                     }
                                     
                                     // Run scripts FIRST (before physics) so they can set velocities
@@ -1509,7 +1516,7 @@ fn main() -> Result<()> {
                                             let e1 = entities_with_colliders[i];
                                             let e2 = entities_with_colliders[j];
 
-                                            if physics::PhysicsWorld::check_collision(&editor_state.world, e1, e2) {
+                                            if SimplePhysicsWorld::check_collision(&editor_state.world, e1, e2) {
                                                 // Call on_collision for e1's script
                                                 let script1_info = editor_state.world.scripts.get(&e1)
                                                     .filter(|s| s.enabled)
