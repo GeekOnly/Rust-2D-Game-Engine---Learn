@@ -44,10 +44,7 @@ impl GameState {
             billboard: true, // Player sprite faces camera
             ..Default::default()
         });
-        world.colliders.insert(player, Collider {
-            width: 40.0,
-            height: 40.0,
-        });
+        world.colliders.insert(player, Collider::default());
         world.tags.insert(player, EntityTag::Player);
 
         // Spawn items
@@ -77,10 +74,7 @@ impl GameState {
                 billboard: true, // Item sprite faces camera
                 ..Default::default()
             });
-            world.colliders.insert(item, Collider {
-                width: 30.0,
-                height: 30.0,
-            });
+            world.colliders.insert(item, Collider::default());
             world.tags.insert(item, EntityTag::Item);
             items.push(item);
         }
@@ -100,10 +94,7 @@ impl GameState {
             billboard: false,
             ..Default::default()
         });
-        world.colliders.insert(ground, Collider {
-            width: 1000.0,
-            height: 50.0,
-        });
+        world.colliders.insert(ground, Collider::default());
         // No tag for ground, or reuse Item if needed, but better to leave untagged if not needed for logic
 
         Self {

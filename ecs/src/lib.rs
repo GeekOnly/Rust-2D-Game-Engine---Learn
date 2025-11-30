@@ -59,7 +59,7 @@ impl Prefab {
                 billboard: true, // Player sprite faces camera (good for 3D mode)
                 ..Default::default()
             }),
-            collider: Some(Collider { width: 40.0, height: 40.0 }),
+            collider: Some(Collider::default()),
             rigidbody: Some(Rigidbody2D::default()),  // Add rigidbody with default values
             velocity: Some((0.0, 0.0)),
             tag: Some(EntityTag::Player),
@@ -85,7 +85,7 @@ impl Prefab {
                 billboard: true, // Item sprite faces camera
                 ..Default::default()
             }),
-            collider: Some(Collider { width: 30.0, height: 30.0 }),
+            collider: Some(Collider::default()),
             rigidbody: None,
             velocity: None,
             tag: Some(EntityTag::Item),
@@ -260,10 +260,93 @@ impl Sprite {
     }
 }
 
+/// Box Collider 2D (Unity-like)
+/// Size is relative to Transform.scale
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Collider {
+    /// Offset from entity center (in local space)
+    #[serde(default)]
+    pub offset: [f32; 2],
+    /// Size of collider (default 1.0, actual size = size * transform.scale)
+    #[serde(default = "default_collider_size")]
+    pub size: [f32; 2],
+    /// Legacy width (for backward compatibility)
+    #[serde(default)]
     pub width: f32,
+    /// Legacy height (for backward compatibility)
+    #[serde(default)]
     pub height: f32,
+}
+
+fn default_collider_size() -> [f32; 2] {
+    [1.0, 1.0]
+}
+
+impl Default for Collider {
+    fn default() -> Self {
+        Self {
+            offset: [0.0, 0.0],
+            size: [1.0, 1.0],
+            width: 0.0,
+            height: 0.0,
+        }
+    }
+}
+
+impl Collider {
+    /// Create a new collider with size
+    pub fn new(size_x: f32, size_y: f32) -> Self {
+        Self {
+            offset: [0.0, 0.0],
+            size: [size_x, size_y],
+            width: 0.0,
+            height: 0.0,
+        }
+    }
+    
+    /// Create a collider with offset and size
+    pub fn with_offset(offset_x: f32, offset_y: f32, size_x: f32, size_y: f32) -> Self {
+        Self {
+            offset: [offset_x, offset_y],
+            size: [size_x, size_y],
+            width: 0.0,
+            height: 0.0,
+        }
+    }
+    
+    /// Get actual world-space width (size.x * scale.x)
+    pub fn get_world_width(&self, scale_x: f32) -> f32 {
+        self.size[0] * scale_x
+    }
+    
+    /// Get actual world-space height (size.y * scale.y)
+    pub fn get_world_height(&self, scale_y: f32) -> f32 {
+        self.size[1] * scale_y
+    }
+    
+    /// Get world-space offset
+    pub fn get_world_offset(&self, scale_x: f32, scale_y: f32) -> [f32; 2] {
+        [self.offset[0] * scale_x, self.offset[1] * scale_y]
+    }
+    
+    /// Migrate from legacy width/height to size
+    pub fn migrate_from_legacy(&mut self, transform_scale: [f32; 3]) {
+        if self.width > 0.0 || self.height > 0.0 {
+            // Convert legacy width/height to size
+            self.size[0] = if transform_scale[0] != 0.0 {
+                self.width / transform_scale[0]
+            } else {
+                1.0
+            };
+            self.size[1] = if transform_scale[1] != 0.0 {
+                self.height / transform_scale[1]
+            } else {
+                1.0
+            };
+            self.width = 0.0;
+            self.height = 0.0;
+        }
+    }
 }
 
 /// Rigidbody 2D properties (Unity-like)

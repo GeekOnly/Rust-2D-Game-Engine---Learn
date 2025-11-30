@@ -104,10 +104,7 @@ impl ComponentManager for World {
                 });
             }
             ComponentType::BoxCollider => {
-                self.colliders.insert(entity, Collider {
-                    width: 32.0,
-                    height: 32.0,
-                });
+                self.colliders.insert(entity, Collider::default());
             }
             ComponentType::Rigidbody => {
                 // Add both new Rigidbody2D and legacy velocity

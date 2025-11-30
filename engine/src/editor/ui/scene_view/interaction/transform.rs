@@ -229,13 +229,9 @@ pub fn handle_gizmo_interaction_stateful(
                                 let x_axis = glam::Vec2::new(rotation_rad.cos(), rotation_rad.sin());
                                 let scale_delta = world_delta.dot(x_axis) * scale_speed;
                                 let new_scale_x = (transform_mut.scale[0] + scale_delta).max(0.1);
-                                let scale_factor_x = new_scale_x / transform_mut.scale[0];
                                 transform_mut.scale[0] = new_scale_x;
                                 
-                                // Scale collider width (collider size is independent of transform)
-                                if let Some(collider) = world.colliders.get_mut(&entity) {
-                                    collider.width *= scale_factor_x;
-                                }
+                                // Collider size is now relative to transform.scale (Unity-like)
                             }
                             1 => {
                                 // Y axis scale only
@@ -247,29 +243,19 @@ pub fn handle_gizmo_interaction_stateful(
                                 let y_axis = glam::Vec2::new(-rotation_rad.sin(), rotation_rad.cos());
                                 let scale_delta = world_delta.dot(y_axis) * scale_speed;
                                 let new_scale_y = (transform_mut.scale[1] + scale_delta).max(0.1);
-                                let scale_factor_y = new_scale_y / transform_mut.scale[1];
                                 transform_mut.scale[1] = new_scale_y;
                                 
-                                // Scale collider height (collider size is independent of transform)
-                                if let Some(collider) = world.colliders.get_mut(&entity) {
-                                    collider.height *= scale_factor_y;
-                                }
+                                // Collider size is now relative to transform.scale (Unity-like)
                             }
                             2 => {
                                 // Uniform scale - use average of both axes
                                 let scale_delta = (world_delta.x + world_delta.y) * 0.5 * scale_speed;
                                 let new_scale_x = (transform_mut.scale[0] + scale_delta).max(0.1);
                                 let new_scale_y = (transform_mut.scale[1] + scale_delta).max(0.1);
-                                let scale_factor_x = new_scale_x / transform_mut.scale[0];
-                                let scale_factor_y = new_scale_y / transform_mut.scale[1];
                                 transform_mut.scale[0] = new_scale_x;
                                 transform_mut.scale[1] = new_scale_y;
                                 
-                                // Scale collider (collider size is independent of transform)
-                                if let Some(collider) = world.colliders.get_mut(&entity) {
-                                    collider.width *= scale_factor_x;
-                                    collider.height *= scale_factor_y;
-                                }
+                                // Collider size is now relative to transform.scale (Unity-like)
                             }
                             _ => {}
                         }

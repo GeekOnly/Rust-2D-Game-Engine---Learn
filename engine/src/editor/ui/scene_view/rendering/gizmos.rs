@@ -276,11 +276,22 @@ pub fn render_collider_gizmo(
             ))
             .unwrap_or((0.0, glam::Vec2::ONE));
         
-        // Apply transform.scale to collider size
+        // Apply transform.scale to collider size (Unity-like: size * scale)
+        let world_width = collider.get_world_width(scale.x);
+        let world_height = collider.get_world_height(scale.y);
         let size = egui::vec2(
-            collider.width * scale.x * scene_camera.zoom,
-            collider.height * scale.y * scene_camera.zoom
+            world_width * scene_camera.zoom,
+            world_height * scene_camera.zoom
         );
+        
+        // Apply offset
+        let world_offset = collider.get_world_offset(scale.x, scale.y);
+        let offset_screen = egui::vec2(
+            world_offset[0] * scene_camera.zoom,
+            world_offset[1] * scene_camera.zoom
+        );
+        let screen_x = screen_x + offset_screen.x;
+        let screen_y = screen_y - offset_screen.y; // Flip Y
         
         if rotation_rad.abs() < 0.01 {
             // No rotation - use simple rect

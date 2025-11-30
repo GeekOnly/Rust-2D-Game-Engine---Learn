@@ -370,20 +370,54 @@ pub fn render_inspector(
                     render_component_header(ui, "Box Collider 2D", "📦", false);
                     
                     if is_open.is_open() {
+                        // Migrate legacy colliders
+                        if let Some(transform) = world.transforms.get(&entity) {
+                            if let Some(collider) = world.colliders.get_mut(&entity) {
+                                collider.migrate_from_legacy(transform.scale);
+                            }
+                        }
+                        
                         if let Some(collider) = world.colliders.get_mut(&entity) {
                             ui.indent("collider_indent", |ui| {
                                 egui::Grid::new("collider_grid")
-                                    .num_columns(2)
-                                    .spacing([10.0, 8.0])
+                                    .num_columns(5)
+                                    .spacing([5.0, 8.0])
                                     .show(ui, |ui| {
-                                        ui.label("Width");
-                                        ui.add(egui::DragValue::new(&mut collider.width).speed(1.0));
+                                        // Edit Collider button
+                                        ui.label("Edit Collider");
+                                        if ui.button("🔧").on_hover_text("Edit collider shape").clicked() {
+                                            // TODO: Open collider editor
+                                        }
                                         ui.end_row();
                                         
-                                        ui.label("Height");
-                                        ui.add(egui::DragValue::new(&mut collider.height).speed(1.0));
+                                        // Offset
+                                        ui.label("Offset");
+                                        ui.label("X");
+                                        ui.add(egui::DragValue::new(&mut collider.offset[0]).speed(0.01).max_decimals(2));
+                                        ui.label("Y");
+                                        ui.add(egui::DragValue::new(&mut collider.offset[1]).speed(0.01).max_decimals(2));
+                                        ui.end_row();
+                                        
+                                        // Size
+                                        ui.label("Size");
+                                        ui.label("X");
+                                        ui.add(egui::DragValue::new(&mut collider.size[0]).speed(0.01).max_decimals(2).clamp_range(0.01..=100.0));
+                                        ui.label("Y");
+                                        ui.add(egui::DragValue::new(&mut collider.size[1]).speed(0.01).max_decimals(2).clamp_range(0.01..=100.0));
                                         ui.end_row();
                                     });
+                                
+                                ui.add_space(5.0);
+                                
+                                // Show actual world size
+                                if let Some(transform) = world.transforms.get(&entity) {
+                                    let world_width = collider.get_world_width(transform.scale[0]);
+                                    let world_height = collider.get_world_height(transform.scale[1]);
+                                    ui.label(egui::RichText::new(format!(
+                                        "💡 World size: {:.2} x {:.2} (Size × Transform.scale)",
+                                        world_width, world_height
+                                    )).small().color(egui::Color32::from_rgb(150, 150, 150)));
+                                }
                                 
                                 ui.add_space(5.0);
                                 ui.horizontal(|ui| {
@@ -961,8 +995,15 @@ fn format_entity_debug_info(
     // Box Collider
     if let Some(collider) = world.colliders.get(&entity) {
         info.push_str("Box Collider 2D:\n");
-        info.push_str(&format!("  Width: {:.1}\n", collider.width));
-        info.push_str(&format!("  Height: {:.1}\n\n", collider.height));
+        info.push_str(&format!("  Offset: [{:.2}, {:.2}]\n", collider.offset[0], collider.offset[1]));
+        info.push_str(&format!("  Size: [{:.2}, {:.2}]\n", collider.size[0], collider.size[1]));
+        if let Some(transform) = world.transforms.get(&entity) {
+            let world_width = collider.get_world_width(transform.scale[0]);
+            let world_height = collider.get_world_height(transform.scale[1]);
+            info.push_str(&format!("  World Size: {:.2} x {:.2}\n\n", world_width, world_height));
+        } else {
+            info.push_str("\n");
+        }
     }
     
     // Rigidbody
