@@ -405,19 +405,27 @@ impl SpriteEditorWindow {
             // Left panel - Sprite list
             ui.vertical(|ui| {
                 ui.set_width(200.0);
-                ui.heading("Sprites");
+                
+                // Header with sprite count
+                ui.horizontal(|ui| {
+                    ui.heading("Sprites");
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        ui.label(
+                            egui::RichText::new(format!("{}", self.state.metadata.sprites.len()))
+                                .strong()
+                                .color(egui::Color32::from_rgb(100, 150, 255))
+                        );
+                    });
+                });
+                
                 ui.separator();
                 
-                egui::ScrollArea::vertical().show(ui, |ui| {
-                    ui.label(format!("Total: {}", self.state.metadata.sprites.len()));
-                    
-                    for (idx, sprite) in self.state.metadata.sprites.iter().enumerate() {
-                        let is_selected = self.state.selected_sprite == Some(idx);
-                        if ui.selectable_label(is_selected, &sprite.name).clicked() {
-                            self.state.selected_sprite = Some(idx);
-                        }
-                    }
-                });
+                // Scrollable sprite list with thumbnails
+                egui::ScrollArea::vertical()
+                    .auto_shrink([false, false])
+                    .show(ui, |ui| {
+                        self.render_sprite_list(ui);
+                    });
             });
             
             ui.separator();
@@ -456,6 +464,165 @@ impl SpriteEditorWindow {
                 self.state.metadata.texture_height
             ));
         });
+    }
+    
+    /// Render the sprite list panel with thumbnails
+    fn render_sprite_list(&mut self, ui: &mut egui::Ui) {
+        if self.state.metadata.sprites.is_empty() {
+            ui.vertical_centered(|ui| {
+                ui.add_space(20.0);
+                ui.label(
+                    egui::RichText::new("No sprites yet")
+                        .color(egui::Color32::GRAY)
+                        .italics()
+                );
+                ui.add_space(10.0);
+                ui.label(
+                    egui::RichText::new("Click and drag on the canvas\nto create sprite regions")
+                        .small()
+                        .color(egui::Color32::DARK_GRAY)
+                );
+            });
+            return;
+        }
+        
+        // Render each sprite as a list item with thumbnail
+        for (idx, sprite) in self.state.metadata.sprites.iter().enumerate() {
+            let is_selected = self.state.selected_sprite == Some(idx);
+            
+            // Create a frame for each sprite item
+            let frame = if is_selected {
+                egui::Frame::none()
+                    .fill(egui::Color32::from_rgb(60, 90, 150))
+                    .inner_margin(egui::Margin::same(4.0))
+                    .rounding(4.0)
+            } else {
+                egui::Frame::none()
+                    .fill(egui::Color32::from_rgb(40, 40, 45))
+                    .inner_margin(egui::Margin::same(4.0))
+                    .rounding(4.0)
+            };
+            
+            frame.show(ui, |ui| {
+                ui.horizontal(|ui| {
+                    // Render thumbnail
+                    if let Some(texture_handle) = &self.state.texture_handle {
+                        let texture_size = texture_handle.size();
+                        
+                        // Calculate UV coordinates for the sprite region
+                        let uv_min = egui::pos2(
+                            sprite.x as f32 / texture_size[0] as f32,
+                            sprite.y as f32 / texture_size[1] as f32,
+                        );
+                        let uv_max = egui::pos2(
+                            (sprite.x + sprite.width) as f32 / texture_size[0] as f32,
+                            (sprite.y + sprite.height) as f32 / texture_size[1] as f32,
+                        );
+                        
+                        // Calculate thumbnail size (48x48 max, maintain aspect ratio)
+                        let thumbnail_size = 48.0;
+                        let aspect_ratio = sprite.width as f32 / sprite.height as f32;
+                        let (thumb_width, thumb_height) = if aspect_ratio > 1.0 {
+                            (thumbnail_size, thumbnail_size / aspect_ratio)
+                        } else {
+                            (thumbnail_size * aspect_ratio, thumbnail_size)
+                        };
+                        
+                        // Allocate space for thumbnail
+                        let (rect, _) = ui.allocate_exact_size(
+                            egui::vec2(thumbnail_size, thumbnail_size),
+                            egui::Sense::hover()
+                        );
+                        
+                        // Center the thumbnail in the allocated space
+                        let thumb_rect = egui::Rect::from_center_size(
+                            rect.center(),
+                            egui::vec2(thumb_width, thumb_height)
+                        );
+                        
+                        // Draw thumbnail
+                        ui.painter().image(
+                            texture_handle.id(),
+                            thumb_rect,
+                            egui::Rect::from_min_max(uv_min, uv_max),
+                            egui::Color32::WHITE,
+                        );
+                        
+                        // Draw border around thumbnail
+                        ui.painter().rect_stroke(
+                            thumb_rect,
+                            2.0,
+                            egui::Stroke::new(1.0, egui::Color32::from_rgb(80, 80, 85)),
+                        );
+                    } else {
+                        // Placeholder if texture not loaded
+                        let (rect, _) = ui.allocate_exact_size(
+                            egui::vec2(48.0, 48.0),
+                            egui::Sense::hover()
+                        );
+                        ui.painter().rect_filled(
+                            rect,
+                            2.0,
+                            egui::Color32::from_rgb(60, 60, 65)
+                        );
+                    }
+                    
+                    ui.add_space(8.0);
+                    
+                    // Sprite info
+                    ui.vertical(|ui| {
+                        ui.set_width(ui.available_width());
+                        
+                        // Sprite name
+                        let name_text = if is_selected {
+                            egui::RichText::new(&sprite.name)
+                                .strong()
+                                .color(egui::Color32::WHITE)
+                        } else {
+                            egui::RichText::new(&sprite.name)
+                                .color(egui::Color32::LIGHT_GRAY)
+                        };
+                        ui.label(name_text);
+                        
+                        // Sprite dimensions
+                        ui.label(
+                            egui::RichText::new(format!("{}×{}", sprite.width, sprite.height))
+                                .small()
+                                .color(egui::Color32::GRAY)
+                        );
+                        
+                        // Sprite position
+                        ui.label(
+                            egui::RichText::new(format!("({}, {})", sprite.x, sprite.y))
+                                .small()
+                                .color(egui::Color32::DARK_GRAY)
+                        );
+                    });
+                });
+            });
+            
+            // Handle click to select sprite
+            let item_response = ui.interact(
+                ui.min_rect(),
+                ui.id().with(idx),
+                egui::Sense::click()
+            );
+            
+            if item_response.clicked() {
+                self.state.selected_sprite = Some(idx);
+            }
+            
+            // Add hover effect
+            if item_response.hovered() {
+                ui.painter().rect_stroke(
+                    ui.min_rect(),
+                    4.0,
+                    egui::Stroke::new(1.0, egui::Color32::from_rgb(100, 150, 255))
+                );
+            }
+            
+            ui.add_space(4.0);
+        }
     }
     
     /// Render the properties panel for the selected sprite
