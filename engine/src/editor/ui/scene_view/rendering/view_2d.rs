@@ -5,6 +5,7 @@
 use ecs::{World, Entity, MeshType};
 use egui;
 use crate::editor::SceneCamera;
+use crate::texture_manager::TextureManager;
 use super::super::types::*;
 use super::gizmos::{render_camera_gizmo, render_camera_viewport_bounds, render_collider_gizmo, render_velocity_gizmo};
 
@@ -19,6 +20,8 @@ pub fn render_scene_2d(
     show_velocities: &bool,
     hovered_entity: &mut Option<Entity>,
     response: &egui::Response,
+    texture_manager: &mut TextureManager,
+    ctx: &egui::Context,
 ) {
     // In 2D, we just iterate through all entities. 
     // Z-ordering is usually determined by entity order or a specific Z-index component (if we had one).
@@ -55,6 +58,8 @@ pub fn render_scene_2d(
                 show_velocities,
                 hovered_entity,
                 response,
+                texture_manager,
+                ctx,
             );
         }
     }
@@ -140,6 +145,8 @@ fn render_entity_2d(
     show_velocities: &bool,
     hovered_entity: &mut Option<Entity>,
     response: &egui::Response,
+    texture_manager: &mut TextureManager,
+    ctx: &egui::Context,
 ) {
     // 2D Projection
     let world_pos = glam::Vec2::new(transform.x(), transform.y());
@@ -172,9 +179,71 @@ fn render_entity_2d(
         }
     }
 
-    // Render Sprite
-    // Use transform.scale as the authoritative size (matching Game Mode behavior)
-    if let Some(sprite) = world.sprites.get(&entity) {
+    // Check if entity has animated sprite (priority over regular sprite)
+    let has_animated_sprite = world.animated_sprites.contains_key(&entity);
+    
+    if has_animated_sprite {
+        // Render animated sprite from sprite sheet
+        if let (Some(animated_sprite), Some(sprite_sheet)) = 
+            (world.animated_sprites.get(&entity), world.sprite_sheets.get(&entity)) {
+            
+            let frame_index = animated_sprite.get_frame_index();
+            if let Some(frame) = sprite_sheet.get_frame(frame_index) {
+                let transform_scale = glam::Vec2::new(transform.scale[0], transform.scale[1]);
+                
+                // Calculate size based on frame dimensions
+                let aspect_ratio = frame.width as f32 / frame.height as f32;
+                let size = egui::vec2(
+                    transform_scale.x * scene_camera.zoom * aspect_ratio,
+                    transform_scale.y * scene_camera.zoom
+                );
+                
+                // Get sprite color if exists, otherwise white
+                let color = if let Some(sprite) = world.sprites.get(&entity) {
+                    egui::Color32::from_rgba_unmultiplied(
+                        (sprite.color[0] * 255.0) as u8,
+                        (sprite.color[1] * 255.0) as u8,
+                        (sprite.color[2] * 255.0) as u8,
+                        (sprite.color[3] * 255.0) as u8,
+                    )
+                } else {
+                    egui::Color32::WHITE
+                };
+
+                // Try to load and render texture
+                let texture_path = std::path::Path::new(&sprite_sheet.texture_path);
+                if let Some(texture) = texture_manager.load_texture(ctx, &sprite_sheet.texture_id, texture_path) {
+                    // Calculate UV coordinates for the frame
+                    let uv_min = egui::pos2(
+                        frame.x as f32 / sprite_sheet.sheet_width as f32,
+                        frame.y as f32 / sprite_sheet.sheet_height as f32,
+                    );
+                    let uv_max = egui::pos2(
+                        (frame.x + frame.width) as f32 / sprite_sheet.sheet_width as f32,
+                        (frame.y + frame.height) as f32 / sprite_sheet.sheet_height as f32,
+                    );
+                    
+                    let rect = egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), size);
+                    
+                    // Draw the texture with UV coordinates
+                    painter.image(
+                        texture.id(),
+                        rect,
+                        egui::Rect::from_min_max(uv_min, uv_max),
+                        color,
+                    );
+                } else {
+                    // Fallback: draw colored rectangle
+                    painter.rect_filled(
+                        egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), size),
+                        2.0,
+                        color,
+                    );
+                }
+            }
+        }
+    } else if let Some(sprite) = world.sprites.get(&entity) {
+        // Render regular sprite
         let scale = glam::Vec2::new(transform.scale[0], transform.scale[1]);
         let size = egui::vec2(
             scale.x * scene_camera.zoom,

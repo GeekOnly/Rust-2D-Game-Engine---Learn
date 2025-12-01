@@ -42,6 +42,7 @@ pub struct TabContext<'a> {
     pub scene_view_mode: &'a mut scene_view::SceneViewMode,
     pub projection_mode: &'a mut scene_view::ProjectionMode,
     pub transform_space: &'a mut scene_view::TransformSpace,
+    pub texture_manager: &'a mut crate::texture_manager::TextureManager,
 }
 
 /// Tab viewer implementation for egui_dock
@@ -109,11 +110,12 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                     self.context.scene_view_mode,
                     self.context.projection_mode,
                     self.context.transform_space,
+                    self.context.texture_manager,
                 );
             }
             EditorTab::Game => {
                 // Game view - camera view only (what player sees)
-                crate::runtime::render_game_view(ui, self.context.world);
+                crate::runtime::render_game_view(ui, self.context.world, self.context.texture_manager);
             }
             EditorTab::Console => {
                 // Render console with full functionality

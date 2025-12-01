@@ -46,6 +46,7 @@ pub fn render_scene_view(
     scene_view_mode: &mut SceneViewMode,
     projection_mode: &mut ProjectionMode,
     transform_space: &mut TransformSpace,
+    texture_manager: &mut crate::texture_manager::TextureManager,
 ) {
     // Track previous mode to detect changes
     let previous_mode = *scene_view_mode;
@@ -147,6 +148,7 @@ pub fn render_scene_view(
     let mut hovered_entity: Option<Entity> = None;
     
     // Render entities based on mode
+    let ctx = ui.ctx().clone();
     match scene_view_mode {
         SceneViewMode::Mode2D => {
             rendering::view_2d::render_scene_2d(
@@ -159,6 +161,8 @@ pub fn render_scene_view(
                 show_velocities,
                 &mut hovered_entity,
                 &response,
+                texture_manager,
+                &ctx,
             );
             
             // Render transform gizmo for selected entity

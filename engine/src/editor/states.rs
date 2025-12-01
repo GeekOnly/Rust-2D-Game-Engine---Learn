@@ -98,6 +98,7 @@ pub struct EditorState {
     pub scene_view_mode: super::ui::scene_view::SceneViewMode, // 2D or 3D mode
     pub projection_mode: super::ui::scene_view::ProjectionMode, // Isometric or Perspective
     pub transform_space: super::ui::scene_view::TransformSpace, // Local or World space
+    pub texture_manager: crate::texture_manager::TextureManager, // Texture manager for sprites
     pub undo_stack: super::undo::UndoStack,  // Undo/Redo system
     pub selection: super::selection::SelectionManager,  // Multi-selection system
     pub clipboard: super::clipboard::Clipboard,  // Copy/Paste/Duplicate system
@@ -168,6 +169,7 @@ impl EditorState {
             selection: super::selection::SelectionManager::new(),
             clipboard: super::clipboard::Clipboard::new(),
             snap_settings: super::snapping::SnapSettings::load().unwrap_or_default(),
+            texture_manager: crate::texture_manager::TextureManager::new(),
         }
     }
 
@@ -234,6 +236,11 @@ impl EditorState {
         self.current_scene_path = Some(path.clone());
         self.scene_modified = false;
         self.selected_entity = None;
+        
+        // Set texture manager base path to project root
+        if let Some(project_path) = &self.current_project_path {
+            self.texture_manager.set_base_path(project_path.clone());
+        }
 
         // Rebuild entity_names from loaded entities
         self.entity_names.clear();

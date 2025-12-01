@@ -630,6 +630,10 @@ impl World {
             layers: Vec<(Entity, u8)>,
             parents: Vec<(Entity, Entity)>,
             names: Vec<(Entity, String)>,
+            sprite_sheets: Vec<(Entity, SpriteSheet)>,
+            animated_sprites: Vec<(Entity, AnimatedSprite)>,
+            tilemaps: Vec<(Entity, Tilemap)>,
+            tilesets: Vec<(Entity, TileSet)>,
         }
 
         let data = SceneData {
@@ -647,6 +651,10 @@ impl World {
             layers: self.layers.iter().map(|(k, v)| (*k, *v)).collect(),
             parents: self.parents.iter().map(|(k, v)| (*k, *v)).collect(),
             names: self.names.iter().map(|(k, v)| (*k, v.clone())).collect(),
+            sprite_sheets: self.sprite_sheets.iter().map(|(k, v)| (*k, v.clone())).collect(),
+            animated_sprites: self.animated_sprites.iter().map(|(k, v)| (*k, v.clone())).collect(),
+            tilemaps: self.tilemaps.iter().map(|(k, v)| (*k, v.clone())).collect(),
+            tilesets: self.tilesets.iter().map(|(k, v)| (*k, v.clone())).collect(),
         };
 
         serde_json::to_string_pretty(&data)
@@ -683,6 +691,14 @@ impl World {
             parents: Vec<(Entity, Entity)>,
             #[serde(default)]
             names: Vec<(Entity, String)>,
+            #[serde(default)]
+            sprite_sheets: Vec<(Entity, SpriteSheet)>,
+            #[serde(default)]
+            animated_sprites: Vec<(Entity, AnimatedSprite)>,
+            #[serde(default)]
+            tilemaps: Vec<(Entity, Tilemap)>,
+            #[serde(default)]
+            tilesets: Vec<(Entity, TileSet)>,
         }
 
         let data: SceneData = serde_json::from_str(json)?;
@@ -736,6 +752,18 @@ impl World {
         }
         for (entity, layer) in data.layers {
             self.layers.insert(entity, layer);
+        }
+        for (entity, sprite_sheet) in data.sprite_sheets {
+            self.sprite_sheets.insert(entity, sprite_sheet);
+        }
+        for (entity, animated_sprite) in data.animated_sprites {
+            self.animated_sprites.insert(entity, animated_sprite);
+        }
+        for (entity, tilemap) in data.tilemaps {
+            self.tilemaps.insert(entity, tilemap);
+        }
+        for (entity, tileset) in data.tilesets {
+            self.tilesets.insert(entity, tileset);
         }
         
         // Reconstruct hierarchy

@@ -1,0 +1,9 @@
+{
+  "name": "Item Collection Game",
+  "description": "Simple 2D game with player movement and item collection",
+  "version": "0.1.0",
+  "editor_startup_scene": null,
+  "game_startup_scene": null,
+  "last_opened_scene": null,
+  "startup_scene": null
+}

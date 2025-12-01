@@ -1,5 +1,6 @@
 mod editor;
 mod runtime;
+mod texture_manager;
 
 use anyhow::Result;
 use engine_core::{EngineContext, EngineModule, project::ProjectManager};
@@ -111,7 +112,15 @@ impl GameState {
         }
     }
 
-    fn update(&mut self, ctx: &EngineContext, _dt: f32) {
+    fn update(&mut self, ctx: &EngineContext, dt: f32) {
+        // Update animated sprites
+        for (entity, animated_sprite) in self.world.animated_sprites.iter_mut() {
+            if let Some(sprite_sheet) = self.world.sprite_sheets.get(entity) {
+                let total_frames = sprite_sheet.frames.len();
+                animated_sprite.update(dt, total_frames);
+            }
+        }
+
         // Update player velocity based on input
         if let Some(player) = self.player {
             let input = ctx.input.get_movement_input(0); // Player 1
@@ -596,24 +605,71 @@ fn main() -> Result<()> {
                                                 });
                                                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                                                     if ui.button("Open").clicked() {
-                                                        // Create example project
-                                                        match launcher_state.project_manager.create_project(name, desc) {
-                                                            Ok(metadata) => {
-                                                                // Check if this is the Item Collection Game example
-                                                                if name == "Item Collection Game" {
-                                                                    app_state = AppState::Playing;
-                                                                    sample_module = Some(SampleModule {
-                                                                        game_state: GameState::new(),
-                                                                    });
-                                                                } else {
-                                                                    // Open empty editor for other examples
-                                                                    app_state = AppState::Editor;
-                                                                    editor_state = EditorState::new();
-                                                                    editor_state.current_project_path = Some(metadata.path);
+                                                        // Check if this is Celeste Demo - open existing project
+                                                        if name == "Celeste Demo" {
+                                                            // Try multiple possible paths
+                                                            let possible_paths = vec![
+                                                                std::path::PathBuf::from("projects/Celeste Demo"),
+                                                                std::path::PathBuf::from("../projects/Celeste Demo"),
+                                                            ];
+                                                            
+                                                            let celeste_path = possible_paths.iter()
+                                                                .find(|p| p.exists())
+                                                                .cloned();
+                                                            
+                                                            if let Some(celeste_path) = celeste_path {
+                                                                match launcher_state.project_manager.open_project(&celeste_path) {
+                                                                    Ok(_) => {
+                                                                        app_state = AppState::Editor;
+                                                                        editor_state = EditorState::new();
+                                                                        editor_state.current_project_path = Some(celeste_path.clone());
+                                                                        
+                                                                        // Load the main scene
+                                                                        let scene_path = celeste_path.join("scenes/main.json");
+                                                                        log::info!("Attempting to load scene: {:?}", scene_path);
+                                                                        if scene_path.exists() {
+                                                                            match editor_state.load_scene(&scene_path) {
+                                                                                Ok(_) => {
+                                                                                    log::info!("Scene loaded successfully!");
+                                                                                    log::info!("Animated sprites count: {}", editor_state.world.animated_sprites.len());
+                                                                                    log::info!("Sprite sheets count: {}", editor_state.world.sprite_sheets.len());
+                                                                                }
+                                                                                Err(e) => {
+                                                                                    launcher_state.error_message = Some(format!("Error loading scene: {}", e));
+                                                                                    log::error!("Failed to load scene: {}", e);
+                                                                                }
+                                                                            }
+                                                                        } else {
+                                                                            log::warn!("Scene file not found: {:?}", scene_path);
+                                                                        }
+                                                                    }
+                                                                    Err(e) => {
+                                                                        launcher_state.error_message = Some(format!("Error opening Celeste Demo: {}", e));
+                                                                    }
                                                                 }
+                                                            } else {
+                                                                launcher_state.error_message = Some(format!("Celeste Demo project not found. Tried: {:?}", possible_paths));
                                                             }
-                                                            Err(e) => {
-                                                                launcher_state.error_message = Some(format!("Error: {}", e));
+                                                        } else {
+                                                            // Create example project for other examples
+                                                            match launcher_state.project_manager.create_project(name, desc) {
+                                                                Ok(metadata) => {
+                                                                    // Check if this is the Item Collection Game example
+                                                                    if name == "Item Collection Game" {
+                                                                        app_state = AppState::Playing;
+                                                                        sample_module = Some(SampleModule {
+                                                                            game_state: GameState::new(),
+                                                                        });
+                                                                    } else {
+                                                                        // Open empty editor for other examples
+                                                                        app_state = AppState::Editor;
+                                                                        editor_state = EditorState::new();
+                                                                        editor_state.current_project_path = Some(metadata.path);
+                                                                    }
+                                                                }
+                                                                Err(e) => {
+                                                                    launcher_state.error_message = Some(format!("Error: {}", e));
+                                                                }
                                                             }
                                                         }
                                                     }
@@ -984,6 +1040,7 @@ fn main() -> Result<()> {
                                         &mut editor_state.scene_view_mode,
                                         &mut editor_state.projection_mode,
                                         &mut editor_state.transform_space,
+                                        &mut editor_state.texture_manager,
                                     );
                                 } else {
                                     EditorUI::render_editor(
@@ -1015,6 +1072,7 @@ fn main() -> Result<()> {
                                         &mut editor_state.asset_manager,
                                         &mut editor_state.drag_drop,
                                         &mut editor_state.layout_request,
+                                        &mut editor_state.texture_manager,
                                     );
                                 }
 

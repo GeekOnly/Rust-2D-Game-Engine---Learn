@@ -64,6 +64,7 @@ impl EditorUI {
         asset_manager: &mut Option<crate::editor::AssetManager>,
         drag_drop: &mut crate::editor::DragDropState,
         _layout_request: &mut Option<String>,
+        texture_manager: &mut crate::texture_manager::TextureManager,
     ) {
         // Top Menu Bar
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
@@ -151,6 +152,7 @@ impl EditorUI {
                 &mut dummy_scene_view_mode,
                 &mut dummy_projection_mode,
                 &mut dummy_transform_space,
+                texture_manager,
             );
         });
 
@@ -271,6 +273,7 @@ impl EditorUI {
         scene_view_mode: &mut scene_view::SceneViewMode,
         projection_mode: &mut scene_view::ProjectionMode,
         transform_space: &mut scene_view::TransformSpace,
+        texture_manager: &mut crate::texture_manager::TextureManager,
     ) {
         // Handle layout change request (will be processed by caller)
         // Layout changes are handled in main.rs to access EditorState
@@ -328,6 +331,7 @@ impl EditorUI {
                 scene_view_mode,
                 projection_mode,
                 transform_space,
+                texture_manager,
             };
 
             let mut tab_viewer = EditorTabViewer {

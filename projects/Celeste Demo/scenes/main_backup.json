@@ -1,0 +1,409 @@
+{
+  "next_entity": 9,
+  "transforms": [
+    [
+      8,
+      {
+        "position": [
+          3.5999985,
+          0.08,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      7,
+      {
+        "position": [
+          0.0,
+          -3.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          10.0,
+          2.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      0,
+      {
+        "position": [
+          0.9680877,
+          0.0,
+          -10.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      1,
+      {
+        "position": [
+          -0.72000027,
+          -0.24588676,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ]
+  ],
+  "velocities": [
+    [
+      1,
+      [
+        0.0,
+        0.0
+      ]
+    ],
+    [
+      7,
+      [
+        0.0,
+        0.0
+      ]
+    ],
+    [
+      8,
+      [
+        0.0,
+        0.0
+      ]
+    ]
+  ],
+  "sprites": [
+    [
+      7,
+      {
+        "texture_id": "sprite",
+        "width": 1.0,
+        "height": 1.0,
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "billboard": false,
+        "flip_x": false,
+        "flip_y": false
+      }
+    ],
+    [
+      8,
+      {
+        "texture_id": "item",
+        "width": 1.0,
+        "height": 1.0,
+        "color": [
+          1.0,
+          0.8,
+          0.19999999,
+          1.0
+        ],
+        "billboard": true,
+        "flip_x": false,
+        "flip_y": false
+      }
+    ],
+    [
+      1,
+      {
+        "texture_id": "assets/brackeys_platformer_assets/sprites/knight.png",
+        "width": 1.0,
+        "height": 1.0,
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "billboard": false,
+        "flip_x": false,
+        "flip_y": false
+      }
+    ]
+  ],
+  "colliders": [
+    [
+      8,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          1.0,
+          1.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      7,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          1.0,
+          1.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      1,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          1.0,
+          1.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ]
+  ],
+  "rigidbodies": [
+    [
+      1,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 1.0,
+        "mass": 1.0,
+        "is_kinematic": false,
+        "freeze_rotation": true
+      }
+    ],
+    [
+      7,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 1.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true
+      }
+    ],
+    [
+      8,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 1.0,
+        "mass": 1.0,
+        "is_kinematic": false,
+        "freeze_rotation": true
+      }
+    ]
+  ],
+  "cameras": [
+    [
+      0,
+      {
+        "projection": "Orthographic",
+        "fov": 60.0,
+        "orthographic_size": 3.0,
+        "near_clip": 0.1,
+        "far_clip": 1000.0,
+        "viewport_rect": [
+          0.0,
+          0.0,
+          1.0,
+          1.0
+        ],
+        "depth": 0,
+        "clear_flags": "SolidColor",
+        "background_color": [
+          0.15,
+          0.16,
+          0.18,
+          1.0
+        ]
+      }
+    ]
+  ],
+  "meshes": [],
+  "tags": [
+    [
+      8,
+      "Item"
+    ],
+    [
+      1,
+      "Player"
+    ]
+  ],
+  "scripts": [
+    [
+      1,
+      {
+        "script_name": "player_controller",
+        "enabled": true,
+        "parameters": {
+          "jump_force": {
+            "Float": 1.0
+          },
+          "wall_slide_speed": {
+            "Float": 50.0
+          },
+          "is_grounded": {
+            "Bool": false
+          },
+          "dash_speed": {
+            "Float": 500.0
+          },
+          "gravity_scale": {
+            "Float": 1.0
+          },
+          "dash_x": {
+            "Float": 1.0
+          },
+          "dash_timer": {
+            "Float": 0.0
+          },
+          "is_touching_wall": {
+            "Bool": false
+          },
+          "new_vel_x": {
+            "Float": 0.0
+          },
+          "dash_duration": {
+            "Float": 0.2
+          },
+          "dash_y": {
+            "Float": 1.0
+          },
+          "is_dashing": {
+            "Bool": false
+          },
+          "velocity_x": {
+            "Float": 0.0
+          },
+          "dash_direction_y": {
+            "Float": 0.0
+          },
+          "velocity_y": {
+            "Float": 0.0
+          },
+          "wall_direction": {
+            "Int": 0
+          },
+          "dash_direction_x": {
+            "Float": 0.0
+          },
+          "can_dash": {
+            "Bool": false
+          },
+          "move_speed": {
+            "Float": 1.0
+          }
+        }
+      }
+    ]
+  ],
+  "active": [
+    [
+      7,
+      true
+    ],
+    [
+      8,
+      true
+    ],
+    [
+      1,
+      true
+    ],
+    [
+      0,
+      true
+    ]
+  ],
+  "layers": [
+    [
+      1,
+      0
+    ],
+    [
+      8,
+      0
+    ],
+    [
+      7,
+      0
+    ],
+    [
+      0,
+      0
+    ]
+  ],
+  "parents": [],
+  "names": [
+    [
+      1,
+      "Player"
+    ],
+    [
+      7,
+      "Sprite"
+    ],
+    [
+      8,
+      "Item 8"
+    ],
+    [
+      0,
+      "Main Camera"
+    ]
+  ]
+}
