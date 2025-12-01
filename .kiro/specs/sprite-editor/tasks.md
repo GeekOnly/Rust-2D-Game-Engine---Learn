@@ -40,7 +40,12 @@
   - Initialize undo/redo stacks
   - _Requirements: 1.2, 1.3_
 
-- [ ] 3. Implement sprite canvas rendering
+- [x] 3. Implement sprite canvas rendering
+
+
+
+
+
 
 
 

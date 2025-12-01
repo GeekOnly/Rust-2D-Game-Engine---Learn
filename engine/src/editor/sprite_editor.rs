@@ -317,7 +317,7 @@ impl SpriteEditorWindow {
         
         // Main content area
         ui.horizontal(|ui| {
-            // Left panel - Sprite list (placeholder for now)
+            // Left panel - Sprite list
             ui.vertical(|ui| {
                 ui.set_width(200.0);
                 ui.heading("Sprites");
@@ -337,27 +337,12 @@ impl SpriteEditorWindow {
             
             ui.separator();
             
-            // Center panel - Canvas (placeholder for now)
+            // Center panel - Canvas
             ui.vertical(|ui| {
                 ui.heading("Canvas");
                 
-                if let Some(texture_handle) = &self.state.texture_handle {
-                    let texture_size = texture_handle.size();
-                    
-                    // Calculate scaled size based on zoom
-                    let scaled_width = texture_size[0] as f32 * self.state.zoom;
-                    let scaled_height = texture_size[1] as f32 * self.state.zoom;
-                    
-                    // Display texture with size
-                    ui.image(egui::ImageSource::Texture(egui::load::SizedTexture::new(
-                        texture_handle.id(),
-                        [scaled_width, scaled_height]
-                    )));
-                    
-                    ui.label(format!(
-                        "Texture: {}x{} pixels",
-                        texture_size[0], texture_size[1]
-                    ));
+                if let Some(texture_handle) = self.state.texture_handle.clone() {
+                    self.render_canvas(ui, &texture_handle);
                 } else {
                     ui.label("Loading texture...");
                 }
@@ -365,7 +350,7 @@ impl SpriteEditorWindow {
             
             ui.separator();
             
-            // Right panel - Properties (placeholder for now)
+            // Right panel - Properties
             ui.vertical(|ui| {
                 ui.set_width(300.0);
                 ui.heading("Properties");
@@ -396,6 +381,148 @@ impl SpriteEditorWindow {
                 self.state.metadata.texture_height
             ));
         });
+    }
+    
+    /// Render the sprite canvas with texture, zoom, pan, and sprite rectangles
+    fn render_canvas(&mut self, ui: &mut egui::Ui, texture_handle: &TextureHandle) {
+        let texture_size = texture_handle.size();
+        
+        // Calculate scaled size based on zoom
+        let scaled_width = texture_size[0] as f32 * self.state.zoom;
+        let scaled_height = texture_size[1] as f32 * self.state.zoom;
+        
+        // Create a scrollable area for the canvas
+        egui::ScrollArea::both()
+            .auto_shrink([false, false])
+            .show(ui, |ui| {
+                // Allocate space for the canvas with pan offset
+                let canvas_size = egui::vec2(
+                    scaled_width + self.state.pan_offset.0.abs() * 2.0,
+                    scaled_height + self.state.pan_offset.1.abs() * 2.0
+                );
+                
+                let (response, painter) = ui.allocate_painter(canvas_size, egui::Sense::click_and_drag());
+                
+                // Handle zoom with mouse wheel
+                if response.hovered() {
+                    let scroll_delta = ui.input(|i| i.smooth_scroll_delta.y);
+                    if scroll_delta != 0.0 {
+                        // Zoom in/out based on scroll direction
+                        let zoom_factor = 1.0 + (scroll_delta * 0.001);
+                        self.state.zoom = (self.state.zoom * zoom_factor).clamp(0.1, 10.0);
+                    }
+                }
+                
+                // Handle pan with middle mouse button drag
+                if response.dragged_by(egui::PointerButton::Middle) {
+                    let drag_delta = response.drag_delta();
+                    self.state.pan_offset.0 += drag_delta.x;
+                    self.state.pan_offset.1 += drag_delta.y;
+                }
+                
+                // Calculate texture position with pan offset
+                let texture_pos = response.rect.min + egui::vec2(
+                    self.state.pan_offset.0,
+                    self.state.pan_offset.1
+                );
+                
+                // Draw the texture
+                let texture_rect = egui::Rect::from_min_size(
+                    texture_pos,
+                    egui::vec2(scaled_width, scaled_height)
+                );
+                
+                painter.image(
+                    texture_handle.id(),
+                    texture_rect,
+                    egui::Rect::from_min_max(egui::pos2(0.0, 0.0), egui::pos2(1.0, 1.0)),
+                    egui::Color32::WHITE
+                );
+                
+                // Draw sprite rectangles and labels
+                self.render_sprite_rectangles(&painter, texture_pos, texture_size);
+                
+                // Display texture info
+                ui.label(format!(
+                    "Texture: {}x{} pixels",
+                    texture_size[0], texture_size[1]
+                ));
+            });
+    }
+    
+    /// Render sprite rectangles with borders and name labels
+    fn render_sprite_rectangles(&self, painter: &egui::Painter, texture_pos: egui::Pos2, texture_size: [usize; 2]) {
+        let zoom = self.state.zoom;
+        
+        for (idx, sprite) in self.state.metadata.sprites.iter().enumerate() {
+            // Calculate sprite rectangle position in screen space
+            let sprite_screen_pos = egui::pos2(
+                texture_pos.x + (sprite.x as f32 * zoom),
+                texture_pos.y + (sprite.y as f32 * zoom)
+            );
+            
+            let sprite_screen_size = egui::vec2(
+                sprite.width as f32 * zoom,
+                sprite.height as f32 * zoom
+            );
+            
+            let sprite_rect = egui::Rect::from_min_size(sprite_screen_pos, sprite_screen_size);
+            
+            // Determine border color based on selection state
+            let (border_color, border_width) = if Some(idx) == self.state.selected_sprite {
+                // Selected sprite: yellow border, 2px
+                (egui::Color32::from_rgb(255, 255, 0), 2.0)
+            } else if Some(idx) == self.state.hovered_sprite {
+                // Hovered sprite: white border, 1px
+                (egui::Color32::WHITE, 1.0)
+            } else {
+                // Unselected sprite: semi-transparent blue border, 1px
+                (egui::Color32::from_rgba_unmultiplied(100, 150, 255, 180), 1.0)
+            };
+            
+            // Draw sprite rectangle border
+            painter.rect_stroke(
+                sprite_rect,
+                0.0,
+                egui::Stroke::new(border_width, border_color)
+            );
+            
+            // Draw sprite name label
+            let label_pos = egui::pos2(
+                sprite_screen_pos.x + 2.0,
+                sprite_screen_pos.y + 2.0
+            );
+            
+            // Draw label background for readability
+            let label_text = &sprite.name;
+            let font_id = egui::FontId::proportional(12.0);
+            let galley = painter.layout_no_wrap(
+                label_text.clone(),
+                font_id.clone(),
+                egui::Color32::WHITE
+            );
+            
+            let label_bg_rect = egui::Rect::from_min_size(
+                label_pos,
+                galley.size() + egui::vec2(4.0, 2.0)
+            );
+            
+            // Draw semi-transparent black background
+            painter.rect_filled(
+                label_bg_rect,
+                2.0,
+                egui::Color32::from_rgba_unmultiplied(0, 0, 0, 180)
+            );
+            
+            // Draw label text
+            painter.text(
+                label_pos + egui::vec2(2.0, 1.0),
+                egui::Align2::LEFT_TOP,
+                label_text,
+                font_id,
+                egui::Color32::WHITE
+            );
+        }
     }
 }
 
