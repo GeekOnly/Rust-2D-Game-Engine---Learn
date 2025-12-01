@@ -93,11 +93,20 @@
   - Update selected_sprite in state
   - _Requirements: 6.1_
 
-- [ ]* 5.1 Write property test for selection highlighting
+- [ ] 5.1 Write property test for selection highlighting
+
+
+
+
   - **Property 18: Selection highlights sprite**
+
+
   - **Validates: Requirements 6.1**
 
-- [ ] 6. Implement sprite rectangle editing
+- [x] 6. Implement sprite rectangle editing
+
+
+
   - Render resize handles at corners (8x8px squares)
   - Handle corner drag to resize sprite
   - Handle center drag to move sprite

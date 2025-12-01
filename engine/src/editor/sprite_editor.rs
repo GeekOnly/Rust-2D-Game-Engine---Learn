@@ -124,6 +124,24 @@ fn create_backup<P: AsRef<Path>>(path: P) -> Result<(), String> {
     Ok(())
 }
 
+/// Drag mode for sprite editing
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum DragMode {
+    None,
+    Creating,
+    MovingSprite(usize),
+    ResizingSprite(usize, ResizeHandle),
+}
+
+/// Resize handle position
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum ResizeHandle {
+    TopLeft,
+    TopRight,
+    BottomLeft,
+    BottomRight,
+}
+
 /// Editor state for the sprite editor
 pub struct SpriteEditorState {
     // File management
@@ -137,6 +155,11 @@ pub struct SpriteEditorState {
     pub is_drawing: bool,
     pub draw_start: Option<(f32, f32)>,
     pub draw_current: Option<(f32, f32)>,
+    
+    // Drag state for editing
+    pub drag_mode: DragMode,
+    pub drag_start_pos: Option<(f32, f32)>,
+    pub drag_original_sprite: Option<SpriteDefinition>,
     
     // View state
     pub zoom: f32,
@@ -183,6 +206,9 @@ impl SpriteEditorState {
             is_drawing: false,
             draw_start: None,
             draw_current: None,
+            drag_mode: DragMode::None,
+            drag_start_pos: None,
+            drag_original_sprite: None,
             zoom: 1.0,
             pan_offset: (0.0, 0.0),
             undo_stack: Vec::new(),
@@ -442,11 +468,17 @@ impl SpriteEditorWindow {
                 // Handle sprite selection and hover detection
                 self.handle_sprite_interaction(&response, texture_pos);
                 
+                // Handle sprite editing (resize and move)
+                self.handle_sprite_editing(&response, texture_pos, texture_size);
+                
                 // Handle sprite rectangle creation with left mouse button
                 self.handle_sprite_creation(&response, texture_pos, texture_size);
                 
                 // Draw sprite rectangles and labels
                 self.render_sprite_rectangles(&painter, texture_pos, texture_size);
+                
+                // Draw resize handles for selected sprite
+                self.render_resize_handles(&painter, texture_pos);
                 
                 // Draw the rectangle being created
                 if self.state.is_drawing {
@@ -520,24 +552,256 @@ impl SpriteEditorWindow {
         None
     }
     
+    /// Get resize handle at screen position for a sprite
+    fn get_resize_handle_at_position(&self, screen_pos: egui::Pos2, sprite_idx: usize, texture_pos: egui::Pos2) -> Option<ResizeHandle> {
+        if let Some(sprite) = self.state.metadata.sprites.get(sprite_idx) {
+            let zoom = self.state.zoom;
+            let handle_size = 8.0; // 8x8px handles
+            
+            // Calculate sprite corners in screen space
+            let sprite_screen_x = texture_pos.x + (sprite.x as f32 * zoom);
+            let sprite_screen_y = texture_pos.y + (sprite.y as f32 * zoom);
+            let sprite_screen_width = sprite.width as f32 * zoom;
+            let sprite_screen_height = sprite.height as f32 * zoom;
+            
+            // Define handle rectangles
+            let top_left = egui::Rect::from_min_size(
+                egui::pos2(sprite_screen_x - handle_size / 2.0, sprite_screen_y - handle_size / 2.0),
+                egui::vec2(handle_size, handle_size)
+            );
+            let top_right = egui::Rect::from_min_size(
+                egui::pos2(sprite_screen_x + sprite_screen_width - handle_size / 2.0, sprite_screen_y - handle_size / 2.0),
+                egui::vec2(handle_size, handle_size)
+            );
+            let bottom_left = egui::Rect::from_min_size(
+                egui::pos2(sprite_screen_x - handle_size / 2.0, sprite_screen_y + sprite_screen_height - handle_size / 2.0),
+                egui::vec2(handle_size, handle_size)
+            );
+            let bottom_right = egui::Rect::from_min_size(
+                egui::pos2(sprite_screen_x + sprite_screen_width - handle_size / 2.0, sprite_screen_y + sprite_screen_height - handle_size / 2.0),
+                egui::vec2(handle_size, handle_size)
+            );
+            
+            // Check which handle is hit
+            if top_left.contains(screen_pos) {
+                return Some(ResizeHandle::TopLeft);
+            } else if top_right.contains(screen_pos) {
+                return Some(ResizeHandle::TopRight);
+            } else if bottom_left.contains(screen_pos) {
+                return Some(ResizeHandle::BottomLeft);
+            } else if bottom_right.contains(screen_pos) {
+                return Some(ResizeHandle::BottomRight);
+            }
+        }
+        None
+    }
+    
+    /// Check if position is inside sprite center (for moving)
+    fn is_inside_sprite_center(&self, screen_pos: egui::Pos2, sprite_idx: usize, texture_pos: egui::Pos2) -> bool {
+        if let Some(sprite) = self.state.metadata.sprites.get(sprite_idx) {
+            let zoom = self.state.zoom;
+            let handle_size = 8.0;
+            
+            // Calculate sprite rectangle in screen space
+            let sprite_screen_x = texture_pos.x + (sprite.x as f32 * zoom);
+            let sprite_screen_y = texture_pos.y + (sprite.y as f32 * zoom);
+            let sprite_screen_width = sprite.width as f32 * zoom;
+            let sprite_screen_height = sprite.height as f32 * zoom;
+            
+            // Create a slightly smaller rectangle for the center (excluding handle areas)
+            let center_rect = egui::Rect::from_min_size(
+                egui::pos2(sprite_screen_x + handle_size, sprite_screen_y + handle_size),
+                egui::vec2(sprite_screen_width - handle_size * 2.0, sprite_screen_height - handle_size * 2.0)
+            );
+            
+            center_rect.contains(screen_pos)
+        } else {
+            false
+        }
+    }
+    
+    /// Handle sprite editing (resize and move)
+    fn handle_sprite_editing(&mut self, response: &egui::Response, texture_pos: egui::Pos2, texture_size: [usize; 2]) {
+        // Start drag operation
+        if response.drag_started_by(egui::PointerButton::Primary) {
+            if let Some(pointer_pos) = response.interact_pointer_pos() {
+                // Check if we're starting to edit a selected sprite
+                if let Some(selected_idx) = self.state.selected_sprite {
+                    // Check for resize handle
+                    if let Some(handle) = self.get_resize_handle_at_position(pointer_pos, selected_idx, texture_pos) {
+                        self.state.drag_mode = DragMode::ResizingSprite(selected_idx, handle);
+                        self.state.drag_start_pos = Some((pointer_pos.x, pointer_pos.y));
+                        self.state.drag_original_sprite = self.state.metadata.sprites.get(selected_idx).cloned();
+                    }
+                    // Check for center drag (move)
+                    else if self.is_inside_sprite_center(pointer_pos, selected_idx, texture_pos) {
+                        self.state.drag_mode = DragMode::MovingSprite(selected_idx);
+                        self.state.drag_start_pos = Some((pointer_pos.x, pointer_pos.y));
+                        self.state.drag_original_sprite = self.state.metadata.sprites.get(selected_idx).cloned();
+                    }
+                }
+            }
+        }
+        
+        // Continue drag operation
+        if response.dragged_by(egui::PointerButton::Primary) {
+            if let Some(pointer_pos) = response.interact_pointer_pos() {
+                match self.state.drag_mode {
+                    DragMode::ResizingSprite(sprite_idx, handle) => {
+                        self.resize_sprite(sprite_idx, handle, pointer_pos, texture_pos, texture_size);
+                    }
+                    DragMode::MovingSprite(sprite_idx) => {
+                        self.move_sprite(sprite_idx, pointer_pos, texture_pos, texture_size);
+                    }
+                    _ => {}
+                }
+            }
+        }
+        
+        // End drag operation
+        if response.drag_released_by(egui::PointerButton::Primary) {
+            match self.state.drag_mode {
+                DragMode::ResizingSprite(_, _) | DragMode::MovingSprite(_) => {
+                    // Push to undo stack after edit
+                    if let Some(original) = &self.state.drag_original_sprite {
+                        // Only push if sprite actually changed
+                        if let Some(current) = self.state.selected_sprite.and_then(|idx| self.state.metadata.sprites.get(idx)) {
+                            if original != current {
+                                self.state.push_undo();
+                            }
+                        }
+                    }
+                }
+                _ => {}
+            }
+            
+            // Reset drag state
+            self.state.drag_mode = DragMode::None;
+            self.state.drag_start_pos = None;
+            self.state.drag_original_sprite = None;
+        }
+    }
+    
+    /// Resize sprite by dragging a corner handle
+    fn resize_sprite(&mut self, sprite_idx: usize, handle: ResizeHandle, pointer_pos: egui::Pos2, texture_pos: egui::Pos2, texture_size: [usize; 2]) {
+        if let (Some(sprite), Some(original)) = (
+            self.state.metadata.sprites.get_mut(sprite_idx),
+            &self.state.drag_original_sprite
+        ) {
+            let zoom = self.state.zoom;
+            
+            // Convert pointer position to texture coordinates
+            let texture_x = ((pointer_pos.x - texture_pos.x) / zoom).max(0.0).min(texture_size[0] as f32);
+            let texture_y = ((pointer_pos.y - texture_pos.y) / zoom).max(0.0).min(texture_size[1] as f32);
+            
+            // Calculate new bounds based on which handle is being dragged
+            let (new_x, new_y, new_width, new_height) = match handle {
+                ResizeHandle::TopLeft => {
+                    // Dragging top-left: adjust x, y, width, height
+                    let new_x = texture_x.min((original.x + original.width - 1) as f32);
+                    let new_y = texture_y.min((original.y + original.height - 1) as f32);
+                    let new_width = (original.x + original.width) as f32 - new_x;
+                    let new_height = (original.y + original.height) as f32 - new_y;
+                    (new_x, new_y, new_width, new_height)
+                }
+                ResizeHandle::TopRight => {
+                    // Dragging top-right: adjust y, width, height
+                    let new_y = texture_y.min((original.y + original.height - 1) as f32);
+                    let new_width = texture_x - original.x as f32;
+                    let new_height = (original.y + original.height) as f32 - new_y;
+                    (original.x as f32, new_y, new_width, new_height)
+                }
+                ResizeHandle::BottomLeft => {
+                    // Dragging bottom-left: adjust x, width, height
+                    let new_x = texture_x.min((original.x + original.width - 1) as f32);
+                    let new_width = (original.x + original.width) as f32 - new_x;
+                    let new_height = texture_y - original.y as f32;
+                    (new_x, original.y as f32, new_width, new_height)
+                }
+                ResizeHandle::BottomRight => {
+                    // Dragging bottom-right: adjust width, height
+                    let new_width = texture_x - original.x as f32;
+                    let new_height = texture_y - original.y as f32;
+                    (original.x as f32, original.y as f32, new_width, new_height)
+                }
+            };
+            
+            // Validate positive dimensions and clamp to texture bounds
+            let final_width = new_width.max(1.0).min((texture_size[0] as f32 - new_x).max(1.0));
+            let final_height = new_height.max(1.0).min((texture_size[1] as f32 - new_y).max(1.0));
+            let final_x = new_x.max(0.0).min((texture_size[0] - 1) as f32);
+            let final_y = new_y.max(0.0).min((texture_size[1] - 1) as f32);
+            
+            // Update sprite
+            sprite.x = final_x.round() as u32;
+            sprite.y = final_y.round() as u32;
+            sprite.width = final_width.round() as u32;
+            sprite.height = final_height.round() as u32;
+        }
+    }
+    
+    /// Move sprite by dragging its center
+    fn move_sprite(&mut self, sprite_idx: usize, pointer_pos: egui::Pos2, texture_pos: egui::Pos2, texture_size: [usize; 2]) {
+        if let (Some(sprite), Some(drag_start), Some(original)) = (
+            self.state.metadata.sprites.get_mut(sprite_idx),
+            self.state.drag_start_pos,
+            &self.state.drag_original_sprite
+        ) {
+            let zoom = self.state.zoom;
+            
+            // Calculate drag delta in texture space
+            let delta_x = (pointer_pos.x - drag_start.0) / zoom;
+            let delta_y = (pointer_pos.y - drag_start.1) / zoom;
+            
+            // Calculate new position
+            let new_x = (original.x as f32 + delta_x).max(0.0);
+            let new_y = (original.y as f32 + delta_y).max(0.0);
+            
+            // Clamp to texture bounds (sprite must stay fully inside texture)
+            let max_x = (texture_size[0] as f32 - sprite.width as f32).max(0.0);
+            let max_y = (texture_size[1] as f32 - sprite.height as f32).max(0.0);
+            
+            let clamped_x = new_x.min(max_x);
+            let clamped_y = new_y.min(max_y);
+            
+            // Update sprite position (dimensions remain unchanged)
+            sprite.x = clamped_x.round() as u32;
+            sprite.y = clamped_y.round() as u32;
+        }
+    }
+    
     /// Handle sprite rectangle creation via click-and-drag
     fn handle_sprite_creation(&mut self, response: &egui::Response, texture_pos: egui::Pos2, texture_size: [usize; 2]) {
+        // Only handle creation if we're not in an editing drag mode
+        if matches!(self.state.drag_mode, DragMode::ResizingSprite(_, _) | DragMode::MovingSprite(_)) {
+            return;
+        }
+        
         // Only handle left mouse button for drawing
         if response.clicked_by(egui::PointerButton::Primary) {
             // Start drawing only if we didn't click on an existing sprite
             if let Some(pointer_pos) = response.interact_pointer_pos() {
                 let clicked_sprite = self.find_sprite_at_position(pointer_pos, texture_pos);
                 
-                // Only start drawing if we clicked on empty space
-                if clicked_sprite.is_none() {
+                // Check if we clicked on a handle or center of selected sprite
+                let clicked_on_edit_area = if let Some(selected_idx) = self.state.selected_sprite {
+                    self.get_resize_handle_at_position(pointer_pos, selected_idx, texture_pos).is_some()
+                        || self.is_inside_sprite_center(pointer_pos, selected_idx, texture_pos)
+                } else {
+                    false
+                };
+                
+                // Only start drawing if we clicked on empty space (not on sprite or edit area)
+                if clicked_sprite.is_none() && !clicked_on_edit_area {
                     self.state.is_drawing = true;
+                    self.state.drag_mode = DragMode::Creating;
                     self.state.draw_start = Some((pointer_pos.x, pointer_pos.y));
                     self.state.draw_current = Some((pointer_pos.x, pointer_pos.y));
                 }
             }
         }
         
-        if response.dragged_by(egui::PointerButton::Primary) {
+        if response.dragged_by(egui::PointerButton::Primary) && self.state.is_drawing {
             // Update current position while dragging
             if let Some(pointer_pos) = response.interact_pointer_pos() {
                 self.state.draw_current = Some((pointer_pos.x, pointer_pos.y));
@@ -552,6 +816,7 @@ impl SpriteEditorWindow {
             
             // Reset drawing state
             self.state.is_drawing = false;
+            self.state.drag_mode = DragMode::None;
             self.state.draw_start = None;
             self.state.draw_current = None;
         }
@@ -625,6 +890,48 @@ impl SpriteEditorWindow {
                 return name;
             }
             index += 1;
+        }
+    }
+    
+    /// Render resize handles for the selected sprite
+    fn render_resize_handles(&self, painter: &egui::Painter, texture_pos: egui::Pos2) {
+        if let Some(selected_idx) = self.state.selected_sprite {
+            if let Some(sprite) = self.state.metadata.sprites.get(selected_idx) {
+                let zoom = self.state.zoom;
+                let handle_size = 8.0;
+                
+                // Calculate sprite corners in screen space
+                let sprite_screen_x = texture_pos.x + (sprite.x as f32 * zoom);
+                let sprite_screen_y = texture_pos.y + (sprite.y as f32 * zoom);
+                let sprite_screen_width = sprite.width as f32 * zoom;
+                let sprite_screen_height = sprite.height as f32 * zoom;
+                
+                // Define handle positions
+                let handles = [
+                    (sprite_screen_x, sprite_screen_y), // Top-left
+                    (sprite_screen_x + sprite_screen_width, sprite_screen_y), // Top-right
+                    (sprite_screen_x, sprite_screen_y + sprite_screen_height), // Bottom-left
+                    (sprite_screen_x + sprite_screen_width, sprite_screen_y + sprite_screen_height), // Bottom-right
+                ];
+                
+                // Draw handles as filled squares
+                for (x, y) in handles.iter() {
+                    let handle_rect = egui::Rect::from_min_size(
+                        egui::pos2(x - handle_size / 2.0, y - handle_size / 2.0),
+                        egui::vec2(handle_size, handle_size)
+                    );
+                    
+                    // Fill with white
+                    painter.rect_filled(handle_rect, 0.0, egui::Color32::WHITE);
+                    
+                    // Border with black
+                    painter.rect_stroke(
+                        handle_rect,
+                        0.0,
+                        egui::Stroke::new(1.0, egui::Color32::BLACK)
+                    );
+                }
+            }
         }
     }
     
@@ -1209,6 +1516,273 @@ mod tests {
         // Position in overlap area should return the last sprite (topmost)
         let found = window.find_sprite_at_position(egui::pos2(40.0, 40.0), texture_pos);
         assert_eq!(found, Some(1), "Should select topmost sprite in overlap");
+    }
+
+    #[test]
+    fn test_resize_handle_detection_top_left() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut window = SpriteEditorWindow::new(texture_path);
+        
+        window.state.metadata.texture_width = 512;
+        window.state.metadata.texture_height = 256;
+        
+        // Add sprite at (100, 100) with size 64x64
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_0".to_string(), 100, 100, 64, 64));
+        
+        let texture_pos = egui::pos2(0.0, 0.0);
+        
+        // Test top-left handle (should be at 100, 100)
+        let handle = window.get_resize_handle_at_position(egui::pos2(100.0, 100.0), 0, texture_pos);
+        assert_eq!(handle, Some(ResizeHandle::TopLeft));
+    }
+
+    #[test]
+    fn test_resize_handle_detection_all_corners() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut window = SpriteEditorWindow::new(texture_path);
+        
+        window.state.metadata.texture_width = 512;
+        window.state.metadata.texture_height = 256;
+        
+        // Add sprite at (100, 100) with size 64x64
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_0".to_string(), 100, 100, 64, 64));
+        
+        let texture_pos = egui::pos2(0.0, 0.0);
+        
+        // Test all four corners
+        assert_eq!(window.get_resize_handle_at_position(egui::pos2(100.0, 100.0), 0, texture_pos), Some(ResizeHandle::TopLeft));
+        assert_eq!(window.get_resize_handle_at_position(egui::pos2(164.0, 100.0), 0, texture_pos), Some(ResizeHandle::TopRight));
+        assert_eq!(window.get_resize_handle_at_position(egui::pos2(100.0, 164.0), 0, texture_pos), Some(ResizeHandle::BottomLeft));
+        assert_eq!(window.get_resize_handle_at_position(egui::pos2(164.0, 164.0), 0, texture_pos), Some(ResizeHandle::BottomRight));
+    }
+
+    #[test]
+    fn test_is_inside_sprite_center() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut window = SpriteEditorWindow::new(texture_path);
+        
+        window.state.metadata.texture_width = 512;
+        window.state.metadata.texture_height = 256;
+        
+        // Add sprite at (100, 100) with size 64x64
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_0".to_string(), 100, 100, 64, 64));
+        
+        let texture_pos = egui::pos2(0.0, 0.0);
+        
+        // Test center position (should be inside)
+        assert!(window.is_inside_sprite_center(egui::pos2(132.0, 132.0), 0, texture_pos));
+        
+        // Test corner positions (should be outside center, in handle area)
+        assert!(!window.is_inside_sprite_center(egui::pos2(100.0, 100.0), 0, texture_pos));
+        assert!(!window.is_inside_sprite_center(egui::pos2(164.0, 164.0), 0, texture_pos));
+    }
+
+    #[test]
+    fn test_move_sprite_basic() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut window = SpriteEditorWindow::new(texture_path);
+        
+        window.state.metadata.texture_width = 512;
+        window.state.metadata.texture_height = 256;
+        
+        // Add sprite at (100, 100) with size 64x64
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_0".to_string(), 100, 100, 64, 64));
+        
+        // Set up drag state
+        window.state.drag_start_pos = Some((100.0, 100.0));
+        window.state.drag_original_sprite = window.state.metadata.sprites.get(0).cloned();
+        
+        let texture_pos = egui::pos2(0.0, 0.0);
+        let texture_size = [512, 256];
+        
+        // Move sprite by dragging to (150, 150)
+        window.move_sprite(0, egui::pos2(150.0, 150.0), texture_pos, texture_size);
+        
+        // Verify sprite moved by 50 pixels in both directions
+        let sprite = &window.state.metadata.sprites[0];
+        assert_eq!(sprite.x, 150);
+        assert_eq!(sprite.y, 150);
+        assert_eq!(sprite.width, 64); // Width should remain unchanged
+        assert_eq!(sprite.height, 64); // Height should remain unchanged
+    }
+
+    #[test]
+    fn test_move_sprite_clamped_to_bounds() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut window = SpriteEditorWindow::new(texture_path);
+        
+        window.state.metadata.texture_width = 512;
+        window.state.metadata.texture_height = 256;
+        
+        // Add sprite at (400, 200) with size 64x64
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_0".to_string(), 400, 200, 64, 64));
+        
+        // Set up drag state
+        window.state.drag_start_pos = Some((400.0, 200.0));
+        window.state.drag_original_sprite = window.state.metadata.sprites.get(0).cloned();
+        
+        let texture_pos = egui::pos2(0.0, 0.0);
+        let texture_size = [512, 256];
+        
+        // Try to move sprite beyond texture bounds
+        window.move_sprite(0, egui::pos2(500.0, 250.0), texture_pos, texture_size);
+        
+        // Verify sprite is clamped to texture bounds
+        let sprite = &window.state.metadata.sprites[0];
+        assert_eq!(sprite.x, 448); // 512 - 64 = 448 (max x position)
+        assert_eq!(sprite.y, 192); // 256 - 64 = 192 (max y position)
+        assert_eq!(sprite.width, 64);
+        assert_eq!(sprite.height, 64);
+    }
+
+    #[test]
+    fn test_resize_sprite_bottom_right() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut window = SpriteEditorWindow::new(texture_path);
+        
+        window.state.metadata.texture_width = 512;
+        window.state.metadata.texture_height = 256;
+        
+        // Add sprite at (100, 100) with size 64x64
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_0".to_string(), 100, 100, 64, 64));
+        
+        // Set up drag state
+        window.state.drag_original_sprite = window.state.metadata.sprites.get(0).cloned();
+        
+        let texture_pos = egui::pos2(0.0, 0.0);
+        let texture_size = [512, 256];
+        
+        // Resize by dragging bottom-right handle to (200, 200)
+        window.resize_sprite(0, ResizeHandle::BottomRight, egui::pos2(200.0, 200.0), texture_pos, texture_size);
+        
+        // Verify sprite was resized
+        let sprite = &window.state.metadata.sprites[0];
+        assert_eq!(sprite.x, 100);
+        assert_eq!(sprite.y, 100);
+        assert_eq!(sprite.width, 100); // 200 - 100
+        assert_eq!(sprite.height, 100); // 200 - 100
+    }
+
+    #[test]
+    fn test_resize_sprite_top_left() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut window = SpriteEditorWindow::new(texture_path);
+        
+        window.state.metadata.texture_width = 512;
+        window.state.metadata.texture_height = 256;
+        
+        // Add sprite at (100, 100) with size 64x64
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_0".to_string(), 100, 100, 64, 64));
+        
+        // Set up drag state
+        window.state.drag_original_sprite = window.state.metadata.sprites.get(0).cloned();
+        
+        let texture_pos = egui::pos2(0.0, 0.0);
+        let texture_size = [512, 256];
+        
+        // Resize by dragging top-left handle to (80, 80)
+        window.resize_sprite(0, ResizeHandle::TopLeft, egui::pos2(80.0, 80.0), texture_pos, texture_size);
+        
+        // Verify sprite was resized (position changes, bottom-right stays fixed)
+        let sprite = &window.state.metadata.sprites[0];
+        assert_eq!(sprite.x, 80);
+        assert_eq!(sprite.y, 80);
+        assert_eq!(sprite.width, 84); // (100 + 64) - 80
+        assert_eq!(sprite.height, 84); // (100 + 64) - 80
+    }
+
+    #[test]
+    fn test_resize_sprite_maintains_positive_dimensions() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut window = SpriteEditorWindow::new(texture_path);
+        
+        window.state.metadata.texture_width = 512;
+        window.state.metadata.texture_height = 256;
+        
+        // Add sprite at (100, 100) with size 64x64
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_0".to_string(), 100, 100, 64, 64));
+        
+        // Set up drag state
+        window.state.drag_original_sprite = window.state.metadata.sprites.get(0).cloned();
+        
+        let texture_pos = egui::pos2(0.0, 0.0);
+        let texture_size = [512, 256];
+        
+        // Try to resize to negative dimensions by dragging bottom-right to top-left
+        window.resize_sprite(0, ResizeHandle::BottomRight, egui::pos2(50.0, 50.0), texture_pos, texture_size);
+        
+        // Verify sprite maintains minimum dimensions (at least 1x1)
+        let sprite = &window.state.metadata.sprites[0];
+        assert!(sprite.width >= 1, "Width should be at least 1");
+        assert!(sprite.height >= 1, "Height should be at least 1");
+    }
+
+    #[test]
+    fn test_resize_sprite_clamped_to_texture_bounds() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut window = SpriteEditorWindow::new(texture_path);
+        
+        window.state.metadata.texture_width = 512;
+        window.state.metadata.texture_height = 256;
+        
+        // Add sprite at (400, 200) with size 64x64
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_0".to_string(), 400, 200, 64, 64));
+        
+        // Set up drag state
+        window.state.drag_original_sprite = window.state.metadata.sprites.get(0).cloned();
+        
+        let texture_pos = egui::pos2(0.0, 0.0);
+        let texture_size = [512, 256];
+        
+        // Try to resize beyond texture bounds
+        window.resize_sprite(0, ResizeHandle::BottomRight, egui::pos2(600.0, 300.0), texture_pos, texture_size);
+        
+        // Verify sprite is clamped to texture bounds
+        let sprite = &window.state.metadata.sprites[0];
+        assert_eq!(sprite.x, 400);
+        assert_eq!(sprite.y, 200);
+        assert_eq!(sprite.width, 112); // 512 - 400 = 112 (max width)
+        assert_eq!(sprite.height, 56); // 256 - 200 = 56 (max height)
+    }
+
+    #[test]
+    fn test_sprite_editing_pushes_to_undo_stack() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut window = SpriteEditorWindow::new(texture_path);
+        
+        window.state.metadata.texture_width = 512;
+        window.state.metadata.texture_height = 256;
+        
+        // Add sprite
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_0".to_string(), 100, 100, 64, 64));
+        
+        // Initial undo stack should be empty
+        assert_eq!(window.state.undo_stack.len(), 0);
+        
+        // Simulate editing by pushing to undo stack
+        window.state.push_undo();
+        
+        // Verify undo stack has one entry
+        assert_eq!(window.state.undo_stack.len(), 1);
+    }
+
+    #[test]
+    fn test_drag_mode_states() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut window = SpriteEditorWindow::new(texture_path);
+        
+        // Initial state should be None
+        assert_eq!(window.state.drag_mode, DragMode::None);
+        
+        // Test setting different drag modes
+        window.state.drag_mode = DragMode::Creating;
+        assert_eq!(window.state.drag_mode, DragMode::Creating);
+        
+        window.state.drag_mode = DragMode::MovingSprite(0);
+        assert!(matches!(window.state.drag_mode, DragMode::MovingSprite(0)));
+        
+        window.state.drag_mode = DragMode::ResizingSprite(0, ResizeHandle::TopLeft);
+        assert!(matches!(window.state.drag_mode, DragMode::ResizingSprite(0, ResizeHandle::TopLeft)));
     }
 
     #[test]
