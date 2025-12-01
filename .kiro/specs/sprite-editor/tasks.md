@@ -80,7 +80,12 @@
   - **Property 6: Default naming is sequential**
   - **Validates: Requirements 2.1, 2.2, 3.1**
 
-- [ ] 5. Implement sprite selection and highlighting
+- [x] 5. Implement sprite selection and highlighting
+
+
+
+
+
   - Handle click to select sprite
   - Render selected sprite with yellow border
   - Render hovered sprite with white border

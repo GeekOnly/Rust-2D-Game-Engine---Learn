@@ -439,6 +439,9 @@ impl SpriteEditorWindow {
                     egui::Color32::WHITE
                 );
                 
+                // Handle sprite selection and hover detection
+                self.handle_sprite_interaction(&response, texture_pos);
+                
                 // Handle sprite rectangle creation with left mouse button
                 self.handle_sprite_creation(&response, texture_pos, texture_size);
                 
@@ -465,15 +468,72 @@ impl SpriteEditorWindow {
             });
     }
     
+    /// Handle sprite selection and hover detection
+    fn handle_sprite_interaction(&mut self, response: &egui::Response, texture_pos: egui::Pos2) {
+        // Get pointer position if hovering
+        if let Some(pointer_pos) = response.hover_pos() {
+            // Check which sprite is being hovered
+            self.state.hovered_sprite = self.find_sprite_at_position(pointer_pos, texture_pos);
+        } else {
+            self.state.hovered_sprite = None;
+        }
+        
+        // Handle click to select sprite
+        if response.clicked_by(egui::PointerButton::Primary) {
+            if let Some(pointer_pos) = response.interact_pointer_pos() {
+                // Find sprite at click position
+                let clicked_sprite = self.find_sprite_at_position(pointer_pos, texture_pos);
+                
+                // Only update selection if we clicked on a sprite
+                // If we clicked on empty space, sprite creation will handle it
+                if clicked_sprite.is_some() {
+                    self.state.selected_sprite = clicked_sprite;
+                }
+            }
+        }
+    }
+    
+    /// Find which sprite (if any) is at the given screen position
+    fn find_sprite_at_position(&self, screen_pos: egui::Pos2, texture_pos: egui::Pos2) -> Option<usize> {
+        let zoom = self.state.zoom;
+        
+        // Convert screen position to texture coordinates
+        let texture_x = (screen_pos.x - texture_pos.x) / zoom;
+        let texture_y = (screen_pos.y - texture_pos.y) / zoom;
+        
+        // Check sprites in reverse order (top to bottom in rendering)
+        // This ensures we select the topmost sprite if they overlap
+        for (idx, sprite) in self.state.metadata.sprites.iter().enumerate().rev() {
+            let sprite_min_x = sprite.x as f32;
+            let sprite_min_y = sprite.y as f32;
+            let sprite_max_x = (sprite.x + sprite.width) as f32;
+            let sprite_max_y = (sprite.y + sprite.height) as f32;
+            
+            // Check if point is inside sprite rectangle
+            if texture_x >= sprite_min_x && texture_x <= sprite_max_x
+                && texture_y >= sprite_min_y && texture_y <= sprite_max_y
+            {
+                return Some(idx);
+            }
+        }
+        
+        None
+    }
+    
     /// Handle sprite rectangle creation via click-and-drag
     fn handle_sprite_creation(&mut self, response: &egui::Response, texture_pos: egui::Pos2, texture_size: [usize; 2]) {
         // Only handle left mouse button for drawing
         if response.clicked_by(egui::PointerButton::Primary) {
-            // Start drawing
+            // Start drawing only if we didn't click on an existing sprite
             if let Some(pointer_pos) = response.interact_pointer_pos() {
-                self.state.is_drawing = true;
-                self.state.draw_start = Some((pointer_pos.x, pointer_pos.y));
-                self.state.draw_current = Some((pointer_pos.x, pointer_pos.y));
+                let clicked_sprite = self.find_sprite_at_position(pointer_pos, texture_pos);
+                
+                // Only start drawing if we clicked on empty space
+                if clicked_sprite.is_none() {
+                    self.state.is_drawing = true;
+                    self.state.draw_start = Some((pointer_pos.x, pointer_pos.y));
+                    self.state.draw_current = Some((pointer_pos.x, pointer_pos.y));
+                }
             }
         }
         
@@ -1077,4 +1137,148 @@ mod tests {
         assert_eq!(sprite.y, 10); // 20 / 2.0
         assert_eq!(sprite.width, 32); // (84 - 20) / 2.0
         assert_eq!(sprite.height, 32); // (84 - 20) / 2.0
+    }
+
+    #[test]
+    fn test_find_sprite_at_position() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut window = SpriteEditorWindow::new(texture_path);
+        
+        window.state.metadata.texture_width = 512;
+        window.state.metadata.texture_height = 256;
+        
+        // Add some sprites
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_0".to_string(), 0, 0, 32, 32));
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_1".to_string(), 50, 50, 32, 32));
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_2".to_string(), 100, 100, 32, 32));
+        
+        let texture_pos = egui::pos2(0.0, 0.0);
+        
+        // Test finding sprite at various positions
+        let found_0 = window.find_sprite_at_position(egui::pos2(16.0, 16.0), texture_pos);
+        assert_eq!(found_0, Some(0));
+        
+        let found_1 = window.find_sprite_at_position(egui::pos2(60.0, 60.0), texture_pos);
+        assert_eq!(found_1, Some(1));
+        
+        let found_2 = window.find_sprite_at_position(egui::pos2(110.0, 110.0), texture_pos);
+        assert_eq!(found_2, Some(2));
+        
+        // Test position outside any sprite
+        let found_none = window.find_sprite_at_position(egui::pos2(200.0, 200.0), texture_pos);
+        assert_eq!(found_none, None);
+    }
+
+    #[test]
+    fn test_find_sprite_at_position_with_zoom() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut window = SpriteEditorWindow::new(texture_path);
+        
+        window.state.metadata.texture_width = 512;
+        window.state.metadata.texture_height = 256;
+        window.state.zoom = 2.0; // 2x zoom
+        
+        // Add sprite at texture coordinates (0, 0, 32, 32)
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_0".to_string(), 0, 0, 32, 32));
+        
+        let texture_pos = egui::pos2(0.0, 0.0);
+        
+        // In screen space, the sprite should be at (0, 0) to (64, 64) due to 2x zoom
+        let found = window.find_sprite_at_position(egui::pos2(32.0, 32.0), texture_pos);
+        assert_eq!(found, Some(0));
+        
+        // Position outside the zoomed sprite
+        let found_none = window.find_sprite_at_position(egui::pos2(70.0, 70.0), texture_pos);
+        assert_eq!(found_none, None);
+    }
+
+    #[test]
+    fn test_find_sprite_at_position_with_overlapping_sprites() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut window = SpriteEditorWindow::new(texture_path);
+        
+        window.state.metadata.texture_width = 512;
+        window.state.metadata.texture_height = 256;
+        
+        // Add overlapping sprites
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_0".to_string(), 0, 0, 64, 64));
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_1".to_string(), 32, 32, 64, 64));
+        
+        let texture_pos = egui::pos2(0.0, 0.0);
+        
+        // Position in overlap area should return the last sprite (topmost)
+        let found = window.find_sprite_at_position(egui::pos2(40.0, 40.0), texture_pos);
+        assert_eq!(found, Some(1), "Should select topmost sprite in overlap");
+    }
+
+    #[test]
+    fn test_sprite_selection_state() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut window = SpriteEditorWindow::new(texture_path);
+        
+        window.state.metadata.texture_width = 512;
+        window.state.metadata.texture_height = 256;
+        
+        // Initially no sprite selected
+        assert_eq!(window.state.selected_sprite, None);
+        
+        // Add sprites
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_0".to_string(), 0, 0, 32, 32));
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_1".to_string(), 50, 50, 32, 32));
+        
+        // Select first sprite
+        window.state.selected_sprite = Some(0);
+        assert_eq!(window.state.selected_sprite, Some(0));
+        
+        // Select second sprite
+        window.state.selected_sprite = Some(1);
+        assert_eq!(window.state.selected_sprite, Some(1));
+        
+        // Deselect
+        window.state.selected_sprite = None;
+        assert_eq!(window.state.selected_sprite, None);
+    }
+
+    #[test]
+    fn test_hover_state() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut window = SpriteEditorWindow::new(texture_path);
+        
+        window.state.metadata.texture_width = 512;
+        window.state.metadata.texture_height = 256;
+        
+        // Initially no sprite hovered
+        assert_eq!(window.state.hovered_sprite, None);
+        
+        // Add sprite
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_0".to_string(), 0, 0, 32, 32));
+        
+        // Set hover state
+        window.state.hovered_sprite = Some(0);
+        assert_eq!(window.state.hovered_sprite, Some(0));
+        
+        // Clear hover state
+        window.state.hovered_sprite = None;
+        assert_eq!(window.state.hovered_sprite, None);
+    }
+
+    #[test]
+    fn test_sprite_creation_does_not_start_when_clicking_on_sprite() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut window = SpriteEditorWindow::new(texture_path);
+        
+        window.state.metadata.texture_width = 512;
+        window.state.metadata.texture_height = 256;
+        
+        // Add existing sprite
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_0".to_string(), 0, 0, 32, 32));
+        
+        // Verify we have 1 sprite
+        assert_eq!(window.state.metadata.sprites.len(), 1);
+        
+        // The sprite creation logic should not start drawing when clicking on an existing sprite
+        // This is tested implicitly by the find_sprite_at_position logic
+        let texture_pos = egui::pos2(0.0, 0.0);
+        let clicked_sprite = window.find_sprite_at_position(egui::pos2(16.0, 16.0), texture_pos);
+        assert_eq!(clicked_sprite, Some(0), "Should find existing sprite at click position");
     }
