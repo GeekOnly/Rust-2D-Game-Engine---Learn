@@ -16,6 +16,7 @@ pub mod selection;
 pub mod clipboard;
 pub mod snapping;
 pub mod shortcuts_handler;
+pub mod sprite_editor;
 
 // Re-exports for convenience
 pub use console::Console;
@@ -35,3 +36,4 @@ pub use selection::{SelectionManager, SelectionMode, BoxSelection, handle_scene_
 pub use clipboard::{Clipboard, ClipboardAction, copy_selected, paste_from_clipboard, duplicate_selected, handle_clipboard_shortcuts};
 pub use snapping::{SnapSettings, SnapMode, snap_position, snap_rotation, snap_scale, render_snap_grid, render_snap_indicator, handle_snap_shortcuts};
 pub use shortcuts_handler::{handle_editor_shortcuts, get_shortcut_hints, render_shortcuts_help};
+pub use sprite_editor::{SpriteDefinition, SpriteMetadata};
