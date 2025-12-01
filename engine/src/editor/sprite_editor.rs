@@ -439,8 +439,23 @@ impl SpriteEditorWindow {
                     egui::Color32::WHITE
                 );
                 
+                // Handle sprite rectangle creation with left mouse button
+                self.handle_sprite_creation(&response, texture_pos, texture_size);
+                
                 // Draw sprite rectangles and labels
                 self.render_sprite_rectangles(&painter, texture_pos, texture_size);
+                
+                // Draw the rectangle being created
+                if self.state.is_drawing {
+                    if let (Some(start), Some(current)) = (self.state.draw_start, self.state.draw_current) {
+                        let rect = self.calculate_draw_rect(start, current);
+                        painter.rect_stroke(
+                            rect,
+                            0.0,
+                            egui::Stroke::new(2.0, egui::Color32::from_rgb(0, 255, 0))
+                        );
+                    }
+                }
                 
                 // Display texture info
                 ui.label(format!(
@@ -448,6 +463,109 @@ impl SpriteEditorWindow {
                     texture_size[0], texture_size[1]
                 ));
             });
+    }
+    
+    /// Handle sprite rectangle creation via click-and-drag
+    fn handle_sprite_creation(&mut self, response: &egui::Response, texture_pos: egui::Pos2, texture_size: [usize; 2]) {
+        // Only handle left mouse button for drawing
+        if response.clicked_by(egui::PointerButton::Primary) {
+            // Start drawing
+            if let Some(pointer_pos) = response.interact_pointer_pos() {
+                self.state.is_drawing = true;
+                self.state.draw_start = Some((pointer_pos.x, pointer_pos.y));
+                self.state.draw_current = Some((pointer_pos.x, pointer_pos.y));
+            }
+        }
+        
+        if response.dragged_by(egui::PointerButton::Primary) {
+            // Update current position while dragging
+            if let Some(pointer_pos) = response.interact_pointer_pos() {
+                self.state.draw_current = Some((pointer_pos.x, pointer_pos.y));
+            }
+        }
+        
+        if response.drag_released_by(egui::PointerButton::Primary) && self.state.is_drawing {
+            // Finish drawing and create sprite
+            if let (Some(start), Some(end)) = (self.state.draw_start, self.state.draw_current) {
+                self.create_sprite_from_drag(start, end, texture_pos, texture_size);
+            }
+            
+            // Reset drawing state
+            self.state.is_drawing = false;
+            self.state.draw_start = None;
+            self.state.draw_current = None;
+        }
+    }
+    
+    /// Calculate the rectangle being drawn
+    fn calculate_draw_rect(&self, start: (f32, f32), current: (f32, f32)) -> egui::Rect {
+        let min_x = start.0.min(current.0);
+        let min_y = start.1.min(current.1);
+        let max_x = start.0.max(current.0);
+        let max_y = start.1.max(current.1);
+        
+        egui::Rect::from_min_max(
+            egui::pos2(min_x, min_y),
+            egui::pos2(max_x, max_y)
+        )
+    }
+    
+    /// Create a sprite from drag coordinates
+    fn create_sprite_from_drag(&mut self, start: (f32, f32), end: (f32, f32), texture_pos: egui::Pos2, texture_size: [usize; 2]) {
+        // Convert screen coordinates to texture coordinates
+        let zoom = self.state.zoom;
+        
+        // Calculate relative positions from texture origin
+        let start_x = (start.0 - texture_pos.x) / zoom;
+        let start_y = (start.1 - texture_pos.y) / zoom;
+        let end_x = (end.0 - texture_pos.x) / zoom;
+        let end_y = (end.1 - texture_pos.y) / zoom;
+        
+        // Calculate sprite bounds (min/max to handle any drag direction)
+        let min_x = start_x.min(end_x).max(0.0);
+        let min_y = start_y.min(end_y).max(0.0);
+        let max_x = start_x.max(end_x).min(texture_size[0] as f32);
+        let max_y = start_y.max(end_y).min(texture_size[1] as f32);
+        
+        // Calculate width and height
+        let width = (max_x - min_x).round() as u32;
+        let height = (max_y - min_y).round() as u32;
+        
+        // Validate rectangle has positive dimensions
+        if width > 0 && height > 0 {
+            // Push current state to undo stack before making changes
+            self.state.push_undo();
+            
+            // Generate sequential name
+            let sprite_name = self.generate_sequential_name();
+            
+            // Create new sprite
+            let sprite = SpriteDefinition::new(
+                sprite_name,
+                min_x.round() as u32,
+                min_y.round() as u32,
+                width,
+                height
+            );
+            
+            // Add sprite to metadata
+            self.state.metadata.add_sprite(sprite);
+            
+            // Select the newly created sprite
+            self.state.selected_sprite = Some(self.state.metadata.sprites.len() - 1);
+        }
+    }
+    
+    /// Generate a sequential sprite name (sprite_0, sprite_1, etc.)
+    fn generate_sequential_name(&self) -> String {
+        let mut index = 0;
+        loop {
+            let name = format!("sprite_{}", index);
+            if !self.state.metadata.has_sprite_name(&name) {
+                return name;
+            }
+            index += 1;
+        }
     }
     
     /// Render sprite rectangles with borders and name labels
@@ -782,4 +900,181 @@ mod tests {
         state.metadata.add_sprite(SpriteDefinition::new("sprite_2".to_string(), 64, 0, 32, 32));
         state.push_undo();
         assert_eq!(state.redo_stack.len(), 0);
+    }
+
+    #[test]
+    fn test_sprite_creation_with_positive_dimensions() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut window = SpriteEditorWindow::new(texture_path);
+        
+        // Set texture dimensions
+        window.state.metadata.texture_width = 512;
+        window.state.metadata.texture_height = 256;
+        
+        // Simulate drag from (10, 10) to (42, 42) in texture space
+        let texture_pos = egui::pos2(0.0, 0.0);
+        let texture_size = [512, 256];
+        let start = (10.0, 10.0);
+        let end = (42.0, 42.0);
+        
+        window.create_sprite_from_drag(start, end, texture_pos, texture_size);
+        
+        // Verify sprite was created
+        assert_eq!(window.state.metadata.sprites.len(), 1);
+        
+        let sprite = &window.state.metadata.sprites[0];
+        assert_eq!(sprite.name, "sprite_0");
+        assert_eq!(sprite.x, 10);
+        assert_eq!(sprite.y, 10);
+        assert_eq!(sprite.width, 32);
+        assert_eq!(sprite.height, 32);
+        
+        // Verify sprite is selected
+        assert_eq!(window.state.selected_sprite, Some(0));
+        
+        // Verify undo stack was updated
+        assert_eq!(window.state.undo_stack.len(), 1);
+    }
+
+    #[test]
+    fn test_sprite_creation_with_reverse_drag() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut window = SpriteEditorWindow::new(texture_path);
+        
+        window.state.metadata.texture_width = 512;
+        window.state.metadata.texture_height = 256;
+        
+        // Simulate drag from bottom-right to top-left
+        let texture_pos = egui::pos2(0.0, 0.0);
+        let texture_size = [512, 256];
+        let start = (100.0, 100.0);
+        let end = (50.0, 50.0);
+        
+        window.create_sprite_from_drag(start, end, texture_pos, texture_size);
+        
+        // Verify sprite was created with correct bounds
+        assert_eq!(window.state.metadata.sprites.len(), 1);
+        
+        let sprite = &window.state.metadata.sprites[0];
+        assert_eq!(sprite.x, 50);
+        assert_eq!(sprite.y, 50);
+        assert_eq!(sprite.width, 50);
+        assert_eq!(sprite.height, 50);
+    }
+
+    #[test]
+    fn test_sprite_creation_clamped_to_texture_bounds() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut window = SpriteEditorWindow::new(texture_path);
+        
+        window.state.metadata.texture_width = 512;
+        window.state.metadata.texture_height = 256;
+        
+        // Simulate drag that goes beyond texture bounds
+        let texture_pos = egui::pos2(0.0, 0.0);
+        let texture_size = [512, 256];
+        let start = (400.0, 200.0);
+        let end = (600.0, 300.0); // Beyond texture bounds
+        
+        window.create_sprite_from_drag(start, end, texture_pos, texture_size);
+        
+        // Verify sprite was clamped to texture bounds
+        assert_eq!(window.state.metadata.sprites.len(), 1);
+        
+        let sprite = &window.state.metadata.sprites[0];
+        assert_eq!(sprite.x, 400);
+        assert_eq!(sprite.y, 200);
+        assert_eq!(sprite.width, 112); // Clamped to 512 - 400
+        assert_eq!(sprite.height, 56); // Clamped to 256 - 200
+    }
+
+    #[test]
+    fn test_sprite_creation_with_zero_dimensions_rejected() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut window = SpriteEditorWindow::new(texture_path);
+        
+        window.state.metadata.texture_width = 512;
+        window.state.metadata.texture_height = 256;
+        
+        // Simulate drag with same start and end (zero dimensions)
+        let texture_pos = egui::pos2(0.0, 0.0);
+        let texture_size = [512, 256];
+        let start = (100.0, 100.0);
+        let end = (100.0, 100.0);
+        
+        window.create_sprite_from_drag(start, end, texture_pos, texture_size);
+        
+        // Verify no sprite was created
+        assert_eq!(window.state.metadata.sprites.len(), 0);
+        assert_eq!(window.state.undo_stack.len(), 0);
+    }
+
+    #[test]
+    fn test_sequential_sprite_naming() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut window = SpriteEditorWindow::new(texture_path);
+        
+        window.state.metadata.texture_width = 512;
+        window.state.metadata.texture_height = 256;
+        
+        let texture_pos = egui::pos2(0.0, 0.0);
+        let texture_size = [512, 256];
+        
+        // Create first sprite
+        window.create_sprite_from_drag((0.0, 0.0), (32.0, 32.0), texture_pos, texture_size);
+        assert_eq!(window.state.metadata.sprites[0].name, "sprite_0");
+        
+        // Create second sprite
+        window.create_sprite_from_drag((32.0, 0.0), (64.0, 32.0), texture_pos, texture_size);
+        assert_eq!(window.state.metadata.sprites[1].name, "sprite_1");
+        
+        // Create third sprite
+        window.create_sprite_from_drag((64.0, 0.0), (96.0, 32.0), texture_pos, texture_size);
+        assert_eq!(window.state.metadata.sprites[2].name, "sprite_2");
+        
+        assert_eq!(window.state.metadata.sprites.len(), 3);
+    }
+
+    #[test]
+    fn test_sequential_naming_with_gaps() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut window = SpriteEditorWindow::new(texture_path);
+        
+        window.state.metadata.texture_width = 512;
+        window.state.metadata.texture_height = 256;
+        
+        // Manually add sprites with gaps in numbering
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_0".to_string(), 0, 0, 32, 32));
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_2".to_string(), 64, 0, 32, 32));
+        
+        // Generate next name should fill the gap
+        let name = window.generate_sequential_name();
+        assert_eq!(name, "sprite_1");
+    }
+
+    #[test]
+    fn test_sprite_creation_with_zoom() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut window = SpriteEditorWindow::new(texture_path);
+        
+        window.state.metadata.texture_width = 512;
+        window.state.metadata.texture_height = 256;
+        window.state.zoom = 2.0; // 2x zoom
+        
+        // Simulate drag in screen space (which will be scaled by zoom)
+        let texture_pos = egui::pos2(0.0, 0.0);
+        let texture_size = [512, 256];
+        let start = (20.0, 20.0); // Screen space
+        let end = (84.0, 84.0);   // Screen space
+        
+        window.create_sprite_from_drag(start, end, texture_pos, texture_size);
+        
+        // Verify sprite coordinates are in texture space (divided by zoom)
+        assert_eq!(window.state.metadata.sprites.len(), 1);
+        
+        let sprite = &window.state.metadata.sprites[0];
+        assert_eq!(sprite.x, 10); // 20 / 2.0
+        assert_eq!(sprite.y, 10); // 20 / 2.0
+        assert_eq!(sprite.width, 32); // (84 - 20) / 2.0
+        assert_eq!(sprite.height, 32); // (84 - 20) / 2.0
     }

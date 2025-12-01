@@ -62,7 +62,12 @@
   - **Property 10: Labels display sprite names**
   - **Validates: Requirements 3.5**
 
-- [ ] 4. Implement sprite rectangle creation
+- [x] 4. Implement sprite rectangle creation
+
+
+
+
+
   - Handle click-and-drag to create new sprite rectangle
   - Validate rectangle has positive dimensions
   - Assign default sequential name (sprite_0, sprite_1, etc.)
