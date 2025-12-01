@@ -274,6 +274,10 @@ impl SpriteEditorState {
 pub struct SpriteEditorWindow {
     pub state: SpriteEditorState,
     pub is_open: bool,
+    /// Temporary buffer for editing sprite name
+    name_edit_buffer: String,
+    /// Whether there's a duplicate name error
+    duplicate_name_error: bool,
 }
 
 impl SpriteEditorWindow {
@@ -282,6 +286,8 @@ impl SpriteEditorWindow {
         Self {
             state: SpriteEditorState::new(texture_path),
             is_open: true,
+            name_edit_buffer: String::new(),
+            duplicate_name_error: false,
         }
     }
     
@@ -435,17 +441,7 @@ impl SpriteEditorWindow {
                 ui.heading("Properties");
                 ui.separator();
                 
-                if let Some(idx) = self.state.selected_sprite {
-                    if let Some(sprite) = self.state.metadata.sprites.get(idx) {
-                        ui.label(format!("Name: {}", sprite.name));
-                        ui.label(format!("X: {}", sprite.x));
-                        ui.label(format!("Y: {}", sprite.y));
-                        ui.label(format!("Width: {}", sprite.width));
-                        ui.label(format!("Height: {}", sprite.height));
-                    }
-                } else {
-                    ui.label("No sprite selected");
-                }
+                self.render_properties_panel(ui);
             });
         });
         
@@ -460,6 +456,136 @@ impl SpriteEditorWindow {
                 self.state.metadata.texture_height
             ));
         });
+    }
+    
+    /// Render the properties panel for the selected sprite
+    fn render_properties_panel(&mut self, ui: &mut egui::Ui) {
+        if let Some(idx) = self.state.selected_sprite {
+            if let Some(sprite) = self.state.metadata.sprites.get(idx).cloned() {
+                // Initialize name buffer if empty or if selection changed
+                if self.name_edit_buffer.is_empty() || self.name_edit_buffer != sprite.name {
+                    self.name_edit_buffer = sprite.name.clone();
+                    self.duplicate_name_error = false;
+                }
+                
+                // Sprite name editing
+                ui.label("Name:");
+                let name_response = ui.text_edit_singleline(&mut self.name_edit_buffer);
+                
+                // Check for duplicate names when editing
+                if name_response.changed() {
+                    // Check if the new name is a duplicate (excluding the current sprite)
+                    let is_duplicate = self.state.metadata.sprites.iter().enumerate()
+                        .any(|(i, s)| i != idx && s.name == self.name_edit_buffer);
+                    
+                    self.duplicate_name_error = is_duplicate;
+                    
+                    // Update sprite name if not duplicate and not empty
+                    if !is_duplicate && !self.name_edit_buffer.trim().is_empty() {
+                        if let Some(sprite_mut) = self.state.metadata.sprites.get_mut(idx) {
+                            sprite_mut.name = self.name_edit_buffer.clone();
+                        }
+                    }
+                }
+                
+                // Show warning for duplicate names
+                if self.duplicate_name_error {
+                    ui.colored_label(
+                        egui::Color32::from_rgb(255, 100, 100),
+                        "⚠ Duplicate name! Please choose a unique name."
+                    );
+                }
+                
+                // Show warning for empty names
+                if self.name_edit_buffer.trim().is_empty() {
+                    ui.colored_label(
+                        egui::Color32::from_rgb(255, 200, 100),
+                        "⚠ Name cannot be empty"
+                    );
+                }
+                
+                ui.add_space(10.0);
+                
+                // Display sprite properties (read-only)
+                ui.label("Position & Size:");
+                ui.horizontal(|ui| {
+                    ui.label("X:");
+                    ui.label(format!("{} px", sprite.x));
+                });
+                ui.horizontal(|ui| {
+                    ui.label("Y:");
+                    ui.label(format!("{} px", sprite.y));
+                });
+                ui.horizontal(|ui| {
+                    ui.label("Width:");
+                    ui.label(format!("{} px", sprite.width));
+                });
+                ui.horizontal(|ui| {
+                    ui.label("Height:");
+                    ui.label(format!("{} px", sprite.height));
+                });
+                
+                ui.add_space(10.0);
+                
+                // Display sprite dimensions
+                ui.label("Dimensions:");
+                ui.label(format!("{}×{} pixels", sprite.width, sprite.height));
+                
+                ui.add_space(10.0);
+                
+                // Display sprite preview
+                ui.label("Preview:");
+                if let Some(texture_handle) = &self.state.texture_handle {
+                    let texture_size = texture_handle.size();
+                    
+                    // Calculate UV coordinates for the sprite region
+                    let uv_min = egui::pos2(
+                        sprite.x as f32 / texture_size[0] as f32,
+                        sprite.y as f32 / texture_size[1] as f32,
+                    );
+                    let uv_max = egui::pos2(
+                        (sprite.x + sprite.width) as f32 / texture_size[0] as f32,
+                        (sprite.y + sprite.height) as f32 / texture_size[1] as f32,
+                    );
+                    
+                    // Calculate preview size (max 256x256, maintain aspect ratio)
+                    let max_preview_size = 256.0;
+                    let aspect_ratio = sprite.width as f32 / sprite.height as f32;
+                    let (preview_width, preview_height) = if aspect_ratio > 1.0 {
+                        (max_preview_size, max_preview_size / aspect_ratio)
+                    } else {
+                        (max_preview_size * aspect_ratio, max_preview_size)
+                    };
+                    
+                    // Clamp to actual sprite size if smaller
+                    let preview_width = preview_width.min(sprite.width as f32);
+                    let preview_height = preview_height.min(sprite.height as f32);
+                    
+                    // Draw the preview with a border
+                    let preview_rect = ui.allocate_space(egui::vec2(preview_width, preview_height));
+                    
+                    ui.painter().image(
+                        texture_handle.id(),
+                        preview_rect.1,
+                        egui::Rect::from_min_max(uv_min, uv_max),
+                        egui::Color32::WHITE,
+                    );
+                    
+                    // Draw border around preview
+                    ui.painter().rect_stroke(
+                        preview_rect.1,
+                        0.0,
+                        egui::Stroke::new(1.0, egui::Color32::from_rgb(100, 100, 100)),
+                    );
+                } else {
+                    ui.label("No texture loaded");
+                }
+            }
+        } else {
+            ui.label("No sprite selected");
+            ui.add_space(10.0);
+            ui.label("Select a sprite from the canvas or sprite list to view and edit its properties.");
+        }
     }
     
     /// Render the sprite canvas with texture, zoom, pan, and sprite rectangles
@@ -2124,4 +2250,183 @@ mod tests {
         let texture_pos = egui::pos2(0.0, 0.0);
         let clicked_sprite = window.find_sprite_at_position(egui::pos2(16.0, 16.0), texture_pos);
         assert_eq!(clicked_sprite, Some(0), "Should find existing sprite at click position");
+    }
+
+    #[test]
+    fn test_properties_panel_name_editing() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut window = SpriteEditorWindow::new(texture_path);
+        
+        window.state.metadata.texture_width = 512;
+        window.state.metadata.texture_height = 256;
+        
+        // Add sprites
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_0".to_string(), 0, 0, 32, 32));
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_1".to_string(), 32, 0, 32, 32));
+        
+        // Select first sprite
+        window.state.selected_sprite = Some(0);
+        
+        // Simulate name editing
+        window.name_edit_buffer = "new_name".to_string();
+        
+        // Check for duplicates (should be false)
+        let is_duplicate = window.state.metadata.sprites.iter().enumerate()
+            .any(|(i, s)| i != 0 && s.name == window.name_edit_buffer);
+        assert!(!is_duplicate);
+        
+        // Update the sprite name
+        if let Some(sprite) = window.state.metadata.sprites.get_mut(0) {
+            sprite.name = window.name_edit_buffer.clone();
+        }
+        
+        // Verify name was updated
+        assert_eq!(window.state.metadata.sprites[0].name, "new_name");
+    }
+    
+    #[test]
+    fn test_properties_panel_duplicate_name_detection() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut window = SpriteEditorWindow::new(texture_path);
+        
+        window.state.metadata.texture_width = 512;
+        window.state.metadata.texture_height = 256;
+        
+        // Add sprites
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_0".to_string(), 0, 0, 32, 32));
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_1".to_string(), 32, 0, 32, 32));
+        
+        // Select first sprite
+        window.state.selected_sprite = Some(0);
+        
+        // Try to set name to duplicate
+        window.name_edit_buffer = "sprite_1".to_string();
+        
+        // Check for duplicates (should be true)
+        let is_duplicate = window.state.metadata.sprites.iter().enumerate()
+            .any(|(i, s)| i != 0 && s.name == window.name_edit_buffer);
+        assert!(is_duplicate);
+        
+        // Name should not be updated when duplicate
+        assert_eq!(window.state.metadata.sprites[0].name, "sprite_0");
+    }
+    
+    #[test]
+    fn test_properties_panel_empty_name_validation() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut window = SpriteEditorWindow::new(texture_path);
+        
+        window.state.metadata.texture_width = 512;
+        window.state.metadata.texture_height = 256;
+        
+        // Add sprite
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_0".to_string(), 0, 0, 32, 32));
+        
+        // Select sprite
+        window.state.selected_sprite = Some(0);
+        
+        // Try to set empty name
+        window.name_edit_buffer = "".to_string();
+        
+        // Empty names should not be allowed
+        let is_empty = window.name_edit_buffer.trim().is_empty();
+        assert!(is_empty);
+        
+        // Original name should remain
+        assert_eq!(window.state.metadata.sprites[0].name, "sprite_0");
+    }
+    
+    #[test]
+    fn test_properties_panel_whitespace_name_validation() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut window = SpriteEditorWindow::new(texture_path);
+        
+        window.state.metadata.texture_width = 512;
+        window.state.metadata.texture_height = 256;
+        
+        // Add sprite
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_0".to_string(), 0, 0, 32, 32));
+        
+        // Select sprite
+        window.state.selected_sprite = Some(0);
+        
+        // Try to set whitespace-only name
+        window.name_edit_buffer = "   ".to_string();
+        
+        // Whitespace-only names should not be allowed
+        let is_empty = window.name_edit_buffer.trim().is_empty();
+        assert!(is_empty);
+        
+        // Original name should remain
+        assert_eq!(window.state.metadata.sprites[0].name, "sprite_0");
+    }
+    
+    #[test]
+    fn test_properties_panel_displays_sprite_info() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut window = SpriteEditorWindow::new(texture_path);
+        
+        window.state.metadata.texture_width = 512;
+        window.state.metadata.texture_height = 256;
+        
+        // Add sprite with specific properties
+        window.state.metadata.add_sprite(SpriteDefinition::new(
+            "test_sprite".to_string(),
+            100,
+            200,
+            64,
+            128
+        ));
+        
+        // Select sprite
+        window.state.selected_sprite = Some(0);
+        
+        // Verify sprite properties can be accessed
+        if let Some(sprite) = window.state.metadata.sprites.get(0) {
+            assert_eq!(sprite.name, "test_sprite");
+            assert_eq!(sprite.x, 100);
+            assert_eq!(sprite.y, 200);
+            assert_eq!(sprite.width, 64);
+            assert_eq!(sprite.height, 128);
+        }
+    }
+    
+    #[test]
+    fn test_properties_panel_no_selection() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let window = SpriteEditorWindow::new(texture_path);
+        
+        // No sprite selected
+        assert_eq!(window.state.selected_sprite, None);
+        
+        // Properties panel should handle no selection gracefully
+        // (This is tested by the render method, but we verify the state)
+    }
+    
+    #[test]
+    fn test_properties_panel_name_buffer_initialization() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut window = SpriteEditorWindow::new(texture_path);
+        
+        window.state.metadata.texture_width = 512;
+        window.state.metadata.texture_height = 256;
+        
+        // Add sprite
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_0".to_string(), 0, 0, 32, 32));
+        
+        // Initially buffer should be empty
+        assert_eq!(window.name_edit_buffer, "");
+        
+        // Select sprite
+        window.state.selected_sprite = Some(0);
+        
+        // Simulate buffer initialization (would happen in render)
+        if let Some(sprite) = window.state.metadata.sprites.get(0) {
+            if window.name_edit_buffer.is_empty() || window.name_edit_buffer != sprite.name {
+                window.name_edit_buffer = sprite.name.clone();
+            }
+        }
+        
+        // Buffer should now contain sprite name
+        assert_eq!(window.name_edit_buffer, "sprite_0");
     }

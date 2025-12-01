@@ -139,7 +139,12 @@
   - **Property 5: Delete removes sprite from list**
   - **Validates: Requirements 2.5**
 
-- [ ] 8. Create properties panel UI
+- [x] 8. Create properties panel UI
+
+
+
+
+
   - Display selected sprite properties (name, x, y, width, height)
   - Add text input for sprite name editing
   - Validate name is not duplicate
