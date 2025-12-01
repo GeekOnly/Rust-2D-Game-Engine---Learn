@@ -120,7 +120,15 @@
   - **Property 4: Center dragging preserves sprite dimensions**
   - **Validates: Requirements 2.3, 2.4**
 
-- [ ] 7. Implement sprite deletion
+- [x] 7. Implement sprite deletion
+
+
+
+
+
+
+
+
   - Handle Delete key press
   - Remove selected sprite from metadata
   - Clear selection

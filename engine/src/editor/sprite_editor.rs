@@ -301,6 +301,9 @@ impl SpriteEditorWindow {
             }
         }
         
+        // Handle keyboard shortcuts
+        self.handle_keyboard_shortcuts(ctx);
+        
         let mut is_open = self.is_open;
         egui::Window::new("🎨 Sprite Editor")
             .open(&mut is_open)
@@ -310,6 +313,56 @@ impl SpriteEditorWindow {
                 self.render_content(ui);
             });
         self.is_open = is_open;
+    }
+    
+    /// Handle keyboard shortcuts for the sprite editor
+    fn handle_keyboard_shortcuts(&mut self, ctx: &egui::Context) {
+        ctx.input(|i| {
+            // Handle Delete key to remove selected sprite
+            if i.key_pressed(egui::Key::Delete) {
+                self.delete_selected_sprite();
+            }
+            
+            // Handle Ctrl+S to save
+            if i.modifiers.ctrl && i.key_pressed(egui::Key::S) {
+                if let Err(e) = self.state.save() {
+                    log::error!("Failed to save sprite metadata: {}", e);
+                } else {
+                    log::info!("Sprite metadata saved successfully");
+                }
+            }
+            
+            // Handle Ctrl+Z to undo
+            if i.modifiers.ctrl && i.key_pressed(egui::Key::Z) {
+                self.state.undo();
+            }
+            
+            // Handle Ctrl+Y to redo
+            if i.modifiers.ctrl && i.key_pressed(egui::Key::Y) {
+                self.state.redo();
+            }
+            
+            // Handle Escape to deselect
+            if i.key_pressed(egui::Key::Escape) {
+                self.state.selected_sprite = None;
+            }
+        });
+    }
+    
+    /// Delete the currently selected sprite
+    fn delete_selected_sprite(&mut self) {
+        if let Some(selected_idx) = self.state.selected_sprite {
+            // Push current state to undo stack before deletion
+            self.state.push_undo();
+            
+            // Remove the sprite from metadata
+            self.state.metadata.remove_sprite(selected_idx);
+            
+            // Clear selection
+            self.state.selected_sprite = None;
+            
+            log::info!("Deleted sprite at index {}", selected_idx);
+        }
     }
     
     /// Render the window content
@@ -1474,6 +1527,222 @@ mod tests {
         // Test position outside any sprite
         let found_none = window.find_sprite_at_position(egui::pos2(200.0, 200.0), texture_pos);
         assert_eq!(found_none, None);
+    }
+
+    #[test]
+    fn test_delete_selected_sprite() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut window = SpriteEditorWindow::new(texture_path);
+        
+        window.state.metadata.texture_width = 512;
+        window.state.metadata.texture_height = 256;
+        
+        // Add some sprites
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_0".to_string(), 0, 0, 32, 32));
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_1".to_string(), 32, 0, 32, 32));
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_2".to_string(), 64, 0, 32, 32));
+        
+        assert_eq!(window.state.metadata.sprites.len(), 3);
+        
+        // Select the middle sprite
+        window.state.selected_sprite = Some(1);
+        
+        // Delete the selected sprite
+        window.delete_selected_sprite();
+        
+        // Verify sprite was removed
+        assert_eq!(window.state.metadata.sprites.len(), 2);
+        
+        // Verify selection was cleared
+        assert_eq!(window.state.selected_sprite, None);
+        
+        // Verify the correct sprite was removed (sprite_1 should be gone)
+        assert_eq!(window.state.metadata.sprites[0].name, "sprite_0");
+        assert_eq!(window.state.metadata.sprites[1].name, "sprite_2");
+        
+        // Verify undo stack was updated
+        assert_eq!(window.state.undo_stack.len(), 1);
+    }
+    
+    #[test]
+    fn test_delete_with_no_selection() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut window = SpriteEditorWindow::new(texture_path);
+        
+        window.state.metadata.texture_width = 512;
+        window.state.metadata.texture_height = 256;
+        
+        // Add some sprites
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_0".to_string(), 0, 0, 32, 32));
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_1".to_string(), 32, 0, 32, 32));
+        
+        assert_eq!(window.state.metadata.sprites.len(), 2);
+        
+        // No sprite selected
+        window.state.selected_sprite = None;
+        
+        // Try to delete (should do nothing)
+        window.delete_selected_sprite();
+        
+        // Verify nothing was removed
+        assert_eq!(window.state.metadata.sprites.len(), 2);
+        
+        // Verify undo stack was not updated
+        assert_eq!(window.state.undo_stack.len(), 0);
+    }
+    
+    #[test]
+    fn test_delete_first_sprite() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut window = SpriteEditorWindow::new(texture_path);
+        
+        window.state.metadata.texture_width = 512;
+        window.state.metadata.texture_height = 256;
+        
+        // Add some sprites
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_0".to_string(), 0, 0, 32, 32));
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_1".to_string(), 32, 0, 32, 32));
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_2".to_string(), 64, 0, 32, 32));
+        
+        // Select the first sprite
+        window.state.selected_sprite = Some(0);
+        
+        // Delete the selected sprite
+        window.delete_selected_sprite();
+        
+        // Verify sprite was removed
+        assert_eq!(window.state.metadata.sprites.len(), 2);
+        
+        // Verify the correct sprites remain
+        assert_eq!(window.state.metadata.sprites[0].name, "sprite_1");
+        assert_eq!(window.state.metadata.sprites[1].name, "sprite_2");
+        
+        // Verify selection was cleared
+        assert_eq!(window.state.selected_sprite, None);
+    }
+    
+    #[test]
+    fn test_delete_last_sprite() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut window = SpriteEditorWindow::new(texture_path);
+        
+        window.state.metadata.texture_width = 512;
+        window.state.metadata.texture_height = 256;
+        
+        // Add some sprites
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_0".to_string(), 0, 0, 32, 32));
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_1".to_string(), 32, 0, 32, 32));
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_2".to_string(), 64, 0, 32, 32));
+        
+        // Select the last sprite
+        window.state.selected_sprite = Some(2);
+        
+        // Delete the selected sprite
+        window.delete_selected_sprite();
+        
+        // Verify sprite was removed
+        assert_eq!(window.state.metadata.sprites.len(), 2);
+        
+        // Verify the correct sprites remain
+        assert_eq!(window.state.metadata.sprites[0].name, "sprite_0");
+        assert_eq!(window.state.metadata.sprites[1].name, "sprite_1");
+        
+        // Verify selection was cleared
+        assert_eq!(window.state.selected_sprite, None);
+    }
+    
+    #[test]
+    fn test_delete_only_sprite() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut window = SpriteEditorWindow::new(texture_path);
+        
+        window.state.metadata.texture_width = 512;
+        window.state.metadata.texture_height = 256;
+        
+        // Add only one sprite
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_0".to_string(), 0, 0, 32, 32));
+        
+        // Select the sprite
+        window.state.selected_sprite = Some(0);
+        
+        // Delete the selected sprite
+        window.delete_selected_sprite();
+        
+        // Verify sprite was removed
+        assert_eq!(window.state.metadata.sprites.len(), 0);
+        
+        // Verify selection was cleared
+        assert_eq!(window.state.selected_sprite, None);
+    }
+    
+    #[test]
+    fn test_delete_and_undo() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut window = SpriteEditorWindow::new(texture_path);
+        
+        window.state.metadata.texture_width = 512;
+        window.state.metadata.texture_height = 256;
+        
+        // Add some sprites
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_0".to_string(), 0, 0, 32, 32));
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_1".to_string(), 32, 0, 32, 32));
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_2".to_string(), 64, 0, 32, 32));
+        
+        // Select and delete a sprite
+        window.state.selected_sprite = Some(1);
+        window.delete_selected_sprite();
+        
+        assert_eq!(window.state.metadata.sprites.len(), 2);
+        
+        // Undo the deletion
+        window.state.undo();
+        
+        // Verify sprite was restored
+        assert_eq!(window.state.metadata.sprites.len(), 3);
+        assert_eq!(window.state.metadata.sprites[0].name, "sprite_0");
+        assert_eq!(window.state.metadata.sprites[1].name, "sprite_1");
+        assert_eq!(window.state.metadata.sprites[2].name, "sprite_2");
+    }
+    
+    #[test]
+    fn test_delete_multiple_sprites_sequentially() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut window = SpriteEditorWindow::new(texture_path);
+        
+        window.state.metadata.texture_width = 512;
+        window.state.metadata.texture_height = 256;
+        
+        // Add multiple sprites
+        for i in 0..5 {
+            window.state.metadata.add_sprite(SpriteDefinition::new(
+                format!("sprite_{}", i),
+                i * 32,
+                0,
+                32,
+                32
+            ));
+        }
+        
+        assert_eq!(window.state.metadata.sprites.len(), 5);
+        
+        // Delete sprites one by one
+        window.state.selected_sprite = Some(2);
+        window.delete_selected_sprite();
+        assert_eq!(window.state.metadata.sprites.len(), 4);
+        assert_eq!(window.state.selected_sprite, None);
+        
+        window.state.selected_sprite = Some(0);
+        window.delete_selected_sprite();
+        assert_eq!(window.state.metadata.sprites.len(), 3);
+        assert_eq!(window.state.selected_sprite, None);
+        
+        // Verify correct sprites remain
+        assert_eq!(window.state.metadata.sprites[0].name, "sprite_1");
+        assert_eq!(window.state.metadata.sprites[1].name, "sprite_3");
+        assert_eq!(window.state.metadata.sprites[2].name, "sprite_4");
+        
+        // Verify undo stack has both deletions
+        assert_eq!(window.state.undo_stack.len(), 2);
     }
 
     #[test]
