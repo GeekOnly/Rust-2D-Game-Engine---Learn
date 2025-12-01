@@ -21,6 +21,8 @@ fn create_entity_at_depth(world: &mut World, z: f32, has_alpha: bool) -> Entity 
         height: 10.0,
         color: [1.0, 1.0, 1.0, alpha],
         billboard: false,
+        flip_x: false,
+        flip_y: false,
     });
     
     entity

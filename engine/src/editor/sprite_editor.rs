@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
+use egui::TextureHandle;
 
 /// Represents a single sprite definition within a sprite sheet
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -121,6 +122,281 @@ fn create_backup<P: AsRef<Path>>(path: P) -> Result<(), String> {
         .map_err(|e| format!("Failed to create backup: {}", e))?;
 
     Ok(())
+}
+
+/// Editor state for the sprite editor
+pub struct SpriteEditorState {
+    // File management
+    pub texture_path: PathBuf,
+    pub metadata_path: PathBuf,
+    pub metadata: SpriteMetadata,
+    
+    // Editor state
+    pub selected_sprite: Option<usize>,
+    pub hovered_sprite: Option<usize>,
+    pub is_drawing: bool,
+    pub draw_start: Option<(f32, f32)>,
+    pub draw_current: Option<(f32, f32)>,
+    
+    // View state
+    pub zoom: f32,
+    pub pan_offset: (f32, f32),
+    
+    // Undo/Redo
+    pub undo_stack: Vec<SpriteMetadata>,
+    pub redo_stack: Vec<SpriteMetadata>,
+    
+    // Texture
+    pub texture_handle: Option<TextureHandle>,
+}
+
+impl SpriteEditorState {
+    /// Create a new sprite editor state
+    pub fn new(texture_path: PathBuf) -> Self {
+        // Determine metadata path (.sprite file)
+        let metadata_path = texture_path.with_extension("sprite");
+        
+        // Try to load existing metadata or create new
+        let metadata = if metadata_path.exists() {
+            SpriteMetadata::load(&metadata_path).unwrap_or_else(|e| {
+                log::warn!("Failed to load sprite metadata: {}", e);
+                SpriteMetadata::new(
+                    texture_path.to_string_lossy().to_string(),
+                    0,
+                    0,
+                )
+            })
+        } else {
+            SpriteMetadata::new(
+                texture_path.to_string_lossy().to_string(),
+                0,
+                0,
+            )
+        };
+        
+        Self {
+            texture_path,
+            metadata_path,
+            metadata,
+            selected_sprite: None,
+            hovered_sprite: None,
+            is_drawing: false,
+            draw_start: None,
+            draw_current: None,
+            zoom: 1.0,
+            pan_offset: (0.0, 0.0),
+            undo_stack: Vec::new(),
+            redo_stack: Vec::new(),
+            texture_handle: None,
+        }
+    }
+    
+    /// Push current state to undo stack
+    pub fn push_undo(&mut self) {
+        // Limit undo stack to 50 actions
+        if self.undo_stack.len() >= 50 {
+            self.undo_stack.remove(0);
+        }
+        self.undo_stack.push(self.metadata.clone());
+        // Clear redo stack on new action
+        self.redo_stack.clear();
+    }
+    
+    /// Undo last action
+    pub fn undo(&mut self) {
+        if let Some(previous_state) = self.undo_stack.pop() {
+            self.redo_stack.push(self.metadata.clone());
+            self.metadata = previous_state;
+        }
+    }
+    
+    /// Redo last undone action
+    pub fn redo(&mut self) {
+        if let Some(next_state) = self.redo_stack.pop() {
+            self.undo_stack.push(self.metadata.clone());
+            self.metadata = next_state;
+        }
+    }
+    
+    /// Save sprite metadata to file
+    pub fn save(&self) -> Result<(), String> {
+        self.metadata.save(&self.metadata_path)
+    }
+    
+    /// Load texture using texture manager
+    pub fn load_texture(&mut self, ctx: &egui::Context, texture_manager: &mut crate::texture_manager::TextureManager) -> Result<(), String> {
+        // Generate unique texture ID for sprite editor
+        let texture_id = format!("sprite_editor_{}", self.texture_path.to_string_lossy());
+        
+        // Load texture through texture manager
+        if let Some(handle) = texture_manager.load_texture(ctx, &texture_id, &self.texture_path) {
+            self.texture_handle = Some(handle.clone());
+            
+            // Update metadata with texture dimensions
+            let size = handle.size();
+            self.metadata.texture_width = size[0] as u32;
+            self.metadata.texture_height = size[1] as u32;
+            
+            Ok(())
+        } else {
+            Err(format!("Failed to load texture: {}", self.texture_path.display()))
+        }
+    }
+}
+
+/// Sprite Editor Window
+pub struct SpriteEditorWindow {
+    pub state: SpriteEditorState,
+    pub is_open: bool,
+}
+
+impl SpriteEditorWindow {
+    /// Create a new sprite editor window
+    pub fn new(texture_path: PathBuf) -> Self {
+        Self {
+            state: SpriteEditorState::new(texture_path),
+            is_open: true,
+        }
+    }
+    
+    /// Render the sprite editor window
+    pub fn render(&mut self, ctx: &egui::Context, texture_manager: &mut crate::texture_manager::TextureManager) {
+        if !self.is_open {
+            return;
+        }
+        
+        // Load texture if not already loaded
+        if self.state.texture_handle.is_none() {
+            if let Err(e) = self.state.load_texture(ctx, texture_manager) {
+                log::error!("Failed to load texture: {}", e);
+                // Show error and close window
+                self.is_open = false;
+                return;
+            }
+        }
+        
+        let mut is_open = self.is_open;
+        egui::Window::new("🎨 Sprite Editor")
+            .open(&mut is_open)
+            .default_size([1200.0, 800.0])
+            .resizable(true)
+            .show(ctx, |ui| {
+                self.render_content(ui);
+            });
+        self.is_open = is_open;
+    }
+    
+    /// Render the window content
+    fn render_content(&mut self, ui: &mut egui::Ui) {
+        // Toolbar
+        ui.horizontal(|ui| {
+            if ui.button("💾 Save (Ctrl+S)").clicked() {
+                if let Err(e) = self.state.save() {
+                    log::error!("Failed to save sprite metadata: {}", e);
+                } else {
+                    log::info!("Sprite metadata saved successfully");
+                }
+            }
+            
+            ui.separator();
+            
+            if ui.button("↶ Undo (Ctrl+Z)").clicked() {
+                self.state.undo();
+            }
+            
+            if ui.button("↷ Redo (Ctrl+Y)").clicked() {
+                self.state.redo();
+            }
+            
+            ui.separator();
+            
+            ui.label(format!("Zoom: {:.0}%", self.state.zoom * 100.0));
+        });
+        
+        ui.separator();
+        
+        // Main content area
+        ui.horizontal(|ui| {
+            // Left panel - Sprite list (placeholder for now)
+            ui.vertical(|ui| {
+                ui.set_width(200.0);
+                ui.heading("Sprites");
+                ui.separator();
+                
+                egui::ScrollArea::vertical().show(ui, |ui| {
+                    ui.label(format!("Total: {}", self.state.metadata.sprites.len()));
+                    
+                    for (idx, sprite) in self.state.metadata.sprites.iter().enumerate() {
+                        let is_selected = self.state.selected_sprite == Some(idx);
+                        if ui.selectable_label(is_selected, &sprite.name).clicked() {
+                            self.state.selected_sprite = Some(idx);
+                        }
+                    }
+                });
+            });
+            
+            ui.separator();
+            
+            // Center panel - Canvas (placeholder for now)
+            ui.vertical(|ui| {
+                ui.heading("Canvas");
+                
+                if let Some(texture_handle) = &self.state.texture_handle {
+                    let texture_size = texture_handle.size();
+                    
+                    // Calculate scaled size based on zoom
+                    let scaled_width = texture_size[0] as f32 * self.state.zoom;
+                    let scaled_height = texture_size[1] as f32 * self.state.zoom;
+                    
+                    // Display texture with size
+                    ui.image(egui::ImageSource::Texture(egui::load::SizedTexture::new(
+                        texture_handle.id(),
+                        [scaled_width, scaled_height]
+                    )));
+                    
+                    ui.label(format!(
+                        "Texture: {}x{} pixels",
+                        texture_size[0], texture_size[1]
+                    ));
+                } else {
+                    ui.label("Loading texture...");
+                }
+            });
+            
+            ui.separator();
+            
+            // Right panel - Properties (placeholder for now)
+            ui.vertical(|ui| {
+                ui.set_width(300.0);
+                ui.heading("Properties");
+                ui.separator();
+                
+                if let Some(idx) = self.state.selected_sprite {
+                    if let Some(sprite) = self.state.metadata.sprites.get(idx) {
+                        ui.label(format!("Name: {}", sprite.name));
+                        ui.label(format!("X: {}", sprite.x));
+                        ui.label(format!("Y: {}", sprite.y));
+                        ui.label(format!("Width: {}", sprite.width));
+                        ui.label(format!("Height: {}", sprite.height));
+                    }
+                } else {
+                    ui.label("No sprite selected");
+                }
+            });
+        });
+        
+        // Status bar
+        ui.separator();
+        ui.horizontal(|ui| {
+            ui.label(format!("Sprites: {}", self.state.metadata.sprites.len()));
+            ui.separator();
+            ui.label(format!(
+                "Texture: {}x{}",
+                self.state.metadata.texture_width,
+                self.state.metadata.texture_height
+            ));
+        });
+    }
 }
 
 #[cfg(test)]
@@ -284,3 +560,99 @@ mod tests {
         cleanup_test_file(&test_path);
     }
 }
+
+    #[test]
+    fn test_sprite_editor_state_creation() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let state = SpriteEditorState::new(texture_path.clone());
+        
+        assert_eq!(state.texture_path, texture_path);
+        assert_eq!(state.metadata_path, PathBuf::from("test_texture.sprite"));
+        assert_eq!(state.zoom, 1.0);
+        assert_eq!(state.pan_offset, (0.0, 0.0));
+        assert!(state.selected_sprite.is_none());
+        assert!(state.hovered_sprite.is_none());
+        assert!(!state.is_drawing);
+        assert!(state.undo_stack.is_empty());
+        assert!(state.redo_stack.is_empty());
+    }
+
+    #[test]
+    fn test_sprite_editor_window_creation() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let window = SpriteEditorWindow::new(texture_path.clone());
+        
+        assert!(window.is_open);
+        assert_eq!(window.state.texture_path, texture_path);
+    }
+
+    #[test]
+    fn test_undo_redo_stack_management() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut state = SpriteEditorState::new(texture_path);
+        
+        // Initial state
+        assert_eq!(state.metadata.sprites.len(), 0);
+        
+        // Add a sprite and push to undo
+        state.metadata.add_sprite(SpriteDefinition::new("sprite_0".to_string(), 0, 0, 32, 32));
+        state.push_undo();
+        
+        // Add another sprite
+        state.metadata.add_sprite(SpriteDefinition::new("sprite_1".to_string(), 32, 0, 32, 32));
+        assert_eq!(state.metadata.sprites.len(), 2);
+        
+        // Undo should restore to 1 sprite
+        state.undo();
+        assert_eq!(state.metadata.sprites.len(), 1);
+        assert_eq!(state.redo_stack.len(), 1);
+        
+        // Redo should restore to 2 sprites
+        state.redo();
+        assert_eq!(state.metadata.sprites.len(), 2);
+        assert_eq!(state.redo_stack.len(), 0);
+    }
+
+    #[test]
+    fn test_undo_stack_limit() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut state = SpriteEditorState::new(texture_path);
+        
+        // Push 60 states (more than the 50 limit)
+        for i in 0..60 {
+            state.metadata.add_sprite(SpriteDefinition::new(
+                format!("sprite_{}", i),
+                i as u32 * 32,
+                0,
+                32,
+                32
+            ));
+            state.push_undo();
+        }
+        
+        // Stack should be limited to 50
+        assert_eq!(state.undo_stack.len(), 50);
+    }
+
+    #[test]
+    fn test_new_action_clears_redo_stack() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut state = SpriteEditorState::new(texture_path);
+        
+        // Add sprite and push to undo
+        state.metadata.add_sprite(SpriteDefinition::new("sprite_0".to_string(), 0, 0, 32, 32));
+        state.push_undo();
+        
+        // Add another sprite
+        state.metadata.add_sprite(SpriteDefinition::new("sprite_1".to_string(), 32, 0, 32, 32));
+        state.push_undo();
+        
+        // Undo once
+        state.undo();
+        assert_eq!(state.redo_stack.len(), 1);
+        
+        // New action should clear redo stack
+        state.metadata.add_sprite(SpriteDefinition::new("sprite_2".to_string(), 64, 0, 32, 32));
+        state.push_undo();
+        assert_eq!(state.redo_stack.len(), 0);
+    }
