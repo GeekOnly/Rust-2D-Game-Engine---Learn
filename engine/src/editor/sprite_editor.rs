@@ -1606,6 +1606,9 @@ impl SpriteEditorWindow {
                     }
                 }
                 
+                // Show tooltip for hovered sprite
+                self.render_sprite_tooltip(&response, ui);
+                
                 // Display texture info
                 ui.label(format!(
                     "Texture: {}x{} pixels",
@@ -2126,6 +2129,25 @@ impl SpriteEditorWindow {
                 font_id,
                 egui::Color32::WHITE
             );
+        }
+    }
+    
+    /// Render tooltip for hovered sprite
+    fn render_sprite_tooltip(&self, response: &egui::Response, ui: &mut egui::Ui) {
+        // Only show tooltip if hovering over a sprite
+        if let Some(hovered_idx) = self.state.hovered_sprite {
+            if let Some(sprite) = self.state.metadata.sprites.get(hovered_idx) {
+                // Show tooltip with sprite name when hovering
+                if response.hovered() {
+                    egui::show_tooltip_at_pointer(ui.ctx(), egui::Id::new("sprite_tooltip"), |ui| {
+                        ui.label(
+                            egui::RichText::new(&sprite.name)
+                                .color(egui::Color32::WHITE)
+                                .size(14.0)
+                        );
+                    });
+                }
+            }
         }
     }
 }

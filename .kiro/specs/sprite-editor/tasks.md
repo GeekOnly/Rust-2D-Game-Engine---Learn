@@ -266,7 +266,11 @@
   - **Property 32: Out-of-bounds sprites show error**
   - **Validates: Requirements 9.3, 9.4, 9.5**
 
-- [ ] 14. Implement hover tooltips
+- [x] 14. Implement hover tooltips
+
+
+
+
   - Detect mouse hover over sprite rectangles
   - Display tooltip with sprite name
   - Position tooltip near cursor
