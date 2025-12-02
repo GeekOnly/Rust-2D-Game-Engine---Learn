@@ -14,6 +14,7 @@ use std::collections::HashMap;
 pub enum ComponentType {
     Transform,
     Sprite,
+    SpriteSheet,
     BoxCollider,
     Rigidbody,
     Mesh,
@@ -28,6 +29,7 @@ impl ComponentType {
         vec![
             ComponentType::Transform,
             ComponentType::Sprite,
+            ComponentType::SpriteSheet,
             ComponentType::BoxCollider,
             ComponentType::Rigidbody,
             ComponentType::Mesh,
@@ -42,6 +44,7 @@ impl ComponentType {
         match self {
             ComponentType::Transform => "Transform",
             ComponentType::Sprite => "Sprite Renderer",
+            ComponentType::SpriteSheet => "Sprite Sheet",
             ComponentType::BoxCollider => "Box Collider",
             ComponentType::Rigidbody => "Rigidbody 2D",
             ComponentType::Mesh => "Mesh Renderer",
@@ -103,6 +106,14 @@ impl ComponentManager for World {
                     flip_y: false,
                 });
             }
+            ComponentType::SpriteSheet => {
+                self.sprite_sheets.insert(entity, crate::SpriteSheet::new(
+                    "assets/default.png",
+                    "default",
+                    32,
+                    32,
+                ));
+            }
             ComponentType::BoxCollider => {
                 self.colliders.insert(entity, Collider::default());
             }
@@ -156,6 +167,9 @@ impl ComponentManager for World {
             ComponentType::Sprite => {
                 self.sprites.remove(&entity);
             }
+            ComponentType::SpriteSheet => {
+                self.sprite_sheets.remove(&entity);
+            }
             ComponentType::BoxCollider => {
                 self.colliders.remove(&entity);
             }
@@ -184,6 +198,7 @@ impl ComponentManager for World {
         match component_type {
             ComponentType::Transform => self.transforms.contains_key(&entity),
             ComponentType::Sprite => self.sprites.contains_key(&entity),
+            ComponentType::SpriteSheet => self.sprite_sheets.contains_key(&entity),
             ComponentType::BoxCollider => self.colliders.contains_key(&entity),
             ComponentType::Rigidbody => self.rigidbodies.contains_key(&entity) || self.velocities.contains_key(&entity),
             ComponentType::Mesh => self.meshes.contains_key(&entity),

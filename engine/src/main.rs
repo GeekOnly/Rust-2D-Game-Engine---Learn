@@ -1074,6 +1074,7 @@ fn main() -> Result<()> {
                                         &mut editor_state.drag_drop,
                                         &mut editor_state.layout_request,
                                         &mut editor_state.texture_manager,
+                                        &mut editor_state.open_sprite_editor_request,
                                     );
                                 }
 

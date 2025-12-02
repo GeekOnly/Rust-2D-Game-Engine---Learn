@@ -312,7 +312,12 @@
   - **Property 23: Drag-drop creates entity with sprite**
   - **Validates: Requirements 7.2**
 
-- [ ] 17. Update sprite rendering to use sprite regions
+- [x] 17. Update sprite rendering to use sprite regions
+
+
+
+
+
   - Modify renderer to load .sprite metadata
   - Calculate UV coordinates from sprite definition
   - Render only sprite region from texture
@@ -323,7 +328,11 @@
   - **Property 24: Entity renders only sprite region**
   - **Validates: Requirements 7.3**
 
-- [ ] 18. Update inspector to show sprite info
+- [x] 18. Update inspector to show sprite info
+
+
+
+
   - Display sprite name in SpriteSheet component
   - Display source texture path
   - Add "Edit Sprite Sheet" button

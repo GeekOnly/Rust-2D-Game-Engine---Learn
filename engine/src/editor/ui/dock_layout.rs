@@ -89,6 +89,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                     self.context.entity_names,
                     self.context.edit_script_request,
                     self.context.project_path,
+                    self.context.open_sprite_editor_request,
                 );
             }
             EditorTab::Scene => {

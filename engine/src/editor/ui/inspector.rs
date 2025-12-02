@@ -11,6 +11,7 @@ pub fn render_inspector(
     entity_names: &mut HashMap<Entity, String>,
     edit_script_request: &mut Option<String>,
     project_path: &Option<std::path::PathBuf>,
+    open_sprite_editor_request: &mut Option<std::path::PathBuf>,
 ) {
     // Unity-style header
     ui.horizontal(|ui| {
@@ -355,6 +356,93 @@ pub fn render_inspector(
                 
                 if remove_sprite {
                     let _ = world.remove_component(entity, ComponentType::Sprite);
+                }
+
+                // SpriteSheet Component (Unity-style collapsible)
+                let has_sprite_sheet = world.has_component(entity, ComponentType::SpriteSheet);
+                let mut remove_sprite_sheet = false;
+                
+                if has_sprite_sheet {
+                    let sprite_sheet_id = ui.make_persistent_id("sprite_sheet_component");
+                    let is_open = egui::collapsing_header::CollapsingState::load_with_default_open(
+                        ui.ctx(), sprite_sheet_id, true
+                    );
+                    
+                    render_component_header(ui, "Sprite Sheet", "🎞", false);
+                    
+                    if is_open.is_open() {
+                        if let Some(sprite_sheet) = world.sprite_sheets.get_mut(&entity) {
+                            ui.indent("sprite_sheet_indent", |ui| {
+                                egui::Grid::new("sprite_sheet_grid")
+                                    .num_columns(2)
+                                    .spacing([10.0, 8.0])
+                                    .show(ui, |ui| {
+                                        // Sprite name display
+                                        ui.label("Sprite Name");
+                                        if !sprite_sheet.frames.is_empty() {
+                                            // Show first frame name or "Multiple frames"
+                                            let display_name = if sprite_sheet.frames.len() == 1 {
+                                                sprite_sheet.frames[0].name.as_ref()
+                                                    .map(|n| n.as_str())
+                                                    .unwrap_or("Unnamed")
+                                            } else {
+                                                "Multiple frames"
+                                            };
+                                            ui.label(egui::RichText::new(display_name).strong());
+                                        } else {
+                                            ui.label(egui::RichText::new("No sprites").color(egui::Color32::GRAY));
+                                        }
+                                        ui.end_row();
+                                        
+                                        // Source texture path
+                                        ui.label("Texture Path");
+                                        ui.label(&sprite_sheet.texture_path);
+                                        ui.end_row();
+                                        
+                                        // Texture dimensions
+                                        ui.label("Texture Size");
+                                        ui.label(format!("{}x{}", sprite_sheet.sheet_width, sprite_sheet.sheet_height));
+                                        ui.end_row();
+                                        
+                                        // Frame count
+                                        ui.label("Frame Count");
+                                        ui.label(format!("{}", sprite_sheet.frames.len()));
+                                        ui.end_row();
+                                    });
+                                
+                                ui.add_space(5.0);
+                                
+                                // Info message
+                                ui.label(egui::RichText::new("💡 Edit sprite definitions in the Sprite Editor")
+                                    .small()
+                                    .color(egui::Color32::from_rgb(150, 150, 150)));
+                                
+                                ui.add_space(5.0);
+                                ui.horizontal(|ui| {
+                                    if ui.button("⚙️").on_hover_text("Component Settings").clicked() {
+                                        // Component menu
+                                    }
+                                    
+                                    // Edit Sprite Sheet button - opens sprite editor
+                                    if ui.button("🎨 Edit Sprite Sheet").clicked() {
+                                        // Request to open sprite editor for this texture
+                                        let texture_path = std::path::PathBuf::from(&sprite_sheet.texture_path);
+                                        *open_sprite_editor_request = Some(texture_path);
+                                        log::info!("Requested to open sprite editor for: {}", sprite_sheet.texture_path);
+                                    }
+                                    
+                                    if ui.button("❌ Remove Component").clicked() {
+                                        remove_sprite_sheet = true;
+                                    }
+                                });
+                            });
+                        }
+                        ui.add_space(10.0);
+                    }
+                }
+                
+                if remove_sprite_sheet {
+                    let _ = world.remove_component(entity, ComponentType::SpriteSheet);
                 }
 
                 // Collider Component (Unity-style)

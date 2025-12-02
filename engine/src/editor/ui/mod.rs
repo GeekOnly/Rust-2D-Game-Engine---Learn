@@ -65,6 +65,7 @@ impl EditorUI {
         drag_drop: &mut crate::editor::DragDropState,
         _layout_request: &mut Option<String>,
         texture_manager: &mut crate::texture_manager::TextureManager,
+        open_sprite_editor_request: &mut Option<std::path::PathBuf>,
     ) {
         // Top Menu Bar
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
@@ -118,6 +119,7 @@ impl EditorUI {
                 entity_names,
                 edit_script_request,
                 project_path,
+                open_sprite_editor_request,
             );
         });
 
