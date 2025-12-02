@@ -7,6 +7,7 @@ use serde::{Serialize, Deserialize};
 pub enum AssetType {
     Scene,
     Sprite,
+    SpriteSheet,  // .sprite files
     Script,
     Prefab,
     Audio,
@@ -20,6 +21,7 @@ impl AssetType {
         match ext.to_lowercase().as_str() {
             "json" => Self::Scene,
             "png" | "jpg" | "jpeg" | "bmp" | "gif" => Self::Sprite,
+            "sprite" => Self::SpriteSheet,
             "lua" => Self::Script,
             "prefab" => Self::Prefab,
             "wav" | "mp3" | "ogg" => Self::Audio,
@@ -32,6 +34,7 @@ impl AssetType {
         match self {
             Self::Scene => "🎬",
             Self::Sprite => "🖼️",
+            Self::SpriteSheet => "🎨",
             Self::Script => "📜",
             Self::Prefab => "📦",
             Self::Audio => "🔊",
@@ -45,6 +48,7 @@ impl AssetType {
         match self {
             Self::Scene => [100, 150, 255],    // Blue
             Self::Sprite => [255, 150, 100],   // Orange
+            Self::SpriteSheet => [255, 100, 200], // Pink/Magenta
             Self::Script => [150, 255, 150],   // Green
             Self::Prefab => [255, 200, 100],   // Yellow
             Self::Audio => [200, 100, 255],    // Purple

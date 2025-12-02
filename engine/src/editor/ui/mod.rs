@@ -274,6 +274,7 @@ impl EditorUI {
         projection_mode: &mut scene_view::ProjectionMode,
         transform_space: &mut scene_view::TransformSpace,
         texture_manager: &mut crate::texture_manager::TextureManager,
+        open_sprite_editor_request: &mut Option<std::path::PathBuf>,
     ) {
         // Handle layout change request (will be processed by caller)
         // Layout changes are handled in main.rs to access EditorState
@@ -332,6 +333,7 @@ impl EditorUI {
                 projection_mode,
                 transform_space,
                 texture_manager,
+                open_sprite_editor_request,
             };
 
             let mut tab_viewer = EditorTabViewer {

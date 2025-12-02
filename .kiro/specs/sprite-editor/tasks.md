@@ -281,7 +281,11 @@
   - **Property 20: Hover shows tooltip**
   - **Validates: Requirements 6.3**
 
-- [ ] 15. Integrate with asset browser
+- [x] 15. Integrate with asset browser
+
+
+
+
   - Add "Open in Sprite Editor" to PNG context menu
   - Handle menu selection to open sprite editor window
   - Display .sprite files with sprite icon in asset browser

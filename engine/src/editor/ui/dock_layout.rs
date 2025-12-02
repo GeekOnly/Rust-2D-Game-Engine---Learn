@@ -43,6 +43,7 @@ pub struct TabContext<'a> {
     pub projection_mode: &'a mut scene_view::ProjectionMode,
     pub transform_space: &'a mut scene_view::TransformSpace,
     pub texture_manager: &'a mut crate::texture_manager::TextureManager,
+    pub open_sprite_editor_request: &'a mut Option<std::path::PathBuf>,
 }
 
 /// Tab viewer implementation for egui_dock
@@ -123,11 +124,17 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
             }
             EditorTab::Project => {
                 if let Some(ref mut manager) = self.context.asset_manager {
-                    asset_browser::AssetBrowser::render(
+                    if let Some(action) = asset_browser::AssetBrowser::render(
                         ui,
                         manager,
                         self.context.drag_drop,
-                    );
+                    ) {
+                        match action {
+                            asset_browser::AssetBrowserAction::OpenSpriteEditor(path) => {
+                                *self.context.open_sprite_editor_request = Some(path);
+                            }
+                        }
+                    }
                 } else {
                     ui.label("No project open");
                 }

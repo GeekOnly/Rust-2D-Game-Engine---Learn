@@ -2,6 +2,7 @@
 use egui::{Color32, Rect, Response, Sense, Stroke, Vec2};
 use crate::editor::asset_manager::{AssetManager, AssetMetadata, AssetType, ViewMode, SortMode};
 use crate::editor::{UnityTheme, DragDropState, DraggedAsset};
+use std::path::PathBuf;
 
 pub struct AssetBrowser;
 
@@ -11,7 +12,8 @@ impl AssetBrowser {
         ui: &mut egui::Ui,
         asset_manager: &mut AssetManager,
         drag_drop: &mut DragDropState,
-    ) {
+    ) -> Option<AssetBrowserAction> {
+        let mut action = None;
         let colors = UnityTheme::colors();
         
         // Toolbar (above both columns)
@@ -100,14 +102,20 @@ impl AssetBrowser {
             
             match asset_manager.view_mode {
                 ViewMode::Grid => {
-                    Self::render_grid_view(ui, asset_manager, &assets, colors, drag_drop);
+                    if let Some(a) = Self::render_grid_view(ui, asset_manager, &assets, colors, drag_drop) {
+                        action = Some(a);
+                    }
                 }
                 ViewMode::List => {
-                    Self::render_list_view(ui, asset_manager, &assets, colors, drag_drop);
+                    if let Some(a) = Self::render_list_view(ui, asset_manager, &assets, colors, drag_drop) {
+                        action = Some(a);
+                    }
                 }
             }
                 });
         });
+        
+        action
     }
     
     /// Render folder tree (Unity-like hierarchy)
@@ -197,7 +205,8 @@ impl AssetBrowser {
         assets: &[AssetMetadata],
         colors: crate::editor::theme::UnityColors,
         drag_drop: &mut DragDropState,
-    ) {
+    ) -> Option<AssetBrowserAction> {
+        let mut action = None;
         let thumbnail_size = asset_manager.thumbnail_size;
         let spacing = 10.0;
         let item_width = thumbnail_size + spacing;
@@ -207,10 +216,14 @@ impl AssetBrowser {
         for row_assets in assets.chunks(columns) {
             ui.horizontal(|ui| {
                 for asset in row_assets {
-                    Self::render_grid_item(ui, asset_manager, asset, thumbnail_size, colors, drag_drop);
+                    if let Some(a) = Self::render_grid_item(ui, asset_manager, asset, thumbnail_size, colors, drag_drop) {
+                        action = Some(a);
+                    }
                 }
             });
         }
+        
+        action
     }
     
     /// Render single grid item
@@ -221,7 +234,8 @@ impl AssetBrowser {
         size: f32,
         colors: crate::editor::theme::UnityColors,
         drag_drop: &mut DragDropState,
-    ) {
+    ) -> Option<AssetBrowserAction> {
+        let mut action = None;
         let (rect, response) = ui.allocate_exact_size(
             Vec2::new(size, size + 30.0),
             Sense::click(),
@@ -313,7 +327,9 @@ impl AssetBrowser {
             
             // Context menu
             response.context_menu(|ui| {
-                Self::render_context_menu(ui, asset_manager, asset);
+                if let Some(a) = Self::render_context_menu(ui, asset_manager, asset) {
+                    action = Some(a);
+                }
             });
             
             // Double click to open
@@ -324,6 +340,8 @@ impl AssetBrowser {
                 // TODO: Open asset in appropriate editor
             }
         }
+        
+        action
     }
     
     /// Render list view
@@ -333,7 +351,8 @@ impl AssetBrowser {
         assets: &[AssetMetadata],
         _colors: crate::editor::theme::UnityColors,
         drag_drop: &mut DragDropState,
-    ) {
+    ) -> Option<AssetBrowserAction> {
+        let mut action = None;
         // Header
         ui.horizontal(|ui| {
             ui.label("Name");
@@ -422,7 +441,9 @@ impl AssetBrowser {
             
             // Context menu
             response.context_menu(|ui| {
-                Self::render_context_menu(ui, asset_manager, asset);
+                if let Some(a) = Self::render_context_menu(ui, asset_manager, asset) {
+                    action = Some(a);
+                }
             });
             
             // Double click
@@ -432,6 +453,8 @@ impl AssetBrowser {
                 }
             }
         }
+        
+        action
     }
     
     /// Render context menu
@@ -439,7 +462,9 @@ impl AssetBrowser {
         ui: &mut egui::Ui,
         asset_manager: &mut AssetManager,
         asset: &AssetMetadata,
-    ) {
+    ) -> Option<AssetBrowserAction> {
+        let mut action = None;
+        
         ui.label(format!("📝 {}", asset.name));
         ui.separator();
         
@@ -448,6 +473,28 @@ impl AssetBrowser {
                 // TODO: Open asset
                 ui.close_menu();
             }
+            
+            // Add "Open in Sprite Editor" for PNG files
+            if asset.asset_type == AssetType::Sprite {
+                if ui.button("🎨 Open in Sprite Editor").clicked() {
+                    action = Some(AssetBrowserAction::OpenSpriteEditor(asset.path.clone()));
+                    ui.close_menu();
+                }
+            }
+            
+            // Add "Edit Sprite Sheet" for .sprite files
+            if asset.asset_type == AssetType::SpriteSheet {
+                if ui.button("✏ Edit Sprite Sheet").clicked() {
+                    // Load the .sprite file to get the texture path
+                    if let Ok(metadata) = crate::editor::sprite_editor::SpriteMetadata::load(&asset.path) {
+                        // Get the texture path (relative to project)
+                        let texture_path = std::path::PathBuf::from(&metadata.texture_path);
+                        action = Some(AssetBrowserAction::OpenSpriteEditor(texture_path));
+                    }
+                    ui.close_menu();
+                }
+            }
+            
             ui.separator();
         }
         
@@ -486,5 +533,13 @@ impl AssetBrowser {
             // TODO: Delete with confirmation
             ui.close_menu();
         }
+        
+        action
     }
+}
+
+/// Actions that can be triggered from the asset browser
+#[derive(Debug, Clone)]
+pub enum AssetBrowserAction {
+    OpenSpriteEditor(PathBuf),
 }

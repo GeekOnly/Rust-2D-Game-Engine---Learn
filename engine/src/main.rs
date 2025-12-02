@@ -1041,6 +1041,7 @@ fn main() -> Result<()> {
                                         &mut editor_state.projection_mode,
                                         &mut editor_state.transform_space,
                                         &mut editor_state.texture_manager,
+                                        &mut editor_state.open_sprite_editor_request,
                                     );
                                 } else {
                                     EditorUI::render_editor(
@@ -1396,6 +1397,26 @@ fn main() -> Result<()> {
                                             });
                                         });
                                 }
+                                
+                                // Handle sprite editor open request
+                                if let Some(texture_path) = editor_state.open_sprite_editor_request.take() {
+                                    // Check if a sprite editor for this texture is already open
+                                    let already_open = editor_state.sprite_editor_windows.iter()
+                                        .any(|w| w.state.texture_path == texture_path);
+                                    
+                                    if !already_open {
+                                        // Create new sprite editor window
+                                        let window = crate::editor::SpriteEditorWindow::new(texture_path.clone());
+                                        editor_state.sprite_editor_windows.push(window);
+                                        editor_state.console.info(format!("Opened sprite editor for: {}", texture_path.display()));
+                                    }
+                                }
+                                
+                                // Render all open sprite editor windows
+                                editor_state.sprite_editor_windows.retain_mut(|window| {
+                                    window.render(&egui_ctx, &mut editor_state.texture_manager);
+                                    window.is_open
+                                });
 
                                 // Handle play request - enter play mode in editor
                                 if play_request {
