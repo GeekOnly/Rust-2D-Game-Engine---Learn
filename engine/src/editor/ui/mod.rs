@@ -153,6 +153,7 @@ impl EditorUI {
                 &mut dummy_projection_mode,
                 &mut dummy_transform_space,
                 texture_manager,
+                drag_drop,
             );
         });
 

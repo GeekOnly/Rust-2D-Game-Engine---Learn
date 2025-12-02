@@ -112,6 +112,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                     self.context.projection_mode,
                     self.context.transform_space,
                     self.context.texture_manager,
+                    self.context.drag_drop,
                 );
             }
             EditorTab::Game => {

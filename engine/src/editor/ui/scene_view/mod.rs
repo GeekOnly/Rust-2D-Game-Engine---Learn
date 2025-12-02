@@ -22,7 +22,7 @@ pub use types::*;
 use ecs::{World, Entity};
 use egui;
 use crate::editor::ui::TransformTool;
-use crate::editor::{SceneCamera, SceneGrid};
+use crate::editor::{SceneCamera, SceneGrid, DragDropState};
 
 /// Main scene view render function
 /// 
@@ -47,6 +47,7 @@ pub fn render_scene_view(
     projection_mode: &mut ProjectionMode,
     transform_space: &mut TransformSpace,
     texture_manager: &mut crate::texture_manager::TextureManager,
+    drag_drop: &mut DragDropState,
 ) {
     // Track previous mode to detect changes
     let previous_mode = *scene_view_mode;
@@ -268,6 +269,104 @@ pub fn render_scene_view(
     if !response.dragged() {
         *dragging_entity = None;
         *drag_axis = None;
+    }
+    
+    // Handle drag-drop from asset browser
+    if drag_drop.is_dragging() {
+        // Update drop position
+        if let Some(hover_pos) = response.hover_pos() {
+            drag_drop.set_drop_position(hover_pos);
+        }
+        
+        // Handle drop
+        if response.drag_released() {
+            if let Some(asset) = drag_drop.get_dragged_asset() {
+                // Check if it's a sprite file
+                if asset.path.extension().and_then(|s| s.to_str()) == Some("sprite") {
+                    // Load sprite metadata
+                    if let Ok(metadata) = crate::editor::sprite_editor::SpriteMetadata::load(&asset.path) {
+                        // Get drop position in world coordinates
+                        if let Some(screen_pos) = drag_drop.drop_position {
+                            let center = rect.center();
+                            let relative_x = screen_pos.x - center.x;
+                            let relative_y = screen_pos.y - center.y;
+                            let world_pos = scene_camera.screen_to_world(glam::Vec2::new(relative_x, relative_y));
+                            
+                            // Create entity with sprite
+                            let entity = world.spawn();
+                            
+                            // Add Transform component
+                            world.transforms.insert(entity, ecs::Transform {
+                                position: [world_pos.x, world_pos.y, 0.0],
+                                rotation: [0.0, 0.0, 0.0],
+                                scale: [1.0, 1.0, 1.0],
+                            });
+                            
+                            // Add name
+                            let entity_name = if !metadata.sprites.is_empty() {
+                                format!("{} ({})", asset.name, metadata.sprites[0].name)
+                            } else {
+                                asset.name.clone()
+                            };
+                            world.names.insert(entity, entity_name);
+                            
+                            // Add Sprite component (for rendering)
+                            if let Some(first_sprite) = metadata.sprites.first() {
+                                world.sprites.insert(entity, ecs::Sprite {
+                                    texture_id: metadata.texture_path.clone(),
+                                    width: first_sprite.width as f32,
+                                    height: first_sprite.height as f32,
+                                    color: [1.0, 1.0, 1.0, 1.0],
+                                    billboard: false,
+                                    flip_x: false,
+                                    flip_y: false,
+                                });
+                            }
+                            
+                            // Add SpriteSheet component
+                            let mut sprite_sheet = ecs::SpriteSheet::new(
+                                metadata.texture_path.clone(),
+                                metadata.texture_path.clone(),
+                                metadata.texture_width,
+                                metadata.texture_height,
+                            );
+                            
+                            // Add all sprite frames
+                            for sprite_def in &metadata.sprites {
+                                sprite_sheet.add_frame(ecs::SpriteFrame {
+                                    x: sprite_def.x,
+                                    y: sprite_def.y,
+                                    width: sprite_def.width,
+                                    height: sprite_def.height,
+                                    name: Some(sprite_def.name.clone()),
+                                });
+                            }
+                            
+                            world.sprite_sheets.insert(entity, sprite_sheet);
+                            
+                            // Add AnimatedSprite component (default to first frame, not playing)
+                            let mut animated_sprite = ecs::AnimatedSprite::new(
+                                metadata.texture_path.clone(),
+                                0.1, // 10 FPS default
+                            );
+                            animated_sprite.current_frame = 0;
+                            animated_sprite.playing = false; // Don't auto-play
+                            world.animated_sprites.insert(entity, animated_sprite);
+                            
+                            // Select the newly created entity
+                            *selected_entity = Some(entity);
+                            
+                            log::info!("Created sprite entity from {}", asset.name);
+                        }
+                    } else {
+                        log::error!("Failed to load sprite metadata from {:?}", asset.path);
+                    }
+                }
+                
+                // Stop drag
+                drag_drop.stop_drag();
+            }
+        }
     }
     
     // Camera controls overlay (bottom-left corner)

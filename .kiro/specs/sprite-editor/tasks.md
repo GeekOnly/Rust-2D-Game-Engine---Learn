@@ -297,7 +297,11 @@
   - **Property 22: Sprite files list in asset browser**
   - **Validates: Requirements 7.1**
 
-- [ ] 16. Implement drag-drop sprites to scene
+- [x] 16. Implement drag-drop sprites to scene
+
+
+
+
   - Handle drag start from asset browser
   - Handle drop onto scene view
   - Create entity with Transform, Sprite, SpriteSheet, AnimatedSprite components
