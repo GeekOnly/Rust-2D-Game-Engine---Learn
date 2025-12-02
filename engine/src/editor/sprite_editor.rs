@@ -142,6 +142,81 @@ pub enum ResizeHandle {
     BottomRight,
 }
 
+/// Statistics and validation results for sprite sheet
+#[derive(Debug, Clone, Default)]
+pub struct SpriteStatistics {
+    pub sprite_count: usize,
+    pub texture_coverage_percent: f32,
+    pub overlapping_sprites: Vec<(usize, usize)>,
+    pub out_of_bounds_sprites: Vec<usize>,
+}
+
+impl SpriteStatistics {
+    /// Calculate statistics for a sprite metadata
+    pub fn calculate(metadata: &SpriteMetadata) -> Self {
+        let sprite_count = metadata.sprites.len();
+        
+        // Calculate texture coverage
+        let texture_area = (metadata.texture_width * metadata.texture_height) as f32;
+        let total_sprite_area: u32 = metadata.sprites.iter()
+            .map(|s| s.width * s.height)
+            .sum();
+        let texture_coverage_percent = if texture_area > 0.0 {
+            (total_sprite_area as f32 / texture_area) * 100.0
+        } else {
+            0.0
+        };
+        
+        // Detect overlapping sprites
+        let mut overlapping_sprites = Vec::new();
+        for i in 0..metadata.sprites.len() {
+            for j in (i + 1)..metadata.sprites.len() {
+                if Self::sprites_overlap(&metadata.sprites[i], &metadata.sprites[j]) {
+                    overlapping_sprites.push((i, j));
+                }
+            }
+        }
+        
+        // Detect out-of-bounds sprites
+        let mut out_of_bounds_sprites = Vec::new();
+        for (idx, sprite) in metadata.sprites.iter().enumerate() {
+            if sprite.x + sprite.width > metadata.texture_width
+                || sprite.y + sprite.height > metadata.texture_height
+            {
+                out_of_bounds_sprites.push(idx);
+            }
+        }
+        
+        Self {
+            sprite_count,
+            texture_coverage_percent,
+            overlapping_sprites,
+            out_of_bounds_sprites,
+        }
+    }
+    
+    /// Check if two sprites overlap
+    fn sprites_overlap(sprite1: &SpriteDefinition, sprite2: &SpriteDefinition) -> bool {
+        let s1_left = sprite1.x;
+        let s1_right = sprite1.x + sprite1.width;
+        let s1_top = sprite1.y;
+        let s1_bottom = sprite1.y + sprite1.height;
+        
+        let s2_left = sprite2.x;
+        let s2_right = sprite2.x + sprite2.width;
+        let s2_top = sprite2.y;
+        let s2_bottom = sprite2.y + sprite2.height;
+        
+        // Check if rectangles overlap
+        !(s1_right <= s2_left || s2_right <= s1_left || s1_bottom <= s2_top || s2_bottom <= s1_top)
+    }
+    
+    /// Check if there are any warnings or errors
+    pub fn has_issues(&self) -> bool {
+        !self.overlapping_sprites.is_empty() || !self.out_of_bounds_sprites.is_empty()
+    }
+}
+
 /// Auto-slicer for grid-based sprite slicing
 pub struct AutoSlicer;
 
@@ -432,6 +507,8 @@ pub struct SpriteEditorWindow {
     auto_slice_mode: AutoSliceMode,
     auto_slice_cell_width: u32,
     auto_slice_cell_height: u32,
+    /// Sprite statistics and validation
+    statistics: SpriteStatistics,
 }
 
 /// Auto-slice mode
@@ -444,8 +521,11 @@ enum AutoSliceMode {
 impl SpriteEditorWindow {
     /// Create a new sprite editor window
     pub fn new(texture_path: PathBuf) -> Self {
+        let state = SpriteEditorState::new(texture_path);
+        let statistics = SpriteStatistics::calculate(&state.metadata);
+        
         Self {
-            state: SpriteEditorState::new(texture_path),
+            state,
             is_open: true,
             name_edit_buffer: String::new(),
             duplicate_name_error: false,
@@ -457,7 +537,13 @@ impl SpriteEditorWindow {
             auto_slice_mode: AutoSliceMode::Grid,
             auto_slice_cell_width: 32,
             auto_slice_cell_height: 32,
+            statistics,
         }
+    }
+    
+    /// Update statistics based on current metadata
+    fn update_statistics(&mut self) {
+        self.statistics = SpriteStatistics::calculate(&self.state.metadata);
     }
     
     /// Render the sprite editor window
@@ -515,11 +601,13 @@ impl SpriteEditorWindow {
             // Handle Ctrl+Z to undo
             if i.modifiers.ctrl && i.key_pressed(egui::Key::Z) {
                 self.state.undo();
+                self.update_statistics();
             }
             
             // Handle Ctrl+Y to redo
             if i.modifiers.ctrl && i.key_pressed(egui::Key::Y) {
                 self.state.redo();
+                self.update_statistics();
             }
             
             // Handle Escape to deselect
@@ -545,6 +633,9 @@ impl SpriteEditorWindow {
             
             // Clear selection
             self.state.selected_sprite = None;
+            
+            // Update statistics
+            self.update_statistics();
             
             log::info!("Deleted sprite at index {}", selected_idx);
         }
@@ -705,26 +796,62 @@ impl SpriteEditorWindow {
             
             ui.separator();
             
-            // Right panel - Properties
+            // Right panel - Properties and Statistics
             ui.vertical(|ui| {
                 ui.set_width(300.0);
                 ui.heading("Properties");
                 ui.separator();
                 
                 self.render_properties_panel(ui);
+                
+                ui.add_space(10.0);
+                ui.separator();
+                ui.add_space(10.0);
+                
+                ui.heading("Statistics");
+                ui.separator();
+                
+                self.render_statistics_panel(ui);
             });
         });
         
-        // Status bar
+        // Status bar with statistics
         ui.separator();
         ui.horizontal(|ui| {
-            ui.label(format!("Sprites: {}", self.state.metadata.sprites.len()));
+            // Sprite count
+            ui.label(format!("Sprites: {}", self.statistics.sprite_count));
             ui.separator();
+            
+            // Texture dimensions
             ui.label(format!(
                 "Texture: {}x{}",
                 self.state.metadata.texture_width,
                 self.state.metadata.texture_height
             ));
+            ui.separator();
+            
+            // Coverage percentage
+            ui.label(format!(
+                "Coverage: {:.1}%",
+                self.statistics.texture_coverage_percent
+            ));
+            
+            // Warnings and errors
+            if !self.statistics.overlapping_sprites.is_empty() {
+                ui.separator();
+                ui.colored_label(
+                    egui::Color32::from_rgb(255, 200, 100),
+                    format!("⚠ {} overlapping", self.statistics.overlapping_sprites.len())
+                );
+            }
+            
+            if !self.statistics.out_of_bounds_sprites.is_empty() {
+                ui.separator();
+                ui.colored_label(
+                    egui::Color32::from_rgb(255, 100, 100),
+                    format!("❌ {} out of bounds", self.statistics.out_of_bounds_sprites.len())
+                );
+            }
         });
     }
     
@@ -928,6 +1055,9 @@ impl SpriteEditorWindow {
         // Clear selection
         self.state.selected_sprite = None;
         
+        // Update statistics
+        self.update_statistics();
+        
         log::info!("Auto-slice created {} sprites", self.state.metadata.sprites.len());
     }
     
@@ -1116,6 +1246,8 @@ impl SpriteEditorWindow {
                     if !is_duplicate && !self.name_edit_buffer.trim().is_empty() {
                         if let Some(sprite_mut) = self.state.metadata.sprites.get_mut(idx) {
                             sprite_mut.name = self.name_edit_buffer.clone();
+                            // Note: Name changes don't affect statistics (coverage, overlaps, bounds)
+                            // so we don't need to update statistics here
                         }
                     }
                 }
@@ -1217,6 +1349,177 @@ impl SpriteEditorWindow {
             ui.label("No sprite selected");
             ui.add_space(10.0);
             ui.label("Select a sprite from the canvas or sprite list to view and edit its properties.");
+        }
+    }
+    
+    /// Render the statistics panel showing validation and metrics
+    fn render_statistics_panel(&self, ui: &mut egui::Ui) {
+        // Texture dimensions
+        ui.label("Texture Dimensions:");
+        ui.label(format!(
+            "{}×{} pixels",
+            self.state.metadata.texture_width,
+            self.state.metadata.texture_height
+        ));
+        
+        ui.add_space(10.0);
+        
+        // Sprite count
+        ui.label("Sprite Count:");
+        ui.label(format!("{} sprites", self.statistics.sprite_count));
+        
+        ui.add_space(10.0);
+        
+        // Coverage percentage
+        ui.label("Texture Coverage:");
+        ui.label(format!("{:.2}%", self.statistics.texture_coverage_percent));
+        
+        // Visual coverage bar
+        let coverage_fraction = (self.statistics.texture_coverage_percent / 100.0).min(1.0);
+        let bar_width = ui.available_width();
+        let bar_height = 20.0;
+        
+        let (rect, _) = ui.allocate_exact_size(
+            egui::vec2(bar_width, bar_height),
+            egui::Sense::hover()
+        );
+        
+        // Draw background
+        ui.painter().rect_filled(
+            rect,
+            2.0,
+            egui::Color32::from_rgb(40, 40, 45)
+        );
+        
+        // Draw filled portion
+        let filled_width = bar_width * coverage_fraction;
+        let filled_rect = egui::Rect::from_min_size(
+            rect.min,
+            egui::vec2(filled_width, bar_height)
+        );
+        
+        let coverage_color = if coverage_fraction > 0.9 {
+            egui::Color32::from_rgb(255, 200, 100) // Warning: high coverage
+        } else {
+            egui::Color32::from_rgb(100, 200, 255) // Normal
+        };
+        
+        ui.painter().rect_filled(
+            filled_rect,
+            2.0,
+            coverage_color
+        );
+        
+        // Draw border
+        ui.painter().rect_stroke(
+            rect,
+            2.0,
+            egui::Stroke::new(1.0, egui::Color32::from_rgb(80, 80, 85))
+        );
+        
+        ui.add_space(10.0);
+        
+        // Validation warnings and errors
+        if self.statistics.has_issues() {
+            ui.separator();
+            ui.add_space(5.0);
+            ui.label(
+                egui::RichText::new("Validation Issues:")
+                    .strong()
+                    .color(egui::Color32::from_rgb(255, 200, 100))
+            );
+            ui.add_space(5.0);
+        }
+        
+        // Overlapping sprites warning
+        if !self.statistics.overlapping_sprites.is_empty() {
+            ui.colored_label(
+                egui::Color32::from_rgb(255, 200, 100),
+                format!("⚠ {} overlapping sprite pairs", self.statistics.overlapping_sprites.len())
+            );
+            
+            // Show details in a collapsing section
+            egui::CollapsingHeader::new("Show overlapping pairs")
+                .default_open(false)
+                .show(ui, |ui| {
+                    egui::ScrollArea::vertical()
+                        .max_height(150.0)
+                        .show(ui, |ui| {
+                            for (idx1, idx2) in &self.statistics.overlapping_sprites {
+                                if let (Some(sprite1), Some(sprite2)) = (
+                                    self.state.metadata.sprites.get(*idx1),
+                                    self.state.metadata.sprites.get(*idx2)
+                                ) {
+                                    ui.label(
+                                        egui::RichText::new(format!(
+                                            "• {} ↔ {}",
+                                            sprite1.name,
+                                            sprite2.name
+                                        ))
+                                        .small()
+                                        .color(egui::Color32::LIGHT_GRAY)
+                                    );
+                                }
+                            }
+                        });
+                });
+            
+            ui.add_space(5.0);
+        }
+        
+        // Out-of-bounds sprites error
+        if !self.statistics.out_of_bounds_sprites.is_empty() {
+            ui.colored_label(
+                egui::Color32::from_rgb(255, 100, 100),
+                format!("❌ {} sprites out of bounds", self.statistics.out_of_bounds_sprites.len())
+            );
+            
+            // Show details in a collapsing section
+            egui::CollapsingHeader::new("Show out-of-bounds sprites")
+                .default_open(false)
+                .show(ui, |ui| {
+                    egui::ScrollArea::vertical()
+                        .max_height(150.0)
+                        .show(ui, |ui| {
+                            for idx in &self.statistics.out_of_bounds_sprites {
+                                if let Some(sprite) = self.state.metadata.sprites.get(*idx) {
+                                    let max_x = sprite.x + sprite.width;
+                                    let max_y = sprite.y + sprite.height;
+                                    let texture_w = self.state.metadata.texture_width;
+                                    let texture_h = self.state.metadata.texture_height;
+                                    
+                                    let issue = if max_x > texture_w && max_y > texture_h {
+                                        format!("extends beyond right ({}) and bottom ({})", max_x, max_y)
+                                    } else if max_x > texture_w {
+                                        format!("extends beyond right edge ({})", max_x)
+                                    } else {
+                                        format!("extends beyond bottom edge ({})", max_y)
+                                    };
+                                    
+                                    ui.label(
+                                        egui::RichText::new(format!(
+                                            "• {}: {}",
+                                            sprite.name,
+                                            issue
+                                        ))
+                                        .small()
+                                        .color(egui::Color32::LIGHT_GRAY)
+                                    );
+                                }
+                            }
+                        });
+                });
+            
+            ui.add_space(5.0);
+        }
+        
+        // Show success message if no issues
+        if !self.statistics.has_issues() && self.statistics.sprite_count > 0 {
+            ui.add_space(5.0);
+            ui.colored_label(
+                egui::Color32::from_rgb(100, 255, 100),
+                "✓ No validation issues"
+            );
         }
     }
     
@@ -1479,6 +1782,8 @@ impl SpriteEditorWindow {
                         if let Some(current) = self.state.selected_sprite.and_then(|idx| self.state.metadata.sprites.get(idx)) {
                             if original != current {
                                 self.state.push_undo();
+                                // Update statistics after sprite modification
+                                self.update_statistics();
                             }
                         }
                     }
@@ -1689,6 +1994,9 @@ impl SpriteEditorWindow {
             
             // Select the newly created sprite
             self.state.selected_sprite = Some(self.state.metadata.sprites.len() - 1);
+            
+            // Update statistics
+            self.update_statistics();
         }
     }
     
