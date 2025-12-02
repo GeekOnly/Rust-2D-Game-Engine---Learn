@@ -187,7 +187,19 @@
   - **Property 29: Sprite count is accurate**
   - **Validates: Requirements 9.2**
 
-- [ ] 10. Implement auto-slice functionality
+- [x] 10. Implement auto-slice functionality
+
+
+
+
+
+
+
+
+
+
+
+
   - Create AutoSlicer struct with grid slicing methods
   - Add "Auto Slice" button to toolbar
   - Show dialog with grid options (columns, rows, padding, spacing)
@@ -204,7 +216,10 @@
   - **Property 14: Padding affects sprite positions**
   - **Validates: Requirements 4.2, 4.3, 4.4, 4.5**
 
-- [ ] 11. Implement undo/redo system
+- [x] 11. Implement undo/redo system
+
+
+
   - Handle Ctrl+Z to undo last action
   - Handle Ctrl+Y to redo last undone action
   - Maintain undo stack (limit to 50 actions)
@@ -217,7 +232,13 @@
   - **Property 28: Redo restores undone action**
   - **Validates: Requirements 8.3, 8.4**
 
-- [ ] 12. Implement keyboard shortcuts
+- [x] 12. Implement keyboard shortcuts
+
+
+
+
+
+
   - Handle Ctrl+S to save
   - Handle Delete to remove selected sprite
   - Handle Escape to deselect

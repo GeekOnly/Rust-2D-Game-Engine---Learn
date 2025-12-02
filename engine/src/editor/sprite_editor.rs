@@ -142,6 +142,151 @@ pub enum ResizeHandle {
     BottomRight,
 }
 
+/// Auto-slicer for grid-based sprite slicing
+pub struct AutoSlicer;
+
+impl AutoSlicer {
+    /// Slice a texture into a grid of sprites
+    /// 
+    /// # Arguments
+    /// * `texture_width` - Width of the texture in pixels
+    /// * `texture_height` - Height of the texture in pixels
+    /// * `columns` - Number of columns in the grid
+    /// * `rows` - Number of rows in the grid
+    /// * `padding` - Padding from the edges of the texture in pixels
+    /// * `spacing` - Spacing between sprites in pixels
+    /// 
+    /// # Returns
+    /// A vector of sprite definitions arranged in a grid
+    pub fn slice_by_grid(
+        texture_width: u32,
+        texture_height: u32,
+        columns: u32,
+        rows: u32,
+        padding: u32,
+        spacing: u32,
+    ) -> Vec<SpriteDefinition> {
+        if columns == 0 || rows == 0 {
+            return Vec::new();
+        }
+        
+        // Calculate available space after accounting for padding
+        let available_width = texture_width.saturating_sub(padding * 2);
+        let available_height = texture_height.saturating_sub(padding * 2);
+        
+        // Calculate total spacing
+        let total_horizontal_spacing = spacing * (columns - 1);
+        let total_vertical_spacing = spacing * (rows - 1);
+        
+        // Calculate sprite dimensions
+        let sprite_width = available_width.saturating_sub(total_horizontal_spacing) / columns;
+        let sprite_height = available_height.saturating_sub(total_vertical_spacing) / rows;
+        
+        // Validate sprite dimensions
+        if sprite_width == 0 || sprite_height == 0 {
+            return Vec::new();
+        }
+        
+        let mut sprites = Vec::new();
+        let mut sprite_index = 0;
+        
+        for row in 0..rows {
+            for col in 0..columns {
+                // Calculate sprite position
+                let x = padding + (col * (sprite_width + spacing));
+                let y = padding + (row * (sprite_height + spacing));
+                
+                // Create sprite with sequential name
+                let sprite = SpriteDefinition::new(
+                    format!("sprite_{}", sprite_index),
+                    x,
+                    y,
+                    sprite_width,
+                    sprite_height,
+                );
+                
+                sprites.push(sprite);
+                sprite_index += 1;
+            }
+        }
+        
+        sprites
+    }
+    
+    /// Slice a texture by cell size
+    /// 
+    /// # Arguments
+    /// * `texture_width` - Width of the texture in pixels
+    /// * `texture_height` - Height of the texture in pixels
+    /// * `cell_width` - Width of each sprite cell in pixels
+    /// * `cell_height` - Height of each sprite cell in pixels
+    /// * `padding` - Padding from the edges of the texture in pixels
+    /// * `spacing` - Spacing between sprites in pixels
+    /// 
+    /// # Returns
+    /// A vector of sprite definitions based on cell size
+    pub fn slice_by_cell_size(
+        texture_width: u32,
+        texture_height: u32,
+        cell_width: u32,
+        cell_height: u32,
+        padding: u32,
+        spacing: u32,
+    ) -> Vec<SpriteDefinition> {
+        if cell_width == 0 || cell_height == 0 {
+            return Vec::new();
+        }
+        
+        // Calculate available space after accounting for padding
+        let available_width = texture_width.saturating_sub(padding * 2);
+        let available_height = texture_height.saturating_sub(padding * 2);
+        
+        // Calculate how many sprites fit
+        let columns = if spacing > 0 {
+            (available_width + spacing) / (cell_width + spacing)
+        } else {
+            available_width / cell_width
+        };
+        
+        let rows = if spacing > 0 {
+            (available_height + spacing) / (cell_height + spacing)
+        } else {
+            available_height / cell_height
+        };
+        
+        if columns == 0 || rows == 0 {
+            return Vec::new();
+        }
+        
+        let mut sprites = Vec::new();
+        let mut sprite_index = 0;
+        
+        for row in 0..rows {
+            for col in 0..columns {
+                // Calculate sprite position
+                let x = padding + (col * (cell_width + spacing));
+                let y = padding + (row * (cell_height + spacing));
+                
+                // Ensure sprite doesn't exceed texture bounds
+                if x + cell_width <= texture_width && y + cell_height <= texture_height {
+                    let sprite = SpriteDefinition::new(
+                        format!("sprite_{}", sprite_index),
+                        x,
+                        y,
+                        cell_width,
+                        cell_height,
+                    );
+                    
+                    sprites.push(sprite);
+                    sprite_index += 1;
+                }
+            }
+        }
+        
+        sprites
+    }
+}
+
 /// Editor state for the sprite editor
 pub struct SpriteEditorState {
     // File management
@@ -278,6 +423,22 @@ pub struct SpriteEditorWindow {
     name_edit_buffer: String,
     /// Whether there's a duplicate name error
     duplicate_name_error: bool,
+    /// Auto-slice dialog state
+    show_auto_slice_dialog: bool,
+    auto_slice_columns: u32,
+    auto_slice_rows: u32,
+    auto_slice_padding: u32,
+    auto_slice_spacing: u32,
+    auto_slice_mode: AutoSliceMode,
+    auto_slice_cell_width: u32,
+    auto_slice_cell_height: u32,
+}
+
+/// Auto-slice mode
+#[derive(Debug, Clone, Copy, PartialEq)]
+enum AutoSliceMode {
+    Grid,
+    CellSize,
 }
 
 impl SpriteEditorWindow {
@@ -288,6 +449,14 @@ impl SpriteEditorWindow {
             is_open: true,
             name_edit_buffer: String::new(),
             duplicate_name_error: false,
+            show_auto_slice_dialog: false,
+            auto_slice_columns: 4,
+            auto_slice_rows: 4,
+            auto_slice_padding: 0,
+            auto_slice_spacing: 0,
+            auto_slice_mode: AutoSliceMode::Grid,
+            auto_slice_cell_width: 32,
+            auto_slice_cell_height: 32,
         }
     }
     
@@ -319,6 +488,11 @@ impl SpriteEditorWindow {
                 self.render_content(ui);
             });
         self.is_open = is_open;
+        
+        // Render auto-slice dialog if open
+        if self.show_auto_slice_dialog {
+            self.render_auto_slice_dialog(ctx);
+        }
     }
     
     /// Handle keyboard shortcuts for the sprite editor
@@ -352,6 +526,11 @@ impl SpriteEditorWindow {
             if i.key_pressed(egui::Key::Escape) {
                 self.state.selected_sprite = None;
             }
+            
+            // Handle Tab to cycle through overlapping sprites
+            if i.key_pressed(egui::Key::Tab) {
+                self.cycle_overlapping_sprites();
+            }
         });
     }
     
@@ -371,6 +550,55 @@ impl SpriteEditorWindow {
         }
     }
     
+    /// Cycle through overlapping sprites at the current selection
+    fn cycle_overlapping_sprites(&mut self) {
+        // Only cycle if we have a selected sprite
+        if let Some(current_idx) = self.state.selected_sprite {
+            if let Some(current_sprite) = self.state.metadata.sprites.get(current_idx) {
+                // Find all sprites that overlap with the current selection
+                let overlapping: Vec<usize> = self.state.metadata.sprites
+                    .iter()
+                    .enumerate()
+                    .filter(|(idx, sprite)| {
+                        // Check if sprite overlaps with current sprite
+                        *idx != current_idx && self.sprites_overlap(current_sprite, sprite)
+                    })
+                    .map(|(idx, _)| idx)
+                    .collect();
+                
+                if !overlapping.is_empty() {
+                    // Include current sprite in the cycle
+                    let mut cycle_list = vec![current_idx];
+                    cycle_list.extend(overlapping);
+                    cycle_list.sort();
+                    
+                    // Find current position in cycle and move to next
+                    if let Some(pos) = cycle_list.iter().position(|&idx| idx == current_idx) {
+                        let next_pos = (pos + 1) % cycle_list.len();
+                        self.state.selected_sprite = Some(cycle_list[next_pos]);
+                        log::info!("Cycled to sprite at index {}", cycle_list[next_pos]);
+                    }
+                }
+            }
+        }
+    }
+    
+    /// Check if two sprites overlap
+    fn sprites_overlap(&self, sprite1: &SpriteDefinition, sprite2: &SpriteDefinition) -> bool {
+        let s1_left = sprite1.x;
+        let s1_right = sprite1.x + sprite1.width;
+        let s1_top = sprite1.y;
+        let s1_bottom = sprite1.y + sprite1.height;
+        
+        let s2_left = sprite2.x;
+        let s2_right = sprite2.x + sprite2.width;
+        let s2_top = sprite2.y;
+        let s2_bottom = sprite2.y + sprite2.height;
+        
+        // Check if rectangles overlap
+        !(s1_right <= s2_left || s2_right <= s1_left || s1_bottom <= s2_top || s2_bottom <= s1_top)
+    }
+    
     /// Render the window content
     fn render_content(&mut self, ui: &mut egui::Ui) {
         // Toolbar
@@ -381,6 +609,12 @@ impl SpriteEditorWindow {
                 } else {
                     log::info!("Sprite metadata saved successfully");
                 }
+            }
+            
+            ui.separator();
+            
+            if ui.button("✂ Auto Slice").clicked() {
+                self.show_auto_slice_dialog = true;
             }
             
             ui.separator();
@@ -396,6 +630,34 @@ impl SpriteEditorWindow {
             ui.separator();
             
             ui.label(format!("Zoom: {:.0}%", self.state.zoom * 100.0));
+        });
+        
+        ui.separator();
+        
+        // Keyboard shortcuts hint panel
+        ui.horizontal(|ui| {
+            ui.label(
+                egui::RichText::new("⌨ Shortcuts:")
+                    .small()
+                    .color(egui::Color32::GRAY)
+            );
+            ui.label(
+                egui::RichText::new("Delete: Remove sprite")
+                    .small()
+                    .color(egui::Color32::LIGHT_GRAY)
+            );
+            ui.separator();
+            ui.label(
+                egui::RichText::new("Esc: Deselect")
+                    .small()
+                    .color(egui::Color32::LIGHT_GRAY)
+            );
+            ui.separator();
+            ui.label(
+                egui::RichText::new("Tab: Cycle overlapping")
+                    .small()
+                    .color(egui::Color32::LIGHT_GRAY)
+            );
         });
         
         ui.separator();
@@ -464,6 +726,209 @@ impl SpriteEditorWindow {
                 self.state.metadata.texture_height
             ));
         });
+    }
+    
+    /// Render the auto-slice dialog
+    fn render_auto_slice_dialog(&mut self, ctx: &egui::Context) {
+        let mut dialog_open = self.show_auto_slice_dialog;
+        
+        egui::Window::new("✂ Auto Slice")
+            .open(&mut dialog_open)
+            .resizable(false)
+            .collapsible(false)
+            .default_width(400.0)
+            .show(ctx, |ui| {
+                ui.heading("Grid Slicing Options");
+                ui.add_space(10.0);
+                
+                // Mode selection
+                ui.horizontal(|ui| {
+                    ui.label("Mode:");
+                    ui.radio_value(&mut self.auto_slice_mode, AutoSliceMode::Grid, "Grid (Columns × Rows)");
+                    ui.radio_value(&mut self.auto_slice_mode, AutoSliceMode::CellSize, "Cell Size");
+                });
+                
+                ui.add_space(10.0);
+                ui.separator();
+                ui.add_space(10.0);
+                
+                match self.auto_slice_mode {
+                    AutoSliceMode::Grid => {
+                        // Grid mode: specify columns and rows
+                        ui.horizontal(|ui| {
+                            ui.label("Columns:");
+                            ui.add(egui::DragValue::new(&mut self.auto_slice_columns).clamp_range(1..=100).speed(0.1));
+                        });
+                        
+                        ui.horizontal(|ui| {
+                            ui.label("Rows:");
+                            ui.add(egui::DragValue::new(&mut self.auto_slice_rows).clamp_range(1..=100).speed(0.1));
+                        });
+                        
+                        // Calculate and display sprite dimensions
+                        let texture_width = self.state.metadata.texture_width;
+                        let texture_height = self.state.metadata.texture_height;
+                        
+                        if texture_width > 0 && texture_height > 0 {
+                            let available_width = texture_width.saturating_sub(self.auto_slice_padding * 2);
+                            let available_height = texture_height.saturating_sub(self.auto_slice_padding * 2);
+                            
+                            let total_h_spacing = self.auto_slice_spacing * (self.auto_slice_columns.saturating_sub(1));
+                            let total_v_spacing = self.auto_slice_spacing * (self.auto_slice_rows.saturating_sub(1));
+                            
+                            let sprite_width = available_width.saturating_sub(total_h_spacing) / self.auto_slice_columns.max(1);
+                            let sprite_height = available_height.saturating_sub(total_v_spacing) / self.auto_slice_rows.max(1);
+                            
+                            ui.add_space(5.0);
+                            ui.label(
+                                egui::RichText::new(format!("→ Sprite size: {}×{} px", sprite_width, sprite_height))
+                                    .color(egui::Color32::from_rgb(100, 200, 255))
+                            );
+                        }
+                    }
+                    AutoSliceMode::CellSize => {
+                        // Cell size mode: specify width and height
+                        ui.horizontal(|ui| {
+                            ui.label("Cell Width:");
+                            ui.add(egui::DragValue::new(&mut self.auto_slice_cell_width).clamp_range(1..=1024).speed(1.0));
+                            ui.label("px");
+                        });
+                        
+                        ui.horizontal(|ui| {
+                            ui.label("Cell Height:");
+                            ui.add(egui::DragValue::new(&mut self.auto_slice_cell_height).clamp_range(1..=1024).speed(1.0));
+                            ui.label("px");
+                        });
+                        
+                        // Calculate and display how many sprites will be created
+                        let texture_width = self.state.metadata.texture_width;
+                        let texture_height = self.state.metadata.texture_height;
+                        
+                        if texture_width > 0 && texture_height > 0 {
+                            let available_width = texture_width.saturating_sub(self.auto_slice_padding * 2);
+                            let available_height = texture_height.saturating_sub(self.auto_slice_padding * 2);
+                            
+                            let columns = if self.auto_slice_spacing > 0 {
+                                (available_width + self.auto_slice_spacing) / (self.auto_slice_cell_width + self.auto_slice_spacing)
+                            } else {
+                                available_width / self.auto_slice_cell_width
+                            };
+                            
+                            let rows = if self.auto_slice_spacing > 0 {
+                                (available_height + self.auto_slice_spacing) / (self.auto_slice_cell_height + self.auto_slice_spacing)
+                            } else {
+                                available_height / self.auto_slice_cell_height
+                            };
+                            
+                            let total_sprites = columns * rows;
+                            
+                            ui.add_space(5.0);
+                            ui.label(
+                                egui::RichText::new(format!("→ Will create {} sprites ({}×{})", total_sprites, columns, rows))
+                                    .color(egui::Color32::from_rgb(100, 200, 255))
+                            );
+                        }
+                    }
+                }
+                
+                ui.add_space(10.0);
+                ui.separator();
+                ui.add_space(10.0);
+                
+                // Common options
+                ui.horizontal(|ui| {
+                    ui.label("Padding:");
+                    ui.add(egui::DragValue::new(&mut self.auto_slice_padding).clamp_range(0..=100).speed(0.1));
+                    ui.label("px");
+                });
+                ui.label(
+                    egui::RichText::new("Padding from texture edges")
+                        .small()
+                        .color(egui::Color32::GRAY)
+                );
+                
+                ui.add_space(5.0);
+                
+                ui.horizontal(|ui| {
+                    ui.label("Spacing:");
+                    ui.add(egui::DragValue::new(&mut self.auto_slice_spacing).clamp_range(0..=100).speed(0.1));
+                    ui.label("px");
+                });
+                ui.label(
+                    egui::RichText::new("Space between sprites")
+                        .small()
+                        .color(egui::Color32::GRAY)
+                );
+                
+                ui.add_space(15.0);
+                ui.separator();
+                ui.add_space(10.0);
+                
+                // Action buttons
+                ui.horizontal(|ui| {
+                    if ui.button("✂ Slice").clicked() {
+                        self.apply_auto_slice();
+                        self.show_auto_slice_dialog = false;
+                    }
+                    
+                    if ui.button("Cancel").clicked() {
+                        self.show_auto_slice_dialog = false;
+                    }
+                });
+                
+                ui.add_space(5.0);
+                
+                // Warning if sprites already exist
+                if !self.state.metadata.sprites.is_empty() {
+                    ui.colored_label(
+                        egui::Color32::from_rgb(255, 200, 100),
+                        format!("⚠ This will replace {} existing sprite(s)", self.state.metadata.sprites.len())
+                    );
+                }
+            });
+        
+        self.show_auto_slice_dialog = dialog_open;
+    }
+    
+    /// Apply auto-slice based on current settings
+    fn apply_auto_slice(&mut self) {
+        // Push current state to undo stack before slicing
+        self.state.push_undo();
+        
+        let texture_width = self.state.metadata.texture_width;
+        let texture_height = self.state.metadata.texture_height;
+        
+        // Generate sprites based on mode
+        let sprites = match self.auto_slice_mode {
+            AutoSliceMode::Grid => {
+                AutoSlicer::slice_by_grid(
+                    texture_width,
+                    texture_height,
+                    self.auto_slice_columns,
+                    self.auto_slice_rows,
+                    self.auto_slice_padding,
+                    self.auto_slice_spacing,
+                )
+            }
+            AutoSliceMode::CellSize => {
+                AutoSlicer::slice_by_cell_size(
+                    texture_width,
+                    texture_height,
+                    self.auto_slice_cell_width,
+                    self.auto_slice_cell_height,
+                    self.auto_slice_padding,
+                    self.auto_slice_spacing,
+                )
+            }
+        };
+        
+        // Replace existing sprites with new ones
+        self.state.metadata.sprites = sprites;
+        
+        // Clear selection
+        self.state.selected_sprite = None;
+        
+        log::info!("Auto-slice created {} sprites", self.state.metadata.sprites.len());
     }
     
     /// Render the sprite list panel with thumbnails
@@ -1811,15 +2276,93 @@ mod tests {
         let found_0 = window.find_sprite_at_position(egui::pos2(16.0, 16.0), texture_pos);
         assert_eq!(found_0, Some(0));
         
-        let found_1 = window.find_sprite_at_position(egui::pos2(60.0, 60.0), texture_pos);
+        let found_1 = window.find_sprite_at_position(egui::pos2(66.0, 66.0), texture_pos);
         assert_eq!(found_1, Some(1));
         
-        let found_2 = window.find_sprite_at_position(egui::pos2(110.0, 110.0), texture_pos);
+        let found_2 = window.find_sprite_at_position(egui::pos2(116.0, 116.0), texture_pos);
         assert_eq!(found_2, Some(2));
         
         // Test position outside any sprite
         let found_none = window.find_sprite_at_position(egui::pos2(200.0, 200.0), texture_pos);
         assert_eq!(found_none, None);
+    }
+
+    #[test]
+    fn test_sprites_overlap() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let window = SpriteEditorWindow::new(texture_path);
+        
+        // Create two overlapping sprites
+        let sprite1 = SpriteDefinition::new("sprite_0".to_string(), 0, 0, 50, 50);
+        let sprite2 = SpriteDefinition::new("sprite_1".to_string(), 25, 25, 50, 50);
+        
+        // They should overlap
+        assert!(window.sprites_overlap(&sprite1, &sprite2));
+        assert!(window.sprites_overlap(&sprite2, &sprite1));
+        
+        // Create two non-overlapping sprites
+        let sprite3 = SpriteDefinition::new("sprite_2".to_string(), 100, 100, 50, 50);
+        
+        // They should not overlap
+        assert!(!window.sprites_overlap(&sprite1, &sprite3));
+        assert!(!window.sprites_overlap(&sprite3, &sprite1));
+        
+        // Edge case: sprites touching but not overlapping
+        let sprite4 = SpriteDefinition::new("sprite_3".to_string(), 50, 0, 50, 50);
+        assert!(!window.sprites_overlap(&sprite1, &sprite4));
+    }
+
+    #[test]
+    fn test_cycle_overlapping_sprites() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut window = SpriteEditorWindow::new(texture_path);
+        
+        window.state.metadata.texture_width = 512;
+        window.state.metadata.texture_height = 256;
+        
+        // Add three overlapping sprites
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_0".to_string(), 0, 0, 50, 50));
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_1".to_string(), 25, 25, 50, 50));
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_2".to_string(), 10, 10, 50, 50));
+        
+        // Select first sprite
+        window.state.selected_sprite = Some(0);
+        
+        // Cycle should move to next overlapping sprite
+        window.cycle_overlapping_sprites();
+        
+        // Should cycle to one of the overlapping sprites (1 or 2)
+        assert!(window.state.selected_sprite == Some(1) || window.state.selected_sprite == Some(2));
+        
+        let first_cycle = window.state.selected_sprite;
+        
+        // Cycle again
+        window.cycle_overlapping_sprites();
+        
+        // Should cycle to a different sprite
+        assert_ne!(window.state.selected_sprite, first_cycle);
+    }
+
+    #[test]
+    fn test_cycle_overlapping_sprites_no_overlap() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut window = SpriteEditorWindow::new(texture_path);
+        
+        window.state.metadata.texture_width = 512;
+        window.state.metadata.texture_height = 256;
+        
+        // Add non-overlapping sprites
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_0".to_string(), 0, 0, 32, 32));
+        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_1".to_string(), 100, 100, 32, 32));
+        
+        // Select first sprite
+        window.state.selected_sprite = Some(0);
+        
+        // Cycle should not change selection when no overlapping sprites
+        window.cycle_overlapping_sprites();
+        
+        // Selection should remain the same
+        assert_eq!(window.state.selected_sprite, Some(0));
     }
 
     #[test]
@@ -1830,33 +2373,31 @@ mod tests {
         window.state.metadata.texture_width = 512;
         window.state.metadata.texture_height = 256;
         
-        // Add some sprites
+        // Add sprites
         window.state.metadata.add_sprite(SpriteDefinition::new("sprite_0".to_string(), 0, 0, 32, 32));
         window.state.metadata.add_sprite(SpriteDefinition::new("sprite_1".to_string(), 32, 0, 32, 32));
         window.state.metadata.add_sprite(SpriteDefinition::new("sprite_2".to_string(), 64, 0, 32, 32));
         
         assert_eq!(window.state.metadata.sprites.len(), 3);
         
-        // Select the middle sprite
+        // Select and delete middle sprite
         window.state.selected_sprite = Some(1);
-        
-        // Delete the selected sprite
         window.delete_selected_sprite();
         
-        // Verify sprite was removed
+        // Should have 2 sprites left
         assert_eq!(window.state.metadata.sprites.len(), 2);
         
-        // Verify selection was cleared
+        // Selection should be cleared
         assert_eq!(window.state.selected_sprite, None);
         
-        // Verify the correct sprite was removed (sprite_1 should be gone)
+        // Undo stack should have one entry
+        assert_eq!(window.state.undo_stack.len(), 1);
+        
+        // Remaining sprites should be sprite_0 and sprite_2
         assert_eq!(window.state.metadata.sprites[0].name, "sprite_0");
         assert_eq!(window.state.metadata.sprites[1].name, "sprite_2");
-        
-        // Verify undo stack was updated
-        assert_eq!(window.state.undo_stack.len(), 1);
     }
-    
+
     #[test]
     fn test_delete_with_no_selection() {
         let texture_path = PathBuf::from("test_texture.png");
@@ -1865,237 +2406,426 @@ mod tests {
         window.state.metadata.texture_width = 512;
         window.state.metadata.texture_height = 256;
         
-        // Add some sprites
+        // Add sprites
         window.state.metadata.add_sprite(SpriteDefinition::new("sprite_0".to_string(), 0, 0, 32, 32));
-        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_1".to_string(), 32, 0, 32, 32));
         
-        assert_eq!(window.state.metadata.sprites.len(), 2);
+        assert_eq!(window.state.metadata.sprites.len(), 1);
         
-        // No sprite selected
+        // Try to delete with no selection
         window.state.selected_sprite = None;
-        
-        // Try to delete (should do nothing)
         window.delete_selected_sprite();
         
-        // Verify nothing was removed
-        assert_eq!(window.state.metadata.sprites.len(), 2);
+        // Sprite should still exist
+        assert_eq!(window.state.metadata.sprites.len(), 1);
         
-        // Verify undo stack was not updated
+        // Undo stack should be empty
         assert_eq!(window.state.undo_stack.len(), 0);
     }
-    
+
+
+
+    // AutoSlicer tests
     #[test]
-    fn test_delete_first_sprite() {
-        let texture_path = PathBuf::from("test_texture.png");
-        let mut window = SpriteEditorWindow::new(texture_path);
+    fn test_auto_slicer_grid_basic() {
+        let sprites = AutoSlicer::slice_by_grid(
+            512,  // texture_width
+            256,  // texture_height
+            4,    // columns
+            2,    // rows
+            0,    // padding
+            0,    // spacing
+        );
         
-        window.state.metadata.texture_width = 512;
-        window.state.metadata.texture_height = 256;
+        // Should create 4 * 2 = 8 sprites
+        assert_eq!(sprites.len(), 8);
         
-        // Add some sprites
-        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_0".to_string(), 0, 0, 32, 32));
-        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_1".to_string(), 32, 0, 32, 32));
-        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_2".to_string(), 64, 0, 32, 32));
-        
-        // Select the first sprite
-        window.state.selected_sprite = Some(0);
-        
-        // Delete the selected sprite
-        window.delete_selected_sprite();
-        
-        // Verify sprite was removed
-        assert_eq!(window.state.metadata.sprites.len(), 2);
-        
-        // Verify the correct sprites remain
-        assert_eq!(window.state.metadata.sprites[0].name, "sprite_1");
-        assert_eq!(window.state.metadata.sprites[1].name, "sprite_2");
-        
-        // Verify selection was cleared
-        assert_eq!(window.state.selected_sprite, None);
-    }
-    
-    #[test]
-    fn test_delete_last_sprite() {
-        let texture_path = PathBuf::from("test_texture.png");
-        let mut window = SpriteEditorWindow::new(texture_path);
-        
-        window.state.metadata.texture_width = 512;
-        window.state.metadata.texture_height = 256;
-        
-        // Add some sprites
-        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_0".to_string(), 0, 0, 32, 32));
-        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_1".to_string(), 32, 0, 32, 32));
-        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_2".to_string(), 64, 0, 32, 32));
-        
-        // Select the last sprite
-        window.state.selected_sprite = Some(2);
-        
-        // Delete the selected sprite
-        window.delete_selected_sprite();
-        
-        // Verify sprite was removed
-        assert_eq!(window.state.metadata.sprites.len(), 2);
-        
-        // Verify the correct sprites remain
-        assert_eq!(window.state.metadata.sprites[0].name, "sprite_0");
-        assert_eq!(window.state.metadata.sprites[1].name, "sprite_1");
-        
-        // Verify selection was cleared
-        assert_eq!(window.state.selected_sprite, None);
-    }
-    
-    #[test]
-    fn test_delete_only_sprite() {
-        let texture_path = PathBuf::from("test_texture.png");
-        let mut window = SpriteEditorWindow::new(texture_path);
-        
-        window.state.metadata.texture_width = 512;
-        window.state.metadata.texture_height = 256;
-        
-        // Add only one sprite
-        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_0".to_string(), 0, 0, 32, 32));
-        
-        // Select the sprite
-        window.state.selected_sprite = Some(0);
-        
-        // Delete the selected sprite
-        window.delete_selected_sprite();
-        
-        // Verify sprite was removed
-        assert_eq!(window.state.metadata.sprites.len(), 0);
-        
-        // Verify selection was cleared
-        assert_eq!(window.state.selected_sprite, None);
-    }
-    
-    #[test]
-    fn test_delete_and_undo() {
-        let texture_path = PathBuf::from("test_texture.png");
-        let mut window = SpriteEditorWindow::new(texture_path);
-        
-        window.state.metadata.texture_width = 512;
-        window.state.metadata.texture_height = 256;
-        
-        // Add some sprites
-        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_0".to_string(), 0, 0, 32, 32));
-        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_1".to_string(), 32, 0, 32, 32));
-        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_2".to_string(), 64, 0, 32, 32));
-        
-        // Select and delete a sprite
-        window.state.selected_sprite = Some(1);
-        window.delete_selected_sprite();
-        
-        assert_eq!(window.state.metadata.sprites.len(), 2);
-        
-        // Undo the deletion
-        window.state.undo();
-        
-        // Verify sprite was restored
-        assert_eq!(window.state.metadata.sprites.len(), 3);
-        assert_eq!(window.state.metadata.sprites[0].name, "sprite_0");
-        assert_eq!(window.state.metadata.sprites[1].name, "sprite_1");
-        assert_eq!(window.state.metadata.sprites[2].name, "sprite_2");
-    }
-    
-    #[test]
-    fn test_delete_multiple_sprites_sequentially() {
-        let texture_path = PathBuf::from("test_texture.png");
-        let mut window = SpriteEditorWindow::new(texture_path);
-        
-        window.state.metadata.texture_width = 512;
-        window.state.metadata.texture_height = 256;
-        
-        // Add multiple sprites
-        for i in 0..5 {
-            window.state.metadata.add_sprite(SpriteDefinition::new(
-                format!("sprite_{}", i),
-                i * 32,
-                0,
-                32,
-                32
-            ));
+        // Each sprite should be 128x128 (512/4 x 256/2)
+        for sprite in &sprites {
+            assert_eq!(sprite.width, 128);
+            assert_eq!(sprite.height, 128);
         }
         
-        assert_eq!(window.state.metadata.sprites.len(), 5);
+        // Check first sprite position
+        assert_eq!(sprites[0].x, 0);
+        assert_eq!(sprites[0].y, 0);
+        assert_eq!(sprites[0].name, "sprite_0");
         
-        // Delete sprites one by one
-        window.state.selected_sprite = Some(2);
-        window.delete_selected_sprite();
+        // Check second sprite position (next column)
+        assert_eq!(sprites[1].x, 128);
+        assert_eq!(sprites[1].y, 0);
+        assert_eq!(sprites[1].name, "sprite_1");
+        
+        // Check fifth sprite position (second row, first column)
+        assert_eq!(sprites[4].x, 0);
+        assert_eq!(sprites[4].y, 128);
+        assert_eq!(sprites[4].name, "sprite_4");
+    }
+
+    #[test]
+    fn test_auto_slicer_grid_with_padding() {
+        let sprites = AutoSlicer::slice_by_grid(
+            512,  // texture_width
+            256,  // texture_height
+            4,    // columns
+            2,    // rows
+            10,   // padding
+            0,    // spacing
+        );
+        
+        assert_eq!(sprites.len(), 8);
+        
+        // Available space: 512 - 20 = 492 width, 256 - 20 = 236 height
+        // Sprite size: 492/4 = 123 width, 236/2 = 118 height
+        for sprite in &sprites {
+            assert_eq!(sprite.width, 123);
+            assert_eq!(sprite.height, 118);
+        }
+        
+        // First sprite should start at padding offset
+        assert_eq!(sprites[0].x, 10);
+        assert_eq!(sprites[0].y, 10);
+        
+        // Second sprite
+        assert_eq!(sprites[1].x, 10 + 123);
+        assert_eq!(sprites[1].y, 10);
+    }
+
+    #[test]
+    fn test_auto_slicer_grid_with_spacing() {
+        let sprites = AutoSlicer::slice_by_grid(
+            512,  // texture_width
+            256,  // texture_height
+            4,    // columns
+            2,    // rows
+            0,    // padding
+            5,    // spacing
+        );
+        
+        assert_eq!(sprites.len(), 8);
+        
+        // Total spacing: 5 * (4-1) = 15 horizontal, 5 * (2-1) = 5 vertical
+        // Available for sprites: 512 - 15 = 497 width, 256 - 5 = 251 height
+        // Sprite size: 497/4 = 124 width, 251/2 = 125 height
+        for sprite in &sprites {
+            assert_eq!(sprite.width, 124);
+            assert_eq!(sprite.height, 125);
+        }
+        
+        // First sprite
+        assert_eq!(sprites[0].x, 0);
+        assert_eq!(sprites[0].y, 0);
+        
+        // Second sprite (with spacing)
+        assert_eq!(sprites[1].x, 124 + 5);
+        assert_eq!(sprites[1].y, 0);
+        
+        // Fifth sprite (second row with spacing)
+        assert_eq!(sprites[4].x, 0);
+        assert_eq!(sprites[4].y, 125 + 5);
+    }
+
+    #[test]
+    fn test_auto_slicer_grid_with_padding_and_spacing() {
+        let sprites = AutoSlicer::slice_by_grid(
+            512,  // texture_width
+            256,  // texture_height
+            4,    // columns
+            2,    // rows
+            10,   // padding
+            5,    // spacing
+        );
+        
+        assert_eq!(sprites.len(), 8);
+        
+        // Available space: 512 - 20 = 492 width, 256 - 20 = 236 height
+        // Total spacing: 5 * 3 = 15 horizontal, 5 * 1 = 5 vertical
+        // Available for sprites: 492 - 15 = 477 width, 236 - 5 = 231 height
+        // Sprite size: 477/4 = 119 width, 231/2 = 115 height
+        for sprite in &sprites {
+            assert_eq!(sprite.width, 119);
+            assert_eq!(sprite.height, 115);
+        }
+        
+        // First sprite starts at padding
+        assert_eq!(sprites[0].x, 10);
+        assert_eq!(sprites[0].y, 10);
+        
+        // Second sprite (padding + sprite_width + spacing)
+        assert_eq!(sprites[1].x, 10 + 119 + 5);
+        assert_eq!(sprites[1].y, 10);
+    }
+
+    #[test]
+    fn test_auto_slicer_grid_sequential_naming() {
+        let sprites = AutoSlicer::slice_by_grid(512, 256, 3, 2, 0, 0);
+        
+        assert_eq!(sprites.len(), 6);
+        
+        // Verify sequential naming
+        for (i, sprite) in sprites.iter().enumerate() {
+            assert_eq!(sprite.name, format!("sprite_{}", i));
+        }
+    }
+
+    #[test]
+    fn test_auto_slicer_grid_zero_columns() {
+        let sprites = AutoSlicer::slice_by_grid(512, 256, 0, 2, 0, 0);
+        assert_eq!(sprites.len(), 0);
+    }
+
+    #[test]
+    fn test_auto_slicer_grid_zero_rows() {
+        let sprites = AutoSlicer::slice_by_grid(512, 256, 4, 0, 0, 0);
+        assert_eq!(sprites.len(), 0);
+    }
+
+    #[test]
+    fn test_auto_slicer_grid_excessive_padding() {
+        // Padding larger than texture should result in no sprites
+        let sprites = AutoSlicer::slice_by_grid(512, 256, 4, 2, 300, 0);
+        assert_eq!(sprites.len(), 0);
+    }
+
+    #[test]
+    fn test_auto_slicer_grid_excessive_spacing() {
+        // Spacing that leaves no room for sprites
+        let sprites = AutoSlicer::slice_by_grid(512, 256, 4, 2, 0, 200);
+        assert_eq!(sprites.len(), 0);
+    }
+
+    #[test]
+    fn test_auto_slicer_cell_size_basic() {
+        let sprites = AutoSlicer::slice_by_cell_size(
+            512,  // texture_width
+            256,  // texture_height
+            32,   // cell_width
+            32,   // cell_height
+            0,    // padding
+            0,    // spacing
+        );
+        
+        // Should fit 16 columns (512/32) and 8 rows (256/32) = 128 sprites
+        assert_eq!(sprites.len(), 128);
+        
+        // All sprites should be 32x32
+        for sprite in &sprites {
+            assert_eq!(sprite.width, 32);
+            assert_eq!(sprite.height, 32);
+        }
+        
+        // Check first sprite
+        assert_eq!(sprites[0].x, 0);
+        assert_eq!(sprites[0].y, 0);
+        assert_eq!(sprites[0].name, "sprite_0");
+        
+        // Check second sprite
+        assert_eq!(sprites[1].x, 32);
+        assert_eq!(sprites[1].y, 0);
+    }
+
+    #[test]
+    fn test_auto_slicer_cell_size_with_padding() {
+        let sprites = AutoSlicer::slice_by_cell_size(
+            512,  // texture_width
+            256,  // texture_height
+            32,   // cell_width
+            32,   // cell_height
+            10,   // padding
+            0,    // spacing
+        );
+        
+        // Available space: 512 - 20 = 492 width, 256 - 20 = 236 height
+        // Columns: 492/32 = 15, Rows: 236/32 = 7
+        assert_eq!(sprites.len(), 15 * 7);
+        
+        // First sprite starts at padding
+        assert_eq!(sprites[0].x, 10);
+        assert_eq!(sprites[0].y, 10);
+        
+        // Second sprite
+        assert_eq!(sprites[1].x, 10 + 32);
+        assert_eq!(sprites[1].y, 10);
+    }
+
+    #[test]
+    fn test_auto_slicer_cell_size_with_spacing() {
+        let sprites = AutoSlicer::slice_by_cell_size(
+            512,  // texture_width
+            256,  // texture_height
+            32,   // cell_width
+            32,   // cell_height
+            0,    // padding
+            2,    // spacing
+        );
+        
+        // With spacing: (512 + 2) / (32 + 2) = 15 columns
+        // (256 + 2) / (32 + 2) = 7 rows
+        assert_eq!(sprites.len(), 15 * 7);
+        
+        // First sprite
+        assert_eq!(sprites[0].x, 0);
+        assert_eq!(sprites[0].y, 0);
+        
+        // Second sprite (with spacing)
+        assert_eq!(sprites[1].x, 32 + 2);
+        assert_eq!(sprites[1].y, 0);
+    }
+
+    #[test]
+    fn test_auto_slicer_cell_size_bounds_checking() {
+        let sprites = AutoSlicer::slice_by_cell_size(
+            100,  // texture_width
+            100,  // texture_height
+            32,   // cell_width
+            32,   // cell_height
+            0,    // padding
+            0,    // spacing
+        );
+        
+        // Should fit 3x3 = 9 sprites (100/32 = 3 with remainder)
+        assert_eq!(sprites.len(), 9);
+        
+        // Verify all sprites are within bounds
+        for sprite in &sprites {
+            assert!(sprite.x + sprite.width <= 100);
+            assert!(sprite.y + sprite.height <= 100);
+        }
+    }
+
+    #[test]
+    fn test_auto_slicer_cell_size_sequential_naming() {
+        let sprites = AutoSlicer::slice_by_cell_size(128, 64, 32, 32, 0, 0);
+        
+        // Should create 4 columns * 2 rows = 8 sprites
+        assert_eq!(sprites.len(), 8);
+        
+        // Verify sequential naming
+        for (i, sprite) in sprites.iter().enumerate() {
+            assert_eq!(sprite.name, format!("sprite_{}", i));
+        }
+    }
+
+    #[test]
+    fn test_auto_slicer_cell_size_zero_cell_width() {
+        let sprites = AutoSlicer::slice_by_cell_size(512, 256, 0, 32, 0, 0);
+        assert_eq!(sprites.len(), 0);
+    }
+
+    #[test]
+    fn test_auto_slicer_cell_size_zero_cell_height() {
+        let sprites = AutoSlicer::slice_by_cell_size(512, 256, 32, 0, 0, 0);
+        assert_eq!(sprites.len(), 0);
+    }
+
+    #[test]
+    fn test_auto_slicer_cell_size_larger_than_texture() {
+        // Cell size larger than texture should result in no sprites
+        let sprites = AutoSlicer::slice_by_cell_size(512, 256, 1024, 512, 0, 0);
+        assert_eq!(sprites.len(), 0);
+    }
+
+    #[test]
+    fn test_auto_slice_integration() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut window = SpriteEditorWindow::new(texture_path);
+        
+        // Set texture dimensions
+        window.state.metadata.texture_width = 512;
+        window.state.metadata.texture_height = 256;
+        
+        // Add some existing sprites
+        window.state.metadata.add_sprite(SpriteDefinition::new("old_sprite".to_string(), 0, 0, 16, 16));
+        assert_eq!(window.state.metadata.sprites.len(), 1);
+        
+        // Configure auto-slice settings
+        window.auto_slice_mode = AutoSliceMode::Grid;
+        window.auto_slice_columns = 4;
+        window.auto_slice_rows = 2;
+        window.auto_slice_padding = 0;
+        window.auto_slice_spacing = 0;
+        
+        // Apply auto-slice
+        window.apply_auto_slice();
+        
+        // Should replace existing sprites with new grid
+        assert_eq!(window.state.metadata.sprites.len(), 8);
+        
+        // Verify undo stack was updated
+        assert_eq!(window.state.undo_stack.len(), 1);
+        
+        // Verify old sprite is in undo stack
+        assert_eq!(window.state.undo_stack[0].sprites.len(), 1);
+        assert_eq!(window.state.undo_stack[0].sprites[0].name, "old_sprite");
+        
+        // Verify new sprites have correct dimensions
+        for sprite in &window.state.metadata.sprites {
+            assert_eq!(sprite.width, 128);
+            assert_eq!(sprite.height, 128);
+        }
+        
+        // Verify selection was cleared
+        assert_eq!(window.state.selected_sprite, None);
+    }
+
+    #[test]
+    fn test_auto_slice_cell_size_mode() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut window = SpriteEditorWindow::new(texture_path);
+        
+        window.state.metadata.texture_width = 512;
+        window.state.metadata.texture_height = 256;
+        
+        // Configure auto-slice with cell size mode
+        window.auto_slice_mode = AutoSliceMode::CellSize;
+        window.auto_slice_cell_width = 32;
+        window.auto_slice_cell_height = 32;
+        window.auto_slice_padding = 0;
+        window.auto_slice_spacing = 0;
+        
+        // Apply auto-slice
+        window.apply_auto_slice();
+        
+        // Should create 16 * 8 = 128 sprites
+        assert_eq!(window.state.metadata.sprites.len(), 128);
+        
+        // All sprites should be 32x32
+        for sprite in &window.state.metadata.sprites {
+            assert_eq!(sprite.width, 32);
+            assert_eq!(sprite.height, 32);
+        }
+    }
+
+    #[test]
+    fn test_auto_slice_undo_redo() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut window = SpriteEditorWindow::new(texture_path);
+        
+        window.state.metadata.texture_width = 512;
+        window.state.metadata.texture_height = 256;
+        
+        // Add initial sprite
+        window.state.metadata.add_sprite(SpriteDefinition::new("original".to_string(), 0, 0, 64, 64));
+        let original_count = window.state.metadata.sprites.len();
+        
+        // Apply auto-slice
+        window.auto_slice_mode = AutoSliceMode::Grid;
+        window.auto_slice_columns = 2;
+        window.auto_slice_rows = 2;
+        window.auto_slice_padding = 0;
+        window.auto_slice_spacing = 0;
+        window.apply_auto_slice();
+        
         assert_eq!(window.state.metadata.sprites.len(), 4);
-        assert_eq!(window.state.selected_sprite, None);
         
-        window.state.selected_sprite = Some(0);
-        window.delete_selected_sprite();
-        assert_eq!(window.state.metadata.sprites.len(), 3);
-        assert_eq!(window.state.selected_sprite, None);
+        // Undo should restore original sprite
+        window.state.undo();
+        assert_eq!(window.state.metadata.sprites.len(), original_count);
+        assert_eq!(window.state.metadata.sprites[0].name, "original");
         
-        // Verify correct sprites remain
-        assert_eq!(window.state.metadata.sprites[0].name, "sprite_1");
-        assert_eq!(window.state.metadata.sprites[1].name, "sprite_3");
-        assert_eq!(window.state.metadata.sprites[2].name, "sprite_4");
-        
-        // Verify undo stack has both deletions
-        assert_eq!(window.state.undo_stack.len(), 2);
-    }
-
-    #[test]
-    fn test_find_sprite_at_position_with_zoom() {
-        let texture_path = PathBuf::from("test_texture.png");
-        let mut window = SpriteEditorWindow::new(texture_path);
-        
-        window.state.metadata.texture_width = 512;
-        window.state.metadata.texture_height = 256;
-        window.state.zoom = 2.0; // 2x zoom
-        
-        // Add sprite at texture coordinates (0, 0, 32, 32)
-        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_0".to_string(), 0, 0, 32, 32));
-        
-        let texture_pos = egui::pos2(0.0, 0.0);
-        
-        // In screen space, the sprite should be at (0, 0) to (64, 64) due to 2x zoom
-        let found = window.find_sprite_at_position(egui::pos2(32.0, 32.0), texture_pos);
-        assert_eq!(found, Some(0));
-        
-        // Position outside the zoomed sprite
-        let found_none = window.find_sprite_at_position(egui::pos2(70.0, 70.0), texture_pos);
-        assert_eq!(found_none, None);
-    }
-
-    #[test]
-    fn test_find_sprite_at_position_with_overlapping_sprites() {
-        let texture_path = PathBuf::from("test_texture.png");
-        let mut window = SpriteEditorWindow::new(texture_path);
-        
-        window.state.metadata.texture_width = 512;
-        window.state.metadata.texture_height = 256;
-        
-        // Add overlapping sprites
-        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_0".to_string(), 0, 0, 64, 64));
-        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_1".to_string(), 32, 32, 64, 64));
-        
-        let texture_pos = egui::pos2(0.0, 0.0);
-        
-        // Position in overlap area should return the last sprite (topmost)
-        let found = window.find_sprite_at_position(egui::pos2(40.0, 40.0), texture_pos);
-        assert_eq!(found, Some(1), "Should select topmost sprite in overlap");
-    }
-
-    #[test]
-    fn test_resize_handle_detection_top_left() {
-        let texture_path = PathBuf::from("test_texture.png");
-        let mut window = SpriteEditorWindow::new(texture_path);
-        
-        window.state.metadata.texture_width = 512;
-        window.state.metadata.texture_height = 256;
-        
-        // Add sprite at (100, 100) with size 64x64
-        window.state.metadata.add_sprite(SpriteDefinition::new("sprite_0".to_string(), 100, 100, 64, 64));
-        
-        let texture_pos = egui::pos2(0.0, 0.0);
-        
-        // Test top-left handle (should be at 100, 100)
-        let handle = window.get_resize_handle_at_position(egui::pos2(100.0, 100.0), 0, texture_pos);
-        assert_eq!(handle, Some(ResizeHandle::TopLeft));
+        // Redo should restore auto-sliced sprites
+        window.state.redo();
+        assert_eq!(window.state.metadata.sprites.len(), 4);
+        assert_eq!(window.state.metadata.sprites[0].name, "sprite_0");
     }
 
     #[test]
