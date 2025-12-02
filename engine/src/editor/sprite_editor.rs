@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::time::SystemTime;
 use egui::TextureHandle;
 
 /// Represents a single sprite definition within a sprite sheet
@@ -391,6 +392,11 @@ pub struct SpriteEditorState {
     
     // Texture
     pub texture_handle: Option<TextureHandle>,
+    
+    // Hot-reloading
+    pub last_modified: Option<SystemTime>,
+    pub check_interval: f32,
+    pub time_since_check: f32,
 }
 
 impl SpriteEditorState {
@@ -417,6 +423,15 @@ impl SpriteEditorState {
             )
         };
         
+        // Get initial modification time
+        let last_modified = if metadata_path.exists() {
+            fs::metadata(&metadata_path)
+                .and_then(|m| m.modified())
+                .ok()
+        } else {
+            None
+        };
+        
         Self {
             texture_path,
             metadata_path,
@@ -434,6 +449,9 @@ impl SpriteEditorState {
             undo_stack: Vec::new(),
             redo_stack: Vec::new(),
             texture_handle: None,
+            last_modified,
+            check_interval: 1.0, // Check every 1 second
+            time_since_check: 0.0,
         }
     }
     
@@ -487,6 +505,65 @@ impl SpriteEditorState {
         } else {
             Err(format!("Failed to load texture: {}", self.texture_path.display()))
         }
+    }
+    
+    /// Check if the sprite file has been modified and reload if necessary
+    /// Returns true if the file was reloaded
+    pub fn check_and_reload(&mut self, dt: f32) -> bool {
+        // Update timer
+        self.time_since_check += dt;
+        
+        // Only check at intervals to avoid excessive file system calls
+        if self.time_since_check < self.check_interval {
+            return false;
+        }
+        
+        self.time_since_check = 0.0;
+        
+        // Check if file exists
+        if !self.metadata_path.exists() {
+            return false;
+        }
+        
+        // Get current modification time
+        let current_modified = match fs::metadata(&self.metadata_path)
+            .and_then(|m| m.modified())
+        {
+            Ok(time) => time,
+            Err(_) => return false,
+        };
+        
+        // Check if file has been modified since last check
+        if let Some(last_modified) = self.last_modified {
+            if current_modified > last_modified {
+                // File has been modified, reload it
+                match SpriteMetadata::load(&self.metadata_path) {
+                    Ok(new_metadata) => {
+                        log::info!("Hot-reloaded sprite metadata from {:?}", self.metadata_path);
+                        self.metadata = new_metadata;
+                        self.last_modified = Some(current_modified);
+                        
+                        // Clear selection if it's now out of bounds
+                        if let Some(selected_idx) = self.selected_sprite {
+                            if selected_idx >= self.metadata.sprites.len() {
+                                self.selected_sprite = None;
+                            }
+                        }
+                        
+                        return true;
+                    }
+                    Err(e) => {
+                        log::warn!("Failed to reload sprite metadata: {}", e);
+                        return false;
+                    }
+                }
+            }
+        } else {
+            // First time checking, just store the modification time
+            self.last_modified = Some(current_modified);
+        }
+        
+        false
     }
 }
 
@@ -547,7 +624,7 @@ impl SpriteEditorWindow {
     }
     
     /// Render the sprite editor window
-    pub fn render(&mut self, ctx: &egui::Context, texture_manager: &mut crate::texture_manager::TextureManager) {
+    pub fn render(&mut self, ctx: &egui::Context, texture_manager: &mut crate::texture_manager::TextureManager, dt: f32) {
         if !self.is_open {
             return;
         }
@@ -560,6 +637,12 @@ impl SpriteEditorWindow {
                 self.is_open = false;
                 return;
             }
+        }
+        
+        // Check for file changes and reload if necessary
+        if self.state.check_and_reload(dt) {
+            // File was reloaded, update statistics
+            self.update_statistics();
         }
         
         // Handle keyboard shortcuts

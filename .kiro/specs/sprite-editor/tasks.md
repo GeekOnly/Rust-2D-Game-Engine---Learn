@@ -343,7 +343,10 @@
   - **Property 25: Inspector shows sprite info**
   - **Validates: Requirements 7.4**
 
-- [ ] 19. Implement sprite definition hot-reloading
+- [-] 19. Implement sprite definition hot-reloading
+
+
+
   - Watch .sprite files for changes
   - Reload sprite metadata when file changes
   - Update all entities using changed sprites
