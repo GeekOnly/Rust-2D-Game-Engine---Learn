@@ -4,11 +4,32 @@
   "texture_height": 256,
   "sprites": [
     {
-      "name": "sprite_0",
-      "x": 6,
-      "y": 11,
-      "width": 16,
-      "height": 16
+      "name": "player_idle_1",
+      "x": 5,
+      "y": 9,
+      "width": 20,
+      "height": 20
+    },
+    {
+      "name": "player_idle_2",
+      "x": 37,
+      "y": 9,
+      "width": 20,
+      "height": 20
+    },
+    {
+      "name": "player_idle_3",
+      "x": 69,
+      "y": 9,
+      "width": 20,
+      "height": 20
+    },
+    {
+      "name": "player_idle_4",
+      "x": 102,
+      "y": 9,
+      "width": 20,
+      "height": 20
     }
   ]
 }

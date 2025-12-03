@@ -222,6 +222,10 @@ pub struct Sprite {
     /// Flip sprite vertically
     #[serde(default)]
     pub flip_y: bool,
+    /// Sprite rect in texture (Unity-style) - [x, y, width, height] in pixels
+    /// If None, uses full texture. If Some, uses sub-region of texture.
+    #[serde(default)]
+    pub sprite_rect: Option<[u32; 4]>,
 }
 
 impl Default for Sprite {
@@ -234,6 +238,7 @@ impl Default for Sprite {
             billboard: false,
             flip_x: false,
             flip_y: false,
+            sprite_rect: None,
         }
     }
 }

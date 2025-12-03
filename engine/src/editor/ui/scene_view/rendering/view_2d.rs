@@ -265,9 +265,27 @@ fn render_entity_2d(
 
                 let rect = egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), size);
 
-                // UV coordinates with flipping support
-                let (u_min, u_max) = if sprite.flip_x { (1.0, 0.0) } else { (0.0, 1.0) };
-                let (v_min, v_max) = if sprite.flip_y { (1.0, 0.0) } else { (0.0, 1.0) };
+                // Calculate UV coordinates based on sprite_rect (Unity-style)
+                let (u_min_base, u_max_base, v_min_base, v_max_base) = if let Some(sprite_rect) = sprite.sprite_rect {
+                    // Use sprite rect to calculate UV coordinates
+                    let tex_size = texture.size();
+                    let tex_width = tex_size[0] as f32;
+                    let tex_height = tex_size[1] as f32;
+                    
+                    let u_min = sprite_rect[0] as f32 / tex_width;
+                    let v_min = sprite_rect[1] as f32 / tex_height;
+                    let u_max = (sprite_rect[0] + sprite_rect[2]) as f32 / tex_width;
+                    let v_max = (sprite_rect[1] + sprite_rect[3]) as f32 / tex_height;
+                    
+                    (u_min, u_max, v_min, v_max)
+                } else {
+                    // Use full texture
+                    (0.0, 1.0, 0.0, 1.0)
+                };
+
+                // Apply flipping
+                let (u_min, u_max) = if sprite.flip_x { (u_max_base, u_min_base) } else { (u_min_base, u_max_base) };
+                let (v_min, v_max) = if sprite.flip_y { (v_max_base, v_min_base) } else { (v_min_base, v_max_base) };
 
                 mesh.add_rect_with_uv(
                     rect,

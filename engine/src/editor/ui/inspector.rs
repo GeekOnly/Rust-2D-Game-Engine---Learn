@@ -1085,7 +1085,11 @@ fn format_entity_debug_info(
         info.push_str(&format!("  Size: {:.1} x {:.1}\n", sprite.width, sprite.height));
         info.push_str(&format!("  Color: [{:.2}, {:.2}, {:.2}, {:.2}]\n", 
             sprite.color[0], sprite.color[1], sprite.color[2], sprite.color[3]));
-        info.push_str(&format!("  Billboard: {}\n\n", sprite.billboard));
+        info.push_str(&format!("  Billboard: {}\n", sprite.billboard));
+        if let Some(rect) = sprite.sprite_rect {
+            info.push_str(&format!("  Sprite Rect: [{}, {}, {}, {}]\n", rect[0], rect[1], rect[2], rect[3]));
+        }
+        info.push_str("\n");
     }
     
     // Box Collider

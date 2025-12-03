@@ -35,6 +35,8 @@ pub struct SpriteRenderer {
     index_buffer: wgpu::Buffer,
     num_indices: u32,
     bind_group_layout: wgpu::BindGroupLayout,
+    // Cache for custom sprite rect rendering
+    custom_vertex_buffer: Option<wgpu::Buffer>,
 }
 
 impl SpriteRenderer {
@@ -124,6 +126,7 @@ impl SpriteRenderer {
             index_buffer,
             num_indices: indices.len() as u32,
             bind_group_layout: texture_bind_group_layout,
+            custom_vertex_buffer: None,
         }
     }
 
@@ -137,6 +140,48 @@ impl SpriteRenderer {
             render_pass.set_pipeline(&self.render_pipeline);
             render_pass.set_bind_group(0, bind_group, &[]);
             render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
+            render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
+            render_pass.draw_indexed(0..self.num_indices, 0, 0..1);
+        }
+    }
+
+    /// Render sprite with custom sprite rect (Unity-style)
+    /// sprite_rect: [x, y, width, height] in pixels
+    /// texture_size: [width, height] of the full texture in pixels
+    pub fn render_with_rect<'a>(
+        &'a mut self,
+        render_pass: &mut wgpu::RenderPass<'a>,
+        texture: &'a Texture,
+        device: &wgpu::Device,
+        sprite_rect: [u32; 4],
+        texture_size: [u32; 2],
+    ) {
+        if let Some(bind_group) = &texture.bind_group {
+            // Calculate UV coordinates from sprite rect
+            let u_min = sprite_rect[0] as f32 / texture_size[0] as f32;
+            let v_min = sprite_rect[1] as f32 / texture_size[1] as f32;
+            let u_max = (sprite_rect[0] + sprite_rect[2]) as f32 / texture_size[0] as f32;
+            let v_max = (sprite_rect[1] + sprite_rect[3]) as f32 / texture_size[1] as f32;
+
+            // Create vertices with custom UV coordinates
+            let vertices = &[
+                Vertex { position: [-0.5, 0.5, 0.0], tex_coords: [u_min, v_min] }, // Top Left
+                Vertex { position: [-0.5, -0.5, 0.0], tex_coords: [u_min, v_max] }, // Bottom Left
+                Vertex { position: [0.5, -0.5, 0.0], tex_coords: [u_max, v_max] }, // Bottom Right
+                Vertex { position: [0.5, 0.5, 0.0], tex_coords: [u_max, v_min] }, // Top Right
+            ];
+
+            // Create/update custom vertex buffer
+            let custom_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("Custom Sprite Vertex Buffer"),
+                contents: bytemuck::cast_slice(vertices),
+                usage: wgpu::BufferUsages::VERTEX,
+            });
+            self.custom_vertex_buffer = Some(custom_buffer);
+
+            render_pass.set_pipeline(&self.render_pipeline);
+            render_pass.set_bind_group(0, bind_group, &[]);
+            render_pass.set_vertex_buffer(0, self.custom_vertex_buffer.as_ref().unwrap().slice(..));
             render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
             render_pass.draw_indexed(0..self.num_indices, 0, 0..1);
         }

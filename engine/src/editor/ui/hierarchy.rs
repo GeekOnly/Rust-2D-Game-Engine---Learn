@@ -70,6 +70,7 @@ pub fn render_hierarchy(
                     billboard: false, // Default sprite, not billboard
                     flip_x: false,
                     flip_y: false,
+                    sprite_rect: None,
                 });
                 entity_names.insert(entity, "Sprite".to_string());
                 *selected_entity = Some(entity);

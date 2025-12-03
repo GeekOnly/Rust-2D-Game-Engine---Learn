@@ -1088,34 +1088,56 @@ fn main() -> Result<()> {
                                     &mut editor_state.sprite_picker_state,
                                     editor_state.current_project_path.as_ref(),
                                 ) {
-                                    // User selected a sprite - update the selected entity's component
+                                    // User selected a sprite - update the selected entity's Sprite component (Unity-style)
                                     if let Some(entity) = editor_state.selected_entity {
-                                        // Check if entity has SpriteSheet or Sprite component
-                                        let has_sprite_sheet = editor_state.world.sprite_sheets.contains_key(&entity);
-                                        let has_sprite = editor_state.world.sprites.contains_key(&entity);
-
-                                        if has_sprite_sheet {
-                                            // Update SpriteSheet component
-                                            match ecs::SpriteSheet::from_sprite_file(&result.sprite_file_path) {
-                                                Ok(sprite_sheet) => {
-                                                    editor_state.world.sprite_sheets.insert(entity, sprite_sheet);
-                                                    editor_state.scene_modified = true;
-                                                    editor_state.console.info(format!("Selected sprite: {}", result.sprite_name));
+                                        // Check if this is a sprite from a .sprite file (has sprite definitions)
+                                        let is_sprite_sheet = result.sprite_file_path.exists();
+                                        
+                                        if is_sprite_sheet {
+                                            // Load sprite metadata to get sprite rect
+                                            match crate::editor::sprite_editor::SpriteMetadata::load(&result.sprite_file_path) {
+                                                Ok(metadata) => {
+                                                    // Find the selected sprite definition
+                                                    if let Some(sprite_def) = metadata.find_sprite(&result.sprite_name) {
+                                                        // Update or create Sprite component with sprite rect (Unity-style)
+                                                        let sprite = ecs::Sprite {
+                                                            texture_id: result.texture_path.to_string_lossy().to_string(),
+                                                            width: sprite_def.width as f32,
+                                                            height: sprite_def.height as f32,
+                                                            color: [1.0, 1.0, 1.0, 1.0],
+                                                            billboard: false,
+                                                            flip_x: false,
+                                                            flip_y: false,
+                                                            sprite_rect: Some([sprite_def.x, sprite_def.y, sprite_def.width, sprite_def.height]),
+                                                        };
+                                                        
+                                                        editor_state.world.sprites.insert(entity, sprite);
+                                                        editor_state.scene_modified = true;
+                                                        editor_state.console.info(format!("Selected sprite: {}", result.sprite_name));
+                                                    } else {
+                                                        editor_state.console.error(format!("Sprite '{}' not found in metadata", result.sprite_name));
+                                                    }
                                                 }
                                                 Err(e) => {
-                                                    editor_state.console.error(format!("Failed to load sprite sheet from {}: {}", result.sprite_file_path.display(), e));
+                                                    editor_state.console.error(format!("Failed to load sprite metadata from {}: {}", result.sprite_file_path.display(), e));
                                                 }
                                             }
-                                        } else if has_sprite {
-                                            // Update Sprite component with texture path
-                                            if let Some(sprite) = editor_state.world.sprites.get_mut(&entity) {
-                                                // texture_path is already relative to project root
-                                                sprite.texture_id = result.texture_path.to_string_lossy().to_string();
-                                                editor_state.scene_modified = true;
-                                                editor_state.console.info(format!("Selected sprite texture: {}", result.sprite_name));
-                                            }
                                         } else {
-                                            editor_state.console.warning("Entity has no Sprite or SpriteSheet component");
+                                            // This is a regular texture (no .sprite file) - use full texture
+                                            let sprite = ecs::Sprite {
+                                                texture_id: result.texture_path.to_string_lossy().to_string(),
+                                                width: 1.0,
+                                                height: 1.0,
+                                                color: [1.0, 1.0, 1.0, 1.0],
+                                                billboard: false,
+                                                flip_x: false,
+                                                flip_y: false,
+                                                sprite_rect: None, // Use full texture
+                                            };
+                                            
+                                            editor_state.world.sprites.insert(entity, sprite);
+                                            editor_state.scene_modified = true;
+                                            editor_state.console.info(format!("Selected texture: {}", result.sprite_name));
                                         }
                                     }
                                 }

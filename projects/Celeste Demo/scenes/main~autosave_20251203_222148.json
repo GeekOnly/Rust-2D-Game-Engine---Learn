@@ -2,12 +2,32 @@
   "next_entity": 12,
   "transforms": [
     [
-      11,
+      7,
       {
         "position": [
+          -2.4037924,
+          -3.0,
+          0.0
+        ],
+        "rotation": [
           0.0,
           0.0,
           0.0
+        ],
+        "scale": [
+          13.526597,
+          2.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      0,
+      {
+        "position": [
+          0.9680877,
+          0.0,
+          -10.0
         ],
         "rotation": [
           0.0,
@@ -62,32 +82,12 @@
       }
     ],
     [
-      7,
+      11,
       {
         "position": [
-          -2.4037924,
-          -3.0,
-          0.0
-        ],
-        "rotation": [
           0.0,
           0.0,
           0.0
-        ],
-        "scale": [
-          13.526597,
-          2.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      0,
-      {
-        "position": [
-          0.9680877,
-          0.0,
-          -10.0
         ],
         "rotation": [
           0.0,
@@ -111,6 +111,13 @@
       ]
     ],
     [
+      8,
+      [
+        0.0,
+        0.0
+      ]
+    ],
+    [
       7,
       [
         0.0,
@@ -119,13 +126,6 @@
     ],
     [
       11,
-      [
-        0.0,
-        0.0
-      ]
-    ],
-    [
-      8,
       [
         0.0,
         0.0
@@ -134,68 +134,9 @@
   ],
   "sprites": [
     [
-      7,
-      {
-        "texture_id": "assets/brackeys_platformer_assets/sprites/knight.png",
-        "width": 1.0,
-        "height": 1.0,
-        "color": [
-          1.0,
-          1.0,
-          1.0,
-          1.0
-        ],
-        "billboard": false,
-        "flip_x": false,
-        "flip_y": false,
-        "sprite_rect": null
-      }
-    ],
-    [
-      9,
-      {
-        "texture_id": "assets/brackeys_platformer_assets/sprites/knight.png",
-        "width": 1.0,
-        "height": 1.0,
-        "color": [
-          1.0,
-          1.0,
-          1.0,
-          1.0
-        ],
-        "billboard": false,
-        "flip_x": false,
-        "flip_y": false,
-        "sprite_rect": null
-      }
-    ],
-    [
-      11,
-      {
-        "texture_id": "assets/brackeys_platformer_assets/sprites/knight.png",
-        "width": 20.0,
-        "height": 20.0,
-        "color": [
-          1.0,
-          1.0,
-          1.0,
-          1.0
-        ],
-        "billboard": false,
-        "flip_x": false,
-        "flip_y": false,
-        "sprite_rect": [
-          5,
-          9,
-          20,
-          20
-        ]
-      }
-    ],
-    [
       8,
       {
-        "texture_id": "assets/brackeys_platformer_assets/sprites/fruit.png",
+        "texture_id": "item",
         "width": 1.0,
         "height": 1.0,
         "color": [
@@ -206,29 +147,64 @@
         ],
         "billboard": true,
         "flip_x": false,
-        "flip_y": false,
-        "sprite_rect": null
+        "flip_y": false
+      }
+    ],
+    [
+      11,
+      {
+        "texture_id": "player",
+        "width": 1.0,
+        "height": 1.0,
+        "color": [
+          0.19999999,
+          0.5999998,
+          1.0,
+          1.0
+        ],
+        "billboard": false,
+        "flip_x": false,
+        "flip_y": false
+      }
+    ],
+    [
+      9,
+      {
+        "texture_id": "sprite",
+        "width": 1.0,
+        "height": 1.0,
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "billboard": false,
+        "flip_x": false,
+        "flip_y": false
+      }
+    ],
+    [
+      7,
+      {
+        "texture_id": "sprite",
+        "width": 1.0,
+        "height": 1.0,
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "billboard": false,
+        "flip_x": false,
+        "flip_y": false
       }
     ]
   ],
   "colliders": [
     [
-      9,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          1.0,
-          1.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      11,
+      7,
       {
         "offset": [
           0.0,
@@ -258,7 +234,22 @@
       }
     ],
     [
-      7,
+      9,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          1.0,
+          1.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      11,
       {
         "offset": [
           0.0,
@@ -275,19 +266,6 @@
   ],
   "rigidbodies": [
     [
-      9,
-      {
-        "velocity": [
-          0.0,
-          0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true
-      }
-    ],
-    [
       7,
       {
         "velocity": [
@@ -301,7 +279,20 @@
       }
     ],
     [
-      11,
+      9,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true
+      }
+    ],
+    [
+      8,
       {
         "velocity": [
           0.0,
@@ -314,7 +305,7 @@
       }
     ],
     [
-      8,
+      11,
       {
         "velocity": [
           0.0,
@@ -367,33 +358,33 @@
   "scripts": [],
   "active": [
     [
-      8,
+      9,
       true
     ],
     [
-      9,
+      11,
+      true
+    ],
+    [
+      7,
+      true
+    ],
+    [
+      8,
       true
     ],
     [
       0,
       true
-    ],
-    [
-      11,
-      true
-    ],
-    [
-      7,
-      true
     ]
   ],
   "layers": [
     [
-      11,
+      7,
       0
     ],
     [
-      8,
+      11,
       0
     ],
     [
@@ -401,7 +392,7 @@
       0
     ],
     [
-      7,
+      8,
       0
     ],
     [
@@ -412,20 +403,20 @@
   "parents": [],
   "names": [
     [
-      8,
-      "Item 8"
-    ],
-    [
       0,
       "Main Camera"
     ],
     [
-      11,
-      "Player"
-    ],
-    [
       9,
       "Sprite (Copy)"
+    ],
+    [
+      8,
+      "Item 8"
+    ],
+    [
+      11,
+      "Player"
     ],
     [
       7,

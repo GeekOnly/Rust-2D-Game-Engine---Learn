@@ -320,6 +320,7 @@ pub fn render_scene_view(
                                     billboard: false,
                                     flip_x: false,
                                     flip_y: false,
+                                    sprite_rect: Some([first_sprite.x, first_sprite.y, first_sprite.width, first_sprite.height]),
                                 });
                             }
                             

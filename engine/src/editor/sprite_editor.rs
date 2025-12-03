@@ -801,12 +801,12 @@ impl SpriteEditorWindow {
         self.statistics = SpriteStatistics::calculate(&self.state.metadata);
     }
     
-    /// Render the sprite editor window
+    /// Render the sprite editor as a standalone window
     pub fn render(&mut self, ctx: &egui::Context, texture_manager: &mut crate::texture_manager::TextureManager, dt: f32) {
         if !self.is_open {
             return;
         }
-        
+
         // Load texture if not already loaded
         if self.state.texture_handle.is_none() {
             if let Err(e) = self.state.load_texture(ctx, texture_manager) {
@@ -816,16 +816,16 @@ impl SpriteEditorWindow {
                 return;
             }
         }
-        
+
         // Check for file changes and reload if necessary
         if self.state.check_and_reload(dt) {
             // File was reloaded, update statistics
             self.update_statistics();
         }
-        
+
         // Handle keyboard shortcuts
         self.handle_keyboard_shortcuts(ctx);
-        
+
         let mut is_open = self.is_open;
         egui::Window::new("🎨 Sprite Editor")
             .open(&mut is_open)
@@ -835,15 +835,48 @@ impl SpriteEditorWindow {
                 self.render_content(ui);
             });
         self.is_open = is_open;
-        
+
         // Render auto-slice dialog if open
         if self.show_auto_slice_dialog {
             self.render_auto_slice_dialog(ctx);
         }
-        
+
         // Render export dialog if open
         if self.show_export_dialog {
             self.render_export_dialog(ctx);
+        }
+    }
+
+    /// Render the sprite editor inline (for dockable tab view)
+    pub fn render_inline(&mut self, ui: &mut egui::Ui, texture_manager: &mut crate::texture_manager::TextureManager, dt: f32) {
+        // Load texture if not already loaded
+        if self.state.texture_handle.is_none() {
+            if let Err(e) = self.state.load_texture(ui.ctx(), texture_manager) {
+                ui.colored_label(egui::Color32::RED, format!("Failed to load texture: {}", e));
+                return;
+            }
+        }
+
+        // Check for file changes and reload if necessary
+        if self.state.check_and_reload(dt) {
+            // File was reloaded, update statistics
+            self.update_statistics();
+        }
+
+        // Handle keyboard shortcuts
+        self.handle_keyboard_shortcuts(ui.ctx());
+
+        // Render content directly
+        self.render_content(ui);
+
+        // Render auto-slice dialog if open (as a popup window)
+        if self.show_auto_slice_dialog {
+            self.render_auto_slice_dialog(ui.ctx());
+        }
+
+        // Render export dialog if open (as a popup window)
+        if self.show_export_dialog {
+            self.render_export_dialog(ui.ctx());
         }
     }
     
@@ -880,14 +913,83 @@ impl SpriteEditorWindow {
             if i.key_pressed(egui::Key::Escape) {
                 self.state.selected_sprite = None;
             }
-            
+
+            // Handle Ctrl+D to duplicate selected sprite
+            if i.modifiers.ctrl && i.key_pressed(egui::Key::D) {
+                self.duplicate_selected_sprite();
+            }
+
             // Handle Tab to cycle through overlapping sprites
             if i.key_pressed(egui::Key::Tab) {
                 self.cycle_overlapping_sprites();
             }
         });
     }
-    
+
+    /// Duplicate the currently selected sprite
+    fn duplicate_selected_sprite(&mut self) {
+        if let Some(selected_idx) = self.state.selected_sprite {
+            if let Some(sprite) = self.state.metadata.sprites.get(selected_idx).cloned() {
+                // Push current state to undo stack before duplication
+                self.state.push_undo();
+
+                // Create a duplicate with offset position and new name
+                let mut duplicated = sprite.clone();
+
+                // Offset position by 10 pixels (if within bounds)
+                let texture_width = self.state.metadata.texture_width;
+                let texture_height = self.state.metadata.texture_height;
+
+                if duplicated.x + duplicated.width + 10 <= texture_width {
+                    duplicated.x += 10;
+                } else if duplicated.x >= 10 {
+                    duplicated.x -= 10;
+                }
+
+                if duplicated.y + duplicated.height + 10 <= texture_height {
+                    duplicated.y += 10;
+                } else if duplicated.y >= 10 {
+                    duplicated.y -= 10;
+                }
+
+                // Generate unique name
+                duplicated.name = self.generate_duplicate_name(&sprite.name);
+
+                // Add duplicated sprite
+                self.state.metadata.add_sprite(duplicated);
+
+                // Select the newly duplicated sprite
+                self.state.selected_sprite = Some(self.state.metadata.sprites.len() - 1);
+
+                // Update statistics
+                self.update_statistics();
+
+                log::info!("Duplicated sprite: {}", sprite.name);
+            }
+        }
+    }
+
+    /// Generate a unique name for duplicated sprite
+    fn generate_duplicate_name(&self, original_name: &str) -> String {
+        // Try "name_copy", "name_copy_2", etc.
+        let base_name = if original_name.ends_with("_copy") {
+            original_name.to_string()
+        } else {
+            format!("{}_copy", original_name)
+        };
+
+        let mut candidate = base_name.clone();
+        let mut counter = 2;
+
+        // Keep incrementing until we find a unique name
+        while self.state.metadata.sprites.iter().any(|s| s.name == candidate) {
+            candidate = format!("{}_{}", base_name, counter);
+            counter += 1;
+        }
+
+        candidate
+    }
+
     /// Delete the currently selected sprite
     fn delete_selected_sprite(&mut self) {
         if let Some(selected_idx) = self.state.selected_sprite {
@@ -1030,7 +1132,13 @@ impl SpriteEditorWindow {
                     .color(egui::Color32::GRAY)
             );
             ui.label(
-                egui::RichText::new("Delete: Remove sprite")
+                egui::RichText::new("Delete: Remove")
+                    .small()
+                    .color(egui::Color32::LIGHT_GRAY)
+            );
+            ui.separator();
+            ui.label(
+                egui::RichText::new("Ctrl+D: Duplicate")
                     .small()
                     .color(egui::Color32::LIGHT_GRAY)
             );
@@ -1049,13 +1157,12 @@ impl SpriteEditorWindow {
         });
         
         ui.separator();
-        
-        // Main content area
-        ui.horizontal(|ui| {
-            // Left panel - Sprite list
-            ui.vertical(|ui| {
-                ui.set_width(200.0);
-                
+
+        // Main content area - use proper panel layout
+        egui::SidePanel::left("sprite_list_panel")
+            .exact_width(200.0)
+            .resizable(false)
+            .show_inside(ui, |ui| {
                 // Header with sprite count
                 ui.horizontal(|ui| {
                     ui.heading("Sprites");
@@ -1067,49 +1174,50 @@ impl SpriteEditorWindow {
                         );
                     });
                 });
-                
+
                 ui.separator();
-                
+
                 // Scrollable sprite list with thumbnails
                 egui::ScrollArea::vertical()
+                    .id_source("sprite_list_scroll")
                     .auto_shrink([false, false])
                     .show(ui, |ui| {
                         self.render_sprite_list(ui);
                     });
             });
-            
-            ui.separator();
-            
-            // Center panel - Canvas
-            ui.vertical(|ui| {
-                ui.heading("Canvas");
-                
-                if let Some(texture_handle) = self.state.texture_handle.clone() {
-                    self.render_canvas(ui, &texture_handle);
-                } else {
-                    ui.label("Loading texture...");
-                }
-            });
-            
-            ui.separator();
-            
-            // Right panel - Properties and Statistics
-            ui.vertical(|ui| {
-                ui.set_width(300.0);
+
+        egui::SidePanel::right("properties_panel")
+            .exact_width(300.0)
+            .resizable(false)
+            .show_inside(ui, |ui| {
                 ui.heading("Properties");
                 ui.separator();
-                
-                self.render_properties_panel(ui);
-                
-                ui.add_space(10.0);
-                ui.separator();
-                ui.add_space(10.0);
-                
-                ui.heading("Statistics");
-                ui.separator();
-                
-                self.render_statistics_panel(ui);
+
+                egui::ScrollArea::vertical()
+                    .id_source("properties_scroll")
+                    .show(ui, |ui| {
+                        self.render_properties_panel(ui);
+
+                        ui.add_space(10.0);
+                        ui.separator();
+                        ui.add_space(10.0);
+
+                        ui.heading("Statistics");
+                        ui.separator();
+
+                        self.render_statistics_panel(ui);
+                    });
             });
+
+        egui::CentralPanel::default().show_inside(ui, |ui| {
+            ui.heading("Canvas");
+            ui.separator();
+
+            if let Some(texture_handle) = self.state.texture_handle.clone() {
+                self.render_canvas(ui, &texture_handle);
+            } else {
+                ui.label("Loading texture...");
+            }
         });
         
         // Status bar with statistics
@@ -1546,12 +1654,12 @@ impl SpriteEditorWindow {
                     .rounding(4.0)
             };
             
-            frame.show(ui, |ui| {
+            let frame_response = frame.show(ui, |ui| {
                 ui.horizontal(|ui| {
                     // Render thumbnail
                     if let Some(texture_handle) = &self.state.texture_handle {
                         let texture_size = texture_handle.size();
-                        
+
                         // Calculate UV coordinates for the sprite region
                         let uv_min = egui::pos2(
                             sprite.x as f32 / texture_size[0] as f32,
@@ -1561,7 +1669,7 @@ impl SpriteEditorWindow {
                             (sprite.x + sprite.width) as f32 / texture_size[0] as f32,
                             (sprite.y + sprite.height) as f32 / texture_size[1] as f32,
                         );
-                        
+
                         // Calculate thumbnail size (48x48 max, maintain aspect ratio)
                         let thumbnail_size = 48.0;
                         let aspect_ratio = sprite.width as f32 / sprite.height as f32;
@@ -1570,19 +1678,19 @@ impl SpriteEditorWindow {
                         } else {
                             (thumbnail_size * aspect_ratio, thumbnail_size)
                         };
-                        
+
                         // Allocate space for thumbnail
                         let (rect, _) = ui.allocate_exact_size(
                             egui::vec2(thumbnail_size, thumbnail_size),
                             egui::Sense::hover()
                         );
-                        
+
                         // Center the thumbnail in the allocated space
                         let thumb_rect = egui::Rect::from_center_size(
                             rect.center(),
                             egui::vec2(thumb_width, thumb_height)
                         );
-                        
+
                         // Draw thumbnail
                         ui.painter().image(
                             texture_handle.id(),
@@ -1590,7 +1698,7 @@ impl SpriteEditorWindow {
                             egui::Rect::from_min_max(uv_min, uv_max),
                             egui::Color32::WHITE,
                         );
-                        
+
                         // Draw border around thumbnail
                         ui.painter().rect_stroke(
                             thumb_rect,
@@ -1609,13 +1717,13 @@ impl SpriteEditorWindow {
                             egui::Color32::from_rgb(60, 60, 65)
                         );
                     }
-                    
+
                     ui.add_space(8.0);
-                    
+
                     // Sprite info
                     ui.vertical(|ui| {
                         ui.set_width(ui.available_width());
-                        
+
                         // Sprite name
                         let name_text = if is_selected {
                             egui::RichText::new(&sprite.name)
@@ -1626,14 +1734,14 @@ impl SpriteEditorWindow {
                                 .color(egui::Color32::LIGHT_GRAY)
                         };
                         ui.label(name_text);
-                        
+
                         // Sprite dimensions
                         ui.label(
                             egui::RichText::new(format!("{}×{}", sprite.width, sprite.height))
                                 .small()
                                 .color(egui::Color32::GRAY)
                         );
-                        
+
                         // Sprite position
                         ui.label(
                             egui::RichText::new(format!("({}, {})", sprite.x, sprite.y))
@@ -1643,22 +1751,22 @@ impl SpriteEditorWindow {
                     });
                 });
             });
-            
+
             // Handle click to select sprite
             let item_response = ui.interact(
-                ui.min_rect(),
-                ui.id().with(idx),
+                frame_response.response.rect,
+                ui.id().with(format!("sprite_item_{}", idx)),
                 egui::Sense::click()
             );
-            
+
             if item_response.clicked() {
                 self.state.selected_sprite = Some(idx);
             }
-            
+
             // Add hover effect
             if item_response.hovered() {
                 ui.painter().rect_stroke(
-                    ui.min_rect(),
+                    frame_response.response.rect,
                     4.0,
                     egui::Stroke::new(1.0, egui::Color32::from_rgb(100, 150, 255))
                 );
@@ -1717,31 +1825,76 @@ impl SpriteEditorWindow {
                 }
                 
                 ui.add_space(10.0);
-                
-                // Display sprite properties (read-only)
+
+                // Action buttons
+                ui.horizontal(|ui| {
+                    // Duplicate button
+                    if ui.button("📋 Duplicate (Ctrl+D)").clicked() {
+                        self.duplicate_selected_sprite();
+                    }
+
+                    // Delete button
+                    if ui.button("🗑 Delete").clicked() {
+                        self.delete_selected_sprite();
+                    }
+                });
+
+                ui.add_space(10.0);
+
+                // Editable sprite properties
                 ui.label("Position & Size:");
+
+                // X position
+                let mut x_value = sprite.x as i32;
                 ui.horizontal(|ui| {
                     ui.label("X:");
-                    ui.label(format!("{} px", sprite.x));
+                    if ui.add(egui::DragValue::new(&mut x_value).speed(1.0).suffix(" px")).changed() {
+                        self.state.push_undo();
+                        if let Some(sprite_mut) = self.state.metadata.sprites.get_mut(idx) {
+                            sprite_mut.x = x_value.max(0) as u32;
+                        }
+                        self.update_statistics();
+                    }
                 });
+
+                // Y position
+                let mut y_value = sprite.y as i32;
                 ui.horizontal(|ui| {
                     ui.label("Y:");
-                    ui.label(format!("{} px", sprite.y));
+                    if ui.add(egui::DragValue::new(&mut y_value).speed(1.0).suffix(" px")).changed() {
+                        self.state.push_undo();
+                        if let Some(sprite_mut) = self.state.metadata.sprites.get_mut(idx) {
+                            sprite_mut.y = y_value.max(0) as u32;
+                        }
+                        self.update_statistics();
+                    }
                 });
+
+                // Width
+                let mut width_value = sprite.width as i32;
                 ui.horizontal(|ui| {
                     ui.label("Width:");
-                    ui.label(format!("{} px", sprite.width));
+                    if ui.add(egui::DragValue::new(&mut width_value).speed(1.0).clamp_range(1..=self.state.metadata.texture_width).suffix(" px")).changed() {
+                        self.state.push_undo();
+                        if let Some(sprite_mut) = self.state.metadata.sprites.get_mut(idx) {
+                            sprite_mut.width = width_value.max(1) as u32;
+                        }
+                        self.update_statistics();
+                    }
                 });
+
+                // Height
+                let mut height_value = sprite.height as i32;
                 ui.horizontal(|ui| {
                     ui.label("Height:");
-                    ui.label(format!("{} px", sprite.height));
+                    if ui.add(egui::DragValue::new(&mut height_value).speed(1.0).clamp_range(1..=self.state.metadata.texture_height).suffix(" px")).changed() {
+                        self.state.push_undo();
+                        if let Some(sprite_mut) = self.state.metadata.sprites.get_mut(idx) {
+                            sprite_mut.height = height_value.max(1) as u32;
+                        }
+                        self.update_statistics();
+                    }
                 });
-                
-                ui.add_space(10.0);
-                
-                // Display sprite dimensions
-                ui.label("Dimensions:");
-                ui.label(format!("{}×{} pixels", sprite.width, sprite.height));
                 
                 ui.add_space(10.0);
                 
@@ -1891,6 +2044,7 @@ impl SpriteEditorWindow {
                 .default_open(false)
                 .show(ui, |ui| {
                     egui::ScrollArea::vertical()
+                        .id_source("overlapping_sprites_scroll")
                         .max_height(150.0)
                         .show(ui, |ui| {
                             for (idx1, idx2) in &self.statistics.overlapping_sprites {
@@ -1927,6 +2081,7 @@ impl SpriteEditorWindow {
                 .default_open(false)
                 .show(ui, |ui| {
                     egui::ScrollArea::vertical()
+                        .id_source("out_of_bounds_sprites_scroll")
                         .max_height(150.0)
                         .show(ui, |ui| {
                             for idx in &self.statistics.out_of_bounds_sprites {
@@ -2192,22 +2347,28 @@ impl SpriteEditorWindow {
             if let Some(pointer_pos) = response.interact_pointer_pos() {
                 // Check if we're starting to edit a selected sprite
                 if let Some(selected_idx) = self.state.selected_sprite {
-                    // Check for resize handle
+                    // Check for resize handle first (higher priority)
                     if let Some(handle) = self.get_resize_handle_at_position(pointer_pos, selected_idx, texture_pos) {
+                        // Push to undo stack before starting edit
+                        self.state.push_undo();
                         self.state.drag_mode = DragMode::ResizingSprite(selected_idx, handle);
                         self.state.drag_start_pos = Some((pointer_pos.x, pointer_pos.y));
                         self.state.drag_original_sprite = self.state.metadata.sprites.get(selected_idx).cloned();
+                        log::info!("Started resizing sprite {} with handle {:?}", selected_idx, handle);
                     }
                     // Check for center drag (move)
                     else if self.is_inside_sprite_center(pointer_pos, selected_idx, texture_pos) {
+                        // Push to undo stack before starting edit
+                        self.state.push_undo();
                         self.state.drag_mode = DragMode::MovingSprite(selected_idx);
                         self.state.drag_start_pos = Some((pointer_pos.x, pointer_pos.y));
                         self.state.drag_original_sprite = self.state.metadata.sprites.get(selected_idx).cloned();
+                        log::info!("Started moving sprite {}", selected_idx);
                     }
                 }
             }
         }
-        
+
         // Continue drag operation
         if response.dragged_by(egui::PointerButton::Primary) {
             if let Some(pointer_pos) = response.interact_pointer_pos() {
@@ -2222,26 +2383,18 @@ impl SpriteEditorWindow {
                 }
             }
         }
-        
+
         // End drag operation
-        if response.drag_released_by(egui::PointerButton::Primary) {
+        if response.drag_stopped_by(egui::PointerButton::Primary) {
             match self.state.drag_mode {
-                DragMode::ResizingSprite(_, _) | DragMode::MovingSprite(_) => {
-                    // Push to undo stack after edit
-                    if let Some(original) = &self.state.drag_original_sprite {
-                        // Only push if sprite actually changed
-                        if let Some(current) = self.state.selected_sprite.and_then(|idx| self.state.metadata.sprites.get(idx)) {
-                            if original != current {
-                                self.state.push_undo();
-                                // Update statistics after sprite modification
-                                self.update_statistics();
-                            }
-                        }
-                    }
+                DragMode::ResizingSprite(sprite_idx, _) | DragMode::MovingSprite(sprite_idx) => {
+                    log::info!("Finished editing sprite {}", sprite_idx);
+                    // Update statistics after sprite modification
+                    self.update_statistics();
                 }
                 _ => {}
             }
-            
+
             // Reset drag state
             self.state.drag_mode = DragMode::None;
             self.state.drag_start_pos = None;
@@ -2343,13 +2496,18 @@ impl SpriteEditorWindow {
         if matches!(self.state.drag_mode, DragMode::ResizingSprite(_, _) | DragMode::MovingSprite(_)) {
             return;
         }
-        
-        // Only handle left mouse button for drawing
-        if response.clicked_by(egui::PointerButton::Primary) {
+
+        // Start drawing with drag (not just click)
+        if response.drag_started_by(egui::PointerButton::Primary) {
+            // Check if drag mode was already set by sprite editing
+            if self.state.drag_mode != DragMode::None {
+                return;
+            }
+
             // Start drawing only if we didn't click on an existing sprite
             if let Some(pointer_pos) = response.interact_pointer_pos() {
                 let clicked_sprite = self.find_sprite_at_position(pointer_pos, texture_pos);
-                
+
                 // Check if we clicked on a handle or center of selected sprite
                 let clicked_on_edit_area = if let Some(selected_idx) = self.state.selected_sprite {
                     self.get_resize_handle_at_position(pointer_pos, selected_idx, texture_pos).is_some()
@@ -2357,13 +2515,14 @@ impl SpriteEditorWindow {
                 } else {
                     false
                 };
-                
+
                 // Only start drawing if we clicked on empty space (not on sprite or edit area)
                 if clicked_sprite.is_none() && !clicked_on_edit_area {
                     self.state.is_drawing = true;
                     self.state.drag_mode = DragMode::Creating;
                     self.state.draw_start = Some((pointer_pos.x, pointer_pos.y));
                     self.state.draw_current = Some((pointer_pos.x, pointer_pos.y));
+                    log::info!("Started creating new sprite");
                 }
             }
         }
@@ -2374,13 +2533,13 @@ impl SpriteEditorWindow {
                 self.state.draw_current = Some((pointer_pos.x, pointer_pos.y));
             }
         }
-        
-        if response.drag_released_by(egui::PointerButton::Primary) && self.state.is_drawing {
+
+        if response.drag_stopped_by(egui::PointerButton::Primary) && self.state.is_drawing {
             // Finish drawing and create sprite
             if let (Some(start), Some(end)) = (self.state.draw_start, self.state.draw_current) {
                 self.create_sprite_from_drag(start, end, texture_pos, texture_size);
             }
-            
+
             // Reset drawing state
             self.state.is_drawing = false;
             self.state.drag_mode = DragMode::None;

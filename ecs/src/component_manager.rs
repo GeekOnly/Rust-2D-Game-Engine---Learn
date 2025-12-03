@@ -104,6 +104,7 @@ impl ComponentManager for World {
                     billboard: false,
                     flip_x: false,
                     flip_y: false,
+                    sprite_rect: None,
                 });
             }
             ComponentType::SpriteSheet => {
