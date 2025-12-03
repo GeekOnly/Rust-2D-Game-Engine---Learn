@@ -384,7 +384,18 @@
   - **Property 33: Export includes all metadata**
   - **Validates: Requirements 10.3**
 
-- [ ] 21. Add toolbar with action buttons
+- [x] 21. Add toolbar with action buttons
+
+
+
+
+
+
+
+
+
+
+
   - Create toolbar UI at top of window
   - Add Save button (with Ctrl+S hint)
   - Add Auto Slice button

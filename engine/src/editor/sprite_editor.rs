@@ -899,8 +899,9 @@ impl SpriteEditorWindow {
     
     /// Render the window content
     fn render_content(&mut self, ui: &mut egui::Ui) {
-        // Toolbar
+        // Toolbar with action buttons
         ui.horizontal(|ui| {
+            // Save button - always enabled
             if ui.button("💾 Save (Ctrl+S)").clicked() {
                 match self.state.save() {
                     Ok(_) => {
@@ -918,29 +919,42 @@ impl SpriteEditorWindow {
             
             ui.separator();
             
+            // Auto Slice button - always enabled
             if ui.button("✂ Auto Slice").clicked() {
                 self.show_auto_slice_dialog = true;
             }
             
             ui.separator();
             
-            if ui.button("📤 Export").clicked() {
-                self.show_export_dialog = true;
-                self.export_message = None;
-                self.export_error = None;
-            }
+            // Export button - disabled if no sprites
+            let has_sprites = !self.state.metadata.sprites.is_empty();
+            ui.add_enabled_ui(has_sprites, |ui| {
+                if ui.button("📤 Export").clicked() {
+                    self.show_export_dialog = true;
+                    self.export_message = None;
+                    self.export_error = None;
+                }
+            });
             
             ui.separator();
             
-            if ui.button("↶ Undo (Ctrl+Z)").clicked() {
-                self.state.undo();
-                self.update_statistics();
-            }
+            // Undo button - disabled if undo stack is empty
+            let can_undo = !self.state.undo_stack.is_empty();
+            ui.add_enabled_ui(can_undo, |ui| {
+                if ui.button("↶ Undo (Ctrl+Z)").clicked() {
+                    self.state.undo();
+                    self.update_statistics();
+                }
+            });
             
-            if ui.button("↷ Redo (Ctrl+Y)").clicked() {
-                self.state.redo();
-                self.update_statistics();
-            }
+            // Redo button - disabled if redo stack is empty
+            let can_redo = !self.state.redo_stack.is_empty();
+            ui.add_enabled_ui(can_redo, |ui| {
+                if ui.button("↷ Redo (Ctrl+Y)").clicked() {
+                    self.state.redo();
+                    self.update_statistics();
+                }
+            });
             
             ui.separator();
             
