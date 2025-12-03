@@ -4,6 +4,14 @@ use std::path::{Path, PathBuf};
 use std::time::SystemTime;
 use egui::TextureHandle;
 
+/// Export format for sprite metadata
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum ExportFormat {
+    Json,
+    Xml,
+    TexturePacker,
+}
+
 /// Represents a single sprite definition within a sprite sheet
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct SpriteDefinition {
@@ -104,6 +112,108 @@ impl SpriteMetadata {
             .map_err(|e| format!("Failed to parse sprite JSON: {}", e))?;
 
         Ok(metadata)
+    }
+
+    /// Export sprite metadata to a file in the specified format
+    pub fn export<P: AsRef<Path>>(&self, path: P, format: ExportFormat) -> Result<(), String> {
+        let path = path.as_ref();
+        
+        let content = match format {
+            ExportFormat::Json => self.export_to_json()?,
+            ExportFormat::Xml => self.export_to_xml()?,
+            ExportFormat::TexturePacker => self.export_to_texture_packer()?,
+        };
+
+        // Write to file
+        fs::write(path, content)
+            .map_err(|e| format!("Failed to write export file: {}", e))?;
+
+        Ok(())
+    }
+
+    /// Export to standard JSON format
+    fn export_to_json(&self) -> Result<String, String> {
+        // Use the same format as our internal .sprite files
+        serde_json::to_string_pretty(self)
+            .map_err(|e| format!("Failed to serialize to JSON: {}", e))
+    }
+
+    /// Export to XML format
+    fn export_to_xml(&self) -> Result<String, String> {
+        let mut xml = String::new();
+        xml.push_str("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+        xml.push_str("<SpriteSheet>\n");
+        xml.push_str(&format!("  <TexturePath>{}</TexturePath>\n", self.texture_path));
+        xml.push_str(&format!("  <TextureWidth>{}</TextureWidth>\n", self.texture_width));
+        xml.push_str(&format!("  <TextureHeight>{}</TextureHeight>\n", self.texture_height));
+        xml.push_str("  <Sprites>\n");
+        
+        for sprite in &self.sprites {
+            xml.push_str("    <Sprite>\n");
+            xml.push_str(&format!("      <Name>{}</Name>\n", sprite.name));
+            xml.push_str(&format!("      <X>{}</X>\n", sprite.x));
+            xml.push_str(&format!("      <Y>{}</Y>\n", sprite.y));
+            xml.push_str(&format!("      <Width>{}</Width>\n", sprite.width));
+            xml.push_str(&format!("      <Height>{}</Height>\n", sprite.height));
+            xml.push_str("    </Sprite>\n");
+        }
+        
+        xml.push_str("  </Sprites>\n");
+        xml.push_str("</SpriteSheet>\n");
+        
+        Ok(xml)
+    }
+
+    /// Export to TexturePacker format (JSON)
+    fn export_to_texture_packer(&self) -> Result<String, String> {
+        // TexturePacker format structure
+        let mut tp_data = serde_json::json!({
+            "frames": {},
+            "meta": {
+                "app": "XS Game Engine Sprite Editor",
+                "version": "1.0",
+                "image": self.texture_path,
+                "format": "RGBA8888",
+                "size": {
+                    "w": self.texture_width,
+                    "h": self.texture_height
+                },
+                "scale": "1"
+            }
+        });
+
+        // Add each sprite as a frame
+        if let Some(frames) = tp_data.get_mut("frames") {
+            if let Some(frames_obj) = frames.as_object_mut() {
+                for sprite in &self.sprites {
+                    let frame_data = serde_json::json!({
+                        "frame": {
+                            "x": sprite.x,
+                            "y": sprite.y,
+                            "w": sprite.width,
+                            "h": sprite.height
+                        },
+                        "rotated": false,
+                        "trimmed": false,
+                        "spriteSourceSize": {
+                            "x": 0,
+                            "y": 0,
+                            "w": sprite.width,
+                            "h": sprite.height
+                        },
+                        "sourceSize": {
+                            "w": sprite.width,
+                            "h": sprite.height
+                        }
+                    });
+                    
+                    frames_obj.insert(sprite.name.clone(), frame_data);
+                }
+            }
+        }
+
+        serde_json::to_string_pretty(&tp_data)
+            .map_err(|e| format!("Failed to serialize to TexturePacker format: {}", e))
     }
 }
 
@@ -584,6 +694,11 @@ pub struct SpriteEditorWindow {
     auto_slice_mode: AutoSliceMode,
     auto_slice_cell_width: u32,
     auto_slice_cell_height: u32,
+    /// Export dialog state
+    show_export_dialog: bool,
+    export_format: ExportFormat,
+    export_message: Option<String>,
+    export_error: Option<String>,
     /// Sprite statistics and validation
     statistics: SpriteStatistics,
 }
@@ -614,6 +729,10 @@ impl SpriteEditorWindow {
             auto_slice_mode: AutoSliceMode::Grid,
             auto_slice_cell_width: 32,
             auto_slice_cell_height: 32,
+            show_export_dialog: false,
+            export_format: ExportFormat::Json,
+            export_message: None,
+            export_error: None,
             statistics,
         }
     }
@@ -661,6 +780,11 @@ impl SpriteEditorWindow {
         // Render auto-slice dialog if open
         if self.show_auto_slice_dialog {
             self.render_auto_slice_dialog(ctx);
+        }
+        
+        // Render export dialog if open
+        if self.show_export_dialog {
+            self.render_export_dialog(ctx);
         }
     }
     
@@ -778,10 +902,17 @@ impl SpriteEditorWindow {
         // Toolbar
         ui.horizontal(|ui| {
             if ui.button("💾 Save (Ctrl+S)").clicked() {
-                if let Err(e) = self.state.save() {
-                    log::error!("Failed to save sprite metadata: {}", e);
-                } else {
-                    log::info!("Sprite metadata saved successfully");
+                match self.state.save() {
+                    Ok(_) => {
+                        log::info!("Sprite metadata saved successfully");
+                        self.export_message = Some("Saved successfully!".to_string());
+                        self.export_error = None;
+                    }
+                    Err(e) => {
+                        log::error!("Failed to save sprite metadata: {}", e);
+                        self.export_error = Some(format!("Save failed: {}", e));
+                        self.export_message = None;
+                    }
                 }
             }
             
@@ -793,12 +924,22 @@ impl SpriteEditorWindow {
             
             ui.separator();
             
+            if ui.button("📤 Export").clicked() {
+                self.show_export_dialog = true;
+                self.export_message = None;
+                self.export_error = None;
+            }
+            
+            ui.separator();
+            
             if ui.button("↶ Undo (Ctrl+Z)").clicked() {
                 self.state.undo();
+                self.update_statistics();
             }
             
             if ui.button("↷ Redo (Ctrl+Y)").clicked() {
                 self.state.redo();
+                self.update_statistics();
             }
             
             ui.separator();
@@ -1098,6 +1239,157 @@ impl SpriteEditorWindow {
             });
         
         self.show_auto_slice_dialog = dialog_open;
+    }
+    
+    /// Render the export dialog
+    fn render_export_dialog(&mut self, ctx: &egui::Context) {
+        let mut dialog_open = self.show_export_dialog;
+        
+        egui::Window::new("📤 Export Sprite Sheet")
+            .open(&mut dialog_open)
+            .resizable(false)
+            .collapsible(false)
+            .default_width(400.0)
+            .show(ctx, |ui| {
+                ui.heading("Export Options");
+                ui.add_space(10.0);
+                
+                // Format selection
+                ui.label("Export Format:");
+                ui.add_space(5.0);
+                
+                ui.radio_value(&mut self.export_format, ExportFormat::Json, "JSON (Standard)");
+                ui.label(
+                    egui::RichText::new("Standard JSON format compatible with most tools")
+                        .small()
+                        .color(egui::Color32::GRAY)
+                );
+                ui.add_space(5.0);
+                
+                ui.radio_value(&mut self.export_format, ExportFormat::Xml, "XML");
+                ui.label(
+                    egui::RichText::new("XML format for legacy tools and engines")
+                        .small()
+                        .color(egui::Color32::GRAY)
+                );
+                ui.add_space(5.0);
+                
+                ui.radio_value(&mut self.export_format, ExportFormat::TexturePacker, "TexturePacker");
+                ui.label(
+                    egui::RichText::new("TexturePacker JSON format for compatibility")
+                        .small()
+                        .color(egui::Color32::GRAY)
+                );
+                
+                ui.add_space(15.0);
+                ui.separator();
+                ui.add_space(10.0);
+                
+                // Show sprite count
+                ui.horizontal(|ui| {
+                    ui.label("Sprites to export:");
+                    ui.label(
+                        egui::RichText::new(format!("{}", self.state.metadata.sprites.len()))
+                            .strong()
+                            .color(egui::Color32::from_rgb(100, 200, 255))
+                    );
+                });
+                
+                ui.add_space(10.0);
+                
+                // Show success/error messages
+                if let Some(msg) = &self.export_message {
+                    ui.colored_label(
+                        egui::Color32::from_rgb(100, 255, 100),
+                        format!("✓ {}", msg)
+                    );
+                    ui.add_space(5.0);
+                }
+                
+                if let Some(err) = &self.export_error {
+                    ui.colored_label(
+                        egui::Color32::from_rgb(255, 100, 100),
+                        format!("❌ {}", err)
+                    );
+                    ui.add_space(5.0);
+                }
+                
+                ui.add_space(10.0);
+                ui.separator();
+                ui.add_space(10.0);
+                
+                // Action buttons
+                ui.horizontal(|ui| {
+                    if ui.button("📤 Export").clicked() {
+                        self.perform_export();
+                    }
+                    
+                    if ui.button("Close").clicked() {
+                        self.show_export_dialog = false;
+                    }
+                });
+                
+                ui.add_space(5.0);
+                
+                // Warning if no sprites
+                if self.state.metadata.sprites.is_empty() {
+                    ui.colored_label(
+                        egui::Color32::from_rgb(255, 200, 100),
+                        "⚠ No sprites to export"
+                    );
+                }
+            });
+        
+        self.show_export_dialog = dialog_open;
+    }
+    
+    /// Perform the export operation
+    fn perform_export(&mut self) {
+        // Determine export file path based on format
+        let extension = match self.export_format {
+            ExportFormat::Json => "json",
+            ExportFormat::Xml => "xml",
+            ExportFormat::TexturePacker => "json",
+        };
+        
+        // Create export filename based on texture name
+        let export_path = self.state.metadata_path
+            .with_file_name(format!(
+                "{}_export.{}",
+                self.state.metadata_path
+                    .file_stem()
+                    .and_then(|s| s.to_str())
+                    .unwrap_or("sprite_sheet"),
+                extension
+            ));
+        
+        // Perform export
+        match self.state.metadata.export(&export_path, self.export_format) {
+            Ok(_) => {
+                let format_name = match self.export_format {
+                    ExportFormat::Json => "JSON",
+                    ExportFormat::Xml => "XML",
+                    ExportFormat::TexturePacker => "TexturePacker",
+                };
+                
+                let message = format!(
+                    "Exported {} sprites to {} format: {}",
+                    self.state.metadata.sprites.len(),
+                    format_name,
+                    export_path.display()
+                );
+                
+                log::info!("{}", message);
+                self.export_message = Some(message);
+                self.export_error = None;
+            }
+            Err(e) => {
+                let error = format!("Export failed: {}", e);
+                log::error!("{}", error);
+                self.export_error = Some(error);
+                self.export_message = None;
+            }
+        }
     }
     
     /// Apply auto-slice based on current settings
@@ -2640,6 +2932,191 @@ mod tests {
         // Generate next name should fill the gap
         let name = window.generate_sequential_name();
         assert_eq!(name, "sprite_1");
+    }
+
+    // Export functionality tests
+    #[test]
+    fn test_export_to_json() {
+        let test_path = get_test_path("test_export.json");
+        cleanup_test_file(&test_path);
+
+        let mut metadata = SpriteMetadata::new("assets/knight.png".to_string(), 512, 256);
+        metadata.add_sprite(SpriteDefinition::new("knight_idle_0".to_string(), 0, 0, 32, 32));
+        metadata.add_sprite(SpriteDefinition::new("knight_run_0".to_string(), 32, 0, 32, 32));
+
+        // Export to JSON
+        let result = metadata.export(&test_path, ExportFormat::Json);
+        assert!(result.is_ok(), "Export to JSON failed: {:?}", result.err());
+
+        // Verify file exists
+        assert!(test_path.exists(), "Export file should exist");
+
+        // Read and verify content
+        let content = fs::read_to_string(&test_path).unwrap();
+        assert!(content.contains("\"texture_path\""));
+        assert!(content.contains("\"knight_idle_0\""));
+        assert!(content.contains("\"knight_run_0\""));
+
+        cleanup_test_file(&test_path);
+    }
+
+    #[test]
+    fn test_export_to_xml() {
+        let test_path = get_test_path("test_export.xml");
+        cleanup_test_file(&test_path);
+
+        let mut metadata = SpriteMetadata::new("assets/knight.png".to_string(), 512, 256);
+        metadata.add_sprite(SpriteDefinition::new("knight_idle_0".to_string(), 0, 0, 32, 32));
+        metadata.add_sprite(SpriteDefinition::new("knight_run_0".to_string(), 32, 0, 32, 32));
+
+        // Export to XML
+        let result = metadata.export(&test_path, ExportFormat::Xml);
+        assert!(result.is_ok(), "Export to XML failed: {:?}", result.err());
+
+        // Verify file exists
+        assert!(test_path.exists(), "Export file should exist");
+
+        // Read and verify content
+        let content = fs::read_to_string(&test_path).unwrap();
+        assert!(content.contains("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"));
+        assert!(content.contains("<SpriteSheet>"));
+        assert!(content.contains("<TexturePath>assets/knight.png</TexturePath>"));
+        assert!(content.contains("<TextureWidth>512</TextureWidth>"));
+        assert!(content.contains("<TextureHeight>256</TextureHeight>"));
+        assert!(content.contains("<Sprites>"));
+        assert!(content.contains("<Name>knight_idle_0</Name>"));
+        assert!(content.contains("<Name>knight_run_0</Name>"));
+        assert!(content.contains("<X>0</X>"));
+        assert!(content.contains("<Y>0</Y>"));
+        assert!(content.contains("<Width>32</Width>"));
+        assert!(content.contains("<Height>32</Height>"));
+
+        cleanup_test_file(&test_path);
+    }
+
+    #[test]
+    fn test_export_to_texture_packer() {
+        let test_path = get_test_path("test_export_tp.json");
+        cleanup_test_file(&test_path);
+
+        let mut metadata = SpriteMetadata::new("assets/knight.png".to_string(), 512, 256);
+        metadata.add_sprite(SpriteDefinition::new("knight_idle_0".to_string(), 0, 0, 32, 32));
+        metadata.add_sprite(SpriteDefinition::new("knight_run_0".to_string(), 32, 0, 32, 32));
+
+        // Export to TexturePacker format
+        let result = metadata.export(&test_path, ExportFormat::TexturePacker);
+        assert!(result.is_ok(), "Export to TexturePacker failed: {:?}", result.err());
+
+        // Verify file exists
+        assert!(test_path.exists(), "Export file should exist");
+
+        // Read and verify content
+        let content = fs::read_to_string(&test_path).unwrap();
+        
+        // Parse as JSON to verify structure
+        let json: serde_json::Value = serde_json::from_str(&content).unwrap();
+        
+        // Verify meta section
+        assert!(json.get("meta").is_some());
+        let meta = json.get("meta").unwrap();
+        assert_eq!(meta.get("image").unwrap().as_str().unwrap(), "assets/knight.png");
+        assert_eq!(meta.get("size").unwrap().get("w").unwrap().as_u64().unwrap(), 512);
+        assert_eq!(meta.get("size").unwrap().get("h").unwrap().as_u64().unwrap(), 256);
+        
+        // Verify frames section
+        assert!(json.get("frames").is_some());
+        let frames = json.get("frames").unwrap();
+        assert!(frames.get("knight_idle_0").is_some());
+        assert!(frames.get("knight_run_0").is_some());
+        
+        // Verify frame data
+        let frame1 = frames.get("knight_idle_0").unwrap();
+        assert_eq!(frame1.get("frame").unwrap().get("x").unwrap().as_u64().unwrap(), 0);
+        assert_eq!(frame1.get("frame").unwrap().get("y").unwrap().as_u64().unwrap(), 0);
+        assert_eq!(frame1.get("frame").unwrap().get("w").unwrap().as_u64().unwrap(), 32);
+        assert_eq!(frame1.get("frame").unwrap().get("h").unwrap().as_u64().unwrap(), 32);
+
+        cleanup_test_file(&test_path);
+    }
+
+    #[test]
+    fn test_export_empty_sprite_sheet() {
+        let test_path = get_test_path("test_export_empty.json");
+        cleanup_test_file(&test_path);
+
+        let metadata = SpriteMetadata::new("assets/empty.png".to_string(), 512, 256);
+
+        // Export empty sprite sheet
+        let result = metadata.export(&test_path, ExportFormat::Json);
+        assert!(result.is_ok(), "Export of empty sprite sheet failed: {:?}", result.err());
+
+        // Verify file exists
+        assert!(test_path.exists(), "Export file should exist");
+
+        // Read and verify content
+        let content = fs::read_to_string(&test_path).unwrap();
+        let json: serde_json::Value = serde_json::from_str(&content).unwrap();
+        
+        assert_eq!(json.get("sprites").unwrap().as_array().unwrap().len(), 0);
+
+        cleanup_test_file(&test_path);
+    }
+
+    #[test]
+    fn test_export_all_formats() {
+        let mut metadata = SpriteMetadata::new("assets/test.png".to_string(), 256, 128);
+        metadata.add_sprite(SpriteDefinition::new("sprite_0".to_string(), 0, 0, 32, 32));
+
+        // Test all formats
+        for (format, extension) in [
+            (ExportFormat::Json, "json"),
+            (ExportFormat::Xml, "xml"),
+            (ExportFormat::TexturePacker, "json"),
+        ] {
+            let test_path = get_test_path(&format!("test_export_all.{}", extension));
+            cleanup_test_file(&test_path);
+
+            let result = metadata.export(&test_path, format);
+            assert!(result.is_ok(), "Export to {:?} failed: {:?}", format, result.err());
+            assert!(test_path.exists(), "Export file for {:?} should exist", format);
+
+            cleanup_test_file(&test_path);
+        }
+    }
+
+    #[test]
+    fn test_export_includes_all_metadata() {
+        let test_path = get_test_path("test_export_metadata.json");
+        cleanup_test_file(&test_path);
+
+        let mut metadata = SpriteMetadata::new("assets/complete.png".to_string(), 1024, 512);
+        metadata.add_sprite(SpriteDefinition::new("sprite_a".to_string(), 10, 20, 64, 64));
+        metadata.add_sprite(SpriteDefinition::new("sprite_b".to_string(), 100, 200, 128, 128));
+
+        // Export to JSON
+        metadata.export(&test_path, ExportFormat::Json).unwrap();
+
+        // Load back and verify all data is preserved
+        let loaded = SpriteMetadata::load(&test_path).unwrap();
+        
+        assert_eq!(loaded.texture_path, "assets/complete.png");
+        assert_eq!(loaded.texture_width, 1024);
+        assert_eq!(loaded.texture_height, 512);
+        assert_eq!(loaded.sprites.len(), 2);
+        
+        assert_eq!(loaded.sprites[0].name, "sprite_a");
+        assert_eq!(loaded.sprites[0].x, 10);
+        assert_eq!(loaded.sprites[0].y, 20);
+        assert_eq!(loaded.sprites[0].width, 64);
+        assert_eq!(loaded.sprites[0].height, 64);
+        
+        assert_eq!(loaded.sprites[1].name, "sprite_b");
+        assert_eq!(loaded.sprites[1].x, 100);
+        assert_eq!(loaded.sprites[1].y, 200);
+        assert_eq!(loaded.sprites[1].width, 128);
+        assert_eq!(loaded.sprites[1].height, 128);
+
+        cleanup_test_file(&test_path);
     }
 
     #[test]

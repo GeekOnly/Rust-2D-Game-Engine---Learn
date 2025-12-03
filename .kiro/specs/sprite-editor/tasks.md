@@ -362,7 +362,15 @@
   - **Property 26: Sprite changes update entities**
   - **Validates: Requirements 7.5**
 
-- [ ] 20. Implement export functionality
+- [x] 20. Implement export functionality
+
+
+
+
+
+
+
+
   - Add "Export" button to toolbar
   - Show dialog with format options (JSON, XML, TexturePacker)
   - Implement JSON export with standard format
