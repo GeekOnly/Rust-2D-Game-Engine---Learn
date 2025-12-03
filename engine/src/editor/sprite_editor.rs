@@ -510,24 +510,45 @@ pub struct SpriteEditorState {
 }
 
 impl SpriteEditorState {
+    /// Convert full path to relative path (remove "projects/ProjectName/" prefix)
+    fn make_relative_path(path: &PathBuf) -> String {
+        let path_str = path.to_string_lossy();
+        
+        // Check if path starts with "projects/"
+        if let Some(idx) = path_str.find("projects/") {
+            // Find the next "/" after "projects/ProjectName/"
+            let after_projects = &path_str[idx + "projects/".len()..];
+            if let Some(next_slash) = after_projects.find('/') {
+                // Return everything after "projects/ProjectName/"
+                return after_projects[next_slash + 1..].replace('\\', "/");
+            }
+        }
+        
+        // If no "projects/" prefix, return as-is with forward slashes
+        path_str.replace('\\', "/")
+    }
+    
     /// Create a new sprite editor state
     pub fn new(texture_path: PathBuf) -> Self {
         // Determine metadata path (.sprite file)
         let metadata_path = texture_path.with_extension("sprite");
+        
+        // Convert to relative path (remove "projects/ProjectName/" prefix if exists)
+        let relative_texture_path = Self::make_relative_path(&texture_path);
         
         // Try to load existing metadata or create new
         let metadata = if metadata_path.exists() {
             SpriteMetadata::load(&metadata_path).unwrap_or_else(|e| {
                 log::warn!("Failed to load sprite metadata: {}", e);
                 SpriteMetadata::new(
-                    texture_path.to_string_lossy().to_string(),
+                    relative_texture_path.clone(),
                     0,
                     0,
                 )
             })
         } else {
             SpriteMetadata::new(
-                texture_path.to_string_lossy().to_string(),
+                relative_texture_path,
                 0,
                 0,
             )
