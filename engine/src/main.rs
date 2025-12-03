@@ -1087,6 +1087,7 @@ fn main() -> Result<()> {
                                     &egui_ctx,
                                     &mut editor_state.sprite_picker_state,
                                     editor_state.current_project_path.as_ref(),
+                                    &mut editor_state.texture_manager,
                                 ) {
                                     // User selected a sprite - update the selected entity's Sprite component (Unity-style)
                                     if let Some(entity) = editor_state.selected_entity {
