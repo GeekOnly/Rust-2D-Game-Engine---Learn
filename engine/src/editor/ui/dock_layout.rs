@@ -14,6 +14,7 @@ pub enum EditorTab {
     Game,
     Console,
     Project,
+    SpriteEditor(std::path::PathBuf),  // Sprite editor for a specific texture file
 }
 
 /// Context for tab rendering
@@ -44,6 +45,9 @@ pub struct TabContext<'a> {
     pub transform_space: &'a mut scene_view::TransformSpace,
     pub texture_manager: &'a mut crate::texture_manager::TextureManager,
     pub open_sprite_editor_request: &'a mut Option<std::path::PathBuf>,
+    pub sprite_editor_windows: &'a mut Vec<crate::editor::SpriteEditorWindow>,
+    pub sprite_picker_state: &'a mut super::sprite_picker::SpritePickerState,
+    pub dt: f32,
 }
 
 /// Tab viewer implementation for egui_dock
@@ -62,6 +66,12 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
             EditorTab::Game => "Game".into(),
             EditorTab::Console => "Console".into(),
             EditorTab::Project => "Project".into(),
+            EditorTab::SpriteEditor(path) => {
+                let file_name = path.file_stem()
+                    .and_then(|s| s.to_str())
+                    .unwrap_or("Sprite Editor");
+                format!("🖼️ {}", file_name).into()
+            }
         }
     }
 
@@ -90,6 +100,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                     self.context.edit_script_request,
                     self.context.project_path,
                     self.context.open_sprite_editor_request,
+                    self.context.sprite_picker_state,
                 );
             }
             EditorTab::Scene => {
@@ -139,6 +150,23 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                     }
                 } else {
                     ui.label("No project open");
+                }
+            }
+            EditorTab::SpriteEditor(texture_path) => {
+                // Find or create sprite editor window for this texture
+                let window_idx = self.context.sprite_editor_windows.iter()
+                    .position(|w| w.state.texture_path == *texture_path);
+
+                if let Some(idx) = window_idx {
+                    // Render inline without window frame
+                    if let Some(window) = self.context.sprite_editor_windows.get_mut(idx) {
+                        window.render_inline(ui, self.context.texture_manager, self.context.dt);
+                    }
+                } else {
+                    // Create new sprite editor if not found
+                    let mut window = crate::editor::SpriteEditorWindow::new(texture_path.clone());
+                    window.render_inline(ui, self.context.texture_manager, self.context.dt);
+                    self.context.sprite_editor_windows.push(window);
                 }
             }
         }

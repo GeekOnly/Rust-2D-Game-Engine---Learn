@@ -9,6 +9,7 @@ pub mod project_settings;
 pub mod asset_browser;
 pub mod dock_layout;
 pub mod camera_settings;
+pub mod sprite_picker;
 
 // Re-exports
 use ecs::{World, Entity, EntityTag};
@@ -64,6 +65,7 @@ impl EditorUI {
         _layout_request: &mut Option<String>,
         texture_manager: &mut crate::texture_manager::TextureManager,
         open_sprite_editor_request: &mut Option<std::path::PathBuf>,
+        sprite_picker_state: &mut sprite_picker::SpritePickerState,
     ) {
         // Top Menu Bar
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
@@ -118,6 +120,7 @@ impl EditorUI {
                 edit_script_request,
                 project_path,
                 open_sprite_editor_request,
+                sprite_picker_state,
             );
         });
 
@@ -276,6 +279,9 @@ impl EditorUI {
         transform_space: &mut scene_view::TransformSpace,
         texture_manager: &mut crate::texture_manager::TextureManager,
         open_sprite_editor_request: &mut Option<std::path::PathBuf>,
+        sprite_editor_windows: &mut Vec<crate::editor::SpriteEditorWindow>,
+        sprite_picker_state: &mut sprite_picker::SpritePickerState,
+        dt: f32,
     ) {
         // Handle layout change request (will be processed by caller)
         // Layout changes are handled in main.rs to access EditorState
@@ -335,6 +341,9 @@ impl EditorUI {
                 transform_space,
                 texture_manager,
                 open_sprite_editor_request,
+                sprite_editor_windows,
+                sprite_picker_state,
+                dt,
             };
 
             let mut tab_viewer = EditorTabViewer {

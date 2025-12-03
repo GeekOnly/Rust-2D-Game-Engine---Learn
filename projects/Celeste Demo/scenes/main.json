@@ -1,32 +1,12 @@
 {
-  "next_entity": 10,
+  "next_entity": 12,
   "transforms": [
     [
-      0,
+      9,
       {
         "position": [
-          0.9680877,
-          0.0,
-          -10.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      8,
-      {
-        "position": [
-          3.030126,
-          0.63969946,
+          12.247598,
+          -3.0,
           0.0
         ],
         "rotation": [
@@ -35,8 +15,8 @@
           0.0
         ],
         "scale": [
-          1.0,
-          1.0,
+          13.526597,
+          2.0,
           1.0
         ]
       }
@@ -62,11 +42,11 @@
       }
     ],
     [
-      9,
+      8,
       {
         "position": [
-          12.247598,
-          -3.0,
+          3.030126,
+          0.63969946,
           0.0
         ],
         "rotation": [
@@ -75,14 +55,68 @@
           0.0
         ],
         "scale": [
-          13.526597,
-          2.0,
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      11,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      0,
+      {
+        "position": [
+          0.9680877,
+          0.0,
+          -10.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
           1.0
         ]
       }
     ]
   ],
   "velocities": [
+    [
+      8,
+      [
+        0.0,
+        0.0
+      ]
+    ],
+    [
+      7,
+      [
+        0.0,
+        0.0
+      ]
+    ],
     [
       9,
       [
@@ -91,14 +125,7 @@
       ]
     ],
     [
-      7,
-      [
-        0.0,
-        0.0
-      ]
-    ],
-    [
-      8,
+      11,
       [
         0.0,
         0.0
@@ -107,9 +134,26 @@
   ],
   "sprites": [
     [
+      11,
+      {
+        "texture_id": "assets/brackeys_platformer_assets/sprites/knight.png",
+        "width": 1.0,
+        "height": 1.0,
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "billboard": false,
+        "flip_x": false,
+        "flip_y": false
+      }
+    ],
+    [
       7,
       {
-        "texture_id": "sprite",
+        "texture_id": "assets/brackeys_platformer_assets/sprites/knight.png",
         "width": 1.0,
         "height": 1.0,
         "color": [
@@ -126,7 +170,7 @@
     [
       8,
       {
-        "texture_id": "item",
+        "texture_id": "assets/brackeys_platformer_assets/sprites/fruit.png",
         "width": 1.0,
         "height": 1.0,
         "color": [
@@ -143,7 +187,7 @@
     [
       9,
       {
-        "texture_id": "sprite",
+        "texture_id": "assets/brackeys_platformer_assets/sprites/knight.png",
         "width": 1.0,
         "height": 1.0,
         "color": [
@@ -160,7 +204,22 @@
   ],
   "colliders": [
     [
-      7,
+      9,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          1.0,
+          1.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      11,
       {
         "offset": [
           0.0,
@@ -190,7 +249,7 @@
       }
     ],
     [
-      9,
+      7,
       {
         "offset": [
           0.0,
@@ -207,19 +266,6 @@
   ],
   "rigidbodies": [
     [
-      9,
-      {
-        "velocity": [
-          0.0,
-          0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true
-      }
-    ],
-    [
       7,
       {
         "velocity": [
@@ -227,6 +273,32 @@
           0.0
         ],
         "gravity_scale": 1.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true
+      }
+    ],
+    [
+      11,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 1.0,
+        "mass": 1.0,
+        "is_kinematic": false,
+        "freeze_rotation": true
+      }
+    ],
+    [
+      9,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 0.0,
         "mass": 1.0,
         "is_kinematic": true,
         "freeze_rotation": true
@@ -277,6 +349,10 @@
     [
       8,
       "Item"
+    ],
+    [
+      11,
+      "Player"
     ]
   ],
   "scripts": [],
@@ -286,6 +362,10 @@
       true
     ],
     [
+      0,
+      true
+    ],
+    [
       7,
       true
     ],
@@ -294,13 +374,13 @@
       true
     ],
     [
-      0,
+      11,
       true
     ]
   ],
   "layers": [
     [
-      8,
+      0,
       0
     ],
     [
@@ -312,12 +392,20 @@
       0
     ],
     [
-      0,
+      11,
+      0
+    ],
+    [
+      8,
       0
     ]
   ],
   "parents": [],
   "names": [
+    [
+      11,
+      "Player"
+    ],
     [
       9,
       "Sprite (Copy)"
@@ -327,12 +415,12 @@
       "Sprite"
     ],
     [
-      0,
-      "Main Camera"
-    ],
-    [
       8,
       "Item 8"
+    ],
+    [
+      0,
+      "Main Camera"
     ]
   ],
   "sprite_sheets": [],

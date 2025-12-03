@@ -31,4 +31,4 @@ pub use drag_drop::{DragDropState, DraggedAsset};
 pub use undo::{UndoStack, CreateEntityCommand, DeleteEntityCommand, BatchCommand};
 pub use selection::{SelectionManager, SelectionMode};
 pub use clipboard::{Clipboard, copy_selected, paste_from_clipboard, duplicate_selected};
-pub use sprite_editor::SpriteEditorWindow;
+pub use sprite_editor::{SpriteEditorWindow, SpriteMetadata};

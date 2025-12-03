@@ -1042,6 +1042,9 @@ fn main() -> Result<()> {
                                         &mut editor_state.transform_space,
                                         &mut editor_state.texture_manager,
                                         &mut editor_state.open_sprite_editor_request,
+                                        &mut editor_state.sprite_editor_windows,
+                                        &mut editor_state.sprite_picker_state,
+                                        dt,
                                     );
                                 } else {
                                     EditorUI::render_editor(
@@ -1075,7 +1078,46 @@ fn main() -> Result<()> {
                                         &mut editor_state.layout_request,
                                         &mut editor_state.texture_manager,
                                         &mut editor_state.open_sprite_editor_request,
+                                        &mut editor_state.sprite_picker_state,
                                     );
+                                }
+
+                                // Render sprite picker popup
+                                if let Some(result) = crate::editor::ui::sprite_picker::render_sprite_picker(
+                                    &egui_ctx,
+                                    &mut editor_state.sprite_picker_state,
+                                    editor_state.current_project_path.as_ref(),
+                                ) {
+                                    // User selected a sprite - update the selected entity's component
+                                    if let Some(entity) = editor_state.selected_entity {
+                                        // Check if entity has SpriteSheet or Sprite component
+                                        let has_sprite_sheet = editor_state.world.sprite_sheets.contains_key(&entity);
+                                        let has_sprite = editor_state.world.sprites.contains_key(&entity);
+
+                                        if has_sprite_sheet {
+                                            // Update SpriteSheet component
+                                            match ecs::SpriteSheet::from_sprite_file(&result.sprite_file_path) {
+                                                Ok(sprite_sheet) => {
+                                                    editor_state.world.sprite_sheets.insert(entity, sprite_sheet);
+                                                    editor_state.scene_modified = true;
+                                                    editor_state.console.info(format!("Selected sprite: {}", result.sprite_name));
+                                                }
+                                                Err(e) => {
+                                                    editor_state.console.error(format!("Failed to load sprite sheet from {}: {}", result.sprite_file_path.display(), e));
+                                                }
+                                            }
+                                        } else if has_sprite {
+                                            // Update Sprite component with texture path
+                                            if let Some(sprite) = editor_state.world.sprites.get_mut(&entity) {
+                                                // texture_path is already relative to project root
+                                                sprite.texture_id = result.texture_path.to_string_lossy().to_string();
+                                                editor_state.scene_modified = true;
+                                                editor_state.console.info(format!("Selected sprite texture: {}", result.sprite_name));
+                                            }
+                                        } else {
+                                            editor_state.console.warning("Entity has no Sprite or SpriteSheet component");
+                                        }
+                                    }
                                 }
 
                                 // Handle new scene request
@@ -1401,34 +1443,60 @@ fn main() -> Result<()> {
                                 
                                 // Handle sprite editor open request
                                 if let Some(texture_path) = editor_state.open_sprite_editor_request.take() {
-                                    // Check if a sprite editor for this texture is already open
-                                    let already_open = editor_state.sprite_editor_windows.iter()
-                                        .any(|w| w.state.texture_path == texture_path);
-                                    
-                                    if !already_open {
-                                        // Create new sprite editor window
-                                        let window = crate::editor::SpriteEditorWindow::new(texture_path.clone());
-                                        editor_state.sprite_editor_windows.push(window);
-                                        editor_state.console.info(format!("Opened sprite editor for: {}", texture_path.display()));
+                                    if editor_state.use_docking {
+                                        // In docking mode, add sprite editor as a new tab
+                                        use crate::editor::ui::EditorTab;
+
+                                        // Check if a tab for this texture is already open
+                                        let mut tab_exists = false;
+                                        editor_state.dock_state.main_surface().iter().for_each(|node| {
+                                            if let egui_dock::Node::Leaf { tabs, .. } = node {
+                                                for tab in tabs {
+                                                    if matches!(tab, EditorTab::SpriteEditor(path) if path == &texture_path) {
+                                                        tab_exists = true;
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                        });
+
+                                        if !tab_exists {
+                                            // Add new sprite editor tab to the dock
+                                            editor_state.dock_state.main_surface_mut()
+                                                .push_to_focused_leaf(EditorTab::SpriteEditor(texture_path.clone()));
+                                            editor_state.console.info(format!("Opened sprite editor for: {}", texture_path.display()));
+                                        }
+                                    } else {
+                                        // In non-docking mode, use floating windows (old behavior)
+                                        let already_open = editor_state.sprite_editor_windows.iter()
+                                            .any(|w| w.state.texture_path == texture_path);
+
+                                        if !already_open {
+                                            let window = crate::editor::SpriteEditorWindow::new(texture_path.clone());
+                                            editor_state.sprite_editor_windows.push(window);
+                                            editor_state.console.info(format!("Opened sprite editor for: {}", texture_path.display()));
+                                        }
                                     }
                                 }
-                                
-                                // Render all open sprite editor windows and track reloaded files
-                                let mut reloaded_sprite_files = Vec::new();
-                                editor_state.sprite_editor_windows.retain_mut(|window| {
-                                    // Check if file was reloaded during render
-                                    let was_reloaded = window.state.check_and_reload(dt);
-                                    if was_reloaded {
-                                        reloaded_sprite_files.push(window.state.metadata_path.clone());
+
+                                // Render floating sprite editor windows (only in non-docking mode)
+                                if !editor_state.use_docking {
+                                    let mut reloaded_sprite_files = Vec::new();
+                                    editor_state.sprite_editor_windows.retain_mut(|window| {
+                                        // Check if file was reloaded during render
+                                        let was_reloaded = window.state.check_and_reload(dt);
+                                        if was_reloaded {
+                                            reloaded_sprite_files.push(window.state.metadata_path.clone());
+                                        }
+
+                                        window.render(&egui_ctx, &mut editor_state.texture_manager, dt);
+                                        window.is_open
+                                    });
+
+                                    // Update entities that use reloaded sprite files
+                                    for sprite_file_path in reloaded_sprite_files {
+                                        editor_state.update_entities_using_sprite_file(&sprite_file_path);
                                     }
-                                    
-                                    window.render(&egui_ctx, &mut editor_state.texture_manager, dt);
-                                    window.is_open
-                                });
-                                
-                                // Update entities that use reloaded sprite files
-                                for sprite_file_path in reloaded_sprite_files {
-                                    editor_state.update_entities_using_sprite_file(&sprite_file_path);
                                 }
 
                                 // Handle play request - enter play mode in editor

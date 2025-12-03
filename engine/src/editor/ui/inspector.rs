@@ -12,6 +12,7 @@ pub fn render_inspector(
     edit_script_request: &mut Option<String>,
     project_path: &Option<std::path::PathBuf>,
     open_sprite_editor_request: &mut Option<std::path::PathBuf>,
+    sprite_picker_state: &mut super::sprite_picker::SpritePickerState,
 ) {
     // Unity-style header
     ui.horizontal(|ui| {
@@ -281,12 +282,13 @@ pub fn render_inspector(
                                             } else {
                                                 sprite.texture_id.clone()
                                             };
-                                            
+
                                             // Clickable sprite field (Unity-style)
                                             if ui.button(&sprite_display).clicked() {
-                                                // TODO: Open sprite picker dialog
+                                                sprite_picker_state.open();
+                                                log::info!("Opened sprite picker for Sprite Renderer");
                                             }
-                                            
+
                                             // Manual text edit option
                                             ui.menu_button("⋮", |ui| {
                                                 ui.label("Edit manually:");
@@ -422,7 +424,13 @@ pub fn render_inspector(
                                     if ui.button("⚙️").on_hover_text("Component Settings").clicked() {
                                         // Component menu
                                     }
-                                    
+
+                                    // Select Sprite button - opens sprite picker
+                                    if ui.button("🖼️ Select Sprite").on_hover_text("Choose a sprite from project").clicked() {
+                                        sprite_picker_state.open();
+                                        log::info!("Opened sprite picker");
+                                    }
+
                                     // Edit Sprite Sheet button - opens sprite editor
                                     if ui.button("🎨 Edit Sprite Sheet").clicked() {
                                         // Request to open sprite editor for this texture
@@ -430,7 +438,7 @@ pub fn render_inspector(
                                         *open_sprite_editor_request = Some(texture_path);
                                         log::info!("Requested to open sprite editor for: {}", sprite_sheet.texture_path);
                                     }
-                                    
+
                                     if ui.button("❌ Remove Component").clicked() {
                                         remove_sprite_sheet = true;
                                     }

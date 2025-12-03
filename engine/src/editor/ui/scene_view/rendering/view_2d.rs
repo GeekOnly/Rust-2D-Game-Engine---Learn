@@ -256,45 +256,114 @@ fn render_entity_2d(
             (sprite.color[3] * 255.0) as u8,
         );
 
-        let rotation_rad = transform.rotation[2].to_radians();
-        
-        if rotation_rad.abs() < 0.01 {
-            painter.rect_filled(
-                egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), size),
-                2.0,
-                color,
-            );
+        // Try to load and render texture
+        if !sprite.texture_id.is_empty() {
+            let texture_path = std::path::Path::new(&sprite.texture_id);
+            if let Some(texture) = texture_manager.load_texture(ctx, &sprite.texture_id, texture_path) {
+                // Render texture with color tint and flipping
+                let mut mesh = egui::Mesh::with_texture(texture.id());
+
+                let rect = egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), size);
+
+                // UV coordinates with flipping support
+                let (u_min, u_max) = if sprite.flip_x { (1.0, 0.0) } else { (0.0, 1.0) };
+                let (v_min, v_max) = if sprite.flip_y { (1.0, 0.0) } else { (0.0, 1.0) };
+
+                mesh.add_rect_with_uv(
+                    rect,
+                    egui::Rect::from_min_max(
+                        egui::pos2(u_min, v_min),
+                        egui::pos2(u_max, v_max),
+                    ),
+                    color,
+                );
+
+                painter.add(egui::Shape::mesh(mesh));
+            } else {
+                // Fallback to colored rectangle if texture load fails
+                let rotation_rad = transform.rotation[2].to_radians();
+
+                if rotation_rad.abs() < 0.01 {
+                    painter.rect_filled(
+                        egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), size),
+                        2.0,
+                        color,
+                    );
+                } else {
+                    // Rotated sprite
+                    let half_width = size.x / 2.0;
+                    let half_height = size.y / 2.0;
+                    let cos_r = rotation_rad.cos();
+                    let sin_r = rotation_rad.sin();
+
+                    let corners = [
+                        egui::pos2(
+                            screen_x + (-half_width * cos_r - (-half_height) * sin_r),
+                            screen_y + (-half_width * sin_r + (-half_height) * cos_r),
+                        ),
+                        egui::pos2(
+                            screen_x + (half_width * cos_r - (-half_height) * sin_r),
+                            screen_y + (half_width * sin_r + (-half_height) * cos_r),
+                        ),
+                        egui::pos2(
+                            screen_x + (half_width * cos_r - half_height * sin_r),
+                            screen_y + (half_width * sin_r + half_height * cos_r),
+                        ),
+                        egui::pos2(
+                            screen_x + (-half_width * cos_r - half_height * sin_r),
+                            screen_y + (-half_width * sin_r + half_height * cos_r),
+                        ),
+                    ];
+
+                    painter.add(egui::Shape::convex_polygon(
+                        corners.to_vec(),
+                        color,
+                        egui::Stroke::new(1.0, egui::Color32::from_rgba_premultiplied(255, 255, 255, 30)),
+                    ));
+                }
+            }
         } else {
-            // Rotated sprite
-            let half_width = size.x / 2.0;
-            let half_height = size.y / 2.0;
-            let cos_r = rotation_rad.cos();
-            let sin_r = rotation_rad.sin();
-            
-            let corners = [
-                egui::pos2(
-                    screen_x + (-half_width * cos_r - (-half_height) * sin_r),
-                    screen_y + (-half_width * sin_r + (-half_height) * cos_r),
-                ),
-                egui::pos2(
-                    screen_x + (half_width * cos_r - (-half_height) * sin_r),
-                    screen_y + (half_width * sin_r + (-half_height) * cos_r),
-                ),
-                egui::pos2(
-                    screen_x + (half_width * cos_r - half_height * sin_r),
-                    screen_y + (half_width * sin_r + half_height * cos_r),
-                ),
-                egui::pos2(
-                    screen_x + (-half_width * cos_r - half_height * sin_r),
-                    screen_y + (-half_width * sin_r + half_height * cos_r),
-                ),
-            ];
-            
-            painter.add(egui::Shape::convex_polygon(
-                corners.to_vec(),
-                color,
-                egui::Stroke::new(1.0, egui::Color32::from_rgba_premultiplied(255, 255, 255, 30)),
-            ));
+            // No texture specified, render colored rectangle
+            let rotation_rad = transform.rotation[2].to_radians();
+
+            if rotation_rad.abs() < 0.01 {
+                painter.rect_filled(
+                    egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), size),
+                    2.0,
+                    color,
+                );
+            } else {
+                // Rotated sprite
+                let half_width = size.x / 2.0;
+                let half_height = size.y / 2.0;
+                let cos_r = rotation_rad.cos();
+                let sin_r = rotation_rad.sin();
+
+                let corners = [
+                    egui::pos2(
+                        screen_x + (-half_width * cos_r - (-half_height) * sin_r),
+                        screen_y + (-half_width * sin_r + (-half_height) * cos_r),
+                    ),
+                    egui::pos2(
+                        screen_x + (half_width * cos_r - (-half_height) * sin_r),
+                        screen_y + (half_width * sin_r + (-half_height) * cos_r),
+                    ),
+                    egui::pos2(
+                        screen_x + (half_width * cos_r - half_height * sin_r),
+                        screen_y + (half_width * sin_r + half_height * cos_r),
+                    ),
+                    egui::pos2(
+                        screen_x + (-half_width * cos_r - half_height * sin_r),
+                        screen_y + (-half_width * sin_r + half_height * cos_r),
+                    ),
+                ];
+
+                painter.add(egui::Shape::convex_polygon(
+                    corners.to_vec(),
+                    color,
+                    egui::Stroke::new(1.0, egui::Color32::from_rgba_premultiplied(255, 255, 255, 30)),
+                ));
+            }
         }
     } else if let Some(mesh) = world.meshes.get(&entity) {
         // Render Mesh (Simplified for 2D)
