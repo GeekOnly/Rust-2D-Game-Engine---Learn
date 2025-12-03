@@ -136,7 +136,7 @@
     [
       8,
       {
-        "texture_id": "projects/Celeste Demo\\assets\\brackeys_platformer_assets\\sprites\\coin.png",
+        "texture_id": "assets/brackeys_platformer_assets/sprites/coin.png",
         "width": 16.0,
         "height": 16.0,
         "color": [
@@ -182,7 +182,7 @@
     [
       7,
       {
-        "texture_id": "projects/Celeste Demo\\assets\\brackeys_platformer_assets\\sprites\\coin.png",
+        "texture_id": "assets/brackeys_platformer_assets/sprites/coin.png",
         "width": 16.0,
         "height": 16.0,
         "color": [

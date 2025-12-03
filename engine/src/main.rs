@@ -1093,6 +1093,21 @@ fn main() -> Result<()> {
                                         // Check if this is a sprite from a .sprite file (has sprite definitions)
                                         let is_sprite_sheet = result.sprite_file_path.exists();
                                         
+                                        // Convert texture path to relative path
+                                        let relative_path = {
+                                            let path_str = result.texture_path.to_string_lossy();
+                                            if let Some(idx) = path_str.find("projects/") {
+                                                let after_projects = &path_str[idx + "projects/".len()..];
+                                                if let Some(next_slash) = after_projects.find('/') {
+                                                    after_projects[next_slash + 1..].replace('\\', "/")
+                                                } else {
+                                                    path_str.replace('\\', "/")
+                                                }
+                                            } else {
+                                                path_str.replace('\\', "/")
+                                            }
+                                        };
+                                        
                                         if is_sprite_sheet {
                                             // Load sprite metadata to get sprite rect
                                             match crate::editor::sprite_editor::SpriteMetadata::load(&result.sprite_file_path) {
@@ -1101,7 +1116,7 @@ fn main() -> Result<()> {
                                                     if let Some(sprite_def) = metadata.find_sprite(&result.sprite_name) {
                                                         // Update or create Sprite component with sprite rect (Unity-style)
                                                         let sprite = ecs::Sprite {
-                                                            texture_id: result.texture_path.to_string_lossy().to_string(),
+                                                            texture_id: relative_path.clone(),
                                                             width: sprite_def.width as f32,
                                                             height: sprite_def.height as f32,
                                                             color: [1.0, 1.0, 1.0, 1.0],
@@ -1125,7 +1140,7 @@ fn main() -> Result<()> {
                                         } else {
                                             // This is a regular texture (no .sprite file) - use full texture
                                             let sprite = ecs::Sprite {
-                                                texture_id: result.texture_path.to_string_lossy().to_string(),
+                                                texture_id: relative_path,
                                                 width: 1.0,
                                                 height: 1.0,
                                                 color: [1.0, 1.0, 1.0, 1.0],
