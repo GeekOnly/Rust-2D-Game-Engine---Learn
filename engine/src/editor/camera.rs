@@ -29,7 +29,7 @@ impl Default for CameraSettings {
         Self {
             pan_sensitivity: 0.5,   // Reduced for slower, more precise panning
             rotation_sensitivity: 0.5,
-            zoom_sensitivity: 0.12, // Optimized for 2D mode
+            zoom_sensitivity: 0.01, // Optimized for 2D mode
             pan_damping: 0.08,      // Reduced for more responsive panning
             rotation_damping: 0.12,
             zoom_damping: 0.08,     // Further reduced for instant zoom response
