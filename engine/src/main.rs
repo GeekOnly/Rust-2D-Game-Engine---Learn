@@ -1413,11 +1413,23 @@ fn main() -> Result<()> {
                                     }
                                 }
                                 
-                                // Render all open sprite editor windows
+                                // Render all open sprite editor windows and track reloaded files
+                                let mut reloaded_sprite_files = Vec::new();
                                 editor_state.sprite_editor_windows.retain_mut(|window| {
-                                    window.render(&egui_ctx, &mut editor_state.texture_manager);
+                                    // Check if file was reloaded during render
+                                    let was_reloaded = window.state.check_and_reload(dt);
+                                    if was_reloaded {
+                                        reloaded_sprite_files.push(window.state.metadata_path.clone());
+                                    }
+                                    
+                                    window.render(&egui_ctx, &mut editor_state.texture_manager, dt);
                                     window.is_open
                                 });
+                                
+                                // Update entities that use reloaded sprite files
+                                for sprite_file_path in reloaded_sprite_files {
+                                    editor_state.update_entities_using_sprite_file(&sprite_file_path);
+                                }
 
                                 // Handle play request - enter play mode in editor
                                 if play_request {

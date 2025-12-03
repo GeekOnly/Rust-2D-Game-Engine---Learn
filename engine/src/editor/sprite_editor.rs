@@ -2395,7 +2395,6 @@ mod tests {
 
         cleanup_test_file(&test_path);
     }
-}
 
     #[test]
     fn test_sprite_editor_state_creation() {
@@ -3740,3 +3739,39 @@ mod tests {
         // Buffer should now contain sprite name
         assert_eq!(window.name_edit_buffer, "sprite_0");
     }
+
+    #[test]
+    fn test_hot_reload_check_interval() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let mut state = SpriteEditorState::new(texture_path);
+        
+        // Initially time_since_check should be 0
+        assert_eq!(state.time_since_check, 0.0);
+        
+        // Check with dt less than interval - should not check file
+        let reloaded = state.check_and_reload(0.5);
+        assert!(!reloaded); // File doesn't exist, so won't reload
+        assert_eq!(state.time_since_check, 0.5);
+        
+        // Check again with more time - should accumulate
+        let reloaded = state.check_and_reload(0.3);
+        assert!(!reloaded);
+        assert_eq!(state.time_since_check, 0.8);
+        
+        // Check with enough time to exceed interval
+        let reloaded = state.check_and_reload(0.3);
+        assert!(!reloaded); // File doesn't exist
+        assert_eq!(state.time_since_check, 0.0); // Should reset after check
+    }
+    
+    #[test]
+    fn test_hot_reload_state_initialization() {
+        let texture_path = PathBuf::from("test_texture.png");
+        let state = SpriteEditorState::new(texture_path);
+        
+        // Check hot-reload fields are initialized
+        assert_eq!(state.check_interval, 1.0);
+        assert_eq!(state.time_since_check, 0.0);
+        assert!(state.last_modified.is_none()); // File doesn't exist
+    }
+}

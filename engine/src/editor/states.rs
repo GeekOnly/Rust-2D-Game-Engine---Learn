@@ -381,6 +381,50 @@ end
 
         Ok(())
     }
+
+    /// Update all entities that use a specific sprite file when it changes
+    pub fn update_entities_using_sprite_file(&mut self, sprite_file_path: &PathBuf) {
+        // Load the updated sprite metadata
+        let metadata = match super::sprite_editor::SpriteMetadata::load(sprite_file_path) {
+            Ok(m) => m,
+            Err(e) => {
+                log::warn!("Failed to load sprite metadata for hot-reload: {}", e);
+                return;
+            }
+        };
+
+        // Find all entities that use this sprite file
+        let mut updated_count = 0;
+        
+        // Update SpriteSheet components
+        for (entity, sprite_sheet) in self.world.sprite_sheets.iter_mut() {
+            // Check if this sprite sheet uses the updated sprite file
+            if sprite_sheet.texture_path == metadata.texture_path {
+                // Update the frames from the new metadata
+                sprite_sheet.frames.clear();
+                for sprite_def in &metadata.sprites {
+                    sprite_sheet.frames.push(ecs::SpriteFrame {
+                        x: sprite_def.x,
+                        y: sprite_def.y,
+                        width: sprite_def.width,
+                        height: sprite_def.height,
+                        name: Some(sprite_def.name.clone()),
+                    });
+                }
+                
+                sprite_sheet.sheet_width = metadata.texture_width;
+                sprite_sheet.sheet_height = metadata.texture_height;
+                
+                updated_count += 1;
+                log::info!("Updated sprite sheet for entity {} with {} frames", entity, sprite_sheet.frames.len());
+            }
+        }
+
+        if updated_count > 0 {
+            self.console.info(format!("🔄 Hot-reloaded sprite file: {} entities updated", updated_count));
+            log::info!("Hot-reloaded sprite file {:?}: {} entities updated", sprite_file_path, updated_count);
+        }
+    }
 }
 
 /// Game state - Full-screen game mode (not used with play-in-editor)
@@ -454,5 +498,152 @@ impl GameState {
 
         // Update physics
         physics.step(dt, &mut self.world);
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use std::io::Write;
+
+    #[test]
+    fn test_update_entities_using_sprite_file() {
+        let mut editor_state = EditorState::new();
+        
+        // Create a temporary sprite file
+        let temp_dir = std::env::temp_dir();
+        let sprite_file_path = temp_dir.join("test_sprite.sprite");
+        let texture_path = "assets/test_texture.png";
+        
+        // Create initial sprite metadata
+        let metadata = crate::editor::sprite_editor::SpriteMetadata {
+            texture_path: texture_path.to_string(),
+            texture_width: 256,
+            texture_height: 256,
+            sprites: vec![
+                crate::editor::sprite_editor::SpriteDefinition {
+                    name: "sprite_0".to_string(),
+                    x: 0,
+                    y: 0,
+                    width: 32,
+                    height: 32,
+                },
+                crate::editor::sprite_editor::SpriteDefinition {
+                    name: "sprite_1".to_string(),
+                    x: 32,
+                    y: 0,
+                    width: 32,
+                    height: 32,
+                },
+            ],
+        };
+        
+        // Save the sprite file
+        let json = serde_json::to_string_pretty(&metadata).unwrap();
+        fs::write(&sprite_file_path, json).unwrap();
+        
+        // Create an entity with a sprite sheet that uses this texture
+        let entity = editor_state.world.spawn();
+        let sprite_sheet = ecs::SpriteSheet {
+            texture_path: texture_path.to_string(),
+            texture_id: "test_texture".to_string(),
+            sheet_width: 256,
+            sheet_height: 256,
+            frames: vec![
+                ecs::SpriteFrame {
+                    x: 0,
+                    y: 0,
+                    width: 32,
+                    height: 32,
+                    name: Some("old_sprite_0".to_string()),
+                },
+            ],
+        };
+        editor_state.world.sprite_sheets.insert(entity, sprite_sheet);
+        
+        // Verify initial state
+        assert_eq!(editor_state.world.sprite_sheets.get(&entity).unwrap().frames.len(), 1);
+        assert_eq!(editor_state.world.sprite_sheets.get(&entity).unwrap().frames[0].name.as_ref().unwrap(), "old_sprite_0");
+        
+        // Update entities using the sprite file
+        editor_state.update_entities_using_sprite_file(&sprite_file_path);
+        
+        // Verify the sprite sheet was updated
+        let updated_sprite_sheet = editor_state.world.sprite_sheets.get(&entity).unwrap();
+        assert_eq!(updated_sprite_sheet.frames.len(), 2);
+        assert_eq!(updated_sprite_sheet.frames[0].name.as_ref().unwrap(), "sprite_0");
+        assert_eq!(updated_sprite_sheet.frames[1].name.as_ref().unwrap(), "sprite_1");
+        assert_eq!(updated_sprite_sheet.frames[0].x, 0);
+        assert_eq!(updated_sprite_sheet.frames[0].y, 0);
+        assert_eq!(updated_sprite_sheet.frames[0].width, 32);
+        assert_eq!(updated_sprite_sheet.frames[0].height, 32);
+        
+        // Clean up
+        fs::remove_file(&sprite_file_path).ok();
+    }
+    
+    #[test]
+    fn test_update_entities_no_matching_texture() {
+        let mut editor_state = EditorState::new();
+        
+        // Create a temporary sprite file
+        let temp_dir = std::env::temp_dir();
+        let sprite_file_path = temp_dir.join("test_sprite2.sprite");
+        
+        // Create sprite metadata with a different texture path
+        let metadata = crate::editor::sprite_editor::SpriteMetadata {
+            texture_path: "assets/different_texture.png".to_string(),
+            texture_width: 256,
+            texture_height: 256,
+            sprites: vec![
+                crate::editor::sprite_editor::SpriteDefinition {
+                    name: "sprite_0".to_string(),
+                    x: 0,
+                    y: 0,
+                    width: 32,
+                    height: 32,
+                },
+            ],
+        };
+        
+        // Save the sprite file
+        let json = serde_json::to_string_pretty(&metadata).unwrap();
+        fs::write(&sprite_file_path, json).unwrap();
+        
+        // Create an entity with a sprite sheet that uses a different texture
+        let entity = editor_state.world.spawn();
+        let sprite_sheet = ecs::SpriteSheet {
+            texture_path: "assets/test_texture.png".to_string(),
+            texture_id: "test_texture".to_string(),
+            sheet_width: 256,
+            sheet_height: 256,
+            frames: vec![
+                ecs::SpriteFrame {
+                    x: 0,
+                    y: 0,
+                    width: 32,
+                    height: 32,
+                    name: Some("original_sprite".to_string()),
+                },
+            ],
+        };
+        editor_state.world.sprite_sheets.insert(entity, sprite_sheet);
+        
+        // Verify initial state
+        assert_eq!(editor_state.world.sprite_sheets.get(&entity).unwrap().frames.len(), 1);
+        assert_eq!(editor_state.world.sprite_sheets.get(&entity).unwrap().frames[0].name.as_ref().unwrap(), "original_sprite");
+        
+        // Update entities using the sprite file (should not affect this entity)
+        editor_state.update_entities_using_sprite_file(&sprite_file_path);
+        
+        // Verify the sprite sheet was NOT updated
+        let sprite_sheet = editor_state.world.sprite_sheets.get(&entity).unwrap();
+        assert_eq!(sprite_sheet.frames.len(), 1);
+        assert_eq!(sprite_sheet.frames[0].name.as_ref().unwrap(), "original_sprite");
+        
+        // Clean up
+        fs::remove_file(&sprite_file_path).ok();
     }
 }
