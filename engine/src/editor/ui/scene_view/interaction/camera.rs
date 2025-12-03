@@ -83,26 +83,29 @@ pub fn handle_camera_controls(
     }
 
     // Scroll Wheel - Zoom (Unity-like smooth zoom)
-    let scroll_delta = response.ctx.input(|i| {
-        if i.smooth_scroll_delta.y.abs() > 0.1 {
-            i.smooth_scroll_delta.y
-        } else {
-            i.raw_scroll_delta.y * 0.1
-        }
-    });
+    // Only zoom if mouse is hovering over the scene view
+    if response.hovered() {
+        let scroll_delta = response.ctx.input(|i| {
+            if i.smooth_scroll_delta.y.abs() > 0.1 {
+                i.smooth_scroll_delta.y
+            } else {
+                i.raw_scroll_delta.y * 0.1
+            }
+        });
 
-    if scroll_delta.abs() > 0.1 {
-        let mouse_pos = response.hover_pos().unwrap_or(rect.center());
-        let zoom_direction = if scroll_delta > 0.0 { 1.0 } else { -1.0 };
-        
-        // Convert absolute screen position to relative position from rect center
-        let center = rect.center();
-        let relative_pos = glam::Vec2::new(
-            mouse_pos.x - center.x,
-            mouse_pos.y - center.y
-        );
-        
-        scene_camera.zoom(zoom_direction, relative_pos);
+        if scroll_delta.abs() > 0.1 {
+            let mouse_pos = response.hover_pos().unwrap_or(rect.center());
+            let zoom_direction = if scroll_delta > 0.0 { 1.0 } else { -1.0 };
+            
+            // Convert absolute screen position to relative position from rect center
+            let center = rect.center();
+            let relative_pos = glam::Vec2::new(
+                mouse_pos.x - center.x,
+                mouse_pos.y - center.y
+            );
+            
+            scene_camera.zoom(zoom_direction, relative_pos);
+        }
     }
 }
 
