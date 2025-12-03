@@ -22,26 +22,6 @@
       }
     ],
     [
-      8,
-      {
-        "position": [
-          3.030126,
-          0.63969946,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
       11,
       {
         "position": [
@@ -82,6 +62,26 @@
       }
     ],
     [
+      8,
+      {
+        "position": [
+          3.030126,
+          0.63969946,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
       0,
       {
         "position": [
@@ -104,6 +104,13 @@
   ],
   "velocities": [
     [
+      11,
+      [
+        0.0,
+        0.0
+      ]
+    ],
+    [
       9,
       [
         0.0,
@@ -112,13 +119,6 @@
     ],
     [
       7,
-      [
-        0.0,
-        0.0
-      ]
-    ],
-    [
-      11,
       [
         0.0,
         0.0
@@ -182,7 +182,7 @@
     [
       7,
       {
-        "texture_id": "assets/brackeys_platformer_assets/sprites/coin.png",
+        "texture_id": "",
         "width": 16.0,
         "height": 16.0,
         "color": [
@@ -205,7 +205,7 @@
     [
       9,
       {
-        "texture_id": "assets/brackeys_platformer_assets/sprites/knight.png",
+        "texture_id": "",
         "width": 1.0,
         "height": 1.0,
         "color": [
@@ -238,21 +238,6 @@
       }
     ],
     [
-      11,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          1.0,
-          1.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
       9,
       {
         "offset": [
@@ -281,22 +266,24 @@
         "width": 0.0,
         "height": 0.0
       }
-    ]
-  ],
-  "rigidbodies": [
+    ],
     [
-      8,
+      11,
       {
-        "velocity": [
+        "offset": [
           0.0,
           0.0
         ],
-        "gravity_scale": 1.0,
-        "mass": 1.0,
-        "is_kinematic": false,
-        "freeze_rotation": true
+        "size": [
+          1.0,
+          1.0
+        ],
+        "width": 0.0,
+        "height": 0.0
       }
-    ],
+    ]
+  ],
+  "rigidbodies": [
     [
       7,
       {
@@ -307,6 +294,19 @@
         "gravity_scale": 1.0,
         "mass": 1.0,
         "is_kinematic": true,
+        "freeze_rotation": true
+      }
+    ],
+    [
+      8,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 1.0,
+        "mass": 1.0,
+        "is_kinematic": false,
         "freeze_rotation": true
       }
     ],
@@ -374,10 +374,65 @@
       "Item"
     ]
   ],
-  "scripts": [],
+  "scripts": [
+    [
+      11,
+      {
+        "script_name": "player_controller",
+        "enabled": true,
+        "parameters": {
+          "dash_x": {
+            "Float": 1.0
+          },
+          "dash_direction_y": {
+            "Float": 0.0
+          },
+          "new_vel_x": {
+            "Float": 0.0
+          },
+          "dash_duration": {
+            "Float": 0.2
+          },
+          "is_grounded": {
+            "Bool": false
+          },
+          "dash_y": {
+            "Float": 1.0
+          },
+          "wall_direction": {
+            "Int": 0
+          },
+          "velocity_y": {
+            "Float": 0.0
+          },
+          "is_touching_wall": {
+            "Bool": false
+          },
+          "dash_timer": {
+            "Float": 0.0
+          },
+          "velocity_x": {
+            "Float": 0.0
+          },
+          "dash_direction_x": {
+            "Float": 0.0
+          },
+          "can_dash": {
+            "Bool": false
+          },
+          "is_dashing": {
+            "Bool": true
+          },
+          "wall_slide_speed": {
+            "Float": 1.0
+          }
+        }
+      }
+    ]
+  ],
   "active": [
     [
-      7,
+      11,
       true
     ],
     [
@@ -385,7 +440,7 @@
       true
     ],
     [
-      8,
+      7,
       true
     ],
     [
@@ -393,21 +448,21 @@
       true
     ],
     [
-      11,
+      8,
       true
     ]
   ],
   "layers": [
     [
-      8,
-      0
-    ],
-    [
       11,
       0
     ],
     [
       9,
+      0
+    ],
+    [
+      8,
       0
     ],
     [
@@ -422,14 +477,6 @@
   "parents": [],
   "names": [
     [
-      11,
-      "Player"
-    ],
-    [
-      8,
-      "Item 8"
-    ],
-    [
       7,
       "Sprite"
     ],
@@ -440,6 +487,14 @@
     [
       9,
       "Sprite (Copy)"
+    ],
+    [
+      11,
+      "Player"
+    ],
+    [
+      8,
+      "Item 8"
     ]
   ],
   "sprite_sheets": [],

@@ -96,9 +96,11 @@ function handle_movement(dt)
     if is_key_down("A") or is_key_down("Left") then
         velocity_x = -move_speed
         set_velocity(velocity_x, velocity_y)  -- Update velocity
+        set_sprite_flip_x(true)  -- Flip sprite to face left
     elseif is_key_down("D") or is_key_down("Right") then
         velocity_x = move_speed
         set_velocity(velocity_x, velocity_y)  -- Update velocity
+        set_sprite_flip_x(false)  -- Face right (normal)
     else
         -- Deceleration
         local new_vel_x = velocity_x * 0.8

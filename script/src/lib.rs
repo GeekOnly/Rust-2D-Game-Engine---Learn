@@ -430,6 +430,44 @@ impl ScriptEngine {
             globals.set("set_scale", set_scale)?;
 
             // ================================================================
+            // SPRITE CONTROL
+            // ================================================================
+
+            let set_sprite_flip_x = scope.create_function_mut(|_, flip: bool| {
+                if let Some(sprite) = world_cell.borrow_mut().sprites.get_mut(&entity) {
+                    sprite.flip_x = flip;
+                }
+                Ok(())
+            })?;
+            globals.set("set_sprite_flip_x", set_sprite_flip_x)?;
+
+            let set_sprite_flip_y = scope.create_function_mut(|_, flip: bool| {
+                if let Some(sprite) = world_cell.borrow_mut().sprites.get_mut(&entity) {
+                    sprite.flip_y = flip;
+                }
+                Ok(())
+            })?;
+            globals.set("set_sprite_flip_y", set_sprite_flip_y)?;
+
+            let get_sprite_flip_x = scope.create_function(|_, ()| {
+                if let Some(sprite) = world_cell.borrow().sprites.get(&entity) {
+                    Ok(Some(sprite.flip_x))
+                } else {
+                    Ok(None)
+                }
+            })?;
+            globals.set("get_sprite_flip_x", get_sprite_flip_x)?;
+
+            let get_sprite_flip_y = scope.create_function(|_, ()| {
+                if let Some(sprite) = world_cell.borrow().sprites.get(&entity) {
+                    Ok(Some(sprite.flip_y))
+                } else {
+                    Ok(None)
+                }
+            })?;
+            globals.set("get_sprite_flip_y", get_sprite_flip_y)?;
+
+            // ================================================================
             // TAG & ENTITY QUERIES
             // ================================================================
 
