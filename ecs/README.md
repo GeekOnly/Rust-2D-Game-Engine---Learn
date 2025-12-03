@@ -110,6 +110,41 @@ pub struct Sprite {
 }
 ```
 
+### SpriteSheet
+Sprite sheet component for managing sprite atlas data with multiple frames.
+
+```rust
+pub struct SpriteSheet {
+    pub texture_path: String,
+    pub texture_id: String,
+    pub sheet_width: u32,
+    pub sheet_height: u32,
+    pub frames: Vec<SpriteFrame>,
+}
+```
+
+**Loading from Sprite Editor files:**
+
+```rust
+use ecs::components::sprite_sheet::SpriteSheet;
+use std::path::Path;
+
+// Load sprite sheet from .sprite file created by the Sprite Editor
+let sprite_sheet = SpriteSheet::from_sprite_file(Path::new("assets/characters/knight.sprite"))
+    .expect("Failed to load sprite sheet");
+
+// Access individual sprites by name
+if let Some(frame) = sprite_sheet.get_frame_by_name("knight_idle_0") {
+    println!("Frame at ({}, {}), size {}x{}", 
+        frame.x, frame.y, frame.width, frame.height);
+}
+
+// Or by index
+if let Some(frame) = sprite_sheet.get_frame(0) {
+    // Use frame data for rendering
+}
+```
+
 ### Mesh (3D Rendering)
 3D mesh with type and color.
 

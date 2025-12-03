@@ -279,7 +279,10 @@
   - Update status bar when state changes
   - _Requirements: 9.1, 9.2, 9.3_
 
-- [ ] 24. Add SpriteSheet::from_sprite_file method
+- [x] 24. Add SpriteSheet::from_sprite_file method
+
+
+
   - Add method to load SpriteSheet from .sprite JSON file
   - Parse sprite metadata and create SpriteFrame entries
   - Handle file not found errors gracefully

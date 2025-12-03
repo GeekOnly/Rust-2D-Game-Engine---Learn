@@ -701,6 +701,16 @@ pub struct SpriteEditorWindow {
     export_error: Option<String>,
     /// Sprite statistics and validation
     statistics: SpriteStatistics,
+    /// Error dialog state
+    show_error_dialog: bool,
+    error_dialog_title: String,
+    error_dialog_message: String,
+    /// Success message state
+    success_message: Option<String>,
+    success_message_timer: f32,
+    /// Warning message state
+    warning_message: Option<String>,
+    warning_message_timer: f32,
 }
 
 /// Auto-slice mode
@@ -734,6 +744,13 @@ impl SpriteEditorWindow {
             export_message: None,
             export_error: None,
             statistics,
+            show_error_dialog: false,
+            error_dialog_title: String::new(),
+            error_dialog_message: String::new(),
+            success_message: None,
+            success_message_timer: 0.0,
+            warning_message: None,
+            warning_message_timer: 0.0,
         }
     }
     

@@ -1,4 +1,6 @@
 use serde::{Deserialize, Serialize};
+use std::path::Path;
+use std::fs;
 
 /// Represents a single frame within a sprite sheet
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -91,6 +93,164 @@ impl SpriteSheet {
         self.frames.iter().find(|f| {
             f.name.as_ref().map(|n| n == name).unwrap_or(false)
         })
+    }
+
+    /// Load a SpriteSheet from a .sprite JSON file
+    /// 
+    /// This method reads sprite metadata from a .sprite file created by the Sprite Editor
+    /// and creates a SpriteSheet with all the sprite definitions as frames.
+    /// 
+    /// # Arguments
+    /// * `sprite_file_path` - Path to the .sprite JSON file
+    /// 
+    /// # Returns
+    /// * `Ok(SpriteSheet)` - Successfully loaded sprite sheet with all frames
+    /// * `Err(String)` - Error message if loading fails
+    /// 
+    /// # Example
+    /// ```no_run
+    /// use std::path::Path;
+    /// use ecs::components::sprite_sheet::SpriteSheet;
+    /// 
+    /// let sprite_sheet = SpriteSheet::from_sprite_file(Path::new("assets/characters/knight.sprite"))
+    ///     .expect("Failed to load sprite sheet");
+    /// 
+    /// // Access individual sprites by name
+    /// if let Some(frame) = sprite_sheet.get_frame_by_name("knight_idle_0") {
+    ///     println!("Frame at ({}, {}), size {}x{}", frame.x, frame.y, frame.width, frame.height);
+    /// }
+    /// ```
+    pub fn from_sprite_file<P: AsRef<Path>>(sprite_file_path: P) -> Result<Self, String> {
+        let path = sprite_file_path.as_ref();
+        
+        // Check if file exists
+        if !path.exists() {
+            return Err(format!("Sprite file not found: {}", path.display()));
+        }
+        
+        // Read file contents
+        let contents = fs::read_to_string(path)
+            .map_err(|e| format!("Failed to read sprite file '{}': {}", path.display(), e))?;
+        
+        // Parse JSON into SpriteMetadata structure
+        let metadata: SpriteMetadata = serde_json::from_str(&contents)
+            .map_err(|e| format!("Failed to parse sprite JSON '{}': {}", path.display(), e))?;
+        
+        // Create texture ID from the texture path
+        let texture_id = metadata.texture_path.clone();
+        
+        // Create SpriteSheet with metadata
+        let mut sprite_sheet = Self::new(
+            metadata.texture_path.clone(),
+            texture_id,
+            metadata.texture_width,
+            metadata.texture_height,
+        );
+        
+        // Convert each SpriteDefinition to a SpriteFrame
+        for sprite_def in metadata.sprites {
+            let frame = SpriteFrame {
+                x: sprite_def.x,
+                y: sprite_def.y,
+                width: sprite_def.width,
+                height: sprite_def.height,
+                name: Some(sprite_def.name),
+            };
+            sprite_sheet.add_frame(frame);
+        }
+        
+        Ok(sprite_sheet)
+    }
+}
+
+/// Sprite metadata structure matching the .sprite file format
+/// This is used internally by `from_sprite_file` to parse the JSON
+#[derive(Debug, Deserialize)]
+struct SpriteMetadata {
+    texture_path: String,
+    texture_width: u32,
+    texture_height: u32,
+    sprites: Vec<SpriteDefinition>,
+}
+
+/// Sprite definition structure matching the .sprite file format
+#[derive(Debug, Deserialize)]
+struct SpriteDefinition {
+    name: String,
+    x: u32,
+    y: u32,
+    width: u32,
+    height: u32,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::Path;
+
+    #[test]
+    fn test_from_sprite_file_loads_metadata() {
+        // Test loading a sprite file
+        let result = SpriteSheet::from_sprite_file(Path::new("test_sprite.sprite"));
+        
+        assert!(result.is_ok(), "Failed to load sprite file: {:?}", result.err());
+        
+        let sprite_sheet = result.unwrap();
+        
+        // Verify texture metadata
+        assert_eq!(sprite_sheet.texture_path, "assets/test_texture.png");
+        assert_eq!(sprite_sheet.sheet_width, 256);
+        assert_eq!(sprite_sheet.sheet_height, 128);
+        
+        // Verify sprite count
+        assert_eq!(sprite_sheet.frames.len(), 3);
+        
+        // Verify first sprite
+        let frame0 = sprite_sheet.get_frame(0).unwrap();
+        assert_eq!(frame0.name, Some("sprite_0".to_string()));
+        assert_eq!(frame0.x, 0);
+        assert_eq!(frame0.y, 0);
+        assert_eq!(frame0.width, 32);
+        assert_eq!(frame0.height, 32);
+        
+        // Verify second sprite
+        let frame1 = sprite_sheet.get_frame(1).unwrap();
+        assert_eq!(frame1.name, Some("sprite_1".to_string()));
+        assert_eq!(frame1.x, 32);
+        assert_eq!(frame1.y, 0);
+        
+        // Verify named lookup works
+        let knight_frame = sprite_sheet.get_frame_by_name("knight_idle").unwrap();
+        assert_eq!(knight_frame.x, 64);
+        assert_eq!(knight_frame.y, 0);
+        assert_eq!(knight_frame.width, 32);
+        assert_eq!(knight_frame.height, 32);
+    }
+
+    #[test]
+    fn test_from_sprite_file_handles_missing_file() {
+        let result = SpriteSheet::from_sprite_file(Path::new("nonexistent.sprite"));
+        
+        assert!(result.is_err());
+        let error_msg = result.unwrap_err();
+        assert!(error_msg.contains("not found"), "Expected 'not found' in error message, got: {}", error_msg);
+    }
+
+    #[test]
+    fn test_from_sprite_file_handles_invalid_json() {
+        // Create a temporary invalid JSON file
+        use std::fs;
+        let invalid_path = "test_invalid.sprite";
+        fs::write(invalid_path, "{ invalid json }").unwrap();
+        
+        let result = SpriteSheet::from_sprite_file(Path::new(invalid_path));
+        
+        // Clean up
+        let _ = fs::remove_file(invalid_path);
+        
+        assert!(result.is_err());
+        let error_msg = result.unwrap_err();
+        assert!(error_msg.contains("parse"), "Expected 'parse' in error message, got: {}", error_msg);
     }
 }
 

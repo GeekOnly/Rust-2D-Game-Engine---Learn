@@ -1,0 +1,28 @@
+{
+  "texture_path": "assets/test_texture.png",
+  "texture_width": 256,
+  "texture_height": 128,
+  "sprites": [
+    {
+      "name": "sprite_0",
+      "x": 0,
+      "y": 0,
+      "width": 32,
+      "height": 32
+    },
+    {
+      "name": "sprite_1",
+      "x": 32,
+      "y": 0,
+      "width": 32,
+      "height": 32
+    },
+    {
+      "name": "knight_idle",
+      "x": 64,
+      "y": 0,
+      "width": 32,
+      "height": 32
+    }
+  ]
+}
