@@ -12,6 +12,8 @@ impl AssetBrowser {
         ui: &mut egui::Ui,
         asset_manager: &mut AssetManager,
         drag_drop: &mut DragDropState,
+        texture_manager: &mut crate::texture_manager::TextureManager,
+        project_path: Option<&PathBuf>,
     ) -> Option<AssetBrowserAction> {
         let mut action = None;
         let colors = UnityTheme::colors();
@@ -102,7 +104,7 @@ impl AssetBrowser {
             
             match asset_manager.view_mode {
                 ViewMode::Grid => {
-                    if let Some(a) = Self::render_grid_view(ui, asset_manager, &assets, colors, drag_drop) {
+                    if let Some(a) = Self::render_grid_view(ui, asset_manager, &assets, colors, drag_drop, texture_manager, project_path) {
                         action = Some(a);
                     }
                 }
@@ -205,6 +207,8 @@ impl AssetBrowser {
         assets: &[AssetMetadata],
         colors: crate::editor::theme::UnityColors,
         drag_drop: &mut DragDropState,
+        texture_manager: &mut crate::texture_manager::TextureManager,
+        project_path: Option<&PathBuf>,
     ) -> Option<AssetBrowserAction> {
         let mut action = None;
         let thumbnail_size = asset_manager.thumbnail_size;
@@ -216,7 +220,7 @@ impl AssetBrowser {
         for row_assets in assets.chunks(columns) {
             ui.horizontal(|ui| {
                 for asset in row_assets {
-                    if let Some(a) = Self::render_grid_item(ui, asset_manager, asset, thumbnail_size, colors, drag_drop) {
+                    if let Some(a) = Self::render_grid_item(ui, asset_manager, asset, thumbnail_size, colors, drag_drop, texture_manager, project_path) {
                         action = Some(a);
                     }
                 }
@@ -234,6 +238,8 @@ impl AssetBrowser {
         size: f32,
         colors: crate::editor::theme::UnityColors,
         drag_drop: &mut DragDropState,
+        texture_manager: &mut crate::texture_manager::TextureManager,
+        project_path: Option<&PathBuf>,
     ) -> Option<AssetBrowserAction> {
         let mut action = None;
         let (rect, response) = ui.allocate_exact_size(
@@ -267,14 +273,50 @@ impl AssetBrowser {
             let icon_bg = Color32::from_rgb(icon_color[0], icon_color[1], icon_color[2]);
             ui.painter().rect_filled(thumb_rect, 4.0, icon_bg);
             
-            // Icon text
-            ui.painter().text(
-                thumb_rect.center(),
-                egui::Align2::CENTER_CENTER,
-                asset.asset_type.icon(),
-                egui::FontId::proportional(32.0),
-                Color32::WHITE,
-            );
+            // Try to load texture preview for sprites
+            let mut show_icon = true;
+            if matches!(asset.asset_type, AssetType::Sprite | AssetType::SpriteSheet) {
+                if let Some(project_path) = project_path {
+                    // Calculate relative path from project root
+                    let relative_path = if let Ok(rel) = asset.path.strip_prefix(project_path) {
+                        rel
+                    } else {
+                        asset.path.as_path()
+                    };
+                    
+                    // Load texture
+                    let texture_id = format!("asset_preview_{}", asset.path.display());
+                    if let Some(texture) = texture_manager.load_texture(
+                        ui.ctx(),
+                        &texture_id,
+                        relative_path
+                    ) {
+                        // Draw texture preview
+                        let preview_rect = thumb_rect.shrink(4.0);
+                        ui.painter().image(
+                            texture.id(),
+                            preview_rect,
+                            egui::Rect::from_min_max(
+                                egui::pos2(0.0, 0.0),
+                                egui::pos2(1.0, 1.0)
+                            ),
+                            Color32::WHITE
+                        );
+                        show_icon = false;
+                    }
+                }
+            }
+            
+            // Fallback: Icon text
+            if show_icon {
+                ui.painter().text(
+                    thumb_rect.center(),
+                    egui::Align2::CENTER_CENTER,
+                    asset.asset_type.icon(),
+                    egui::FontId::proportional(32.0),
+                    Color32::WHITE,
+                );
+            }
             
             // Favorite star
             if is_favorite {

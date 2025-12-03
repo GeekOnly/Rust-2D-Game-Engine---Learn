@@ -141,6 +141,8 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                         ui,
                         manager,
                         self.context.drag_drop,
+                        self.context.texture_manager,
+                        self.context.project_path.as_ref(),
                     ) {
                         match action {
                             asset_browser::AssetBrowserAction::OpenSpriteEditor(path) => {

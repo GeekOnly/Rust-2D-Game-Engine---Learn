@@ -168,6 +168,8 @@ impl EditorUI {
                 asset_manager,
                 console,
                 drag_drop,
+                texture_manager,
+                project_path.as_ref(),
             );
         });
 
