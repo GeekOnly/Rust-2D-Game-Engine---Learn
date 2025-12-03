@@ -2,12 +2,32 @@
   "next_entity": 12,
   "transforms": [
     [
-      0,
+      11,
       {
         "position": [
-          0.9680877,
           0.0,
-          -10.0
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      8,
+      {
+        "position": [
+          3.030126,
+          0.63969946,
+          0.0
         ],
         "rotation": [
           0.0,
@@ -62,32 +82,12 @@
       }
     ],
     [
-      8,
+      0,
       {
         "position": [
-          3.030126,
-          0.63969946,
-          0.0
-        ],
-        "rotation": [
+          0.9680877,
           0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      11,
-      {
-        "position": [
-          0.0,
-          0.0,
-          0.0
+          -10.0
         ],
         "rotation": [
           0.0,
@@ -111,14 +111,14 @@
       ]
     ],
     [
-      11,
+      7,
       [
         0.0,
         0.0
       ]
     ],
     [
-      7,
+      11,
       [
         0.0,
         0.0
@@ -136,7 +136,7 @@
     [
       7,
       {
-        "texture_id": "sprite",
+        "texture_id": "assets/brackeys_platformer_assets/sprites/knight.png",
         "width": 1.0,
         "height": 1.0,
         "color": [
@@ -147,30 +147,14 @@
         ],
         "billboard": false,
         "flip_x": false,
-        "flip_y": false
-      }
-    ],
-    [
-      11,
-      {
-        "texture_id": "projects/Celeste Demo\\assets\\brackeys_platformer_assets\\sprites\\knight.png",
-        "width": 1.0,
-        "height": 1.0,
-        "color": [
-          1.0,
-          1.0,
-          1.0,
-          1.0
-        ],
-        "billboard": false,
-        "flip_x": false,
-        "flip_y": false
+        "flip_y": false,
+        "sprite_rect": null
       }
     ],
     [
       9,
       {
-        "texture_id": "sprite",
+        "texture_id": "assets/brackeys_platformer_assets/sprites/knight.png",
         "width": 1.0,
         "height": 1.0,
         "color": [
@@ -181,24 +165,54 @@
         ],
         "billboard": false,
         "flip_x": false,
-        "flip_y": false
+        "flip_y": false,
+        "sprite_rect": null
+      }
+    ],
+    [
+      11,
+      {
+        "texture_id": "assets/brackeys_platformer_assets/sprites/knight.png",
+        "width": 20.0,
+        "height": 20.0,
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "billboard": false,
+        "flip_x": false,
+        "flip_y": false,
+        "sprite_rect": [
+          5,
+          9,
+          20,
+          20
+        ]
       }
     ],
     [
       8,
       {
-        "texture_id": "item",
-        "width": 1.0,
-        "height": 1.0,
+        "texture_id": "projects/Celeste Demo\\assets\\brackeys_platformer_assets\\sprites\\coin.png",
+        "width": 16.0,
+        "height": 16.0,
         "color": [
           1.0,
-          0.8,
-          0.19999999,
+          1.0,
+          1.0,
           1.0
         ],
-        "billboard": true,
+        "billboard": false,
         "flip_x": false,
-        "flip_y": false
+        "flip_y": false,
+        "sprite_rect": [
+          0,
+          0,
+          16,
+          16
+        ]
       }
     ]
   ],
@@ -219,21 +233,6 @@
       }
     ],
     [
-      7,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          1.0,
-          1.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
       11,
       {
         "offset": [
@@ -250,6 +249,21 @@
     ],
     [
       8,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          1.0,
+          1.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      7,
       {
         "offset": [
           0.0,
@@ -358,11 +372,7 @@
   "scripts": [],
   "active": [
     [
-      11,
-      true
-    ],
-    [
-      7,
+      8,
       true
     ],
     [
@@ -374,12 +384,24 @@
       true
     ],
     [
-      8,
+      11,
+      true
+    ],
+    [
+      7,
       true
     ]
   ],
   "layers": [
     [
+      11,
+      0
+    ],
+    [
+      8,
+      0
+    ],
+    [
       9,
       0
     ],
@@ -389,38 +411,30 @@
     ],
     [
       0,
-      0
-    ],
-    [
-      11,
-      0
-    ],
-    [
-      8,
       0
     ]
   ],
   "parents": [],
   "names": [
     [
-      7,
-      "Sprite"
-    ],
-    [
-      11,
-      "Player"
+      8,
+      "Item 8"
     ],
     [
       0,
       "Main Camera"
     ],
     [
-      8,
-      "Item 8"
+      11,
+      "Player"
     ],
     [
       9,
       "Sprite (Copy)"
+    ],
+    [
+      7,
+      "Sprite"
     ]
   ],
   "sprite_sheets": [],

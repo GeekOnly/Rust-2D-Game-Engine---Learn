@@ -2,10 +2,10 @@
   "next_entity": 12,
   "transforms": [
     [
-      7,
+      9,
       {
         "position": [
-          -2.4037924,
+          12.247598,
           -3.0,
           0.0
         ],
@@ -17,26 +17,6 @@
         "scale": [
           13.526597,
           2.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      0,
-      {
-        "position": [
-          0.9680877,
-          0.0,
-          -10.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
           1.0
         ]
       }
@@ -62,10 +42,50 @@
       }
     ],
     [
-      9,
+      11,
       {
         "position": [
-          12.247598,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      0,
+      {
+        "position": [
+          0.9680877,
+          0.0,
+          -10.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      7,
+      {
+        "position": [
+          -2.4037924,
           -3.0,
           0.0
         ],
@@ -80,26 +100,6 @@
           1.0
         ]
       }
-    ],
-    [
-      11,
-      {
-        "position": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
     ]
   ],
   "velocities": [
@@ -111,6 +111,13 @@
       ]
     ],
     [
+      11,
+      [
+        0.0,
+        0.0
+      ]
+    ],
+    [
       8,
       [
         0.0,
@@ -123,20 +130,72 @@
         0.0,
         0.0
       ]
-    ],
-    [
-      11,
-      [
-        0.0,
-        0.0
-      ]
     ]
   ],
   "sprites": [
     [
+      7,
+      {
+        "texture_id": "assets/brackeys_platformer_assets/sprites/knight.png",
+        "width": 1.0,
+        "height": 1.0,
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "billboard": false,
+        "flip_x": false,
+        "flip_y": false,
+        "sprite_rect": null
+      }
+    ],
+    [
+      11,
+      {
+        "texture_id": "assets/brackeys_platformer_assets/sprites/knight.png",
+        "width": 20.0,
+        "height": 20.0,
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "billboard": false,
+        "flip_x": false,
+        "flip_y": false,
+        "sprite_rect": [
+          5,
+          9,
+          20,
+          20
+        ]
+      }
+    ],
+    [
+      9,
+      {
+        "texture_id": "assets/brackeys_platformer_assets/sprites/knight.png",
+        "width": 1.0,
+        "height": 1.0,
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "billboard": false,
+        "flip_x": false,
+        "flip_y": false,
+        "sprite_rect": null
+      }
+    ],
+    [
       8,
       {
-        "texture_id": "item",
+        "texture_id": "assets/brackeys_platformer_assets/sprites/fruit.png",
         "width": 1.0,
         "height": 1.0,
         "color": [
@@ -147,58 +206,8 @@
         ],
         "billboard": true,
         "flip_x": false,
-        "flip_y": false
-      }
-    ],
-    [
-      11,
-      {
-        "texture_id": "player",
-        "width": 1.0,
-        "height": 1.0,
-        "color": [
-          0.19999999,
-          0.5999998,
-          1.0,
-          1.0
-        ],
-        "billboard": false,
-        "flip_x": false,
-        "flip_y": false
-      }
-    ],
-    [
-      9,
-      {
-        "texture_id": "sprite",
-        "width": 1.0,
-        "height": 1.0,
-        "color": [
-          1.0,
-          1.0,
-          1.0,
-          1.0
-        ],
-        "billboard": false,
-        "flip_x": false,
-        "flip_y": false
-      }
-    ],
-    [
-      7,
-      {
-        "texture_id": "sprite",
-        "width": 1.0,
-        "height": 1.0,
-        "color": [
-          1.0,
-          1.0,
-          1.0,
-          1.0
-        ],
-        "billboard": false,
-        "flip_x": false,
-        "flip_y": false
+        "flip_y": false,
+        "sprite_rect": null
       }
     ]
   ],
@@ -219,7 +228,7 @@
       }
     ],
     [
-      8,
+      9,
       {
         "offset": [
           0.0,
@@ -234,7 +243,7 @@
       }
     ],
     [
-      9,
+      8,
       {
         "offset": [
           0.0,
@@ -266,6 +275,19 @@
   ],
   "rigidbodies": [
     [
+      11,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 1.0,
+        "mass": 1.0,
+        "is_kinematic": false,
+        "freeze_rotation": true
+      }
+    ],
+    [
       7,
       {
         "velocity": [
@@ -293,19 +315,6 @@
     ],
     [
       8,
-      {
-        "velocity": [
-          0.0,
-          0.0
-        ],
-        "gravity_scale": 1.0,
-        "mass": 1.0,
-        "is_kinematic": false,
-        "freeze_rotation": true
-      }
-    ],
-    [
-      11,
       {
         "velocity": [
           0.0,
@@ -347,44 +356,40 @@
   "meshes": [],
   "tags": [
     [
-      8,
-      "Item"
-    ],
-    [
       11,
       "Player"
+    ],
+    [
+      8,
+      "Item"
     ]
   ],
   "scripts": [],
   "active": [
     [
-      9,
-      true
-    ],
-    [
-      11,
-      true
-    ],
-    [
       7,
       true
     ],
     [
-      8,
+      9,
       true
     ],
     [
       0,
       true
+    ],
+    [
+      8,
+      true
+    ],
+    [
+      11,
+      true
     ]
   ],
   "layers": [
     [
-      7,
-      0
-    ],
-    [
-      11,
+      8,
       0
     ],
     [
@@ -392,7 +397,11 @@
       0
     ],
     [
-      8,
+      11,
+      0
+    ],
+    [
+      7,
       0
     ],
     [
@@ -403,24 +412,24 @@
   "parents": [],
   "names": [
     [
-      0,
-      "Main Camera"
-    ],
-    [
-      9,
-      "Sprite (Copy)"
-    ],
-    [
-      8,
-      "Item 8"
-    ],
-    [
       11,
       "Player"
     ],
     [
       7,
       "Sprite"
+    ],
+    [
+      8,
+      "Item 8"
+    ],
+    [
+      9,
+      "Sprite (Copy)"
+    ],
+    [
+      0,
+      "Main Camera"
     ]
   ],
   "sprite_sheets": [],
