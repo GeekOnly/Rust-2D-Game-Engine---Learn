@@ -1,4 +1,4 @@
-use egui_dock::{DockArea, DockState, NodeIndex, Style, TabViewer};
+use egui_dock::{DockState, NodeIndex, Style, TabViewer};
 use ecs::{World, Entity};
 use egui;
 use std::collections::HashMap;

@@ -1,5 +1,5 @@
 /// Unity/Unreal-like Asset Browser UI
-use egui::{Color32, Rect, Response, Sense, Stroke, Vec2};
+use egui::{Color32, Rect, Sense, Vec2};
 use crate::editor::asset_manager::{AssetManager, AssetMetadata, AssetType, ViewMode, SortMode};
 use crate::editor::{UnityTheme, DragDropState, DraggedAsset};
 use std::path::PathBuf;

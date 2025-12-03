@@ -1,4 +1,4 @@
-use ecs::{World, Entity, EntityTag, Script, ScriptParameter, ComponentType, ComponentManager};
+use ecs::{World, Entity, EntityTag, ScriptParameter, ComponentType, ComponentManager};
 use egui;
 use std::collections::HashMap;
 use arboard::Clipboard;

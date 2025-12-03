@@ -7,11 +7,10 @@
 //! - Snapping (Ctrl+G)
 
 use crate::editor::{
-    EditorState, UndoStack, SelectionManager, SelectionMode, Clipboard,
+    EditorState, SelectionMode,
     copy_selected, paste_from_clipboard, duplicate_selected,
     CreateEntityCommand, DeleteEntityCommand, BatchCommand,
 };
-use ecs::World;
 use std::collections::HashMap;
 
 /// Handle all editor keyboard shortcuts

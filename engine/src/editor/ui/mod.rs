@@ -17,11 +17,9 @@ use std::collections::HashMap;
 use crate::editor::{Console, SceneCamera, SceneGrid};
 pub use dock_layout::{
     EditorTab, TabContext, EditorTabViewer, 
-    create_default_layout, create_2_column_layout, create_tall_layout, create_wide_layout,
-    get_dock_style, save_default_layout, load_default_layout_name, get_layout_by_name,
-    save_custom_layout, load_custom_layouts, save_custom_layout_state, load_custom_layout_state
+    create_default_layout,
+    get_dock_style, save_default_layout, load_default_layout_name, get_layout_by_name, load_custom_layouts, save_custom_layout_state, load_custom_layout_state
 };
-pub use scene_view::{SceneViewMode, ProjectionMode, TransformSpace};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum TransformTool {

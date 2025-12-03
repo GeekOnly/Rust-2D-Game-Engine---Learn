@@ -1,4 +1,4 @@
-use ecs::{World, Entity, Prefab};
+use ecs::{World, Entity};
 use egui;
 use std::collections::HashMap;
 use crate::editor::Console;
