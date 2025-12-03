@@ -1,11 +1,6 @@
 # Sprite Editor Implementation Plan
 
 - [x] 1. Create core data structures and file I/O
-
-
-
-
-
   - Create `SpriteDefinition` struct with name, x, y, width, height
   - Create `SpriteMetadata` struct with texture path, dimensions, and sprite list
   - Implement JSON serialization/deserialization for sprite metadata
@@ -23,16 +18,6 @@
   - **Validates: Requirements 5.2, 5.3**
 
 - [x] 2. Create SpriteEditorState and window structure
-
-
-
-
-
-
-
-
-
-
   - Create `SpriteEditorState` struct with editor state fields
   - Create `SpriteEditorWindow` struct with render method
   - Implement texture loading using TextureManager
@@ -41,16 +26,6 @@
   - _Requirements: 1.2, 1.3_
 
 - [x] 3. Implement sprite canvas rendering
-
-
-
-
-
-
-
-
-
-
   - Render loaded texture on canvas
   - Implement zoom controls (mouse wheel)
   - Implement pan controls (middle mouse drag)
@@ -63,11 +38,6 @@
   - **Validates: Requirements 3.5**
 
 - [x] 4. Implement sprite rectangle creation
-
-
-
-
-
   - Handle click-and-drag to create new sprite rectangle
   - Validate rectangle has positive dimensions
   - Assign default sequential name (sprite_0, sprite_1, etc.)
@@ -81,11 +51,6 @@
   - **Validates: Requirements 2.1, 2.2, 3.1**
 
 - [x] 5. Implement sprite selection and highlighting
-
-
-
-
-
   - Handle click to select sprite
   - Render selected sprite with yellow border
   - Render hovered sprite with white border
@@ -93,20 +58,11 @@
   - Update selected_sprite in state
   - _Requirements: 6.1_
 
-- [ ] 5.1 Write property test for selection highlighting
-
-
-
-
+- [ ]* 5.1 Write property test for selection highlighting
   - **Property 18: Selection highlights sprite**
-
-
   - **Validates: Requirements 6.1**
 
 - [x] 6. Implement sprite rectangle editing
-
-
-
   - Render resize handles at corners (8x8px squares)
   - Handle corner drag to resize sprite
   - Handle center drag to move sprite
@@ -121,14 +77,6 @@
   - **Validates: Requirements 2.3, 2.4**
 
 - [x] 7. Implement sprite deletion
-
-
-
-
-
-
-
-
   - Handle Delete key press
   - Remove selected sprite from metadata
   - Clear selection
@@ -140,11 +88,6 @@
   - **Validates: Requirements 2.5**
 
 - [x] 8. Create properties panel UI
-
-
-
-
-
   - Display selected sprite properties (name, x, y, width, height)
   - Add text input for sprite name editing
   - Validate name is not duplicate
@@ -166,17 +109,6 @@
   - **Validates: Requirements 6.2, 6.5**
 
 - [x] 9. Create sprite list panel UI
-
-
-
-
-
-
-
-
-
-
-
   - Display list of all sprites with thumbnails
   - Handle click to select sprite from list
   - Highlight selected sprite in list
@@ -188,18 +120,6 @@
   - **Validates: Requirements 9.2**
 
 - [x] 10. Implement auto-slice functionality
-
-
-
-
-
-
-
-
-
-
-
-
   - Create AutoSlicer struct with grid slicing methods
   - Add "Auto Slice" button to toolbar
   - Show dialog with grid options (columns, rows, padding, spacing)
@@ -217,9 +137,6 @@
   - **Validates: Requirements 4.2, 4.3, 4.4, 4.5**
 
 - [x] 11. Implement undo/redo system
-
-
-
   - Handle Ctrl+Z to undo last action
   - Handle Ctrl+Y to redo last undone action
   - Maintain undo stack (limit to 50 actions)
@@ -233,12 +150,6 @@
   - **Validates: Requirements 8.3, 8.4**
 
 - [x] 12. Implement keyboard shortcuts
-
-
-
-
-
-
   - Handle Ctrl+S to save
   - Handle Delete to remove selected sprite
   - Handle Escape to deselect
@@ -247,12 +158,6 @@
   - _Requirements: 8.1, 8.2, 8.5, 6.4_
 
 - [x] 13. Implement sprite statistics and validation
-
-
-
-
-
-
   - Calculate and display texture coverage percentage
   - Detect overlapping sprites and show warning
   - Detect out-of-bounds sprites and show error
@@ -267,10 +172,6 @@
   - **Validates: Requirements 9.3, 9.4, 9.5**
 
 - [x] 14. Implement hover tooltips
-
-
-
-
   - Detect mouse hover over sprite rectangles
   - Display tooltip with sprite name
   - Position tooltip near cursor
@@ -282,10 +183,6 @@
   - **Validates: Requirements 6.3**
 
 - [x] 15. Integrate with asset browser
-
-
-
-
   - Add "Open in Sprite Editor" to PNG context menu
   - Handle menu selection to open sprite editor window
   - Display .sprite files with sprite icon in asset browser
@@ -298,10 +195,6 @@
   - **Validates: Requirements 7.1**
 
 - [x] 16. Implement drag-drop sprites to scene
-
-
-
-
   - Handle drag start from asset browser
   - Handle drop onto scene view
   - Create entity with Transform, Sprite, SpriteSheet, AnimatedSprite components
@@ -312,12 +205,7 @@
   - **Property 23: Drag-drop creates entity with sprite**
   - **Validates: Requirements 7.2**
 
-- [x] 17. Update sprite rendering to use sprite regions
-
-
-
-
-
+- [ ] 17. Update sprite rendering to use sprite regions
   - Modify renderer to load .sprite metadata
   - Calculate UV coordinates from sprite definition
   - Render only sprite region from texture
@@ -329,10 +217,6 @@
   - **Validates: Requirements 7.3**
 
 - [x] 18. Update inspector to show sprite info
-
-
-
-
   - Display sprite name in SpriteSheet component
   - Display source texture path
   - Add "Edit Sprite Sheet" button
@@ -343,19 +227,11 @@
   - **Property 25: Inspector shows sprite info**
   - **Validates: Requirements 7.4**
 
-- [x] 19. Implement sprite definition hot-reloading
-
-
-
-
-
-
-
-
-  - Watch .sprite files for changes
+- [ ] 19. Implement sprite definition hot-reloading for entities
+  - Watch .sprite files for changes in scene
   - Reload sprite metadata when file changes
   - Update all entities using changed sprites
-  - Refresh sprite editor if open
+  - Refresh entity sprite regions when metadata changes
   - _Requirements: 7.5_
 
 - [ ]* 19.1 Write property test for hot-reloading
@@ -363,14 +239,6 @@
   - **Validates: Requirements 7.5**
 
 - [x] 20. Implement export functionality
-
-
-
-
-
-
-
-
   - Add "Export" button to toolbar
   - Show dialog with format options (JSON, XML, TexturePacker)
   - Implement JSON export with standard format
@@ -385,17 +253,6 @@
   - **Validates: Requirements 10.3**
 
 - [x] 21. Add toolbar with action buttons
-
-
-
-
-
-
-
-
-
-
-
   - Create toolbar UI at top of window
   - Add Save button (with Ctrl+S hint)
   - Add Auto Slice button
@@ -405,7 +262,7 @@
   - Disable buttons when actions are unavailable
   - _Requirements: 8.1_
 
-- [ ] 22. Implement error handling and user feedback
+- [x] 22. Implement error handling and user feedback
   - Show error dialog for missing texture files
   - Show error dialog for invalid JSON
   - Show error dialog for write permission denied
@@ -414,7 +271,7 @@
   - Show inline errors for validation issues
   - _Requirements: 5.5_
 
-- [ ] 23. Add status bar with information
+- [x] 23. Add status bar with information
   - Display sprite count
   - Display texture coverage percentage
   - Display current zoom level
@@ -422,18 +279,12 @@
   - Update status bar when state changes
   - _Requirements: 9.1, 9.2, 9.3_
 
-- [ ] 24. Optimize performance for large textures
-  - Implement viewport culling for sprite rectangles
-  - Batch sprite rectangle rendering
-  - Use texture mipmaps for zoomed-out views
-  - Limit undo stack to 50 actions
-  - Debounce auto-save (2 seconds after last edit)
-  - _Requirements: Performance considerations from design_
-
-- [ ]* 24.1 Write performance tests
-  - Test with 2048x2048 texture
-  - Test with 100+ sprites
-  - Verify UI remains responsive
+- [ ] 24. Add SpriteSheet::from_sprite_file method
+  - Add method to load SpriteSheet from .sprite JSON file
+  - Parse sprite metadata and create SpriteFrame entries
+  - Handle file not found errors gracefully
+  - Update documentation with usage examples
+  - _Requirements: 7.3_
 
 - [ ] 25. Final checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
