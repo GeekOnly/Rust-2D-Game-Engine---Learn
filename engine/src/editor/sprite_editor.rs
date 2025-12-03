@@ -602,18 +602,60 @@ impl SpriteEditorState {
         // Generate unique texture ID for sprite editor
         let texture_id = format!("sprite_editor_{}", self.texture_path.to_string_lossy());
         
-        // Load texture through texture manager
-        if let Some(handle) = texture_manager.load_texture(ctx, &texture_id, &self.texture_path) {
-            self.texture_handle = Some(handle.clone());
+        // Determine the correct path to load
+        // The texture_path might be:
+        // 1. Relative to project root (from asset browser)
+        // 2. Already containing base path (from .sprite metadata)
+        if let Some(base) = texture_manager.get_base_path() {
+            // Build the full path
+            let full_path = base.join(&self.texture_path);
             
-            // Update metadata with texture dimensions
-            let size = handle.size();
-            self.metadata.texture_width = size[0] as u32;
-            self.metadata.texture_height = size[1] as u32;
+            // Check if this path exists
+            if full_path.exists() {
+                // Path is correct as-is, use normal loading
+                log::info!("Sprite editor loading texture (relative): {}", self.texture_path.display());
+                if let Some(handle) = texture_manager.load_texture(ctx, &texture_id, &self.texture_path) {
+                    self.texture_handle = Some(handle.clone());
+                    
+                    // Update metadata with texture dimensions
+                    let size = handle.size();
+                    self.metadata.texture_width = size[0] as u32;
+                    self.metadata.texture_height = size[1] as u32;
+                    
+                    return Ok(());
+                }
+            } else {
+                // Path doesn't exist, it might already contain the base path
+                // Try loading it as an absolute path
+                log::info!("Sprite editor loading texture (absolute): {}", self.texture_path.display());
+                if let Some(handle) = texture_manager.load_texture_absolute(ctx, &texture_id, &self.texture_path) {
+                    self.texture_handle = Some(handle.clone());
+                    
+                    // Update metadata with texture dimensions
+                    let size = handle.size();
+                    self.metadata.texture_width = size[0] as u32;
+                    self.metadata.texture_height = size[1] as u32;
+                    
+                    return Ok(());
+                }
+            }
             
-            Ok(())
-        } else {
             Err(format!("Failed to load texture: {}", self.texture_path.display()))
+        } else {
+            // No base path set, try loading directly
+            log::info!("Sprite editor loading texture (no base): {}", self.texture_path.display());
+            if let Some(handle) = texture_manager.load_texture_absolute(ctx, &texture_id, &self.texture_path) {
+                self.texture_handle = Some(handle.clone());
+                
+                // Update metadata with texture dimensions
+                let size = handle.size();
+                self.metadata.texture_width = size[0] as u32;
+                self.metadata.texture_height = size[1] as u32;
+                
+                Ok(())
+            } else {
+                Err(format!("Failed to load texture: {}", self.texture_path.display()))
+            }
         }
     }
     
