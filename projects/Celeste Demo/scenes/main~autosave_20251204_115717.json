@@ -1,6 +1,26 @@
 {
-  "next_entity": 12,
+  "next_entity": 14,
   "transforms": [
+    [
+      12,
+      {
+        "position": [
+          -3.2298732,
+          0.7196994,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
     [
       9,
       {
@@ -65,8 +85,8 @@
       0,
       {
         "position": [
-          0.9680877,
-          0.0,
+          0.9956992,
+          0.009203722,
           -10.0
         ],
         "rotation": [
@@ -82,11 +102,11 @@
       }
     ],
     [
-      7,
+      13,
       {
         "position": [
-          -2.4037924,
-          -3.0,
+          0.0,
+          0.0,
           0.0
         ],
         "rotation": [
@@ -95,14 +115,21 @@
           0.0
         ],
         "scale": [
-          13.526597,
-          2.0,
+          1.0,
+          1.0,
           1.0
         ]
       }
     ]
   ],
   "velocities": [
+    [
+      12,
+      [
+        0.0,
+        0.0
+      ]
+    ],
     [
       9,
       [
@@ -123,20 +150,13 @@
         0.0,
         0.0
       ]
-    ],
-    [
-      7,
-      [
-        0.0,
-        0.0
-      ]
     ]
   ],
   "sprites": [
     [
-      7,
+      9,
       {
-        "texture_id": "assets/brackeys_platformer_assets/sprites/knight.png",
+        "texture_id": "",
         "width": 1.0,
         "height": 1.0,
         "color": [
@@ -149,6 +169,29 @@
         "flip_x": false,
         "flip_y": false,
         "sprite_rect": null
+      }
+    ],
+    [
+      8,
+      {
+        "texture_id": "assets/brackeys_platformer_assets/sprites/coin.png",
+        "width": 16.0,
+        "height": 16.0,
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "billboard": false,
+        "flip_x": false,
+        "flip_y": false,
+        "sprite_rect": [
+          16,
+          0,
+          16,
+          16
+        ]
       }
     ],
     [
@@ -175,11 +218,11 @@
       }
     ],
     [
-      9,
+      12,
       {
-        "texture_id": "assets/brackeys_platformer_assets/sprites/knight.png",
-        "width": 1.0,
-        "height": 1.0,
+        "texture_id": "assets/brackeys_platformer_assets/sprites/fruit.png",
+        "width": 16.0,
+        "height": 16.0,
         "color": [
           1.0,
           1.0,
@@ -189,61 +232,18 @@
         "billboard": false,
         "flip_x": false,
         "flip_y": false,
-        "sprite_rect": null
-      }
-    ],
-    [
-      8,
-      {
-        "texture_id": "assets/brackeys_platformer_assets/sprites/fruit.png",
-        "width": 1.0,
-        "height": 1.0,
-        "color": [
-          1.0,
-          0.8,
-          0.19999999,
-          1.0
-        ],
-        "billboard": true,
-        "flip_x": false,
-        "flip_y": false,
-        "sprite_rect": null
+        "sprite_rect": [
+          0,
+          48,
+          16,
+          16
+        ]
       }
     ]
   ],
   "colliders": [
     [
-      7,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          1.0,
-          1.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
       9,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          1.0,
-          1.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      8,
       {
         "offset": [
           0.0,
@@ -259,6 +259,36 @@
     ],
     [
       11,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          1.0,
+          1.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      12,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          1.0,
+          1.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      8,
       {
         "offset": [
           0.0,
@@ -275,7 +305,7 @@
   ],
   "rigidbodies": [
     [
-      11,
+      12,
       {
         "velocity": [
           0.0,
@@ -284,32 +314,6 @@
         "gravity_scale": 1.0,
         "mass": 1.0,
         "is_kinematic": false,
-        "freeze_rotation": true
-      }
-    ],
-    [
-      7,
-      {
-        "velocity": [
-          0.0,
-          0.0
-        ],
-        "gravity_scale": 1.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true
-      }
-    ],
-    [
-      9,
-      {
-        "velocity": [
-          0.0,
-          0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
         "freeze_rotation": true
       }
     ],
@@ -323,6 +327,32 @@
         "gravity_scale": 1.0,
         "mass": 1.0,
         "is_kinematic": false,
+        "freeze_rotation": true
+      }
+    ],
+    [
+      11,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 1.0,
+        "mass": 1.0,
+        "is_kinematic": false,
+        "freeze_rotation": true
+      }
+    ],
+    [
+      9,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
         "freeze_rotation": true
       }
     ]
@@ -356,22 +386,85 @@
   "meshes": [],
   "tags": [
     [
+      8,
+      "Item"
+    ],
+    [
       11,
       "Player"
     ],
     [
-      8,
+      12,
       "Item"
     ]
   ],
-  "scripts": [],
+  "scripts": [
+    [
+      11,
+      {
+        "script_name": "player_controller",
+        "enabled": true,
+        "parameters": {
+          "is_touching_wall": {
+            "Bool": false
+          },
+          "dash_direction_y": {
+            "Float": 0.0
+          },
+          "dash_timer": {
+            "Float": 0.0
+          },
+          "dash_duration": {
+            "Float": 0.2
+          },
+          "dash_y": {
+            "Float": 1.0
+          },
+          "new_vel_x": {
+            "Float": 0.0
+          },
+          "can_dash": {
+            "Bool": false
+          },
+          "is_grounded": {
+            "Bool": false
+          },
+          "dash_direction_x": {
+            "Float": 0.0
+          },
+          "velocity_y": {
+            "Float": 0.0
+          },
+          "is_dashing": {
+            "Bool": true
+          },
+          "dash_x": {
+            "Float": 1.0
+          },
+          "wall_slide_speed": {
+            "Float": 1.0
+          },
+          "velocity_x": {
+            "Float": 0.0
+          },
+          "wall_direction": {
+            "Int": 0
+          }
+        }
+      }
+    ]
+  ],
   "active": [
     [
-      7,
+      9,
       true
     ],
     [
-      9,
+      11,
+      true
+    ],
+    [
+      8,
       true
     ],
     [
@@ -379,17 +472,17 @@
       true
     ],
     [
-      8,
+      12,
       true
     ],
     [
-      11,
+      13,
       true
     ]
   ],
   "layers": [
     [
-      8,
+      11,
       0
     ],
     [
@@ -397,11 +490,15 @@
       0
     ],
     [
-      11,
+      8,
       0
     ],
     [
-      7,
+      13,
+      0
+    ],
+    [
+      12,
       0
     ],
     [
@@ -412,28 +509,43 @@
   "parents": [],
   "names": [
     [
-      11,
-      "Player"
+      12,
+      "Item 8 (Copy)"
     ],
     [
-      7,
-      "Sprite"
+      0,
+      "Main Camera"
     ],
     [
       8,
       "Item 8"
     ],
     [
+      13,
+      "GameObject"
+    ],
+    [
       9,
       "Sprite (Copy)"
     ],
     [
-      0,
-      "Main Camera"
+      11,
+      "Player"
     ]
   ],
   "sprite_sheets": [],
   "animated_sprites": [],
   "tilemaps": [],
-  "tilesets": []
+  "tilesets": [],
+  "maps": [
+    [
+      13,
+      {
+        "file_path": "K:\\XSGameStudio\\2025 Project\\Game Engine\\Rust 2D Game Engine\\projects\\Celeste Demo\\tilemaps\\Level_01.ldtk",
+        "map_type": "LDtk",
+        "hot_reload_enabled": true,
+        "display_name": "Map"
+      }
+    ]
+  ]
 }

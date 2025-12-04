@@ -10,6 +10,7 @@ pub mod asset_browser;
 pub mod dock_layout;
 pub mod camera_settings;
 pub mod sprite_picker;
+pub mod map_inspector;
 
 // Re-exports
 use ecs::{World, Entity, EntityTag};

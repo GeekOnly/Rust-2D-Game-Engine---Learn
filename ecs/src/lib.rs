@@ -525,6 +525,8 @@ pub struct World {
     pub animated_sprites: HashMap<Entity, AnimatedSprite>,
     pub tilemaps: HashMap<Entity, Tilemap>,
     pub tilesets: HashMap<Entity, TileSet>,
+    // Map component (LDtk/Tiled integration)
+    pub maps: HashMap<Entity, Map>,
 }
 
 impl World {
@@ -571,6 +573,7 @@ impl World {
         self.animated_sprites.remove(&e);
         self.tilemaps.remove(&e);
         self.tilesets.remove(&e);
+        self.maps.remove(&e);
     }
 
     pub fn clear(&mut self) {
@@ -592,6 +595,7 @@ impl World {
         self.animated_sprites.clear();
         self.tilemaps.clear();
         self.tilesets.clear();
+        self.maps.clear();
         self.next_entity = 0;
     }
 
@@ -639,6 +643,7 @@ impl World {
             animated_sprites: Vec<(Entity, AnimatedSprite)>,
             tilemaps: Vec<(Entity, Tilemap)>,
             tilesets: Vec<(Entity, TileSet)>,
+            maps: Vec<(Entity, Map)>,
         }
 
         let data = SceneData {
@@ -660,6 +665,7 @@ impl World {
             animated_sprites: self.animated_sprites.iter().map(|(k, v)| (*k, v.clone())).collect(),
             tilemaps: self.tilemaps.iter().map(|(k, v)| (*k, v.clone())).collect(),
             tilesets: self.tilesets.iter().map(|(k, v)| (*k, v.clone())).collect(),
+            maps: self.maps.iter().map(|(k, v)| (*k, v.clone())).collect(),
         };
 
         serde_json::to_string_pretty(&data)
@@ -704,6 +710,8 @@ impl World {
             tilemaps: Vec<(Entity, Tilemap)>,
             #[serde(default)]
             tilesets: Vec<(Entity, TileSet)>,
+            #[serde(default)]
+            maps: Vec<(Entity, Map)>,
         }
 
         let data: SceneData = serde_json::from_str(json)?;
@@ -769,6 +777,9 @@ impl World {
         }
         for (entity, tileset) in data.tilesets {
             self.tilesets.insert(entity, tileset);
+        }
+        for (entity, map) in data.maps {
+            self.maps.insert(entity, map);
         }
         
         // Reconstruct hierarchy
@@ -877,6 +888,7 @@ impl_component_access!(World, SpriteSheet, sprite_sheets);
 impl_component_access!(World, AnimatedSprite, animated_sprites);
 impl_component_access!(World, Tilemap, tilemaps);
 impl_component_access!(World, TileSet, tilesets);
+impl_component_access!(World, Map, maps);
 
 // Manual implementations for tuple and primitive types
 impl traits::ComponentAccess<(f32, f32)> for World {

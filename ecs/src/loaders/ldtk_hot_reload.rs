@@ -1,0 +1,180 @@
+use crate::{World, Entity};
+use notify::{Watcher, RecursiveMode, Event, EventKind};
+use std::path::{Path, PathBuf};
+use std::sync::mpsc::{channel, Receiver, Sender};
+use std::collections::HashMap;
+use log::{info, warn, error};
+
+/// Hot-reload system for LDtk files
+/// 
+/// Usage:
+/// ```
+/// let mut reloader = LdtkHotReloader::new();
+/// reloader.watch("path/to/level.ldtk", &mut world)?;
+/// 
+/// // In game loop:
+/// if let Some(updated_entities) = reloader.check_updates(&mut world) {
+///     println!("Reloaded {} entities", updated_entities.len());
+/// }
+/// ```
+pub struct LdtkHotReloader {
+    watcher: Option<notify::RecommendedWatcher>,
+    receiver: Receiver<notify::Result<Event>>,
+    sender: Sender<notify::Result<Event>>,
+    watched_files: HashMap<PathBuf, Vec<Entity>>,
+}
+
+impl LdtkHotReloader {
+    /// Create a new hot-reloader
+    pub fn new() -> Self {
+        let (sender, receiver) = channel();
+        
+        Self {
+            watcher: None,
+            receiver,
+            sender,
+            watched_files: HashMap::new(),
+        }
+    }
+
+    /// Watch an LDtk file and load it into the world
+    /// Returns the entities created from the file
+    pub fn watch(&mut self, path: impl AsRef<Path>, world: &mut World) -> Result<Vec<Entity>, String> {
+        let path = path.as_ref();
+        let canonical_path = path.canonicalize()
+            .map_err(|e| format!("Failed to canonicalize path: {}", e))?;
+
+        // Initialize watcher if not already created
+        if self.watcher.is_none() {
+            let sender = self.sender.clone();
+            let watcher = notify::recommended_watcher(move |res| {
+                let _ = sender.send(res);
+            }).map_err(|e| format!("Failed to create watcher: {}", e))?;
+            
+            self.watcher = Some(watcher);
+        }
+
+        // Watch the file
+        if let Some(watcher) = &mut self.watcher {
+            watcher.watch(&canonical_path, RecursiveMode::NonRecursive)
+                .map_err(|e| format!("Failed to watch file: {}", e))?;
+        }
+
+        // Load the file
+        let entities = super::LdtkLoader::load_project(path, world)?;
+        
+        // Store the entities for this file
+        self.watched_files.insert(canonical_path.clone(), entities.clone());
+        
+        info!("Watching LDtk file: {:?} ({} entities)", canonical_path, entities.len());
+        
+        Ok(entities)
+    }
+
+    /// Stop watching a file
+    pub fn unwatch(&mut self, path: impl AsRef<Path>) -> Result<(), String> {
+        let path = path.as_ref();
+        let canonical_path = path.canonicalize()
+            .map_err(|e| format!("Failed to canonicalize path: {}", e))?;
+
+        if let Some(watcher) = &mut self.watcher {
+            watcher.unwatch(&canonical_path)
+                .map_err(|e| format!("Failed to unwatch file: {}", e))?;
+        }
+
+        self.watched_files.remove(&canonical_path);
+        info!("Stopped watching: {:?}", canonical_path);
+        
+        Ok(())
+    }
+
+    /// Check for file updates and reload if necessary
+    /// Returns Some(entities) if files were reloaded, None otherwise
+    pub fn check_updates(&mut self, world: &mut World) -> Option<Vec<Entity>> {
+        let mut updated_files = Vec::new();
+
+        // Collect all events
+        while let Ok(event_result) = self.receiver.try_recv() {
+            match event_result {
+                Ok(event) => {
+                    // Check if this is a modify event
+                    if matches!(event.kind, EventKind::Modify(_)) {
+                        for path in event.paths {
+                            if self.watched_files.contains_key(&path) {
+                                updated_files.push(path);
+                            }
+                        }
+                    }
+                }
+                Err(e) => {
+                    warn!("File watcher error: {}", e);
+                }
+            }
+        }
+
+        if updated_files.is_empty() {
+            return None;
+        }
+
+        // Reload updated files
+        let mut all_entities = Vec::new();
+        
+        for path in updated_files {
+            info!("Reloading LDtk file: {:?}", path);
+            
+            // Remove old entities
+            if let Some(old_entities) = self.watched_files.get(&path) {
+                for &entity in old_entities {
+                    world.despawn(entity);
+                }
+            }
+
+            // Reload the file
+            match super::LdtkLoader::load_project(&path, world) {
+                Ok(entities) => {
+                    info!("Successfully reloaded {} entities from {:?}", entities.len(), path);
+                    self.watched_files.insert(path.clone(), entities.clone());
+                    all_entities.extend(entities);
+                }
+                Err(e) => {
+                    error!("Failed to reload {:?}: {}", path, e);
+                }
+            }
+        }
+
+        if all_entities.is_empty() {
+            None
+        } else {
+            Some(all_entities)
+        }
+    }
+
+    /// Get all watched files
+    pub fn watched_files(&self) -> Vec<PathBuf> {
+        self.watched_files.keys().cloned().collect()
+    }
+
+    /// Get entities for a specific file
+    pub fn get_entities(&self, path: impl AsRef<Path>) -> Option<&[Entity]> {
+        let canonical_path = path.as_ref().canonicalize().ok()?;
+        self.watched_files.get(&canonical_path).map(|v| v.as_slice())
+    }
+}
+
+impl Drop for LdtkHotReloader {
+    fn drop(&mut self) {
+        // Watcher will be automatically dropped and stop watching
+        info!("LdtkHotReloader dropped, stopped watching {} files", self.watched_files.len());
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_hot_reloader_creation() {
+        let reloader = LdtkHotReloader::new();
+        assert_eq!(reloader.watched_files().len(), 0);
+    }
+}

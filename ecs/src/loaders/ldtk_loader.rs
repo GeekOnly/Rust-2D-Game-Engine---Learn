@@ -1,57 +1,93 @@
 use crate::{World, Entity, Tilemap, Transform};
-use ldtk_rust::Project;
+use serde_json::Value;
 use std::path::Path;
 
 /// LDTK file loader
 /// 
-/// Note: This is a simplified loader that creates basic tilemap entities from LDTK files.
-/// Full tile data loading requires more complex API interaction with ldtk_rust 0.6.
+/// Loads LDtk JSON files directly using serde_json
+/// Compatible with LDtk 1.5.3+
 pub struct LdtkLoader;
 
 impl LdtkLoader {
     /// Load an LDTK project file and spawn entities into the world
     pub fn load_project(path: impl AsRef<Path>, world: &mut World) -> Result<Vec<Entity>, String> {
-        // Load the project - ldtk_rust 0.6 uses new_from_file
+        // Load the project JSON
         let project_data = std::fs::read_to_string(path.as_ref())
             .map_err(|e| format!("Failed to read LDTK file: {}", e))?;
         
-        let project: Project = serde_json::from_str(&project_data)
+        let project: Value = serde_json::from_str(&project_data)
             .map_err(|e| format!("Failed to parse LDTK JSON: {}", e))?;
 
         let mut entities = Vec::new();
 
-        // Load each level in the project
-        for level in &project.levels {
-            // Process each layer in the level
-            if let Some(layer_instances) = &level.layer_instances {
-                for layer_instance in layer_instances {
-                    // Create a basic tilemap entity for each layer
-                    let entity = world.spawn();
+        // Get levels array
+        let levels = project["levels"]
+            .as_array()
+            .ok_or("No levels found in LDTK file")?;
 
-                    let width = layer_instance.c_wid as u32;
-                    let height = layer_instance.c_hei as u32;
+        // Load each level
+        for level in levels {
+            // Get layer instances
+            let empty_vec = vec![];
+            let layer_instances = level["layerInstances"]
+                .as_array()
+                .unwrap_or(&empty_vec);
 
-                    let tilemap = Tilemap::new(
-                        &layer_instance.identifier,
-                        format!("tileset_{}", layer_instance.layer_def_uid),
-                        width,
-                        height,
-                    );
+            // Process each layer
+            for layer in layer_instances {
+                // Create a basic tilemap entity for each layer
+                let entity = world.spawn();
 
-                    world.tilemaps.insert(entity, tilemap);
-                    world.names.insert(entity, format!("LDTK Layer: {}", layer_instance.identifier));
+                // Get layer properties
+                let identifier = layer["__identifier"]
+                    .as_str()
+                    .unwrap_or("Unknown");
+                
+                let width = layer["__cWid"]
+                    .as_i64()
+                    .unwrap_or(0) as u32;
+                
+                let height = layer["__cHei"]
+                    .as_i64()
+                    .unwrap_or(0) as u32;
+                
+                let layer_def_uid = layer["layerDefUid"]
+                    .as_i64()
+                    .unwrap_or(0);
+                
+                let px_offset_x = layer["__pxTotalOffsetX"]
+                    .as_i64()
+                    .unwrap_or(0) as f32;
+                
+                let px_offset_y = layer["__pxTotalOffsetY"]
+                    .as_i64()
+                    .unwrap_or(0) as f32;
 
-                    // Add transform at layer offset
-                    let transform = Transform::with_position(
-                        layer_instance.px_total_offset_x as f32,
-                        layer_instance.px_total_offset_y as f32,
-                        0.0,
-                    );
-                    world.transforms.insert(entity, transform);
+                // Create tilemap
+                let tilemap = Tilemap::new(
+                    identifier,
+                    format!("tileset_{}", layer_def_uid),
+                    width,
+                    height,
+                );
 
-                    entities.push(entity);
-                }
+                world.tilemaps.insert(entity, tilemap);
+                world.names.insert(entity, format!("LDTK Layer: {}", identifier));
+
+                // Add transform at layer offset
+                let transform = Transform::with_position(
+                    px_offset_x,
+                    px_offset_y,
+                    0.0,
+                );
+                world.transforms.insert(entity, transform);
+
+                entities.push(entity);
             }
+        }
+
+        if entities.is_empty() {
+            log::warn!("No entities loaded from LDTK file. Check if levels have layers with data.");
         }
 
         Ok(entities)

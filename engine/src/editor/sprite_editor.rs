@@ -538,14 +538,25 @@ impl SpriteEditorState {
         
         // Try to load existing metadata or create new
         let metadata = if metadata_path.exists() {
-            SpriteMetadata::load(&metadata_path).unwrap_or_else(|e| {
-                log::warn!("Failed to load sprite metadata: {}", e);
-                SpriteMetadata::new(
-                    relative_texture_path.clone(),
-                    0,
-                    0,
-                )
-            })
+            match SpriteMetadata::load(&metadata_path) {
+                Ok(mut loaded_metadata) => {
+                    // Ensure texture_path in metadata is correct (not .sprite file)
+                    // If it's a .sprite file, replace with the actual texture path
+                    if loaded_metadata.texture_path.ends_with(".sprite") {
+                        log::warn!("Sprite metadata has .sprite extension in texture_path, fixing to: {}", relative_texture_path);
+                        loaded_metadata.texture_path = relative_texture_path.clone();
+                    }
+                    loaded_metadata
+                }
+                Err(e) => {
+                    log::warn!("Failed to load sprite metadata: {}", e);
+                    SpriteMetadata::new(
+                        relative_texture_path.clone(),
+                        0,
+                        0,
+                    )
+                }
+            }
         } else {
             SpriteMetadata::new(
                 relative_texture_path,

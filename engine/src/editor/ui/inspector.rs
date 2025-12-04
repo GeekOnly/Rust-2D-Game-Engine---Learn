@@ -935,6 +935,22 @@ pub fn render_inspector(
                     let _ = world.remove_component(entity, ComponentType::Script);
                 }
 
+                // Map Component
+                if world.has_component(entity, ComponentType::Map) {
+                    egui::Frame::none()
+                        .fill(egui::Color32::from_rgb(50, 50, 50))
+                        .inner_margin(egui::Margin::same(10.0))
+                        .show(ui, |ui| {
+                            super::map_inspector::render_map_inspector(
+                                ui,
+                                world,
+                                entity,
+                                project_path,
+                            );
+                        });
+                    ui.add_space(10.0);
+                }
+
                 ui.add_space(15.0);
 
                 // ===== Add Component Button (Unity-style) =====
@@ -950,7 +966,7 @@ pub fn render_inspector(
                             // จัดกลุ่ม Component ตามหมวดหมู่
                             let rendering_components = vec![ComponentType::Sprite, ComponentType::Mesh];
                             let physics_components = vec![ComponentType::BoxCollider, ComponentType::Rigidbody];
-                            let other_components = vec![ComponentType::Camera, ComponentType::Script, ComponentType::Tag];
+                            let other_components = vec![ComponentType::Camera, ComponentType::Script, ComponentType::Tag, ComponentType::Map];
 
                             // Rendering Section
                             let has_rendering = addable_components.iter().any(|c| rendering_components.contains(c));

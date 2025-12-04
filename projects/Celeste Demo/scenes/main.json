@@ -1,13 +1,13 @@
 {
-  "next_entity": 12,
+  "next_entity": 16,
   "transforms": [
     [
-      0,
+      15,
       {
         "position": [
-          0.9680877,
-          0.0,
-          -10.0
+          -2.0162158,
+          0.7196994,
+          0.0
         ],
         "rotation": [
           0.0,
@@ -22,11 +22,11 @@
       }
     ],
     [
-      11,
+      12,
       {
         "position": [
-          0.0,
-          0.0,
+          -3.2298732,
+          0.7196994,
           0.0
         ],
         "rotation": [
@@ -62,12 +62,12 @@
       }
     ],
     [
-      7,
+      0,
       {
         "position": [
-          -2.4037924,
-          -3.0,
-          0.0
+          0.9956992,
+          0.009203722,
+          -10.0
         ],
         "rotation": [
           0.0,
@@ -75,8 +75,8 @@
           0.0
         ],
         "scale": [
-          13.526597,
-          2.0,
+          1.0,
+          1.0,
           1.0
         ]
       }
@@ -100,18 +100,78 @@
           1.0
         ]
       }
+    ],
+    [
+      14,
+      {
+        "position": [
+          -2.4815905,
+          -3.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          13.526597,
+          2.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      11,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      13,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
     ]
   ],
   "velocities": [
     [
-      8,
+      12,
       [
         0.0,
         0.0
       ]
     ],
     [
-      7,
+      15,
       [
         0.0,
         0.0
@@ -125,7 +185,21 @@
       ]
     ],
     [
+      14,
+      [
+        0.0,
+        0.0
+      ]
+    ],
+    [
       11,
+      [
+        0.0,
+        0.0
+      ]
+    ],
+    [
+      8,
       [
         0.0,
         0.0
@@ -133,6 +207,42 @@
     ]
   ],
   "sprites": [
+    [
+      9,
+      {
+        "texture_id": "",
+        "width": 1.0,
+        "height": 1.0,
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "billboard": false,
+        "flip_x": false,
+        "flip_y": false,
+        "sprite_rect": null
+      }
+    ],
+    [
+      14,
+      {
+        "texture_id": "",
+        "width": 1.0,
+        "height": 1.0,
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "billboard": false,
+        "flip_x": false,
+        "flip_y": false,
+        "sprite_rect": null
+      }
+    ],
     [
       8,
       {
@@ -157,47 +267,6 @@
       }
     ],
     [
-      7,
-      {
-        "texture_id": "",
-        "width": 16.0,
-        "height": 16.0,
-        "color": [
-          1.0,
-          1.0,
-          1.0,
-          1.0
-        ],
-        "billboard": false,
-        "flip_x": false,
-        "flip_y": false,
-        "sprite_rect": [
-          16,
-          0,
-          16,
-          16
-        ]
-      }
-    ],
-    [
-      9,
-      {
-        "texture_id": "",
-        "width": 1.0,
-        "height": 1.0,
-        "color": [
-          1.0,
-          1.0,
-          1.0,
-          1.0
-        ],
-        "billboard": false,
-        "flip_x": false,
-        "flip_y": false,
-        "sprite_rect": null
-      }
-    ],
-    [
       11,
       {
         "texture_id": "assets/brackeys_platformer_assets/sprites/knight.png",
@@ -219,26 +288,57 @@
           20
         ]
       }
+    ],
+    [
+      12,
+      {
+        "texture_id": "assets/brackeys_platformer_assets/sprites/fruit.png",
+        "width": 16.0,
+        "height": 16.0,
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "billboard": false,
+        "flip_x": false,
+        "flip_y": false,
+        "sprite_rect": [
+          0,
+          48,
+          16,
+          16
+        ]
+      }
+    ],
+    [
+      15,
+      {
+        "texture_id": "assets/brackeys_platformer_assets/sprites/slime_green.png",
+        "width": 24.0,
+        "height": 24.0,
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "billboard": false,
+        "flip_x": false,
+        "flip_y": true,
+        "sprite_rect": [
+          24,
+          48,
+          24,
+          24
+        ]
+      }
     ]
   ],
   "colliders": [
     [
-      7,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          1.0,
-          1.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      8,
+      14,
       {
         "offset": [
           0.0,
@@ -268,7 +368,52 @@
       }
     ],
     [
+      15,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          1.0,
+          1.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
       11,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          1.0,
+          1.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      12,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          1.0,
+          1.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      8,
       {
         "offset": [
           0.0,
@@ -285,7 +430,7 @@
   ],
   "rigidbodies": [
     [
-      7,
+      12,
       {
         "velocity": [
           0.0,
@@ -293,20 +438,7 @@
         ],
         "gravity_scale": 1.0,
         "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true
-      }
-    ],
-    [
-      9,
-      {
-        "velocity": [
-          0.0,
-          0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
+        "is_kinematic": false,
         "freeze_rotation": true
       }
     ],
@@ -333,6 +465,45 @@
         "gravity_scale": 1.0,
         "mass": 1.0,
         "is_kinematic": false,
+        "freeze_rotation": true
+      }
+    ],
+    [
+      15,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 1.0,
+        "mass": 1.0,
+        "is_kinematic": false,
+        "freeze_rotation": true
+      }
+    ],
+    [
+      14,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true
+      }
+    ],
+    [
+      9,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
         "freeze_rotation": true
       }
     ]
@@ -372,6 +543,14 @@
     [
       11,
       "Player"
+    ],
+    [
+      15,
+      "Item"
+    ],
+    [
+      12,
+      "Item"
     ]
   ],
   "scripts": [
@@ -381,38 +560,20 @@
         "script_name": "player_controller",
         "enabled": true,
         "parameters": {
+          "is_touching_wall": {
+            "Bool": false
+          },
           "dash_direction_y": {
             "Float": 0.0
-          },
-          "dash_y": {
-            "Float": 1.0
-          },
-          "wall_direction": {
-            "Int": 0
-          },
-          "dash_x": {
-            "Float": 1.0
-          },
-          "wall_slide_speed": {
-            "Float": 1.0
-          },
-          "dash_duration": {
-            "Float": 0.2
           },
           "dash_timer": {
             "Float": 0.0
           },
-          "is_dashing": {
-            "Bool": true
+          "dash_duration": {
+            "Float": 0.2
           },
-          "is_touching_wall": {
-            "Bool": false
-          },
-          "velocity_x": {
-            "Float": 0.0
-          },
-          "velocity_y": {
-            "Float": 0.0
+          "dash_y": {
+            "Float": 1.0
           },
           "new_vel_x": {
             "Float": 0.0
@@ -425,6 +586,24 @@
           },
           "dash_direction_x": {
             "Float": 0.0
+          },
+          "velocity_y": {
+            "Float": 0.0
+          },
+          "is_dashing": {
+            "Bool": true
+          },
+          "dash_x": {
+            "Float": 1.0
+          },
+          "wall_slide_speed": {
+            "Float": 1.0
+          },
+          "velocity_x": {
+            "Float": 0.0
+          },
+          "wall_direction": {
+            "Int": 0
           }
         }
       }
@@ -432,15 +611,7 @@
   ],
   "active": [
     [
-      11,
-      true
-    ],
-    [
-      7,
-      true
-    ],
-    [
-      0,
+      9,
       true
     ],
     [
@@ -448,17 +619,33 @@
       true
     ],
     [
-      9,
+      0,
+      true
+    ],
+    [
+      15,
+      true
+    ],
+    [
+      14,
+      true
+    ],
+    [
+      13,
+      true
+    ],
+    [
+      11,
+      true
+    ],
+    [
+      12,
       true
     ]
   ],
   "layers": [
     [
-      11,
-      0
-    ],
-    [
-      0,
+      14,
       0
     ],
     [
@@ -466,39 +653,78 @@
       0
     ],
     [
-      7,
+      8,
       0
     ],
     [
-      8,
+      13,
+      0
+    ],
+    [
+      11,
+      0
+    ],
+    [
+      15,
+      0
+    ],
+    [
+      12,
+      0
+    ],
+    [
+      0,
       0
     ]
   ],
   "parents": [],
   "names": [
     [
+      12,
+      "Item 8 (Copy)"
+    ],
+    [
       0,
       "Main Camera"
+    ],
+    [
+      8,
+      "Item 8"
+    ],
+    [
+      13,
+      "GameObject"
+    ],
+    [
+      14,
+      "Sprite (Copy) (Copy)"
     ],
     [
       9,
       "Sprite (Copy)"
     ],
     [
-      7,
-      "Sprite"
+      15,
+      "Item 8 (Copy) (Copy)"
     ],
     [
       11,
       "Player"
-    ],
-    [
-      8,
-      "Item 8"
     ]
   ],
   "sprite_sheets": [],
   "animated_sprites": [],
   "tilemaps": [],
-  "tilesets": []
+  "tilesets": [],
+  "maps": [
+    [
+      13,
+      {
+        "file_path": "K:\\XSGameStudio\\2025 Project\\Game Engine\\Rust 2D Game Engine\\projects\\Celeste Demo\\tilemaps\\Level_01.ldtk",
+        "map_type": "LDtk",
+        "hot_reload_enabled": true,
+        "display_name": "Map"
+      }
+    ]
+  ]
 }

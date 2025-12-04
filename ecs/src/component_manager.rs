@@ -21,6 +21,7 @@ pub enum ComponentType {
     Camera,
     Script,
     Tag,
+    Map,
 }
 
 impl ComponentType {
@@ -36,6 +37,7 @@ impl ComponentType {
             ComponentType::Camera,
             ComponentType::Script,
             ComponentType::Tag,
+            ComponentType::Map,
         ]
     }
 
@@ -51,6 +53,7 @@ impl ComponentType {
             ComponentType::Camera => "Camera",
             ComponentType::Script => "Script",
             ComponentType::Tag => "Tag",
+            ComponentType::Map => "Map",
         }
     }
 
@@ -143,6 +146,9 @@ impl ComponentManager for World {
             ComponentType::Tag => {
                 self.tags.insert(entity, EntityTag::Player);
             }
+            ComponentType::Map => {
+                self.maps.insert(entity, crate::Map::default());
+            }
         }
 
         Ok(())
@@ -190,6 +196,9 @@ impl ComponentManager for World {
             ComponentType::Tag => {
                 self.tags.remove(&entity);
             }
+            ComponentType::Map => {
+                self.maps.remove(&entity);
+            }
         }
 
         Ok(())
@@ -206,6 +215,7 @@ impl ComponentManager for World {
             ComponentType::Camera => self.cameras.contains_key(&entity),
             ComponentType::Script => self.scripts.contains_key(&entity),
             ComponentType::Tag => self.tags.contains_key(&entity),
+            ComponentType::Map => self.maps.contains_key(&entity),
         }
     }
 

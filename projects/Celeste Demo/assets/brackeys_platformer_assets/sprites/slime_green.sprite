@@ -1,0 +1,91 @@
+{
+  "texture_path": "projects/Celeste Demo/assets/brackeys_platformer_assets/sprites/slime_green.png",
+  "texture_width": 96,
+  "texture_height": 72,
+  "sprites": [
+    {
+      "name": "sprite_0",
+      "x": 0,
+      "y": 0,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "sprite_1",
+      "x": 24,
+      "y": 0,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "sprite_2",
+      "x": 48,
+      "y": 0,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "sprite_3",
+      "x": 72,
+      "y": 0,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "sprite_4",
+      "x": 0,
+      "y": 24,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "sprite_5",
+      "x": 24,
+      "y": 24,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "sprite_6",
+      "x": 48,
+      "y": 24,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "sprite_7",
+      "x": 72,
+      "y": 24,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "sprite_8",
+      "x": 0,
+      "y": 48,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "sprite_9",
+      "x": 24,
+      "y": 48,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "sprite_10",
+      "x": 48,
+      "y": 48,
+      "width": 24,
+      "height": 24
+    },
+    {
+      "name": "sprite_11",
+      "x": 72,
+      "y": 48,
+      "width": 24,
+      "height": 24
+    }
+  ]
+}
