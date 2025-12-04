@@ -200,11 +200,14 @@ pub fn render_scene_2d(
             let screen_y = center.y + screen_pos.y;
 
             // Draw selection outline
-            if let Some(_sprite) = world.sprites.get(&sel_entity) {
+            if let Some(sprite) = world.sprites.get(&sel_entity) {
                 let scale = glam::Vec2::new(transform.scale[0], transform.scale[1]);
+                // Use sprite dimensions with pixels_per_unit (same as rendering)
+                let world_width = sprite.width / sprite.pixels_per_unit;
+                let world_height = sprite.height / sprite.pixels_per_unit;
                 let size = egui::vec2(
-                    scale.x * scene_camera.zoom,
-                    scale.y * scene_camera.zoom
+                    world_width * scale.x * scene_camera.zoom,
+                    world_height * scale.y * scene_camera.zoom
                 );
                 painter.rect_stroke(
                     egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), size + egui::vec2(4.0, 4.0)),
@@ -282,12 +285,15 @@ fn render_entity_2d(
     let screen_y = center.y + screen_pos.y;
 
     // Get entity bounds for click detection
-    // Use transform.scale as the authoritative size (matching Game Mode behavior)
-    let entity_rect = if let Some(_sprite) = world.sprites.get(&entity) {
+    // Use sprite dimensions with pixels_per_unit (matching rendering)
+    let entity_rect = if let Some(sprite) = world.sprites.get(&entity) {
         let scale = glam::Vec2::new(transform.scale[0], transform.scale[1]);
+        // Use sprite dimensions with pixels_per_unit
+        let world_width = sprite.width / sprite.pixels_per_unit;
+        let world_height = sprite.height / sprite.pixels_per_unit;
         let size = egui::vec2(
-            scale.x * scene_camera.zoom,
-            scale.y * scene_camera.zoom
+            world_width * scale.x * scene_camera.zoom,
+            world_height * scale.y * scene_camera.zoom
         );
         egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), size)
     } else if world.meshes.contains_key(&entity) {
