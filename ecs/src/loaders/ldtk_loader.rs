@@ -342,4 +342,241 @@ impl LdtkLoader {
 
         Ok(collider_entities)
     }
+    
+    /// Generate optimized composite colliders from IntGrid layer
+    /// Merges adjacent tiles into larger rectangles for better performance
+    pub fn generate_composite_colliders_from_intgrid(
+        path: impl AsRef<Path>,
+        world: &mut World,
+        collision_value: i64,
+    ) -> Result<Vec<Entity>, String> {
+        // Load the project JSON
+        let project_data = std::fs::read_to_string(path.as_ref())
+            .map_err(|e| format!("Failed to read LDTK file: {}", e))?;
+        
+        let project: Value = serde_json::from_str(&project_data)
+            .map_err(|e| format!("Failed to parse LDTK JSON: {}", e))?;
+
+        let mut collider_entities = Vec::new();
+        let pixels_per_unit = 8.0; // Match tilemap rendering
+
+        // Get levels array
+        let levels = project["levels"]
+            .as_array()
+            .ok_or("No levels found in LDTK file")?;
+
+        // Load each level
+        for level in levels {
+            // Get level world position
+            let level_world_x = level["worldX"].as_i64().unwrap_or(0) as f32;
+            let level_world_y = level["worldY"].as_i64().unwrap_or(0) as f32;
+            
+            // Get layer instances
+            let empty_vec = vec![];
+            let layer_instances = level["layerInstances"]
+                .as_array()
+                .unwrap_or(&empty_vec);
+
+            // Process each layer
+            for layer in layer_instances {
+                // Only process IntGrid layers
+                let layer_type = layer["__type"].as_str().unwrap_or("");
+                if layer_type != "IntGrid" {
+                    continue;
+                }
+                
+                // Get layer properties
+                let identifier = layer["__identifier"].as_str().unwrap_or("Unknown");
+                let width = layer["__cWid"].as_i64().unwrap_or(0) as u32;
+                let height = layer["__cHei"].as_i64().unwrap_or(0) as u32;
+                let grid_size = layer["__gridSize"].as_i64().unwrap_or(8) as f32;
+                
+                let px_offset_x = layer["__pxTotalOffsetX"].as_i64().unwrap_or(0) as f32;
+                let px_offset_y = layer["__pxTotalOffsetY"].as_i64().unwrap_or(0) as f32;
+                
+                // Get IntGrid CSV data
+                let intgrid_csv = layer["intGridCsv"].as_array();
+                
+                if let Some(intgrid) = intgrid_csv {
+                    log::info!("Generating composite colliders for IntGrid layer '{}' ({}x{})", identifier, width, height);
+                    
+                    // Convert to 2D grid
+                    let mut grid = vec![vec![false; width as usize]; height as usize];
+                    for y in 0..height {
+                        for x in 0..width {
+                            let index = (y * width + x) as usize;
+                            if index < intgrid.len() {
+                                let value = intgrid[index].as_i64().unwrap_or(0);
+                                grid[y as usize][x as usize] = value == collision_value;
+                            }
+                        }
+                    }
+                    
+                    // Find rectangles using greedy algorithm
+                    let rectangles = find_rectangles(&mut grid, width, height);
+                    
+                    log::info!("Found {} composite rectangles (reduced from {} tiles)", 
+                        rectangles.len(), 
+                        grid.iter().flatten().filter(|&&v| v).count()
+                    );
+                    
+                    // Create collider for each rectangle
+                    for rect in rectangles {
+                        let entity = world.spawn();
+                        
+                        // Calculate world position (center of rectangle)
+                        let total_px_x = level_world_x + px_offset_x + (rect.x as f32 * grid_size);
+                        let total_px_y = level_world_y + px_offset_y + (rect.y as f32 * grid_size);
+                        let world_x = total_px_x / pixels_per_unit;
+                        let world_y = -total_px_y / pixels_per_unit;
+                        
+                        // Calculate size in world units
+                        let rect_width = rect.width as f32 * grid_size / pixels_per_unit;
+                        let rect_height = rect.height as f32 * grid_size / pixels_per_unit;
+                        
+                        // Position at rectangle center
+                        let center_x = world_x + rect_width / 2.0;
+                        let center_y = world_y - rect_height / 2.0;
+                        
+                        let transform = Transform::with_position(center_x, center_y, 0.0);
+                        world.transforms.insert(entity, transform);
+                        
+                        // Add collider with rectangle size
+                        let collider = Collider::new(rect_width, rect_height);
+                        world.colliders.insert(entity, collider);
+                        
+                        // Add kinematic rigidbody (static, doesn't move)
+                        let rigidbody = Rigidbody2D {
+                            velocity: (0.0, 0.0),
+                            gravity_scale: 0.0,
+                            mass: 1.0,
+                            is_kinematic: true,
+                            freeze_rotation: true,
+                        };
+                        world.rigidbodies.insert(entity, rigidbody);
+                        
+                        // Add name for debugging
+                        world.names.insert(entity, format!("CompositeCollider_{}x{}", rect.width, rect.height));
+                        
+                        collider_entities.push(entity);
+                    }
+                    
+                    log::info!("Created {} composite colliders for layer '{}'", collider_entities.len(), identifier);
+                }
+            }
+        }
+
+        Ok(collider_entities)
+    }
+}
+
+/// Rectangle in grid coordinates
+#[derive(Debug, Clone)]
+struct Rectangle {
+    x: u32,
+    y: u32,
+    width: u32,
+    height: u32,
+}
+
+/// Find rectangles in a 2D grid using greedy meshing algorithm
+/// This finds the largest possible rectangles to minimize collider count
+fn find_rectangles(grid: &mut Vec<Vec<bool>>, width: u32, height: u32) -> Vec<Rectangle> {
+    let mut rectangles = Vec::new();
+    
+    for y in 0..height {
+        for x in 0..width {
+            if grid[y as usize][x as usize] {
+                // Found a solid tile, find the largest rectangle starting here
+                let rect = find_largest_rectangle(grid, x, y, width, height);
+                
+                // Mark tiles as used
+                for dy in 0..rect.height {
+                    for dx in 0..rect.width {
+                        grid[(rect.y + dy) as usize][(rect.x + dx) as usize] = false;
+                    }
+                }
+                
+                rectangles.push(rect);
+            }
+        }
+    }
+    
+    rectangles
+}
+
+/// Find the largest rectangle starting at (x, y) using greedy approach
+/// Tries both horizontal-first and vertical-first expansion and picks the larger one
+fn find_largest_rectangle(grid: &Vec<Vec<bool>>, x: u32, y: u32, width: u32, height: u32) -> Rectangle {
+    // Strategy 1: Expand horizontally first, then vertically
+    let rect1 = expand_horizontal_first(grid, x, y, width, height);
+    
+    // Strategy 2: Expand vertically first, then horizontally
+    let rect2 = expand_vertical_first(grid, x, y, width, height);
+    
+    // Pick the rectangle with larger area
+    let area1 = rect1.width * rect1.height;
+    let area2 = rect2.width * rect2.height;
+    
+    if area1 >= area2 {
+        rect1
+    } else {
+        rect2
+    }
+}
+
+/// Expand horizontally first, then vertically
+fn expand_horizontal_first(grid: &Vec<Vec<bool>>, x: u32, y: u32, width: u32, height: u32) -> Rectangle {
+    // Find maximum width
+    let mut rect_width = 1;
+    while x + rect_width < width && grid[y as usize][(x + rect_width) as usize] {
+        rect_width += 1;
+    }
+    
+    // Find maximum height with this width
+    let mut rect_height = 1;
+    'height_loop: while y + rect_height < height {
+        // Check if entire row is solid
+        for dx in 0..rect_width {
+            if !grid[(y + rect_height) as usize][(x + dx) as usize] {
+                break 'height_loop;
+            }
+        }
+        rect_height += 1;
+    }
+    
+    Rectangle {
+        x,
+        y,
+        width: rect_width,
+        height: rect_height,
+    }
+}
+
+/// Expand vertically first, then horizontally
+fn expand_vertical_first(grid: &Vec<Vec<bool>>, x: u32, y: u32, width: u32, height: u32) -> Rectangle {
+    // Find maximum height
+    let mut rect_height = 1;
+    while y + rect_height < height && grid[(y + rect_height) as usize][x as usize] {
+        rect_height += 1;
+    }
+    
+    // Find maximum width with this height
+    let mut rect_width = 1;
+    'width_loop: while x + rect_width < width {
+        // Check if entire column is solid
+        for dy in 0..rect_height {
+            if !grid[(y + dy) as usize][(x + rect_width) as usize] {
+                break 'width_loop;
+            }
+        }
+        rect_width += 1;
+    }
+    
+    Rectangle {
+        x,
+        y,
+        width: rect_width,
+        height: rect_height,
+    }
 }

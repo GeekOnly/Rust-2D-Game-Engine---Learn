@@ -157,8 +157,8 @@ pub fn render_map_inspector(
         if map.map_type == MapType::LDtk && map.is_loaded {
             ui.add_space(5.0);
             ui.horizontal(|ui| {
-                if ui.button("🔲 Generate Colliders")
-                    .on_hover_text("Generate collision boxes from IntGrid layer (value = 1)")
+                if ui.button("🔲 Generate Colliders (Composite)")
+                    .on_hover_text("Generate optimized collision boxes by merging adjacent tiles")
                     .clicked()
                 {
                     should_generate_colliders = true;
@@ -264,13 +264,14 @@ pub fn render_map_inspector(
             if let Some(file_path) = map_data {
                 let full_path = proj_path.join(&file_path);
                 
-                match ecs::loaders::LdtkLoader::generate_colliders_from_intgrid(
+                // Use composite collider generation (optimized)
+                match ecs::loaders::LdtkLoader::generate_composite_colliders_from_intgrid(
                     &full_path,
                     world,
                     1  // IntGrid value 1 = solid
                 ) {
                     Ok(collider_entities) => {
-                        log::info!("✓ Generated {} colliders for map", collider_entities.len());
+                        log::info!("✓ Generated {} composite colliders for map", collider_entities.len());
                         // Store collider entities in map for cleanup
                         if let Some(map) = world.maps.get_mut(&entity) {
                             map.spawned_entities.extend(collider_entities);
