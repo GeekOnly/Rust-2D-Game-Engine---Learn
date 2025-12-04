@@ -321,7 +321,7 @@ pub fn render_scene_view(
                                     flip_x: false,
                                     flip_y: false,
                                     sprite_rect: Some([first_sprite.x, first_sprite.y, first_sprite.width, first_sprite.height]),
-                                    pixels_per_unit: 100.0,
+                                    pixels_per_unit: 1.0,
                                 });
                             }
                             

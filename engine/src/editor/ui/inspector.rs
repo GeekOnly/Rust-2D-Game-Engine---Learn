@@ -761,8 +761,8 @@ pub fn render_inspector(
                                         ui.label("Pixels Per Unit");
                                         ui.horizontal(|ui| {
                                             ui.add(egui::DragValue::new(&mut camera.pixels_per_unit).speed(0.1).clamp_range(0.1..=1000.0))
-                                                .on_hover_text("How many pixels = 1 world unit\n1.0 = pixel-perfect (1:1)\n100.0 = Unity default");
-                                            if ui.small_button("1:1").on_hover_text("Pixel-perfect (1 world unit = 1 pixel)").clicked() {
+                                                .on_hover_text("How many pixels = 1 world unit\n1.0 = pixel-perfect (recommended for pixel art)\n100.0 = Unity default");
+                                            if ui.small_button("1:1").on_hover_text("Pixel-perfect (1 pixel = 1 world unit) - Recommended").clicked() {
                                                 camera.pixels_per_unit = 1.0;
                                             }
                                             if ui.small_button("Unity").on_hover_text("Unity default (100 pixels = 1 world unit)").clicked() {

@@ -233,7 +233,7 @@ pub struct Sprite {
 }
 
 fn default_pixels_per_unit() -> f32 {
-    100.0
+    1.0  // Pixel-perfect: 1 pixel = 1 world unit (better for pixel art games)
 }
 
 impl Default for Sprite {
@@ -247,7 +247,7 @@ impl Default for Sprite {
             flip_x: false,
             flip_y: false,
             sprite_rect: None,
-            pixels_per_unit: 100.0,  // Unity default
+            pixels_per_unit: 1.0,  // Pixel-perfect default
         }
     }
 }
@@ -533,11 +533,12 @@ impl Camera {
     }
     
     /// Create a Unity-style 2D camera (100 pixels = 1 world unit)
+    /// Note: This is kept for compatibility but pixel-perfect (1.0) is recommended
     pub fn unity_2d() -> Self {
         Self {
             projection: CameraProjection::Orthographic,
             orthographic_size: 5.0,
-            pixels_per_unit: 100.0,
+            pixels_per_unit: 100.0,  // Unity default (kept for compatibility)
             ..Default::default()
         }
     }
