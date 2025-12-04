@@ -14,6 +14,7 @@ pub fn render_map_inspector(
     let mut should_remove = false;
     let mut should_load = false;
     let mut should_reload = false;
+    let mut should_generate_colliders = false;
     
     if let Some(map) = world.maps.get_mut(&entity) {
         ui.horizontal(|ui| {
@@ -152,6 +153,21 @@ pub fn render_map_inspector(
             }
         });
         
+        // Generate Colliders button (for LDtk maps)
+        if map.map_type == MapType::LDtk && map.is_loaded {
+            ui.add_space(5.0);
+            ui.horizontal(|ui| {
+                if ui.button("🔲 Generate Colliders")
+                    .on_hover_text("Generate collision boxes from IntGrid layer (value = 1)")
+                    .clicked()
+                {
+                    should_generate_colliders = true;
+                }
+                
+                ui.label("(IntGrid value = 1)");
+            });
+        }
+        
         ui.add_space(5.0);
         
         // Info section
@@ -235,6 +251,36 @@ pub fn render_map_inspector(
                 }
                 
                 changed = true;
+            }
+        }
+    }
+    
+    // Handle collider generation
+    if should_generate_colliders {
+        if let Some(proj_path) = project_path {
+            // Get map file path
+            let map_data = world.maps.get(&entity).map(|m| m.file_path.clone());
+            
+            if let Some(file_path) = map_data {
+                let full_path = proj_path.join(&file_path);
+                
+                match ecs::loaders::LdtkLoader::generate_colliders_from_intgrid(
+                    &full_path,
+                    world,
+                    1  // IntGrid value 1 = solid
+                ) {
+                    Ok(collider_entities) => {
+                        log::info!("✓ Generated {} colliders for map", collider_entities.len());
+                        // Store collider entities in map for cleanup
+                        if let Some(map) = world.maps.get_mut(&entity) {
+                            map.spawned_entities.extend(collider_entities);
+                        }
+                        changed = true;
+                    }
+                    Err(e) => {
+                        log::error!("✗ Failed to generate colliders: {}", e);
+                    }
+                }
             }
         }
     }
