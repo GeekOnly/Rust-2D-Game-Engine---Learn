@@ -49,7 +49,7 @@ impl Default for SnapSettings {
         Self {
             enabled: false,
             mode: SnapMode::Absolute,
-            position_snap: 1.0,
+            position_snap: 1.0, // 1 world unit = 1 LDtk cell (8x8 pixels)
             rotation_snap: 15.0,
             scale_snap: 0.1,
             show_grid: true,
@@ -84,6 +84,15 @@ impl SnapSettings {
     
     pub fn preset_normal() -> Self {
         Self::default()
+    }
+    
+    pub fn preset_ldtk() -> Self {
+        Self {
+            position_snap: 1.0, // 1 world unit = 1 LDtk cell (8x8 pixels)
+            rotation_snap: 15.0,
+            scale_snap: 0.1,
+            ..Default::default()
+        }
     }
     
     pub fn preset_coarse() -> Self {
@@ -463,6 +472,11 @@ pub fn render_snap_settings_ui(ui: &mut egui::Ui, settings: &mut SnapSettings) -
         }
         if ui.button("Normal").clicked() {
             *settings = SnapSettings::preset_normal();
+            settings.enabled = true;
+            changed = true;
+        }
+        if ui.button("LDtk").clicked() {
+            *settings = SnapSettings::preset_ldtk();
             settings.enabled = true;
             changed = true;
         }

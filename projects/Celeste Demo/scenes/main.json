@@ -2,6 +2,26 @@
   "next_entity": 17,
   "transforms": [
     [
+      11,
+      {
+        "position": [
+          2.4718306,
+          -10.489127,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          5.0,
+          5.0,
+          1.0
+        ]
+      }
+    ],
+    [
       13,
       {
         "position": [
@@ -22,31 +42,11 @@
       }
     ],
     [
-      11,
-      {
-        "position": [
-          -1.4242333,
-          -1.1155082,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          10.0,
-          10.0,
-          1.0
-        ]
-      }
-    ],
-    [
       0,
       {
         "position": [
-          -0.80845916,
-          -0.75192565,
+          3.4264164,
+          -11.235847,
           -10.0
         ],
         "rotation": [
@@ -57,26 +57,6 @@
         "scale": [
           10.48,
           1.0421437,
-          1.0
-        ]
-      }
-    ],
-    [
-      14,
-      {
-        "position": [
-          -3.393014,
-          -4.388323,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          13.526597,
-          2.0,
           1.0
         ]
       }
@@ -100,126 +80,11 @@
           1.0
         ]
       }
-    ],
-    [
-      15,
-      {
-        "position": [
-          -5.7826962,
-          -1.0930014,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      8,
-      {
-        "position": [
-          3.030126,
-          0.63969946,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      12,
-      {
-        "position": [
-          -2.9296672,
-          1.2700765,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      9,
-      {
-        "position": [
-          12.247598,
-          -3.0,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          13.526597,
-          2.0,
-          1.0
-        ]
-      }
     ]
   ],
   "velocities": [
     [
-      14,
-      [
-        0.0,
-        0.0
-      ]
-    ],
-    [
       11,
-      [
-        0.0,
-        0.0
-      ]
-    ],
-    [
-      8,
-      [
-        0.0,
-        0.0
-      ]
-    ],
-    [
-      9,
-      [
-        0.0,
-        0.0
-      ]
-    ],
-    [
-      15,
-      [
-        0.0,
-        0.0
-      ]
-    ],
-    [
-      12,
       [
         0.0,
         0.0
@@ -227,116 +92,6 @@
     ]
   ],
   "sprites": [
-    [
-      9,
-      {
-        "texture_id": "",
-        "width": 1.0,
-        "height": 1.0,
-        "color": [
-          1.0,
-          1.0,
-          1.0,
-          1.0
-        ],
-        "billboard": false,
-        "flip_x": false,
-        "flip_y": false,
-        "sprite_rect": null,
-        "pixels_per_unit": 100.0
-      }
-    ],
-    [
-      14,
-      {
-        "texture_id": "",
-        "width": 1.0,
-        "height": 1.0,
-        "color": [
-          1.0,
-          1.0,
-          1.0,
-          1.0
-        ],
-        "billboard": false,
-        "flip_x": false,
-        "flip_y": false,
-        "sprite_rect": null,
-        "pixels_per_unit": 100.0
-      }
-    ],
-    [
-      12,
-      {
-        "texture_id": "assets/brackeys_platformer_assets/sprites/fruit.png",
-        "width": 16.0,
-        "height": 16.0,
-        "color": [
-          1.0,
-          1.0,
-          1.0,
-          1.0
-        ],
-        "billboard": false,
-        "flip_x": false,
-        "flip_y": false,
-        "sprite_rect": [
-          0,
-          48,
-          16,
-          16
-        ],
-        "pixels_per_unit": 100.0
-      }
-    ],
-    [
-      15,
-      {
-        "texture_id": "assets/brackeys_platformer_assets/sprites/slime_green.png",
-        "width": 24.0,
-        "height": 24.0,
-        "color": [
-          1.0,
-          1.0,
-          1.0,
-          1.0
-        ],
-        "billboard": false,
-        "flip_x": false,
-        "flip_y": false,
-        "sprite_rect": [
-          24,
-          48,
-          24,
-          24
-        ],
-        "pixels_per_unit": 100.0
-      }
-    ],
-    [
-      8,
-      {
-        "texture_id": "assets/brackeys_platformer_assets/sprites/coin.png",
-        "width": 16.0,
-        "height": 16.0,
-        "color": [
-          1.0,
-          1.0,
-          1.0,
-          1.0
-        ],
-        "billboard": false,
-        "flip_x": false,
-        "flip_y": false,
-        "sprite_rect": [
-          16,
-          0,
-          16,
-          16
-        ],
-        "pixels_per_unit": 100.0
-      }
-    ],
     [
       11,
       {
@@ -364,36 +119,6 @@
   ],
   "colliders": [
     [
-      8,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          1.6,
-          1.6
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      14,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          1.0,
-          1.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
       11,
       {
         "offset": [
@@ -407,121 +132,11 @@
         "width": 0.0,
         "height": 0.0
       }
-    ],
-    [
-      9,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          1.0,
-          1.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      12,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          1.6,
-          1.6
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      15,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          2.4,
-          2.4
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
     ]
   ],
   "rigidbodies": [
     [
-      9,
-      {
-        "velocity": [
-          0.0,
-          0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true
-      }
-    ],
-    [
-      14,
-      {
-        "velocity": [
-          0.0,
-          0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true
-      }
-    ],
-    [
       11,
-      {
-        "velocity": [
-          0.0,
-          0.0
-        ],
-        "gravity_scale": 1.0,
-        "mass": 1.0,
-        "is_kinematic": false,
-        "freeze_rotation": true
-      }
-    ],
-    [
-      12,
-      {
-        "velocity": [
-          0.0,
-          0.0
-        ],
-        "gravity_scale": 1.0,
-        "mass": 1.0,
-        "is_kinematic": false,
-        "freeze_rotation": true
-      }
-    ],
-    [
-      8,
-      {
-        "velocity": [
-          0.0,
-          0.0
-        ],
-        "gravity_scale": 1.0,
-        "mass": 1.0,
-        "is_kinematic": false,
-        "freeze_rotation": true
-      }
-    ],
-    [
-      15,
       {
         "velocity": [
           0.0,
@@ -540,7 +155,7 @@
       {
         "projection": "Orthographic",
         "fov": 60.0,
-        "orthographic_size": 3.0,
+        "orthographic_size": 4.0,
         "near_clip": 0.1,
         "far_clip": 1000.0,
         "viewport_rect": [
@@ -564,20 +179,8 @@
   "meshes": [],
   "tags": [
     [
-      8,
-      "Item"
-    ],
-    [
-      15,
-      "Item"
-    ],
-    [
       11,
       "Player"
-    ],
-    [
-      12,
-      "Item"
     ]
   ],
   "scripts": [
@@ -587,8 +190,32 @@
         "script_name": "player_controller",
         "enabled": true,
         "parameters": {
-          "new_vel_x": {
+          "dash_direction_x": {
             "Float": 0.0
+          },
+          "velocity_x": {
+            "Float": 0.0
+          },
+          "dash_y": {
+            "Float": 1.0
+          },
+          "dash_timer": {
+            "Float": 0.0
+          },
+          "is_dashing": {
+            "Bool": true
+          },
+          "wall_slide_speed": {
+            "Float": 1.0
+          },
+          "velocity_y": {
+            "Float": 0.0
+          },
+          "wall_direction": {
+            "Int": 0
+          },
+          "dash_x": {
+            "Float": 1.0
           },
           "is_grounded": {
             "Bool": false
@@ -596,41 +223,17 @@
           "can_dash": {
             "Bool": false
           },
-          "dash_direction_y": {
-            "Float": 0.0
-          },
-          "is_touching_wall": {
-            "Bool": false
-          },
-          "dash_x": {
-            "Float": 1.0
-          },
-          "dash_y": {
-            "Float": 1.0
-          },
-          "dash_direction_x": {
-            "Float": 0.0
-          },
-          "dash_timer": {
-            "Float": 0.0
-          },
-          "velocity_y": {
+          "new_vel_x": {
             "Float": 0.0
           },
           "dash_duration": {
             "Float": 0.2
           },
-          "velocity_x": {
+          "dash_direction_y": {
             "Float": 0.0
           },
-          "is_dashing": {
-            "Bool": true
-          },
-          "wall_direction": {
-            "Int": 0
-          },
-          "wall_slide_speed": {
-            "Float": 1.0
+          "is_touching_wall": {
+            "Bool": false
           }
         }
       }
@@ -638,11 +241,7 @@
   ],
   "active": [
     [
-      0,
-      true
-    ],
-    [
-      8,
+      11,
       true
     ],
     [
@@ -650,53 +249,21 @@
       true
     ],
     [
+      0,
+      true
+    ],
+    [
       13,
-      true
-    ],
-    [
-      11,
-      true
-    ],
-    [
-      9,
-      true
-    ],
-    [
-      15,
-      true
-    ],
-    [
-      12,
-      true
-    ],
-    [
-      14,
       true
     ]
   ],
   "layers": [
     [
-      14,
+      0,
       0
     ],
     [
-      8,
-      0
-    ],
-    [
-      9,
-      0
-    ],
-    [
-      12,
-      0
-    ],
-    [
-      15,
-      0
-    ],
-    [
-      13,
+      11,
       0
     ],
     [
@@ -704,11 +271,7 @@
       0
     ],
     [
-      0,
-      0
-    ],
-    [
-      11,
+      13,
       0
     ]
   ],
@@ -719,36 +282,16 @@
       "LDTK Layer: IntGrid_layer"
     ],
     [
-      9,
-      "Sprite (Copy)"
-    ],
-    [
       0,
       "Main Camera"
     ],
     [
-      12,
-      "Item 8 (Copy)"
+      13,
+      "GameObject"
     ],
     [
       11,
       "Player"
-    ],
-    [
-      15,
-      "Item 8 (Copy) (Copy)"
-    ],
-    [
-      14,
-      "Sprite (Copy) (Copy)"
-    ],
-    [
-      8,
-      "Item 8"
-    ],
-    [
-      13,
-      "GameObject"
     ]
   ],
   "sprite_sheets": [],

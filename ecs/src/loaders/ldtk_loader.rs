@@ -195,8 +195,8 @@ impl LdtkLoader {
 
                     // Add transform at layer offset
                     // Convert pixel coordinates to world units (pixels / pixels_per_unit)
-                    // Default pixels_per_unit = 100.0 (Unity standard)
-                    let pixels_per_unit = 100.0;
+                    // Use 8.0 to match LDtk cell size (8x8 pixels = 1x1 world units)
+                    let pixels_per_unit = 8.0;
                     // Combine level world position with layer offset
                     let total_px_x = level_world_x + px_offset_x;
                     let total_px_y = level_world_y + px_offset_y;

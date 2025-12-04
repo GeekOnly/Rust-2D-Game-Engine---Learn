@@ -50,7 +50,8 @@ fn render_tilemap_in_scene(
 
                 // Calculate world position
                 // Convert pixel coordinates to world units (pixels / pixels_per_unit)
-                let pixels_per_unit = 100.0; // Unity standard
+                // Use 8.0 to match LDtk cell size (8x8 pixels = 1x1 world units)
+                let pixels_per_unit = 8.0;
                 let tile_world_x = tilemap_x + (x as f32 * tile_width / pixels_per_unit);
                 let tile_world_y = tilemap_y - (y as f32 * tile_height / pixels_per_unit); // Flip Y
                 
