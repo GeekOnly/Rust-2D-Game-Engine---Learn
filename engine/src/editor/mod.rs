@@ -17,6 +17,7 @@ pub mod clipboard;
 pub mod snapping;
 pub mod shortcuts_handler;
 pub mod sprite_editor;
+pub mod texture_import_settings;
 
 // Re-exports for convenience
 pub use console::Console;

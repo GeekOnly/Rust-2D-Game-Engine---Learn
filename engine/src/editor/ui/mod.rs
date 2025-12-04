@@ -3,6 +3,7 @@ pub mod resource_manager;
 pub mod menu_bar;
 pub mod hierarchy;
 pub mod inspector;
+pub mod texture_inspector;
 pub mod scene_view;
 pub mod bottom_panel;
 pub mod project_settings;
