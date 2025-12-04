@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
-use egui::{ColorImage, TextureHandle};
+use egui::{ColorImage, TextureHandle, TextureOptions};
+use crate::editor::texture_import_settings::TextureImportSettings;
 
 pub struct TextureManager {
     textures: HashMap<String, TextureHandle>,
@@ -83,10 +84,25 @@ impl TextureManager {
             path.to_path_buf()
         };
 
+        // Load import settings from .meta file
+        let settings = TextureImportSettings::load(&full_path).unwrap_or_default();
+        
         // Load image
-        log::info!("Loading texture: {} from {}", texture_id, full_path.display());
+        log::info!("Loading texture: {} from {} (PPU: {}, Filter: {:?})", 
+            texture_id, full_path.display(), settings.pixels_per_unit, settings.filter_mode);
+        
         match image::open(&full_path) {
-            Ok(img) => {
+            Ok(mut img) => {
+                // Apply max size constraint
+                let (width, height) = (img.width(), img.height());
+                if width > settings.max_size || height > settings.max_size {
+                    let scale = (settings.max_size as f32 / width.max(height) as f32).min(1.0);
+                    let new_width = (width as f32 * scale) as u32;
+                    let new_height = (height as f32 * scale) as u32;
+                    log::info!("Resizing texture from {}x{} to {}x{}", width, height, new_width, new_height);
+                    img = img.resize(new_width, new_height, image::imageops::FilterType::Lanczos3);
+                }
+                
                 let rgba = img.to_rgba8();
                 let size = [rgba.width() as usize, rgba.height() as usize];
                 let pixels = rgba.as_flat_samples();
@@ -98,10 +114,13 @@ impl TextureManager {
                     pixels.as_slice(),
                 );
 
+                // Apply texture options based on import settings
+                let texture_options = Self::get_texture_options(&settings);
+                
                 let texture = ctx.load_texture(
                     texture_id,
                     color_image,
-                    egui::TextureOptions::LINEAR,
+                    texture_options,
                 );
 
                 self.textures.insert(texture_id.to_string(), texture);
@@ -116,5 +135,32 @@ impl TextureManager {
 
     pub fn get_texture(&self, texture_id: &str) -> Option<&TextureHandle> {
         self.textures.get(texture_id)
+    }
+    
+    /// Convert import settings to egui TextureOptions
+    fn get_texture_options(settings: &TextureImportSettings) -> TextureOptions {
+        use crate::editor::texture_import_settings::{FilterMode, WrapMode};
+        
+        let magnification = match settings.filter_mode {
+            FilterMode::Point => egui::TextureFilter::Nearest,
+            FilterMode::Bilinear | FilterMode::Trilinear => egui::TextureFilter::Linear,
+        };
+        
+        let minification = match settings.filter_mode {
+            FilterMode::Point => egui::TextureFilter::Nearest,
+            FilterMode::Bilinear | FilterMode::Trilinear => egui::TextureFilter::Linear,
+        };
+        
+        let wrap_mode = match settings.wrap_mode {
+            WrapMode::Clamp => egui::TextureWrapMode::ClampToEdge,
+            WrapMode::Repeat => egui::TextureWrapMode::Repeat,
+            WrapMode::Mirror => egui::TextureWrapMode::MirroredRepeat,
+        };
+        
+        TextureOptions {
+            magnification,
+            minification,
+            wrap_mode,
+        }
     }
 }
