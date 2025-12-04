@@ -68,6 +68,14 @@ impl TextureManager {
             return self.textures.get(texture_id);
         }
 
+        // Skip .sprite metadata files (they are not images)
+        if let Some(ext) = path.extension() {
+            if ext == "sprite" {
+                log::debug!("Skipping .sprite metadata file: {}", path.display());
+                return None;
+            }
+        }
+
         // Resolve full path
         let full_path = if let Some(base) = &self.base_path {
             base.join(path)
