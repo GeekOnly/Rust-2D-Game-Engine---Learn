@@ -127,8 +127,8 @@ impl SceneCamera {
             pitch: 30.0,      // Default 30° pitch
             distance: 500.0,  // Default distance
             pivot: Vec2::ZERO,
-            min_zoom: 0.1,    // Min zoom (10% - very zoomed out)
-            max_zoom: 10.0,   // Max zoom (10x - very zoomed in)
+            min_zoom: 0.01,   // Min zoom (1% - very zoomed out, see entire level)
+            max_zoom: 100.0,  // Max zoom (100x - very zoomed in, pixel-level editing)
             min_pitch: -89.0,
             max_pitch: 89.0,
             is_panning: false,
