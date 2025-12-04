@@ -432,6 +432,7 @@ pub enum ScriptParameter {
     Int(i32),
     String(String),
     Bool(bool),
+    Entity(Option<Entity>), // Unity-style GameObject reference
 }
 
 /// Camera component for view control (Unity-like)

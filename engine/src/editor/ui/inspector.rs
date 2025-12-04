@@ -915,6 +915,41 @@ pub fn render_inspector(
                                                             ScriptParameter::Bool(b) => {
                                                                 ui.checkbox(b, "");
                                                             }
+                                                            ScriptParameter::Entity(entity_opt) => {
+                                                                // Entity dropdown (Unity-style GameObject reference)
+                                                                let current_text = if let Some(e) = entity_opt {
+                                                                    if let Some(name) = world.names.get(e) {
+                                                                        format!("{} ({})", name, e)
+                                                                    } else {
+                                                                        format!("Entity {}", e)
+                                                                    }
+                                                                } else {
+                                                                    "None".to_string()
+                                                                };
+
+                                                                egui::ComboBox::from_id_source(format!("entity_param_{}", key))
+                                                                    .selected_text(current_text)
+                                                                    .show_ui(ui, |ui| {
+                                                                        // None option
+                                                                        if ui.selectable_label(entity_opt.is_none(), "None").clicked() {
+                                                                            *entity_opt = None;
+                                                                        }
+
+                                                                        // List all entities
+                                                                        for (e, _) in world.transforms.iter() {
+                                                                            let label = if let Some(name) = world.names.get(e) {
+                                                                                format!("{} ({})", name, e)
+                                                                            } else {
+                                                                                format!("Entity {}", e)
+                                                                            };
+                                                                            
+                                                                            let is_selected = entity_opt.map_or(false, |selected| selected == *e);
+                                                                            if ui.selectable_label(is_selected, label).clicked() {
+                                                                                *entity_opt = Some(*e);
+                                                                            }
+                                                                        }
+                                                                    });
+                                                            }
                                                         }
                                                         ui.end_row();
                                                     }
@@ -1251,6 +1286,10 @@ pub fn parse_lua_script_parameters(script_path: &std::path::Path) -> HashMap<Str
                     // Boolean value
                     let bool_value = value_part == "true";
                     Some(ScriptParameter::Bool(bool_value))
+                } else if value_part.trim_end_matches(',') == "nil" {
+                    // Entity reference (Unity-style GameObject)
+                    // Pattern: local playerTarget = nil
+                    Some(ScriptParameter::Entity(None))
                 } else if let Ok(float_value) = value_part.trim_end_matches(',').parse::<f32>() {
                     // Try parsing as float first
                     if value_part.contains('.') {

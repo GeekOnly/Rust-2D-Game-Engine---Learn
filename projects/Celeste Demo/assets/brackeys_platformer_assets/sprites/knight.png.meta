@@ -1,0 +1,14 @@
+{
+  "texture_type": "Sprite2D",
+  "sprite_mode": "Single",
+  "pixels_per_unit": 10.0,
+  "generate_mipmaps": false,
+  "srgb": true,
+  "alpha_is_transparency": true,
+  "read_write_enabled": false,
+  "filter_mode": "Point",
+  "wrap_mode": "Clamp",
+  "max_size": 2048,
+  "compression": "NormalQuality",
+  "platform_overrides": {}
+}

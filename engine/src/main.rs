@@ -1584,7 +1584,7 @@ fn main() -> Result<()> {
                                                                     if script_path.exists() {
                                                                         // Load script and call Awake()
                                                                         if let Ok(content) = std::fs::read_to_string(&script_path) {
-                                                                            if let Err(e) = script_engine.load_script_for_entity(*entity, &content, &editor_state.world) {
+                                                                            if let Err(e) = script_engine.load_script_for_entity(*entity, &content, &mut editor_state.world) {
                                                                                 log::error!("Failed to load script {} for entity {}: {}", script_name, entity, e);
                                                                                 editor_state.console.error(format!("Failed to load script {}: {}", script_name, e));
                                                                             } else {

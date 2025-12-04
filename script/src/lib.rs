@@ -38,7 +38,7 @@ impl ScriptEngine {
 
     /// Load a script for a specific entity (Unity-style with backward compatibility)
     /// This creates a separate Lua state for each entity to properly manage lifecycle
-    pub fn load_script_for_entity(&mut self, entity: Entity, content: &str, world: &World) -> Result<()> {
+    pub fn load_script_for_entity(&mut self, entity: Entity, content: &str, world: &mut World) -> Result<()> {
         // Create a new Lua state for this entity
         let lua = Lua::new();
         
@@ -55,22 +55,90 @@ impl ScriptEngine {
                         ecs::ScriptParameter::Int(v) => globals.set(name.as_str(), *v)?,
                         ecs::ScriptParameter::String(v) => globals.set(name.as_str(), v.clone())?,
                         ecs::ScriptParameter::Bool(v) => globals.set(name.as_str(), *v)?,
+                        ecs::ScriptParameter::Entity(Some(e)) => globals.set(name.as_str(), *e)?,
+                        ecs::ScriptParameter::Entity(None) => globals.set(name.as_str(), mlua::Nil)?,
                     }
                 }
             } // Drop globals here
         }
 
-        // Call Awake() if it exists (Unity-style)
+        // Inject basic API functions and call on_start within the same scope
         {
-            let globals = lua.globals();
-            if let Ok(awake) = globals.get::<_, Function>("Awake") {
-                awake.call::<_, ()>(())?;
-            }
-            // Backward compatibility: call on_start
-            else if let Ok(on_start) = globals.get::<_, Function>("on_start") {
-                on_start.call::<_, ()>((entity,))?;
-            }
-        } // Drop globals here
+            let world_cell = RefCell::new(&mut *world);
+            
+            lua.scope(|scope| {
+                let globals = lua.globals();
+                
+                // Entity query functions
+                let get_all_entities = scope.create_function(|lua, ()| {
+                    let entities: Vec<Entity> = world_cell.borrow().transforms.keys().copied().collect();
+                    let table = lua.create_table()?;
+                    for (i, ent) in entities.iter().enumerate() {
+                        table.set(i + 1, *ent)?;
+                    }
+                    Ok(table)
+                })?;
+                globals.set("get_all_entities", get_all_entities)?;
+                
+                let get_tags = scope.create_function(|lua, query_entity: Entity| {
+                    let table = lua.create_table()?;
+                    if let Some(tag) = world_cell.borrow().tags.get(&query_entity) {
+                        let tag_str = match tag {
+                            EntityTag::Player => "Player",
+                            EntityTag::Item => "Item",
+                        };
+                        table.set(1, tag_str)?;
+                    }
+                    Ok(table)
+                })?;
+                globals.set("get_tags", get_tags)?;
+                
+                let get_position_of = scope.create_function(|lua, query_entity: Entity| {
+                    if let Some(transform) = world_cell.borrow().transforms.get(&query_entity) {
+                        let table = lua.create_table()?;
+                        table.set("x", transform.position[0])?;
+                        table.set("y", transform.position[1])?;
+                        table.set("z", transform.position[2])?;
+                        Ok(Some(table))
+                    } else {
+                        Ok(None)
+                    }
+                })?;
+                globals.set("get_position_of", get_position_of)?;
+                
+                let get_position = scope.create_function(|lua, ()| {
+                    if let Some(transform) = world_cell.borrow().transforms.get(&entity) {
+                        let table = lua.create_table()?;
+                        table.set("x", transform.position[0])?;
+                        table.set("y", transform.position[1])?;
+                        table.set("z", transform.position[2])?;
+                        Ok(Some(table))
+                    } else {
+                        Ok(None)
+                    }
+                })?;
+                globals.set("get_position", get_position)?;
+                
+                let set_position = scope.create_function_mut(|_, (x, y, z): (f32, f32, f32)| {
+                    if let Some(transform) = world_cell.borrow_mut().transforms.get_mut(&entity) {
+                        transform.position[0] = x;
+                        transform.position[1] = y;
+                        transform.position[2] = z;
+                    }
+                    Ok(())
+                })?;
+                globals.set("set_position", set_position)?;
+                
+                // Call Awake() or on_start() within the scope while functions are still valid
+                if let Ok(awake) = globals.get::<_, Function>("Awake") {
+                    awake.call::<_, ()>(())?;
+                } else if let Ok(on_start) = globals.get::<_, Function>("on_start") {
+                    on_start.call::<_, ()>(())?;
+                }
+                
+                Ok(())
+            })?;
+        }
 
         // Store the Lua state for this entity
         self.entity_states.insert(entity, lua);
@@ -106,9 +174,88 @@ impl ScriptEngine {
                 })?;
                 globals.set("set_gravity_scale", set_gravity_scale)?;
                 
-                // Call Start() if it exists
+                // Add entity query functions for camera follow
+                let get_all_entities = scope.create_function(|lua, ()| {
+                    let entities: Vec<Entity> = world_cell.borrow().transforms.keys().copied().collect();
+                    let table = lua.create_table()?;
+                    for (i, ent) in entities.iter().enumerate() {
+                        table.set(i + 1, *ent)?;
+                    }
+                    Ok(table)
+                })?;
+                globals.set("get_all_entities", get_all_entities)?;
+                
+                let get_tags = scope.create_function(|lua, query_entity: Entity| {
+                    let table = lua.create_table()?;
+                    if let Some(tag) = world_cell.borrow().tags.get(&query_entity) {
+                        let tag_str = match tag {
+                            EntityTag::Player => "Player",
+                            EntityTag::Item => "Item",
+                        };
+                        table.set(1, tag_str)?;
+                    }
+                    Ok(table)
+                })?;
+                globals.set("get_tags", get_tags)?;
+                
+                let get_position = scope.create_function(|lua, ()| {
+                    if let Some(transform) = world_cell.borrow().transforms.get(&entity) {
+                        let table = lua.create_table()?;
+                        table.set("x", transform.position[0])?;
+                        table.set("y", transform.position[1])?;
+                        table.set("z", transform.position[2])?;
+                        Ok(Some(table))
+                    } else {
+                        Ok(None)
+                    }
+                })?;
+                globals.set("get_position", get_position)?;
+                
+                let get_position_of = scope.create_function(|lua, query_entity: Entity| {
+                    if let Some(transform) = world_cell.borrow().transforms.get(&query_entity) {
+                        let table = lua.create_table()?;
+                        table.set("x", transform.position[0])?;
+                        table.set("y", transform.position[1])?;
+                        table.set("z", transform.position[2])?;
+                        Ok(Some(table))
+                    } else {
+                        Ok(None)
+                    }
+                })?;
+                globals.set("get_position_of", get_position_of)?;
+                
+                let set_position = scope.create_function_mut(|_, (x, y, z): (f32, f32, f32)| {
+                    if let Some(transform) = world_cell.borrow_mut().transforms.get_mut(&entity) {
+                        transform.position[0] = x;
+                        transform.position[1] = y;
+                        transform.position[2] = z;
+                    }
+                    Ok(())
+                })?;
+                globals.set("set_position", set_position)?;
+                
+                let get_velocity_of = scope.create_function(|lua, query_entity: Entity| {
+                    if let Some(vel) = world_cell.borrow().velocities.get(&query_entity) {
+                        let table = lua.create_table()?;
+                        table.set("x", vel.0)?;
+                        table.set("y", vel.1)?;
+                        Ok(Some(table))
+                    } else if let Some(rb) = world_cell.borrow().rigidbodies.get(&query_entity) {
+                        let table = lua.create_table()?;
+                        table.set("x", rb.velocity.0)?;
+                        table.set("y", rb.velocity.1)?;
+                        Ok(Some(table))
+                    } else {
+                        Ok(None)
+                    }
+                })?;
+                globals.set("get_velocity_of", get_velocity_of)?;
+                
+                // Call Start() or on_start() if it exists (Unity-style with backward compatibility)
                 if let Ok(start) = globals.get::<_, Function>("Start") {
                     start.call::<_, ()>(())?;
+                } else if let Ok(on_start) = globals.get::<_, Function>("on_start") {
+                    on_start.call::<_, ()>(())?;
                 }
                 
                 Ok(())
@@ -382,14 +529,7 @@ impl ScriptEngine {
             })?;
             globals.set("get_position", get_position)?;
 
-            let set_position = scope.create_function_mut(|_, (x, y): (f32, f32)| {
-                if let Some(transform) = world_cell.borrow_mut().transforms.get_mut(&entity) {
-                    transform.position[0] = x;
-                    transform.position[1] = y;
-                }
-                Ok(())
-            })?;
-            globals.set("set_position", set_position)?;
+            // Removed 2-parameter set_position - use 3-parameter version below instead
 
             let get_rotation = scope.create_function(|_, ()| {
                 if let Some(transform) = world_cell.borrow().transforms.get(&entity) {
@@ -510,6 +650,81 @@ impl ScriptEngine {
             globals.set("destroy_entity", destroy_entity)?;
 
             // ================================================================
+            // ENTITY QUERIES (for camera follow, etc.)
+            // ================================================================
+            
+            // Get all entities
+            let get_all_entities = scope.create_function(|lua, ()| {
+                let entities: Vec<Entity> = world_cell.borrow().transforms.keys().copied().collect();
+                let table = lua.create_table()?;
+                for (i, ent) in entities.iter().enumerate() {
+                    table.set(i + 1, *ent)?;
+                }
+                Ok(table)
+            })?;
+            globals.set("get_all_entities", get_all_entities)?;
+            
+            // Get tags for an entity (returns array of tag strings)
+            let get_tags = scope.create_function(|lua, query_entity: Entity| {
+                let table = lua.create_table()?;
+                if let Some(tag) = world_cell.borrow().tags.get(&query_entity) {
+                    let tag_str = match tag {
+                        EntityTag::Player => "Player",
+                        EntityTag::Item => "Item",
+                    };
+                    table.set(1, tag_str)?;
+                }
+                Ok(table)
+            })?;
+            globals.set("get_tags", get_tags)?;
+            
+            // Get position of another entity (separate function name)
+            let get_position_of = scope.create_function(|lua, query_entity: Entity| {
+                if let Some(transform) = world_cell.borrow().transforms.get(&query_entity) {
+                    let table = lua.create_table()?;
+                    table.set("x", transform.position[0])?;
+                    table.set("y", transform.position[1])?;
+                    table.set("z", transform.position[2])?;
+                    Ok(Some(table))
+                } else {
+                    Ok(None)
+                }
+            })?;
+            // Note: get_position() already exists for current entity
+            // This is get_position_of(entity) for querying other entities
+            globals.set("get_position_of", get_position_of)?;
+            
+            // Set position with z parameter
+            let set_position_xyz = scope.create_function_mut(|_, (x, y, z): (f32, f32, f32)| {
+                if let Some(transform) = world_cell.borrow_mut().transforms.get_mut(&entity) {
+                    transform.position[0] = x;
+                    transform.position[1] = y;
+                    transform.position[2] = z;
+                }
+                Ok(())
+            })?;
+            // Override set_position to accept 3 parameters
+            globals.set("set_position", set_position_xyz)?;
+            
+            // Get velocity of another entity (separate function to avoid conflict)
+            let get_velocity_of = scope.create_function(|lua, query_entity: Entity| {
+                if let Some(vel) = world_cell.borrow().velocities.get(&query_entity) {
+                    let table = lua.create_table()?;
+                    table.set("x", vel.0)?;
+                    table.set("y", vel.1)?;
+                    Ok(Some(table))
+                } else if let Some(rb) = world_cell.borrow().rigidbodies.get(&query_entity) {
+                    let table = lua.create_table()?;
+                    table.set("x", rb.velocity.0)?;
+                    table.set("y", rb.velocity.1)?;
+                    Ok(Some(table))
+                } else {
+                    Ok(None)
+                }
+            })?;
+            globals.set("get_velocity_of", get_velocity_of)?;
+
+            // ================================================================
             // UTILITY FUNCTIONS
             // ================================================================
 
@@ -544,6 +759,8 @@ impl ScriptEngine {
                         ecs::ScriptParameter::Int(v) => globals.set(name.as_str(), *v)?,
                         ecs::ScriptParameter::String(v) => globals.set(name.as_str(), v.clone())?,
                         ecs::ScriptParameter::Bool(v) => globals.set(name.as_str(), *v)?,
+                        ecs::ScriptParameter::Entity(Some(e)) => globals.set(name.as_str(), *e)?,
+                        ecs::ScriptParameter::Entity(None) => globals.set(name.as_str(), mlua::Nil)?,
                     }
                 }
             }

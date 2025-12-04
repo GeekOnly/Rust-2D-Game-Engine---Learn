@@ -1,132 +1,12 @@
 {
-  "next_entity": 29,
+  "next_entity": 17,
   "transforms": [
     [
-      21,
+      8,
       {
         "position": [
-          1.875,
-          -13.375,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      17,
-      {
-        "position": [
-          35.875,
-          -2.375,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      27,
-      {
-        "position": [
-          2.875,
-          -21.375,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      14,
-      {
-        "position": [
-          1.375,
-          -3.375,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      25,
-      {
-        "position": [
-          12.875,
-          -20.875,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      24,
-      {
-        "position": [
-          7.375,
-          -20.875,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      28,
-      {
-        "position": [
-          10.375,
-          -21.375,
+          3.030126,
+          0.63969946,
           0.0
         ],
         "rotation": [
@@ -145,68 +25,8 @@
       12,
       {
         "position": [
-          5.875,
-          -1.375,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      26,
-      {
-        "position": [
-          34.375,
-          -20.875,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      1,
-      {
-        "position": [
-          2.7423635,
-          -9.891068,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          5.0,
-          5.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      19,
-      {
-        "position": [
-          3.875,
-          -11.875,
+          -2.9296672,
+          1.2700765,
           0.0
         ],
         "rotation": [
@@ -225,8 +45,8 @@
       11,
       {
         "position": [
-          18.375,
-          -0.375,
+          2.4718306,
+          -10.489127,
           0.0
         ],
         "rotation": [
@@ -235,8 +55,8 @@
           0.0
         ],
         "scale": [
-          1.0,
-          1.0,
+          5.0,
+          5.0,
           1.0
         ]
       }
@@ -245,108 +65,8 @@
       13,
       {
         "position": [
-          29.875,
-          -1.375,
-          0.0
-        ],
-        "rotation": [
           0.0,
           0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      15,
-      {
-        "position": [
-          4.375,
-          -2.875,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      9,
-      {
-        "position": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      18,
-      {
-        "position": [
-          23.875,
-          -9.375,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      20,
-      {
-        "position": [
-          31.375,
-          -13.375,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      22,
-      {
-        "position": [
-          16.875,
-          -20.375,
           0.0
         ],
         "rotation": [
@@ -365,8 +85,8 @@
       0,
       {
         "position": [
-          0.9680877,
-          0.0,
+          3.4264164,
+          -11.235847,
           -10.0
         ],
         "rotation": [
@@ -375,28 +95,8 @@
           0.0
         ],
         "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      23,
-      {
-        "position": [
-          20.875,
-          -15.375,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
+          10.48,
+          1.0421437,
           1.0
         ]
       }
@@ -405,8 +105,8 @@
       16,
       {
         "position": [
-          6.875,
-          -2.375,
+          0.0,
+          0.0,
           0.0
         ],
         "rotation": [
@@ -422,11 +122,11 @@
       }
     ],
     [
-      10,
+      14,
       {
         "position": [
-          -0.125,
-          0.125,
+          -3.393014,
+          -4.388323,
           0.0
         ],
         "rotation": [
@@ -435,8 +135,28 @@
           0.0
         ],
         "scale": [
-          1.0,
-          1.0,
+          13.526597,
+          2.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      9,
+      {
+        "position": [
+          12.247598,
+          -3.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          13.526597,
+          2.0,
           1.0
         ]
       }
@@ -444,7 +164,35 @@
   ],
   "velocities": [
     [
-      1,
+      11,
+      [
+        0.0,
+        0.0
+      ]
+    ],
+    [
+      9,
+      [
+        0.0,
+        0.0
+      ]
+    ],
+    [
+      14,
+      [
+        0.0,
+        0.0
+      ]
+    ],
+    [
+      12,
+      [
+        0.0,
+        0.0
+      ]
+    ],
+    [
+      8,
       [
         0.0,
         0.0
@@ -453,7 +201,7 @@
   ],
   "sprites": [
     [
-      1,
+      11,
       {
         "texture_id": "assets/brackeys_platformer_assets/sprites/knight.png",
         "width": 20.0,
@@ -475,39 +223,95 @@
         ],
         "pixels_per_unit": 100.0
       }
+    ],
+    [
+      14,
+      {
+        "texture_id": "",
+        "width": 1.0,
+        "height": 1.0,
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "billboard": false,
+        "flip_x": false,
+        "flip_y": false,
+        "sprite_rect": null,
+        "pixels_per_unit": 100.0
+      }
+    ],
+    [
+      12,
+      {
+        "texture_id": "assets/brackeys_platformer_assets/sprites/fruit.png",
+        "width": 16.0,
+        "height": 16.0,
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "billboard": false,
+        "flip_x": false,
+        "flip_y": false,
+        "sprite_rect": [
+          0,
+          48,
+          16,
+          16
+        ],
+        "pixels_per_unit": 100.0
+      }
+    ],
+    [
+      8,
+      {
+        "texture_id": "assets/brackeys_platformer_assets/sprites/coin.png",
+        "width": 16.0,
+        "height": 16.0,
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "billboard": false,
+        "flip_x": false,
+        "flip_y": false,
+        "sprite_rect": [
+          16,
+          0,
+          16,
+          16
+        ],
+        "pixels_per_unit": 100.0
+      }
+    ],
+    [
+      9,
+      {
+        "texture_id": "",
+        "width": 1.0,
+        "height": 1.0,
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "billboard": false,
+        "flip_x": false,
+        "flip_y": false,
+        "sprite_rect": null,
+        "pixels_per_unit": 100.0
+      }
     ]
   ],
   "colliders": [
-    [
-      27,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          6.0,
-          9.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      21,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          4.0,
-          1.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
     [
       11,
       {
@@ -516,105 +320,15 @@
           0.0
         ],
         "size": [
-          37.0,
-          1.0
+          0.2,
+          0.2
         ],
         "width": 0.0,
         "height": 0.0
       }
     ],
     [
-      15,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          3.0,
-          2.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      18,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          26.0,
-          3.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      16,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          2.0,
-          1.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      28,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          3.0,
-          9.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      19,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          8.0,
-          2.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      13,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          14.0,
-          1.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      1,
+      14,
       {
         "offset": [
           0.0,
@@ -629,120 +343,15 @@
       }
     ],
     [
-      17,
+      9,
       {
         "offset": [
           0.0,
           0.0
         ],
         "size": [
-          2.0,
+          1.0,
           1.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      14,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          3.0,
-          3.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      23,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          2.0,
-          1.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      24,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          3.0,
-          10.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      25,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          2.0,
-          10.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      22,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          6.0,
-          11.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      20,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          11.0,
-          5.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      26,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          5.0,
-          10.0
         ],
         "width": 0.0,
         "height": 0.0
@@ -756,8 +365,23 @@
           0.0
         ],
         "size": [
-          12.0,
-          1.0
+          1.6,
+          1.6
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      8,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          1.6,
+          1.6
         ],
         "width": 0.0,
         "height": 0.0
@@ -766,7 +390,7 @@
   ],
   "rigidbodies": [
     [
-      20,
+      14,
       {
         "velocity": [
           0.0,
@@ -779,20 +403,7 @@
       }
     ],
     [
-      13,
-      {
-        "velocity": [
-          0.0,
-          0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true
-      }
-    ],
-    [
-      1,
+      12,
       {
         "velocity": [
           0.0,
@@ -805,98 +416,20 @@
       }
     ],
     [
-      14,
-      {
-        "velocity": [
-          0.0,
-          0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true
-      }
-    ],
-    [
-      18,
-      {
-        "velocity": [
-          0.0,
-          0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true
-      }
-    ],
-    [
-      26,
-      {
-        "velocity": [
-          0.0,
-          0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true
-      }
-    ],
-    [
-      23,
-      {
-        "velocity": [
-          0.0,
-          0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true
-      }
-    ],
-    [
-      15,
-      {
-        "velocity": [
-          0.0,
-          0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true
-      }
-    ],
-    [
-      27,
-      {
-        "velocity": [
-          0.0,
-          0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true
-      }
-    ],
-    [
       11,
       {
         "velocity": [
           0.0,
           0.0
         ],
-        "gravity_scale": 0.0,
+        "gravity_scale": 1.0,
         "mass": 1.0,
-        "is_kinematic": true,
+        "is_kinematic": false,
         "freeze_rotation": true
       }
     ],
     [
-      24,
+      9,
       {
         "velocity": [
           0.0,
@@ -909,106 +442,15 @@
       }
     ],
     [
-      21,
+      8,
       {
         "velocity": [
           0.0,
           0.0
         ],
-        "gravity_scale": 0.0,
+        "gravity_scale": 1.0,
         "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true
-      }
-    ],
-    [
-      16,
-      {
-        "velocity": [
-          0.0,
-          0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true
-      }
-    ],
-    [
-      22,
-      {
-        "velocity": [
-          0.0,
-          0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true
-      }
-    ],
-    [
-      17,
-      {
-        "velocity": [
-          0.0,
-          0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true
-      }
-    ],
-    [
-      25,
-      {
-        "velocity": [
-          0.0,
-          0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true
-      }
-    ],
-    [
-      12,
-      {
-        "velocity": [
-          0.0,
-          0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true
-      }
-    ],
-    [
-      19,
-      {
-        "velocity": [
-          0.0,
-          0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true
-      }
-    ],
-    [
-      28,
-      {
-        "velocity": [
-          0.0,
-          0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
+        "is_kinematic": false,
         "freeze_rotation": true
       }
     ]
@@ -1019,7 +461,7 @@
       {
         "projection": "Orthographic",
         "fov": 60.0,
-        "orthographic_size": 3.0,
+        "orthographic_size": 4.0,
         "near_clip": 0.1,
         "far_clip": 1000.0,
         "viewport_rect": [
@@ -1043,72 +485,68 @@
   "meshes": [],
   "tags": [
     [
-      1,
+      11,
       "Player"
+    ],
+    [
+      12,
+      "Item"
+    ],
+    [
+      8,
+      "Item"
     ]
   ],
   "scripts": [
     [
-      1,
+      11,
       {
         "script_name": "player_controller",
         "enabled": true,
         "parameters": {
+          "dash_direction_x": {
+            "Float": 0.0
+          },
           "velocity_x": {
             "Float": 0.0
           },
-          "wall_direction": {
-            "Int": 0
-          },
-          "move_speed": {
-            "Float": 1.0
-          },
-          "is_touching_wall": {
-            "Bool": false
-          },
-          "wall_slide_speed": {
-            "Float": 50.0
-          },
-          "is_grounded": {
-            "Bool": false
-          },
-          "jump_force": {
+          "dash_y": {
             "Float": 1.0
           },
           "dash_timer": {
             "Float": 0.0
           },
           "is_dashing": {
-            "Bool": false
+            "Bool": true
           },
-          "gravity_scale": {
-            "Float": 1.0
-          },
-          "dash_duration": {
-            "Float": 0.2
-          },
-          "dash_y": {
+          "wall_slide_speed": {
             "Float": 1.0
           },
           "velocity_y": {
             "Float": 0.0
           },
-          "dash_speed": {
-            "Float": 500.0
-          },
-          "dash_direction_y": {
-            "Float": 0.0
-          },
-          "new_vel_x": {
-            "Float": 0.0
+          "wall_direction": {
+            "Int": 0
           },
           "dash_x": {
             "Float": 1.0
           },
-          "dash_direction_x": {
-            "Float": 0.0
+          "is_grounded": {
+            "Bool": false
           },
           "can_dash": {
+            "Bool": false
+          },
+          "new_vel_x": {
+            "Float": 0.0
+          },
+          "dash_duration": {
+            "Float": 0.2
+          },
+          "dash_direction_y": {
+            "Float": 0.0
+          },
+          "is_touching_wall": {
             "Bool": false
           }
         }
@@ -1117,51 +555,7 @@
   ],
   "active": [
     [
-      18,
-      true
-    ],
-    [
-      23,
-      true
-    ],
-    [
-      15,
-      true
-    ],
-    [
-      10,
-      true
-    ],
-    [
-      25,
-      true
-    ],
-    [
-      9,
-      true
-    ],
-    [
-      20,
-      true
-    ],
-    [
-      17,
-      true
-    ],
-    [
-      0,
-      true
-    ],
-    [
       11,
-      true
-    ],
-    [
-      24,
-      true
-    ],
-    [
-      12,
       true
     ],
     [
@@ -1169,11 +563,7 @@
       true
     ],
     [
-      21,
-      true
-    ],
-    [
-      28,
+      12,
       true
     ],
     [
@@ -1181,23 +571,15 @@
       true
     ],
     [
-      19,
+      8,
       true
     ],
     [
-      22,
+      9,
       true
     ],
     [
-      26,
-      true
-    ],
-    [
-      27,
-      true
-    ],
-    [
-      1,
+      0,
       true
     ],
     [
@@ -1207,15 +589,7 @@
   ],
   "layers": [
     [
-      1,
-      0
-    ],
-    [
-      17,
-      0
-    ],
-    [
-      15,
+      0,
       0
     ],
     [
@@ -1223,19 +597,7 @@
       0
     ],
     [
-      12,
-      0
-    ],
-    [
-      26,
-      0
-    ],
-    [
-      24,
-      0
-    ],
-    [
-      27,
+      8,
       0
     ],
     [
@@ -1243,39 +605,11 @@
       0
     ],
     [
-      14,
-      0
-    ],
-    [
       16,
       0
     ],
     [
-      21,
-      0
-    ],
-    [
-      18,
-      0
-    ],
-    [
-      25,
-      0
-    ],
-    [
-      28,
-      0
-    ],
-    [
-      0,
-      0
-    ],
-    [
-      22,
-      0
-    ],
-    [
-      19,
+      14,
       0
     ],
     [
@@ -1283,332 +617,50 @@
       0
     ],
     [
-      20,
-      0
-    ],
-    [
-      10,
-      0
-    ],
-    [
-      23,
+      12,
       0
     ]
   ],
   "parents": [],
   "names": [
     [
-      26,
-      "CompositeCollider_5x10"
+      16,
+      "LDTK Layer: IntGrid_layer"
     ],
     [
-      24,
-      "CompositeCollider_3x10"
+      8,
+      "Item 8"
+    ],
+    [
+      12,
+      "Item 8 (Copy)"
     ],
     [
       14,
-      "CompositeCollider_3x3"
-    ],
-    [
-      22,
-      "CompositeCollider_6x11"
+      "Sprite (Copy) (Copy)"
     ],
     [
       0,
       "Main Camera"
     ],
     [
-      23,
-      "CompositeCollider_2x1"
-    ],
-    [
-      19,
-      "CompositeCollider_8x2"
-    ],
-    [
-      25,
-      "CompositeCollider_2x10"
-    ],
-    [
-      11,
-      "CompositeCollider_37x1"
-    ],
-    [
       13,
-      "CompositeCollider_14x1"
-    ],
-    [
-      17,
-      "CompositeCollider_2x1"
-    ],
-    [
-      21,
-      "CompositeCollider_4x1"
-    ],
-    [
-      10,
-      "LDTK Layer: IntGrid_layer"
-    ],
-    [
-      1,
-      "Player"
-    ],
-    [
-      9,
       "GameObject"
     ],
     [
-      16,
-      "CompositeCollider_2x1"
+      9,
+      "Sprite (Copy)"
     ],
     [
-      20,
-      "CompositeCollider_11x5"
-    ],
-    [
-      15,
-      "CompositeCollider_3x2"
-    ],
-    [
-      18,
-      "CompositeCollider_26x3"
-    ],
-    [
-      28,
-      "CompositeCollider_3x9"
-    ],
-    [
-      12,
-      "CompositeCollider_12x1"
-    ],
-    [
-      27,
-      "CompositeCollider_6x9"
+      11,
+      "Player"
     ]
   ],
-  "sprite_sheets": [
-    [
-      1,
-      {
-        "texture_path": "assets/brackeys_platformer_assets/sprites/knight.png",
-        "texture_id": "knight_sheet",
-        "sheet_width": 400,
-        "sheet_height": 224,
-        "frames": [
-          {
-            "x": 0,
-            "y": 0,
-            "width": 50,
-            "height": 56,
-            "name": "idle_0"
-          },
-          {
-            "x": 50,
-            "y": 0,
-            "width": 50,
-            "height": 56,
-            "name": "idle_1"
-          },
-          {
-            "x": 100,
-            "y": 0,
-            "width": 50,
-            "height": 56,
-            "name": "idle_2"
-          },
-          {
-            "x": 150,
-            "y": 0,
-            "width": 50,
-            "height": 56,
-            "name": "idle_3"
-          },
-          {
-            "x": 0,
-            "y": 56,
-            "width": 50,
-            "height": 56,
-            "name": "run_0"
-          },
-          {
-            "x": 50,
-            "y": 56,
-            "width": 50,
-            "height": 56,
-            "name": "run_1"
-          },
-          {
-            "x": 100,
-            "y": 56,
-            "width": 50,
-            "height": 56,
-            "name": "run_2"
-          },
-          {
-            "x": 150,
-            "y": 56,
-            "width": 50,
-            "height": 56,
-            "name": "run_3"
-          },
-          {
-            "x": 200,
-            "y": 56,
-            "width": 50,
-            "height": 56,
-            "name": "run_4"
-          },
-          {
-            "x": 250,
-            "y": 56,
-            "width": 50,
-            "height": 56,
-            "name": "run_5"
-          },
-          {
-            "x": 300,
-            "y": 56,
-            "width": 50,
-            "height": 56,
-            "name": "run_6"
-          },
-          {
-            "x": 350,
-            "y": 56,
-            "width": 50,
-            "height": 56,
-            "name": "run_7"
-          },
-          {
-            "x": 0,
-            "y": 112,
-            "width": 50,
-            "height": 56,
-            "name": "roll_0"
-          },
-          {
-            "x": 50,
-            "y": 112,
-            "width": 50,
-            "height": 56,
-            "name": "roll_1"
-          },
-          {
-            "x": 100,
-            "y": 112,
-            "width": 50,
-            "height": 56,
-            "name": "roll_2"
-          },
-          {
-            "x": 150,
-            "y": 112,
-            "width": 50,
-            "height": 56,
-            "name": "roll_3"
-          },
-          {
-            "x": 200,
-            "y": 112,
-            "width": 50,
-            "height": 56,
-            "name": "hit_0"
-          },
-          {
-            "x": 250,
-            "y": 112,
-            "width": 50,
-            "height": 56,
-            "name": "hit_1"
-          },
-          {
-            "x": 300,
-            "y": 112,
-            "width": 50,
-            "height": 56,
-            "name": "hit_2"
-          },
-          {
-            "x": 0,
-            "y": 168,
-            "width": 50,
-            "height": 56,
-            "name": "death_0"
-          },
-          {
-            "x": 50,
-            "y": 168,
-            "width": 50,
-            "height": 56,
-            "name": "death_1"
-          },
-          {
-            "x": 100,
-            "y": 168,
-            "width": 50,
-            "height": 56,
-            "name": "death_2"
-          },
-          {
-            "x": 150,
-            "y": 168,
-            "width": 50,
-            "height": 56,
-            "name": "death_3"
-          },
-          {
-            "x": 200,
-            "y": 168,
-            "width": 50,
-            "height": 56,
-            "name": "death_4"
-          },
-          {
-            "x": 250,
-            "y": 168,
-            "width": 50,
-            "height": 56,
-            "name": "death_5"
-          },
-          {
-            "x": 300,
-            "y": 168,
-            "width": 50,
-            "height": 56,
-            "name": "death_6"
-          },
-          {
-            "x": 350,
-            "y": 168,
-            "width": 50,
-            "height": 56,
-            "name": "death_7"
-          }
-        ]
-      }
-    ]
-  ],
-  "animated_sprites": [
-    [
-      1,
-      {
-        "sprite_sheet_id": "knight_sheet",
-        "current_frame": 0,
-        "frame_sequence": [
-          0,
-          1,
-          2,
-          3
-        ],
-        "frame_duration": 0.15,
-        "mode": "Loop",
-        "playing": true
-      }
-    ]
-  ],
+  "sprite_sheets": [],
+  "animated_sprites": [],
   "tilemaps": [
     [
-      10,
+      16,
       {
         "name": "IntGrid_layer",
         "tileset_id": "tileset_72",
@@ -7400,7 +6452,7 @@
   ],
   "tilesets": [
     [
-      10,
+      16,
       {
         "name": "tileset_9",
         "texture_path": "C:/Users/XS Studio/AppData/Local/Programs/ldtk/extraFiles/samples/atlas/Cavernas_by_Adam_Saltsman.png",
@@ -7417,9 +6469,9 @@
   ],
   "maps": [
     [
-      9,
+      13,
       {
-        "file_path": "K:\\XSGameStudio\\2025 Project\\Game Engine\\Rust 2D Game Engine\\projects\\Celeste Demo\\levels\\Level_01.ldtk",
+        "file_path": "K:\\XSGameStudio\\2025 Project\\Game Engine\\Rust 2D Game Engine\\projects\\Celeste Demo\\tilemaps\\Level_01.ldtk",
         "map_type": "LDtk",
         "hot_reload_enabled": true,
         "display_name": "Map"
