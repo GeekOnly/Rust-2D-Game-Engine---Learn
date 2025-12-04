@@ -233,7 +233,7 @@ pub struct Sprite {
 }
 
 fn default_pixels_per_unit() -> f32 {
-    10.0  // Balanced: 10 pixels = 1 world unit (good for pixel art games)
+    100.0  // Unity standard: 100 pixels = 1 world unit (1 meter) - compatible with 2.5D/3D
 }
 
 impl Default for Sprite {
@@ -247,7 +247,7 @@ impl Default for Sprite {
             flip_x: false,
             flip_y: false,
             sprite_rect: None,
-            pixels_per_unit: 10.0,  // Balanced default
+            pixels_per_unit: 100.0,  // Unity standard
         }
     }
 }
@@ -469,7 +469,7 @@ pub struct Camera {
 }
 
 fn default_camera_pixels_per_unit() -> f32 {
-    10.0  // Balanced: 10 pixels = 1 world unit
+    100.0  // Unity standard: 100 pixels = 1 world unit (1 meter)
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -498,7 +498,7 @@ impl Default for Camera {
             depth: 0,
             clear_flags: CameraClearFlags::SolidColor,
             background_color: [0.15, 0.16, 0.18, 1.0], // Dark gray (Unity default)
-            pixels_per_unit: 10.0,  // Balanced default
+            pixels_per_unit: 100.0,  // Unity standard
         }
     }
 }
@@ -522,12 +522,12 @@ impl Camera {
         }
     }
     
-    /// Create a pixel-perfect 2D camera (10 pixels = 1 world unit)
+    /// Create a 2D camera with Unity standard scale (100 pixels = 1 world unit)
     pub fn pixel_perfect_2d() -> Self {
         Self {
             projection: CameraProjection::Orthographic,
             orthographic_size: 5.0,
-            pixels_per_unit: 10.0,
+            pixels_per_unit: 100.0,
             ..Default::default()
         }
     }
