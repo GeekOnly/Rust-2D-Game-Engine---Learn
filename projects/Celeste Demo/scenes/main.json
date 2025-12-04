@@ -2,11 +2,11 @@
   "next_entity": 17,
   "transforms": [
     [
-      15,
+      11,
       {
         "position": [
-          -2.0162158,
-          0.7196994,
+          -0.6042336,
+          -1.1155082,
           0.0
         ],
         "rotation": [
@@ -27,106 +27,6 @@
         "position": [
           3.030126,
           0.63969946,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      9,
-      {
-        "position": [
-          12.247598,
-          -3.0,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          13.526597,
-          2.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      12,
-      {
-        "position": [
-          -3.2298732,
-          0.7196994,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      11,
-      {
-        "position": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      14,
-      {
-        "position": [
-          -2.4815905,
-          -3.0,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          13.526597,
-          2.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      13,
-      {
-        "position": [
-          0.0,
-          0.0,
           0.0
         ],
         "rotation": [
@@ -180,18 +80,111 @@
           1.0
         ]
       }
+    ],
+    [
+      15,
+      {
+        "position": [
+          -2.0626953,
+          -1.0930014,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      14,
+      {
+        "position": [
+          -2.4815905,
+          -3.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          13.526597,
+          2.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      9,
+      {
+        "position": [
+          12.247598,
+          -3.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          13.526597,
+          2.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      13,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      12,
+      {
+        "position": [
+          -3.2298732,
+          0.7196994,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
     ]
   ],
   "velocities": [
     [
-      15,
-      [
-        0.0,
-        0.0
-      ]
-    ],
-    [
-      9,
+      12,
       [
         0.0,
         0.0
@@ -205,14 +198,14 @@
       ]
     ],
     [
-      12,
+      9,
       [
         0.0,
         0.0
       ]
     ],
     [
-      8,
+      15,
       [
         0.0,
         0.0
@@ -224,68 +217,16 @@
         0.0,
         0.0
       ]
+    ],
+    [
+      8,
+      [
+        0.0,
+        0.0
+      ]
     ]
   ],
   "sprites": [
-    [
-      8,
-      {
-        "texture_id": "assets/brackeys_platformer_assets/sprites/coin.png",
-        "width": 16.0,
-        "height": 16.0,
-        "color": [
-          1.0,
-          1.0,
-          1.0,
-          1.0
-        ],
-        "billboard": false,
-        "flip_x": false,
-        "flip_y": false,
-        "sprite_rect": [
-          16,
-          0,
-          16,
-          16
-        ]
-      }
-    ],
-    [
-      14,
-      {
-        "texture_id": "",
-        "width": 1.0,
-        "height": 1.0,
-        "color": [
-          1.0,
-          1.0,
-          1.0,
-          1.0
-        ],
-        "billboard": false,
-        "flip_x": false,
-        "flip_y": false,
-        "sprite_rect": null
-      }
-    ],
-    [
-      9,
-      {
-        "texture_id": "",
-        "width": 1.0,
-        "height": 1.0,
-        "color": [
-          1.0,
-          1.0,
-          1.0,
-          1.0
-        ],
-        "billboard": false,
-        "flip_x": false,
-        "flip_y": false,
-        "sprite_rect": null
-      }
-    ],
     [
       12,
       {
@@ -306,7 +247,94 @@
           48,
           16,
           16
-        ]
+        ],
+        "pixels_per_unit": 10.0
+      }
+    ],
+    [
+      9,
+      {
+        "texture_id": "",
+        "width": 1.0,
+        "height": 1.0,
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "billboard": false,
+        "flip_x": false,
+        "flip_y": false,
+        "sprite_rect": null,
+        "pixels_per_unit": 10.0
+      }
+    ],
+    [
+      14,
+      {
+        "texture_id": "",
+        "width": 1.0,
+        "height": 1.0,
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "billboard": false,
+        "flip_x": false,
+        "flip_y": false,
+        "sprite_rect": null,
+        "pixels_per_unit": 10.0
+      }
+    ],
+    [
+      15,
+      {
+        "texture_id": "assets/brackeys_platformer_assets/sprites/slime_green.png",
+        "width": 24.0,
+        "height": 24.0,
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "billboard": false,
+        "flip_x": false,
+        "flip_y": false,
+        "sprite_rect": [
+          24,
+          48,
+          24,
+          24
+        ],
+        "pixels_per_unit": 10.0
+      }
+    ],
+    [
+      8,
+      {
+        "texture_id": "assets/brackeys_platformer_assets/sprites/coin.png",
+        "width": 16.0,
+        "height": 16.0,
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "billboard": false,
+        "flip_x": false,
+        "flip_y": false,
+        "sprite_rect": [
+          16,
+          0,
+          16,
+          16
+        ],
+        "pixels_per_unit": 10.0
       }
     ],
     [
@@ -329,64 +357,12 @@
           9,
           20,
           20
-        ]
-      }
-    ],
-    [
-      15,
-      {
-        "texture_id": "assets/brackeys_platformer_assets/sprites/slime_green.png",
-        "width": 24.0,
-        "height": 24.0,
-        "color": [
-          1.0,
-          1.0,
-          1.0,
-          1.0
         ],
-        "billboard": false,
-        "flip_x": false,
-        "flip_y": true,
-        "sprite_rect": [
-          24,
-          48,
-          24,
-          24
-        ]
+        "pixels_per_unit": 10.0
       }
     ]
   ],
   "colliders": [
-    [
-      9,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          1.0,
-          1.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      12,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          1.0,
-          1.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
     [
       8,
       {
@@ -395,30 +371,15 @@
           0.0
         ],
         "size": [
-          1.0,
-          1.0
+          1.6,
+          1.6
         ],
         "width": 0.0,
         "height": 0.0
       }
     ],
     [
-      15,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          1.0,
-          1.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      11,
+      9,
       {
         "offset": [
           0.0,
@@ -442,6 +403,51 @@
         "size": [
           1.0,
           1.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      11,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          2.0,
+          2.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      15,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          2.4,
+          2.4
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      12,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          1.6,
+          1.6
         ],
         "width": 0.0,
         "height": 0.0
@@ -450,28 +456,15 @@
   ],
   "rigidbodies": [
     [
-      14,
+      8,
       {
         "velocity": [
           0.0,
           0.0
         ],
-        "gravity_scale": 0.0,
+        "gravity_scale": 1.0,
         "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true
-      }
-    ],
-    [
-      9,
-      {
-        "velocity": [
-          0.0,
-          0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
+        "is_kinematic": false,
         "freeze_rotation": true
       }
     ],
@@ -502,6 +495,19 @@
       }
     ],
     [
+      9,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true
+      }
+    ],
+    [
       11,
       {
         "velocity": [
@@ -515,15 +521,15 @@
       }
     ],
     [
-      8,
+      14,
       {
         "velocity": [
           0.0,
           0.0
         ],
-        "gravity_scale": 1.0,
+        "gravity_scale": 0.0,
         "mass": 1.0,
-        "is_kinematic": false,
+        "is_kinematic": true,
         "freeze_rotation": true
       }
     ]
@@ -558,6 +564,10 @@
   "meshes": [],
   "tags": [
     [
+      11,
+      "Player"
+    ],
+    [
       8,
       "Item"
     ],
@@ -568,10 +578,6 @@
     [
       12,
       "Item"
-    ],
-    [
-      11,
-      "Player"
     ]
   ],
   "scripts": [
@@ -581,20 +587,35 @@
         "script_name": "player_controller",
         "enabled": true,
         "parameters": {
-          "wall_slide_speed": {
-            "Float": 1.0
+          "is_dashing": {
+            "Bool": true
           },
-          "is_touching_wall": {
-            "Bool": false
-          },
-          "new_vel_x": {
+          "velocity_x": {
             "Float": 0.0
           },
-          "dash_timer": {
+          "dash_y": {
+            "Float": 1.0
+          },
+          "wall_direction": {
+            "Int": 0
+          },
+          "dash_direction_y": {
             "Float": 0.0
           },
           "dash_direction_x": {
             "Float": 0.0
+          },
+          "dash_x": {
+            "Float": 1.0
+          },
+          "wall_slide_speed": {
+            "Float": 1.0
+          },
+          "can_dash": {
+            "Bool": false
+          },
+          "dash_duration": {
+            "Float": 0.2
           },
           "is_grounded": {
             "Bool": false
@@ -602,29 +623,14 @@
           "velocity_y": {
             "Float": 0.0
           },
-          "can_dash": {
+          "new_vel_x": {
+            "Float": 0.0
+          },
+          "dash_timer": {
+            "Float": 0.0
+          },
+          "is_touching_wall": {
             "Bool": false
-          },
-          "is_dashing": {
-            "Bool": true
-          },
-          "velocity_x": {
-            "Float": 0.0
-          },
-          "dash_duration": {
-            "Float": 0.2
-          },
-          "dash_y": {
-            "Float": 1.0
-          },
-          "dash_direction_y": {
-            "Float": 0.0
-          },
-          "dash_x": {
-            "Float": 1.0
-          },
-          "wall_direction": {
-            "Int": 0
           }
         }
       }
@@ -632,31 +638,15 @@
   ],
   "active": [
     [
-      12,
-      true
-    ],
-    [
-      9,
-      true
-    ],
-    [
       14,
       true
     ],
     [
-      8,
+      12,
       true
     ],
     [
-      15,
-      true
-    ],
-    [
-      0,
-      true
-    ],
-    [
-      16,
+      11,
       true
     ],
     [
@@ -664,17 +654,33 @@
       true
     ],
     [
-      11,
+      9,
+      true
+    ],
+    [
+      0,
+      true
+    ],
+    [
+      15,
+      true
+    ],
+    [
+      16,
+      true
+    ],
+    [
+      8,
       true
     ]
   ],
   "layers": [
     [
-      8,
+      16,
       0
     ],
     [
-      11,
+      8,
       0
     ],
     [
@@ -682,15 +688,7 @@
       0
     ],
     [
-      15,
-      0
-    ],
-    [
-      16,
-      0
-    ],
-    [
-      12,
+      9,
       0
     ],
     [
@@ -698,23 +696,31 @@
       0
     ],
     [
-      9,
+      14,
       0
     ],
     [
-      14,
+      15,
+      0
+    ],
+    [
+      12,
+      0
+    ],
+    [
+      11,
       0
     ]
   ],
   "parents": [],
   "names": [
     [
-      9,
-      "Sprite (Copy)"
+      16,
+      "LDTK Layer: IntGrid_layer"
     ],
     [
-      15,
-      "Item 8 (Copy) (Copy)"
+      12,
+      "Item 8 (Copy)"
     ],
     [
       0,
@@ -725,24 +731,24 @@
       "GameObject"
     ],
     [
-      16,
-      "LDTK Layer: IntGrid_layer"
-    ],
-    [
       8,
       "Item 8"
     ],
     [
-      12,
-      "Item 8 (Copy)"
+      14,
+      "Sprite (Copy) (Copy)"
+    ],
+    [
+      15,
+      "Item 8 (Copy) (Copy)"
     ],
     [
       11,
       "Player"
     ],
     [
-      14,
-      "Sprite (Copy) (Copy)"
+      9,
+      "Sprite (Copy)"
     ]
   ],
   "sprite_sheets": [],
