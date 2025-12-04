@@ -758,6 +758,19 @@ pub fn render_inspector(
                                         ui.add(egui::DragValue::new(&mut camera.far_clip).speed(1.0).clamp_range(1.0..=10000.0));
                                         ui.end_row();
                                         
+                                        ui.label("Pixels Per Unit");
+                                        ui.horizontal(|ui| {
+                                            ui.add(egui::DragValue::new(&mut camera.pixels_per_unit).speed(0.1).clamp_range(0.1..=1000.0))
+                                                .on_hover_text("How many pixels = 1 world unit\n1.0 = pixel-perfect (1:1)\n100.0 = Unity default");
+                                            if ui.small_button("1:1").on_hover_text("Pixel-perfect (1 world unit = 1 pixel)").clicked() {
+                                                camera.pixels_per_unit = 1.0;
+                                            }
+                                            if ui.small_button("Unity").on_hover_text("Unity default (100 pixels = 1 world unit)").clicked() {
+                                                camera.pixels_per_unit = 100.0;
+                                            }
+                                        });
+                                        ui.end_row();
+                                        
                                         // Aspect Ratio Presets
                                         ui.label("Aspect Ratio");
                                         ui.horizontal(|ui| {

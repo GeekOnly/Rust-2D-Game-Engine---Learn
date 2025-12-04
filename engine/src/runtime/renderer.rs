@@ -220,9 +220,10 @@ fn render_orthographic(
     center: egui::Pos2,
     texture_manager: &mut TextureManager,
 ) {
-    // Use pixel-perfect scale: 1 world unit = 1 screen pixel
-    // This makes sprites and tiles render at their actual pixel size
-    let zoom = 1.0;
+    // Use camera's pixels_per_unit for zoom
+    // pixels_per_unit = 1.0 means 1 world unit = 1 screen pixel (pixel-perfect)
+    // pixels_per_unit = 100.0 means 100 world units = 1 screen pixel (Unity default)
+    let zoom = camera.pixels_per_unit;
 
     // Render tilemaps first (background layers)
     for (&entity, tilemap) in &world.tilemaps {

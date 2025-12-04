@@ -460,6 +460,16 @@ pub struct Camera {
     // Clear flags
     pub clear_flags: CameraClearFlags,
     pub background_color: [f32; 4], // RGBA
+    
+    // Pixels Per Unit (Unity 2D style) - how many pixels equal 1 world unit
+    // Default is 100 (like Unity). Used for pixel-perfect rendering.
+    // Set to 1.0 for 1:1 pixel mapping (1 world unit = 1 pixel)
+    #[serde(default = "default_camera_pixels_per_unit")]
+    pub pixels_per_unit: f32,
+}
+
+fn default_camera_pixels_per_unit() -> f32 {
+    1.0  // Pixel-perfect: 1 world unit = 1 pixel
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -488,6 +498,7 @@ impl Default for Camera {
             depth: 0,
             clear_flags: CameraClearFlags::SolidColor,
             background_color: [0.15, 0.16, 0.18, 1.0], // Dark gray (Unity default)
+            pixels_per_unit: 1.0,  // Pixel-perfect by default
         }
     }
 }
@@ -509,6 +520,38 @@ impl Camera {
             fov: 60.0,
             ..Default::default()
         }
+    }
+    
+    /// Create a pixel-perfect 2D camera (1 world unit = 1 pixel)
+    pub fn pixel_perfect_2d() -> Self {
+        Self {
+            projection: CameraProjection::Orthographic,
+            orthographic_size: 5.0,
+            pixels_per_unit: 1.0,
+            ..Default::default()
+        }
+    }
+    
+    /// Create a Unity-style 2D camera (100 pixels = 1 world unit)
+    pub fn unity_2d() -> Self {
+        Self {
+            projection: CameraProjection::Orthographic,
+            orthographic_size: 5.0,
+            pixels_per_unit: 100.0,
+            ..Default::default()
+        }
+    }
+    
+    /// Set pixels per unit (for pixel-perfect rendering)
+    pub fn with_pixels_per_unit(mut self, ppu: f32) -> Self {
+        self.pixels_per_unit = ppu;
+        self
+    }
+    
+    /// Calculate zoom factor for rendering
+    /// Returns how many screen pixels = 1 world unit
+    pub fn get_zoom(&self) -> f32 {
+        self.pixels_per_unit
     }
 }
 
