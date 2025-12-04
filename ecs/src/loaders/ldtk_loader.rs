@@ -27,6 +27,10 @@ impl LdtkLoader {
 
         // Load each level
         for level in levels {
+            // Get level world position
+            let level_world_x = level["worldX"].as_i64().unwrap_or(0) as f32;
+            let level_world_y = level["worldY"].as_i64().unwrap_or(0) as f32;
+            
             // Get layer instances
             let empty_vec = vec![];
             let layer_instances = level["layerInstances"]
@@ -151,8 +155,14 @@ impl LdtkLoader {
                         if let Some(tilesets) = project["defs"]["tilesets"].as_array() {
                             for tileset_def in tilesets {
                                 if tileset_def["uid"].as_i64().unwrap_or(0) == tileset_uid {
-                                    if let Some(tileset_path) = tileset_def["relPath"].as_str() {
-                                        log::info!("  Tileset: {}", tileset_path);
+                                    if let Some(tileset_rel_path) = tileset_def["relPath"].as_str() {
+                                        // Convert relative path to absolute path
+                                        // LDtk uses "../" relative to the .ldtk file
+                                        let ldtk_dir = path.as_ref().parent().unwrap_or(std::path::Path::new("."));
+                                        let tileset_path = ldtk_dir.join(tileset_rel_path);
+                                        let tileset_path_str = tileset_path.to_string_lossy().to_string();
+                                        
+                                        log::info!("  Tileset: {} -> {}", tileset_rel_path, tileset_path_str);
                                         
                                         // Get tileset dimensions
                                         let tileset_width = tileset_def["pxWid"].as_i64().unwrap_or(256) as u32;
@@ -164,7 +174,7 @@ impl LdtkLoader {
                                         // Create TileSet component
                                         let tileset = crate::TileSet::new(
                                             format!("tileset_{}", tileset_uid),
-                                            tileset_path,
+                                            tileset_path_str.clone(),
                                             format!("tileset_{}", tileset_uid),
                                             grid_size,  // tile_width (from LDtk grid)
                                             grid_size,  // tile_height (from LDtk grid)
@@ -184,9 +194,18 @@ impl LdtkLoader {
                     world.names.insert(entity, format!("LDTK Layer: {}", identifier));
 
                     // Add transform at layer offset
+                    // Convert pixel coordinates to world units (pixels / pixels_per_unit)
+                    // Default pixels_per_unit = 100.0 (Unity standard)
+                    let pixels_per_unit = 100.0;
+                    // Combine level world position with layer offset
+                    let total_px_x = level_world_x + px_offset_x;
+                    let total_px_y = level_world_y + px_offset_y;
+                    let world_x = total_px_x / pixels_per_unit;
+                    let world_y = -total_px_y / pixels_per_unit; // Flip Y (LDtk uses top-left origin, engine uses bottom-left)
+                    
                     let transform = Transform::with_position(
-                        px_offset_x,
-                        px_offset_y,
+                        world_x,
+                        world_y,
                         0.0,
                     );
                     world.transforms.insert(entity, transform);

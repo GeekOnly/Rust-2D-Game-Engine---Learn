@@ -140,9 +140,12 @@ fn render_tilemap_2d(
                 }
 
                 // Calculate world position (tile position in world space)
-                // Use pixel coordinates directly (1 pixel = 1 world unit)
-                let tile_world_x = tilemap_x + (x as f32 * tile_width);
-                let tile_world_y = tilemap_y + (y as f32 * tile_height);
+                // Tiles are positioned in world units (pixels / pixels_per_unit)
+                // Use camera's pixels_per_unit for consistency
+                let pixels_per_unit = camera.pixels_per_unit;
+                let tile_world_x = tilemap_x + (x as f32 * tile_width / pixels_per_unit);
+                // Flip Y: LDtk uses top-left origin (Y down), engine uses bottom-left (Y up)
+                let tile_world_y = tilemap_y - (y as f32 * tile_height / pixels_per_unit);
                 
                 // Convert to screen space
                 let world_x = tile_world_x - cam_pos[0];
@@ -151,8 +154,10 @@ fn render_tilemap_2d(
                 let screen_x = center.x + world_x * zoom;
                 let screen_y = center.y - world_y * zoom;
 
-                // Calculate size (1 pixel = 1 world unit)
-                let size = egui::vec2(tile_width * zoom, tile_height * zoom);
+                // Calculate size in world units then convert to screen pixels
+                let tile_world_width = tile_width / pixels_per_unit;
+                let tile_world_height = tile_height / pixels_per_unit;
+                let size = egui::vec2(tile_world_width * zoom, tile_world_height * zoom);
                 let rect = egui::Rect::from_min_size(
                     egui::pos2(screen_x, screen_y),
                     size
@@ -220,10 +225,11 @@ fn render_orthographic(
     center: egui::Pos2,
     texture_manager: &mut TextureManager,
 ) {
-    // Use camera's pixels_per_unit for zoom
-    // pixels_per_unit = 1.0 means 1 world unit = 1 screen pixel (pixel-perfect)
-    // pixels_per_unit = 100.0 means 100 world units = 1 screen pixel (Unity default)
-    let zoom = camera.pixels_per_unit;
+    // Calculate zoom based on orthographic_size and screen height
+    // orthographic_size = half of the height the camera sees (in world units)
+    // zoom = screen_height / (orthographic_size * 2)
+    let screen_height = painter.clip_rect().height();
+    let zoom = screen_height / (camera.orthographic_size * 2.0);
 
     // Render tilemaps first (background layers)
     for (&entity, tilemap) in &world.tilemaps {

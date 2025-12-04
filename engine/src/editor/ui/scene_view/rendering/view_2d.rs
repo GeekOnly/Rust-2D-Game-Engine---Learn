@@ -49,17 +49,20 @@ fn render_tilemap_in_scene(
                 }
 
                 // Calculate world position
-                // Use pixel coordinates directly (1 pixel = 1 world unit)
-                let world_x = tilemap_x + (x as f32 * tile_width);
-                let world_y = tilemap_y + (y as f32 * tile_height);
+                // Convert pixel coordinates to world units (pixels / pixels_per_unit)
+                let pixels_per_unit = 100.0; // Unity standard
+                let tile_world_x = tilemap_x + (x as f32 * tile_width / pixels_per_unit);
+                let tile_world_y = tilemap_y - (y as f32 * tile_height / pixels_per_unit); // Flip Y
                 
-                let world_pos = glam::Vec2::new(world_x, world_y);
+                let world_pos = glam::Vec2::new(tile_world_x, tile_world_y);
                 let screen_pos = scene_camera.world_to_screen(world_pos);
                 let screen_x = center.x + screen_pos.x;
                 let screen_y = center.y + screen_pos.y;
 
-                // Calculate size (1 pixel = 1 world unit)
-                let size = egui::vec2(tile_width * scene_camera.zoom, tile_height * scene_camera.zoom);
+                // Calculate size in world units
+                let tile_world_width = tile_width / pixels_per_unit;
+                let tile_world_height = tile_height / pixels_per_unit;
+                let size = egui::vec2(tile_world_width * scene_camera.zoom, tile_world_height * scene_camera.zoom);
                 let rect = egui::Rect::from_min_size(
                     egui::pos2(screen_x, screen_y),
                     size
