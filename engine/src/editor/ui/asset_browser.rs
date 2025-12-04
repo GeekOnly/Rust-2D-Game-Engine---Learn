@@ -364,6 +364,11 @@ impl AssetBrowser {
                     asset_manager.navigate_to(&asset.path);
                 } else {
                     asset_manager.selected_asset = Some(asset.path.clone());
+                    
+                    // If it's a texture, trigger SelectTexture action to show import settings
+                    if matches!(asset.asset_type, AssetType::Sprite | AssetType::SpriteSheet) {
+                        action = Some(AssetBrowserAction::SelectTexture(asset.path.clone()));
+                    }
                 }
             }
             
@@ -478,6 +483,11 @@ impl AssetBrowser {
                     asset_manager.navigate_to(&asset.path);
                 } else {
                     asset_manager.selected_asset = Some(asset.path.clone());
+                    
+                    // If it's a texture, trigger SelectTexture action to show import settings
+                    if matches!(asset.asset_type, AssetType::Sprite | AssetType::SpriteSheet) {
+                        action = Some(AssetBrowserAction::SelectTexture(asset.path.clone()));
+                    }
                 }
             }
             
@@ -584,4 +594,5 @@ impl AssetBrowser {
 #[derive(Debug, Clone)]
 pub enum AssetBrowserAction {
     OpenSpriteEditor(PathBuf),
+    SelectTexture(PathBuf),  // Select texture to show import settings
 }

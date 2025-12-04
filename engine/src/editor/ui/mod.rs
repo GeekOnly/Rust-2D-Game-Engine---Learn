@@ -285,6 +285,7 @@ impl EditorUI {
         open_sprite_editor_request: &mut Option<std::path::PathBuf>,
         sprite_editor_windows: &mut Vec<crate::editor::SpriteEditorWindow>,
         sprite_picker_state: &mut sprite_picker::SpritePickerState,
+        texture_inspector: &mut texture_inspector::TextureInspector,
         dt: f32,
     ) {
         // Handle layout change request (will be processed by caller)
@@ -347,6 +348,7 @@ impl EditorUI {
                 open_sprite_editor_request,
                 sprite_editor_windows,
                 sprite_picker_state,
+                texture_inspector,
                 dt,
             };
 

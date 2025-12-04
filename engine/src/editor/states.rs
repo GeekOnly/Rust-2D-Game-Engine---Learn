@@ -106,6 +106,7 @@ pub struct EditorState {
     pub sprite_editor_windows: Vec<super::sprite_editor::SpriteEditorWindow>,  // Open sprite editor windows
     pub open_sprite_editor_request: Option<PathBuf>,  // Request to open sprite editor for a texture
     pub sprite_picker_state: super::ui::sprite_picker::SpritePickerState,  // Sprite picker popup state
+    pub texture_inspector: super::ui::texture_inspector::TextureInspector,  // Texture import settings inspector
 }
 
 #[allow(dead_code)]
@@ -176,6 +177,7 @@ impl EditorState {
             sprite_editor_windows: Vec::new(),
             open_sprite_editor_request: None,
             sprite_picker_state: super::ui::sprite_picker::SpritePickerState::new(),
+            texture_inspector: super::ui::texture_inspector::TextureInspector::default(),
         }
     }
 

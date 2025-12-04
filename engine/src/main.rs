@@ -1044,6 +1044,7 @@ fn main() -> Result<()> {
                                         &mut editor_state.open_sprite_editor_request,
                                         &mut editor_state.sprite_editor_windows,
                                         &mut editor_state.sprite_picker_state,
+                                        &mut editor_state.texture_inspector,
                                         dt,
                                     );
                                 } else {

@@ -3,7 +3,7 @@ use ecs::{World, Entity};
 use egui;
 use std::collections::HashMap;
 use crate::editor::{Console, SceneCamera, SceneGrid, AssetManager, DragDropState};
-use super::{TransformTool, hierarchy, inspector, scene_view, asset_browser};
+use super::{TransformTool, hierarchy, inspector, scene_view, asset_browser, texture_inspector};
 
 /// Tab types for the docking system
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -47,6 +47,7 @@ pub struct TabContext<'a> {
     pub open_sprite_editor_request: &'a mut Option<std::path::PathBuf>,
     pub sprite_editor_windows: &'a mut Vec<crate::editor::SpriteEditorWindow>,
     pub sprite_picker_state: &'a mut super::sprite_picker::SpritePickerState,
+    pub texture_inspector: &'a mut texture_inspector::TextureInspector,
     pub dt: f32,
 }
 
@@ -92,16 +93,47 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                 );
             }
             EditorTab::Inspector => {
-                inspector::render_inspector(
-                    ui,
-                    self.context.world,
-                    self.context.selected_entity,
-                    self.context.entity_names,
-                    self.context.edit_script_request,
-                    self.context.project_path,
-                    self.context.open_sprite_editor_request,
-                    self.context.sprite_picker_state,
-                );
+                // Show entity inspector or texture inspector based on selection
+                if self.context.texture_inspector.selected_texture.is_some() {
+                    // Show texture import settings
+                    if let Some(action) = self.context.texture_inspector.render(ui) {
+                        match action {
+                            texture_inspector::TextureInspectorAction::Apply => {
+                                // Save settings to .meta file
+                                if let Some(ref path) = self.context.texture_inspector.selected_texture {
+                                    if let Err(e) = self.context.texture_inspector.settings.save(path) {
+                                        self.context.console.error(format!("Failed to save texture settings: {}", e));
+                                    } else {
+                                        self.context.console.info("Texture settings saved");
+                                        self.context.texture_inspector.has_changes = false;
+                                    }
+                                }
+                            }
+                            texture_inspector::TextureInspectorAction::Revert => {
+                                // Reload settings from .meta file
+                                if let Some(ref path) = self.context.texture_inspector.selected_texture {
+                                    self.context.texture_inspector.settings = 
+                                        crate::editor::texture_import_settings::TextureImportSettings::load(path)
+                                            .unwrap_or_default();
+                                    self.context.texture_inspector.has_changes = false;
+                                    self.context.console.info("Texture settings reverted");
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    // Show entity inspector
+                    inspector::render_inspector(
+                        ui,
+                        self.context.world,
+                        self.context.selected_entity,
+                        self.context.entity_names,
+                        self.context.edit_script_request,
+                        self.context.project_path,
+                        self.context.open_sprite_editor_request,
+                        self.context.sprite_picker_state,
+                    );
+                }
             }
             EditorTab::Scene => {
                 // Scene view - editor view with gizmos and grid
@@ -147,6 +179,9 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                         match action {
                             asset_browser::AssetBrowserAction::OpenSpriteEditor(path) => {
                                 *self.context.open_sprite_editor_request = Some(path);
+                            }
+                            asset_browser::AssetBrowserAction::SelectTexture(path) => {
+                                self.context.texture_inspector.set_texture(path);
                             }
                         }
                     }
