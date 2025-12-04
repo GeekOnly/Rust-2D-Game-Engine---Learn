@@ -71,7 +71,7 @@ pub fn render_hierarchy(
                     flip_x: false,
                     flip_y: false,
                     sprite_rect: None,
-                    pixels_per_unit: 1.0,
+                    pixels_per_unit: 10.0,
                 });
                 entity_names.insert(entity, "Sprite".to_string());
                 *selected_entity = Some(entity);

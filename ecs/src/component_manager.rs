@@ -108,7 +108,7 @@ impl ComponentManager for World {
                     flip_x: false,
                     flip_y: false,
                     sprite_rect: None,
-                    pixels_per_unit: 1.0,  // Pixel-perfect default
+                    pixels_per_unit: 10.0,  // Balanced default
                 });
             }
             ComponentType::SpriteSheet => {
