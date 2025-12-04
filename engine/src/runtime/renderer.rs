@@ -98,6 +98,118 @@ fn render_entities(
     }
 }
 
+/// Render a tilemap in 2D
+fn render_tilemap_2d(
+    tilemap: &ecs::Tilemap,
+    transform: &ecs::Transform,
+    painter: &egui::Painter,
+    ctx: &egui::Context,
+    camera: &Camera,
+    cam_pos: [f32; 3],
+    center: egui::Pos2,
+    zoom: f32,
+    texture_manager: &mut TextureManager,
+    world: &World,
+    entity: ecs::Entity,
+) {
+    // Get tileset component
+    let tileset = world.tilesets.get(&entity);
+    
+    // Get tile size (default to 8x8 if no tileset)
+    let (tile_width, tile_height, texture_opt) = if let Some(ts) = tileset {
+        // Normalize path separators (convert / to \ on Windows)
+        let normalized_path = ts.texture_path.replace('/', std::path::MAIN_SEPARATOR_STR);
+        let tex_path = std::path::Path::new(&normalized_path);
+        let texture = texture_manager.load_texture(ctx, &ts.texture_id, tex_path);
+        (ts.tile_width as f32, ts.tile_height as f32, texture)
+    } else {
+        (8.0, 8.0, None)
+    };
+
+    // Get tilemap position
+    let tilemap_x = transform.position[0];
+    let tilemap_y = transform.position[1];
+
+    // Render each tile
+    for y in 0..tilemap.height {
+        for x in 0..tilemap.width {
+            if let Some(tile) = tilemap.get_tile(x, y) {
+                // Skip empty tiles
+                if tile.is_empty() {
+                    continue;
+                }
+
+                // Calculate world position (tile position in world space)
+                // Use pixel coordinates directly (1 pixel = 1 world unit)
+                let tile_world_x = tilemap_x + (x as f32 * tile_width);
+                let tile_world_y = tilemap_y + (y as f32 * tile_height);
+                
+                // Convert to screen space
+                let world_x = tile_world_x - cam_pos[0];
+                let world_y = tile_world_y - cam_pos[1];
+
+                let screen_x = center.x + world_x * zoom;
+                let screen_y = center.y - world_y * zoom;
+
+                // Calculate size (1 pixel = 1 world unit)
+                let size = egui::vec2(tile_width * zoom, tile_height * zoom);
+                let rect = egui::Rect::from_min_size(
+                    egui::pos2(screen_x, screen_y),
+                    size
+                );
+
+                // Render with texture if available
+                if let (Some(texture), Some(ts)) = (texture_opt.as_ref(), tileset) {
+                    // Get tile coordinates in tileset
+                    if let Some((src_x, src_y)) = ts.get_tile_coords(tile.tile_id) {
+                        // Calculate UV coordinates
+                        let tex_size = texture.size();
+                        let tex_width = tex_size[0] as f32;
+                        let tex_height = tex_size[1] as f32;
+                        
+                        let u0 = src_x as f32 / tex_width;
+                        let v0 = src_y as f32 / tex_height;
+                        let u1 = u0 + (tile_width / tex_width);
+                        let v1 = v0 + (tile_height / tex_height);
+
+                        // Handle flip flags
+                        let (u0, u1) = if tile.flip_h { (u1, u0) } else { (u0, u1) };
+                        let (v0, v1) = if tile.flip_v { (v1, v0) } else { (v0, v1) };
+
+                        // Create textured mesh
+                        let mut mesh = egui::Mesh::with_texture(texture.id());
+                        mesh.add_rect_with_uv(
+                            rect,
+                            egui::Rect::from_min_max(
+                                egui::pos2(u0, v0),
+                                egui::pos2(u1, v1)
+                            ),
+                            egui::Color32::WHITE,
+                        );
+                        painter.add(egui::Shape::mesh(mesh));
+                    } else {
+                        // Fallback to colored rectangle
+                        let color = egui::Color32::from_rgb(
+                            ((tile.tile_id * 37) % 255) as u8,
+                            ((tile.tile_id * 73) % 255) as u8,
+                            ((tile.tile_id * 131) % 255) as u8,
+                        );
+                        painter.rect_filled(rect, 0.0, color);
+                    }
+                } else {
+                    // No texture - render as colored rectangles
+                    let color = egui::Color32::from_rgb(
+                        ((tile.tile_id * 37) % 255) as u8,
+                        ((tile.tile_id * 73) % 255) as u8,
+                        ((tile.tile_id * 131) % 255) as u8,
+                    );
+                    painter.rect_filled(rect, 0.0, color);
+                }
+            }
+        }
+    }
+}
+
 /// Render in orthographic mode (2D)
 fn render_orthographic(
     world: &World,
@@ -108,12 +220,34 @@ fn render_orthographic(
     center: egui::Pos2,
     texture_manager: &mut TextureManager,
 ) {
-    // Calculate zoom from orthographic size
-    let zoom = 100.0 / camera.orthographic_size;
+    // Use pixel-perfect scale: 1 world unit = 1 screen pixel
+    // This makes sprites and tiles render at their actual pixel size
+    let zoom = 1.0;
 
-    // Debug: Log sprite sheet and animated sprite counts
-    log::info!("World has {} sprite_sheets and {} animated_sprites", 
-        world.sprite_sheets.len(), world.animated_sprites.len());
+    // Render tilemaps first (background layers)
+    for (&entity, tilemap) in &world.tilemaps {
+        // Skip if not active or not visible
+        if !world.active.get(&entity).copied().unwrap_or(true) || !tilemap.visible {
+            continue;
+        }
+
+        // Get transform
+        if let Some(transform) = world.transforms.get(&entity) {
+            render_tilemap_2d(
+                tilemap,
+                transform,
+                painter,
+                ctx,
+                camera,
+                cam_pos,
+                center,
+                zoom,
+                texture_manager,
+                world,
+                entity,
+            );
+        }
+    }
 
     // Render all entities
     for (entity, transform) in &world.transforms {
@@ -205,7 +339,13 @@ fn render_orthographic(
         } else if let Some(sprite) = world.sprites.get(entity) {
             // Render regular sprite
             let transform_scale = glam::Vec2::new(transform.scale[0], transform.scale[1]);
-            let size = egui::vec2(transform_scale.x * zoom, transform_scale.y * zoom);
+            // Unity-style: sprite size in world units = pixels / pixels_per_unit
+            let world_width = sprite.width / sprite.pixels_per_unit;
+            let world_height = sprite.height / sprite.pixels_per_unit;
+            let size = egui::vec2(
+                world_width * transform_scale.x * zoom,
+                world_height * transform_scale.y * zoom
+            );
             let color = egui::Color32::from_rgba_unmultiplied(
                 (sprite.color[0] * 255.0) as u8,
                 (sprite.color[1] * 255.0) as u8,

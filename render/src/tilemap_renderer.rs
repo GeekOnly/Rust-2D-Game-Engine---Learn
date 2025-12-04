@@ -96,36 +96,43 @@ impl TilemapRenderer {
         let uv_h = 1.0 / (tileset.tile_count as f32 / cols as f32).ceil(); 
 
         for (i, tile) in tilemap.tiles.iter().enumerate() {
+            // Skip empty tiles
+            if tile.is_empty() {
+                continue;
+            }
+
             let x_idx = (i as u32) % tilemap.width;
             let y_idx = (i as u32) / tilemap.width;
             
             let x = x_idx as f32 * tile_width;
-            let y = y_idx as f32 * tile_height; // Y goes down in tilemaps usually, but up in wgpu? 
-            // Let's assume standard 2D coords: Y down.
-            // But wgpu clip space is Y up. We need a projection matrix.
-            // For now, let's generate local mesh data.
+            let y = y_idx as f32 * tile_height;
 
             // Calculate UVs for the tile
             if let Some((tx, ty)) = tileset.get_tile_coords(tile.tile_id) {
-                let u0 = tx as f32 * uv_w;
-                let v0 = ty as f32 * uv_h;
-                let u1 = u0 + uv_w;
-                let v1 = v0 + uv_h;
+                // Calculate UV coordinates
+                let u0 = tx as f32 / tex_width;
+                let v0 = ty as f32 / tex_width; // Assuming square texture
+                let u1 = u0 + (tile_width / tex_width);
+                let v1 = v0 + (tile_height / tex_width);
+
+                // Handle flip flags
+                let (u0, u1) = if tile.flip_h { (u1, u0) } else { (u0, u1) };
+                let (v0, v1) = if tile.flip_v { (v1, v0) } else { (v0, v1) };
 
                 // Add vertices
                 let start_idx = vertices.len() as u16;
                 
                 // Quad vertices (x, y, z, u, v)
                 // Top Left
-                vertices.push(Vertex { position: [x, -y, 0.0], tex_coords: [u0, v0] });
-                // Bottom Left
-                vertices.push(Vertex { position: [x, -y - tile_height, 0.0], tex_coords: [u0, v1] });
-                // Bottom Right
-                vertices.push(Vertex { position: [x + tile_width, -y - tile_height, 0.0], tex_coords: [u1, v1] });
+                vertices.push(Vertex { position: [x, y, 0.0], tex_coords: [u0, v0] });
                 // Top Right
-                vertices.push(Vertex { position: [x + tile_width, -y, 0.0], tex_coords: [u1, v0] });
+                vertices.push(Vertex { position: [x + tile_width, y, 0.0], tex_coords: [u1, v0] });
+                // Bottom Right
+                vertices.push(Vertex { position: [x + tile_width, y + tile_height, 0.0], tex_coords: [u1, v1] });
+                // Bottom Left
+                vertices.push(Vertex { position: [x, y + tile_height, 0.0], tex_coords: [u0, v1] });
 
-                // Add indices
+                // Add indices (two triangles)
                 indices.push(start_idx);
                 indices.push(start_idx + 1);
                 indices.push(start_idx + 2);

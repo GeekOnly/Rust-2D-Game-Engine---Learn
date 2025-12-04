@@ -1125,6 +1125,7 @@ fn main() -> Result<()> {
                                                             flip_x: false,
                                                             flip_y: false,
                                                             sprite_rect: Some([sprite_def.x, sprite_def.y, sprite_def.width, sprite_def.height]),
+                                                            pixels_per_unit: 100.0,
                                                         };
                                                         
                                                         editor_state.world.sprites.insert(entity, sprite);
@@ -1148,6 +1149,7 @@ fn main() -> Result<()> {
                                                 billboard: false,
                                                 flip_x: false,
                                                 flip_y: false,
+                                                pixels_per_unit: 100.0,
                                                 sprite_rect: None, // Use full texture
                                             };
                                             

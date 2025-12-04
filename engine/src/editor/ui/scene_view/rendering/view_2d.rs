@@ -9,6 +9,114 @@ use crate::texture_manager::TextureManager;
 use super::super::types::*;
 use super::gizmos::{render_camera_gizmo, render_camera_viewport_bounds, render_collider_gizmo, render_velocity_gizmo};
 
+/// Render a tilemap in the scene view
+fn render_tilemap_in_scene(
+    painter: &egui::Painter,
+    entity: Entity,
+    tilemap: &ecs::Tilemap,
+    transform: &ecs::Transform,
+    world: &World,
+    scene_camera: &SceneCamera,
+    center: egui::Pos2,
+    texture_manager: &mut TextureManager,
+    ctx: &egui::Context,
+) {
+    // Get tileset component
+    let tileset = world.tilesets.get(&entity);
+    
+    // Get tile size (default to 8x8 if no tileset)
+    let (tile_width, tile_height, texture_opt) = if let Some(ts) = tileset {
+        // Normalize path separators (convert / to \ on Windows)
+        let normalized_path = ts.texture_path.replace('/', std::path::MAIN_SEPARATOR_STR);
+        let tex_path = std::path::Path::new(&normalized_path);
+        let texture = texture_manager.load_texture(ctx, &ts.texture_id, tex_path);
+        (ts.tile_width as f32, ts.tile_height as f32, texture)
+    } else {
+        (8.0, 8.0, None)
+    };
+
+    // Get tilemap position
+    let tilemap_x = transform.position[0];
+    let tilemap_y = transform.position[1];
+
+    // Render each tile
+    for y in 0..tilemap.height {
+        for x in 0..tilemap.width {
+            if let Some(tile) = tilemap.get_tile(x, y) {
+                // Skip empty tiles
+                if tile.is_empty() {
+                    continue;
+                }
+
+                // Calculate world position
+                // Use pixel coordinates directly (1 pixel = 1 world unit)
+                let world_x = tilemap_x + (x as f32 * tile_width);
+                let world_y = tilemap_y + (y as f32 * tile_height);
+                
+                let world_pos = glam::Vec2::new(world_x, world_y);
+                let screen_pos = scene_camera.world_to_screen(world_pos);
+                let screen_x = center.x + screen_pos.x;
+                let screen_y = center.y + screen_pos.y;
+
+                // Calculate size (1 pixel = 1 world unit)
+                let size = egui::vec2(tile_width * scene_camera.zoom, tile_height * scene_camera.zoom);
+                let rect = egui::Rect::from_min_size(
+                    egui::pos2(screen_x, screen_y),
+                    size
+                );
+
+                // Render with texture if available
+                if let (Some(texture), Some(ts)) = (texture_opt.as_ref(), tileset) {
+                    // Get tile coordinates in tileset
+                    if let Some((src_x, src_y)) = ts.get_tile_coords(tile.tile_id) {
+                        // Calculate UV coordinates
+                        let tex_size = texture.size();
+                        let tex_width = tex_size[0] as f32;
+                        let tex_height = tex_size[1] as f32;
+                        
+                        let u0 = src_x as f32 / tex_width;
+                        let v0 = src_y as f32 / tex_height;
+                        let u1 = u0 + (tile_width / tex_width);
+                        let v1 = v0 + (tile_height / tex_height);
+
+                        // Handle flip flags
+                        let (u0, u1) = if tile.flip_h { (u1, u0) } else { (u0, u1) };
+                        let (v0, v1) = if tile.flip_v { (v1, v0) } else { (v0, v1) };
+
+                        // Create textured mesh
+                        let mut mesh = egui::Mesh::with_texture(texture.id());
+                        mesh.add_rect_with_uv(
+                            rect,
+                            egui::Rect::from_min_max(
+                                egui::pos2(u0, v0),
+                                egui::pos2(u1, v1)
+                            ),
+                            egui::Color32::WHITE,
+                        );
+                        painter.add(egui::Shape::mesh(mesh));
+                    } else {
+                        // Fallback to colored rectangle
+                        let color = egui::Color32::from_rgb(
+                            ((tile.tile_id * 37) % 255) as u8,
+                            ((tile.tile_id * 73) % 255) as u8,
+                            ((tile.tile_id * 131) % 255) as u8,
+                        );
+                        painter.rect_filled(rect, 0.0, color);
+                    }
+                } else {
+                    // No texture - render as colored rectangles
+                    let color = egui::Color32::from_rgb(
+                        ((tile.tile_id * 37) % 255) as u8,
+                        ((tile.tile_id * 73) % 255) as u8,
+                        ((tile.tile_id * 131) % 255) as u8,
+                    );
+                    painter.rect_filled(rect, 0.0, color);
+                }
+            }
+        }
+    }
+}
+
 /// Render the scene in 2D mode
 pub fn render_scene_2d(
     painter: &egui::Painter,
@@ -30,7 +138,26 @@ pub fn render_scene_2d(
     let mut entities: Vec<Entity> = world.transforms.keys().cloned().collect();
     entities.sort();
 
-    // First, render camera viewport bounds (behind everything)
+    // First, render tilemaps (background)
+    for entity in &entities {
+        if let Some(tilemap) = world.tilemaps.get(entity) {
+            if let Some(transform) = world.transforms.get(entity) {
+                render_tilemap_in_scene(
+                    painter,
+                    *entity,
+                    tilemap,
+                    transform,
+                    world,
+                    scene_camera,
+                    center,
+                    texture_manager,
+                    ctx,
+                );
+            }
+        }
+    }
+
+    // Then render camera viewport bounds
     for entity in &entities {
         if world.cameras.contains_key(entity) {
             render_camera_viewport_bounds(
@@ -245,9 +372,12 @@ fn render_entity_2d(
     } else if let Some(sprite) = world.sprites.get(&entity) {
         // Render regular sprite
         let scale = glam::Vec2::new(transform.scale[0], transform.scale[1]);
+        // Unity-style: sprite size in world units = pixels / pixels_per_unit
+        let world_width = sprite.width / sprite.pixels_per_unit;
+        let world_height = sprite.height / sprite.pixels_per_unit;
         let size = egui::vec2(
-            scale.x * scene_camera.zoom,
-            scale.y * scene_camera.zoom
+            world_width * scale.x * scene_camera.zoom,
+            world_height * scale.y * scene_camera.zoom
         );
         let color = egui::Color32::from_rgba_unmultiplied(
             (sprite.color[0] * 255.0) as u8,

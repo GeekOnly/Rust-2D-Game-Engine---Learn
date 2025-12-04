@@ -226,19 +226,28 @@ pub struct Sprite {
     /// If None, uses full texture. If Some, uses sub-region of texture.
     #[serde(default)]
     pub sprite_rect: Option<[u32; 4]>,
+    /// Pixels Per Unit (Unity-style) - how many pixels equal 1 world unit
+    /// Default is 100 (like Unity). Lower values = larger sprites in world.
+    #[serde(default = "default_pixels_per_unit")]
+    pub pixels_per_unit: f32,
+}
+
+fn default_pixels_per_unit() -> f32 {
+    100.0
 }
 
 impl Default for Sprite {
     fn default() -> Self {
         Self {
             texture_id: String::new(),
-            width: 1.0,  // Default 1x1 unit size
+            width: 1.0,  // Default 1x1 pixel
             height: 1.0,
             color: [1.0, 1.0, 1.0, 1.0],
             billboard: false,
             flip_x: false,
             flip_y: false,
             sprite_rect: None,
+            pixels_per_unit: 100.0,  // Unity default
         }
     }
 }

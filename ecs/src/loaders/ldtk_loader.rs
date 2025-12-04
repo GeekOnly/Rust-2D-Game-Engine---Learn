@@ -35,9 +35,6 @@ impl LdtkLoader {
 
             // Process each layer
             for layer in layer_instances {
-                // Create a basic tilemap entity for each layer
-                let entity = world.spawn();
-
                 // Get layer properties
                 let identifier = layer["__identifier"]
                     .as_str()
@@ -63,26 +60,141 @@ impl LdtkLoader {
                     .as_i64()
                     .unwrap_or(0) as f32;
 
-                // Create tilemap
-                let tilemap = Tilemap::new(
-                    identifier,
-                    format!("tileset_{}", layer_def_uid),
-                    width,
-                    height,
-                );
+                // Check if layer has tiles (either gridTiles or autoLayerTiles)
+                let has_grid_tiles = layer["gridTiles"]
+                    .as_array()
+                    .map(|arr| !arr.is_empty())
+                    .unwrap_or(false);
+                
+                let has_auto_tiles = layer["autoLayerTiles"]
+                    .as_array()
+                    .map(|arr| !arr.is_empty())
+                    .unwrap_or(false);
 
-                world.tilemaps.insert(entity, tilemap);
-                world.names.insert(entity, format!("LDTK Layer: {}", identifier));
+                // Only create entity if layer has tiles
+                if has_grid_tiles || has_auto_tiles {
+                    let entity = world.spawn();
 
-                // Add transform at layer offset
-                let transform = Transform::with_position(
-                    px_offset_x,
-                    px_offset_y,
-                    0.0,
-                );
-                world.transforms.insert(entity, transform);
+                    // Create tilemap
+                    let mut tilemap = Tilemap::new(
+                        identifier,
+                        format!("tileset_{}", layer_def_uid),
+                        width,
+                        height,
+                    );
 
-                entities.push(entity);
+                    // Get grid size for tile positioning
+                    let grid_size = layer["__gridSize"]
+                        .as_i64()
+                        .unwrap_or(8) as u32;
+
+                    // Parse tiles (prefer autoLayerTiles, fallback to gridTiles)
+                    let tiles_array = if has_auto_tiles {
+                        layer["autoLayerTiles"].as_array()
+                    } else {
+                        layer["gridTiles"].as_array()
+                    };
+
+                    if let Some(tiles) = tiles_array {
+                        let mut parsed_count = 0;
+                        
+                        for tile_data in tiles {
+                            // Get tile position in pixels
+                            let px = tile_data["px"].as_array();
+                            
+                            // Get tile ID
+                            let tile_id = tile_data["t"]
+                                .as_i64()
+                                .unwrap_or(0) as u32;
+                            
+                            // Get flip flags (f: 0=none, 1=flipX, 2=flipY, 3=both)
+                            let flip_flags = tile_data["f"]
+                                .as_i64()
+                                .unwrap_or(0);
+                            
+                            if let Some(px_array) = px {
+                                if px_array.len() >= 2 {
+                                    let tile_x = px_array[0].as_i64().unwrap_or(0) as u32;
+                                    let tile_y = px_array[1].as_i64().unwrap_or(0) as u32;
+                                    
+                                    // Convert pixel position to tile coordinates
+                                    let grid_x = tile_x / grid_size;
+                                    let grid_y = tile_y / grid_size;
+                                    
+                                    // Create tile
+                                    let tile = crate::Tile {
+                                        tile_id,
+                                        flip_h: (flip_flags & 1) != 0,
+                                        flip_v: (flip_flags & 2) != 0,
+                                        flip_d: false,
+                                    };
+                                    
+                                    // Set tile in tilemap
+                                    if tilemap.set_tile(grid_x, grid_y, tile) {
+                                        parsed_count += 1;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        log::info!("Layer '{}': parsed {}/{} tiles ({}x{} grid, {}px tiles)", 
+                            identifier, parsed_count, tiles.len(), width, height, grid_size);
+                    }
+
+                    // Get tileset info and create TileSet component
+                    let tileset_uid = layer["__tilesetDefUid"]
+                        .as_i64()
+                        .unwrap_or(0);
+                    
+                    if tileset_uid > 0 {
+                        // Find tileset definition in project
+                        if let Some(tilesets) = project["defs"]["tilesets"].as_array() {
+                            for tileset_def in tilesets {
+                                if tileset_def["uid"].as_i64().unwrap_or(0) == tileset_uid {
+                                    if let Some(tileset_path) = tileset_def["relPath"].as_str() {
+                                        log::info!("  Tileset: {}", tileset_path);
+                                        
+                                        // Get tileset dimensions
+                                        let tileset_width = tileset_def["pxWid"].as_i64().unwrap_or(256) as u32;
+                                        let tileset_height = tileset_def["pxHei"].as_i64().unwrap_or(256) as u32;
+                                        let columns = tileset_width / grid_size;
+                                        let rows = tileset_height / grid_size;
+                                        let tile_count = columns * rows;
+                                        
+                                        // Create TileSet component
+                                        let tileset = crate::TileSet::new(
+                                            format!("tileset_{}", tileset_uid),
+                                            tileset_path,
+                                            format!("tileset_{}", tileset_uid),
+                                            grid_size,  // tile_width (from LDtk grid)
+                                            grid_size,  // tile_height (from LDtk grid)
+                                            columns,
+                                            tile_count,
+                                        );
+                                        
+                                        world.tilesets.insert(entity, tileset);
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    world.tilemaps.insert(entity, tilemap);
+                    world.names.insert(entity, format!("LDTK Layer: {}", identifier));
+
+                    // Add transform at layer offset
+                    let transform = Transform::with_position(
+                        px_offset_x,
+                        px_offset_y,
+                        0.0,
+                    );
+                    world.transforms.insert(entity, transform);
+
+                    entities.push(entity);
+                } else {
+                    log::debug!("Skipping empty layer: {}", identifier);
+                }
             }
         }
 

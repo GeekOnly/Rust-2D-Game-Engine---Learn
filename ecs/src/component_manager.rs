@@ -108,6 +108,7 @@ impl ComponentManager for World {
                     flip_x: false,
                     flip_y: false,
                     sprite_rect: None,
+                    pixels_per_unit: 100.0,  // Unity default
                 });
             }
             ComponentType::SpriteSheet => {

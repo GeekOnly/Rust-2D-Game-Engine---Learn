@@ -118,17 +118,17 @@ pub struct SceneCamera {
 
 impl SceneCamera {
     pub fn new() -> Self {
-        let initial_zoom = 50.0;
+        let initial_zoom = 1.0;  // Pixel-perfect: 1 world unit = 1 screen pixel
         let settings = CameraSettings::default();
         Self {
             position: Vec2::ZERO,
-            zoom: initial_zoom,       // Zoom to convert world units to screen pixels (50 pixels per unit)
+            zoom: initial_zoom,       // Pixel-perfect zoom
             rotation: 45.0,   // Default 45° angle
             pitch: 30.0,      // Default 30° pitch
             distance: 500.0,  // Default distance
             pivot: Vec2::ZERO,
-            min_zoom: 5.0,    // Min zoom adjusted for world units
-            max_zoom: 200.0,  // Max zoom adjusted for world units
+            min_zoom: 0.1,    // Min zoom (10% - very zoomed out)
+            max_zoom: 10.0,   // Max zoom (10x - very zoomed in)
             min_pitch: -89.0,
             max_pitch: 89.0,
             is_panning: false,
@@ -494,13 +494,13 @@ impl SceneCamera {
     /// Reset camera to default
     pub fn reset(&mut self) {
         self.position = Vec2::ZERO;
-        self.zoom = 50.0;
+        self.zoom = 1.0;  // Pixel-perfect
         self.rotation = 45.0;
         self.pitch = 30.0;
         self.distance = 500.0;
         self.pivot = Vec2::ZERO;
         self.target_position = Vec2::ZERO;
-        self.target_zoom = 50.0;
+        self.target_zoom = 1.0;  // Pixel-perfect
         self.target_rotation = 45.0;
         self.target_pitch = 30.0;
         self.velocity = CameraVelocity::default();

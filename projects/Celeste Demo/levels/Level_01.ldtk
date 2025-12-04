@@ -494,7 +494,7 @@
 			"__cHei": 32,
 			"identifier": "Cavernas_by_Adam_Saltsman",
 			"uid": 9,
-			"relPath": "C:/Users/XS Studio/AppData/Local/Programs/ldtk/extraFiles/samples/atlas/Cavernas_by_Adam_Saltsman.png",
+			"relPath": "../atlas/Cavernas_by_Adam_Saltsman.png",
 			"embedAtlas": null,
 			"pxWid": 96,
 			"pxHei": 256,
