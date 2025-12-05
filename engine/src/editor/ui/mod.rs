@@ -16,6 +16,7 @@ pub mod map_view;
 pub mod maps_panel;
 pub mod layer_properties_panel;
 pub mod layer_ordering_panel;
+pub mod performance_panel;
 
 // Re-exports
 use ecs::{World, Entity, EntityTag};
@@ -104,6 +105,8 @@ impl EditorUI {
 
         // Hierarchy Panel (Left)
         egui::SidePanel::left("hierarchy").min_width(200.0).show(ctx, |ui| {
+            // Note: This is the old non-dock layout. Map filtering is not available here
+            // as MapManager is not passed to this function. Use the dock layout for full features.
             hierarchy::render_hierarchy(
                 ui,
                 world,
@@ -302,6 +305,7 @@ impl EditorUI {
         map_manager: &mut crate::editor::map_manager::MapManager,
         layer_properties_panel: &mut layer_properties_panel::LayerPropertiesPanel,
         layer_ordering_panel: &mut layer_ordering_panel::LayerOrderingPanel,
+        performance_panel: &mut performance_panel::PerformancePanel,
         dt: f32,
     ) {
         // Handle layout change request (will be processed by caller)
@@ -372,6 +376,7 @@ impl EditorUI {
                 map_manager,
                 layer_properties_panel,
                 layer_ordering_panel,
+                performance_panel,
                 dt,
             };
 

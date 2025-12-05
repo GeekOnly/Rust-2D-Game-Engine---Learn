@@ -17,6 +17,7 @@ pub enum EditorTab {
     MapView,  // LDtk map management panel
     LayerProperties,  // Layer properties panel for tilemap layers
     LayerOrdering,  // Layer ordering panel for reordering tilemap layers
+    Performance,  // Performance monitoring panel for tilemap management
     SpriteEditor(std::path::PathBuf),  // Sprite editor for a specific texture file
 }
 
@@ -57,6 +58,7 @@ pub struct TabContext<'a> {
     pub map_manager: &'a mut crate::editor::map_manager::MapManager,
     pub layer_properties_panel: &'a mut super::layer_properties_panel::LayerPropertiesPanel,
     pub layer_ordering_panel: &'a mut super::layer_ordering_panel::LayerOrderingPanel,
+    pub performance_panel: &'a mut super::performance_panel::PerformancePanel,
     pub dt: f32,
 }
 
@@ -79,6 +81,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
             EditorTab::MapView => "🗺️ Maps".into(),
             EditorTab::LayerProperties => "🎨 Layer Properties".into(),
             EditorTab::LayerOrdering => "📑 Layer Ordering".into(),
+            EditorTab::Performance => "📊 Performance".into(),
             EditorTab::SpriteEditor(path) => {
                 let file_name = path.file_stem()
                     .and_then(|s| s.to_str())
@@ -201,6 +204,14 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
             EditorTab::LayerOrdering => {
                 // Render layer ordering panel
                 self.context.layer_ordering_panel.render_content(
+                    ui,
+                    self.context.world,
+                    self.context.map_manager,
+                );
+            }
+            EditorTab::Performance => {
+                // Render performance panel
+                self.context.performance_panel.render_content(
                     ui,
                     self.context.world,
                     self.context.map_manager,

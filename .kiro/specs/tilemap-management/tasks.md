@@ -469,8 +469,17 @@
     - **Validates: Requirements 6.5**
     - Test that corrupted files preserve last valid state
 
-- [ ] 15. Implement hierarchy filtering
-  - [ ] 15.1 Update hierarchy rendering to filter map entities
+- [x] 15. Implement hierarchy filtering
+
+
+
+
+
+
+  - [x] 15.1 Update hierarchy rendering to filter map entities
+
+
+
     - Use MapManager::is_map_entity to filter
     - Show Grid and layers
     - Hide collider entities
@@ -481,8 +490,16 @@
     - **Validates: Requirements 7.4**
     - Test that hierarchy shows Grid/layers but hides colliders
 
-- [ ] 16. Implement performance monitoring
-  - [ ] 16.1 Create PerformancePanel struct
+- [x] 16. Implement performance monitoring
+
+
+
+
+
+
+  - [x] 16.1 Create PerformancePanel struct
+
+
     - Track draw calls, triangles, vertices
     - Monitor memory usage
     - Display real-time metrics
@@ -498,7 +515,10 @@
     - **Validates: Requirements 8.3**
     - Test that memory usage increases with more loaded maps
 
-  - [ ] 16.4 Implement warning thresholds
+
+
+  - [x] 16.4 Implement warning thresholds
+
     - Define thresholds for draw calls, memory, etc.
     - Display visual indicators when exceeded
     - _Requirements: 8.5_

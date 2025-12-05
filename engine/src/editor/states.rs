@@ -113,6 +113,7 @@ pub struct EditorState {
     pub map_manager: super::map_manager::MapManager,  // Map manager for LDtk files
     pub layer_properties_panel: super::ui::layer_properties_panel::LayerPropertiesPanel,  // Layer properties panel for tilemap layers
     pub layer_ordering_panel: super::ui::layer_ordering_panel::LayerOrderingPanel,  // Layer ordering panel for reordering tilemap layers
+    pub performance_panel: super::ui::performance_panel::PerformancePanel,  // Performance monitoring panel for tilemap management
 }
 
 #[allow(dead_code)]
@@ -190,6 +191,7 @@ impl EditorState {
             map_manager: super::map_manager::MapManager::new(),
             layer_properties_panel: super::ui::layer_properties_panel::LayerPropertiesPanel::new(),
             layer_ordering_panel: super::ui::layer_ordering_panel::LayerOrderingPanel::new(),
+            performance_panel: super::ui::performance_panel::PerformancePanel::new(),
         }
     }
 
