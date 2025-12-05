@@ -2,7 +2,7 @@ use egui::{self, Color32, RichText};
 use ecs::World;
 use crate::editor::map_manager::MapManager;
 
-/// Render the Maps panel
+/// Render the Maps panel as a standalone window
 pub fn render_maps_panel(
     ctx: &egui::Context,
     map_manager: &mut MapManager,
@@ -14,11 +14,12 @@ pub fn render_maps_panel(
         .default_width(300.0)
         .resizable(true)
         .show(ctx, |ui| {
-            render_maps_content(ui, map_manager, world);
+            render_maps_panel_content(ui, map_manager, world);
         });
 }
 
-fn render_maps_content(
+/// Render the Maps panel content (for use in docking system)
+pub fn render_maps_panel_content(
     ui: &mut egui::Ui,
     map_manager: &mut MapManager,
     world: &mut World,
@@ -57,11 +58,34 @@ fn render_ldtk_files_section(
     world: &mut World,
 ) {
     ui.collapsing(RichText::new("📁 LDtk Files").strong(), |ui| {
+        // Add Map button with file dialog
+        if ui.button("➕ Add Map").on_hover_text("Browse for .ldtk file").clicked() {
+            // Open file dialog
+            if let Some(path) = rfd::FileDialog::new()
+                .add_filter("LDtk Files", &["ldtk"])
+                .pick_file()
+            {
+                // Add to available files if not already there
+                if !map_manager.available_files.contains(&path) {
+                    map_manager.available_files.push(path.clone());
+                }
+                
+                // Load the map
+                if let Err(e) = map_manager.load_map(&path, world) {
+                    log::error!("Failed to load map: {}", e);
+                }
+            }
+        }
+        
+        ui.separator();
+        
         if map_manager.available_files.is_empty() {
             ui.label(RichText::new("No LDtk files found").color(Color32::GRAY));
+            ui.label(RichText::new("Click 'Add Map' to browse for files").color(Color32::GRAY).italics());
             return;
         }
         
+        // Display available files
         for file_path in map_manager.available_files.clone() {
             ui.horizontal(|ui| {
                 // File icon
@@ -76,9 +100,9 @@ fn render_ldtk_files_section(
                 let is_loaded = map_manager.loaded_maps.contains_key(&file_path);
                 let is_selected = map_manager.selected_map.as_ref() == Some(&file_path);
                 
-                // Selectable file
+                // Selectable file with load status indicator
                 let text = if is_loaded {
-                    RichText::new(file_name).color(Color32::from_rgb(100, 200, 100))
+                    RichText::new(format!("{} ✓", file_name)).color(Color32::from_rgb(100, 200, 100))
                 } else {
                     RichText::new(file_name)
                 };
@@ -94,11 +118,24 @@ fn render_ldtk_files_section(
                     }
                 }
                 
-                // Reload button (only if loaded)
+                // Action buttons
                 if is_loaded {
+                    // Reload button
                     if ui.small_button("↻").on_hover_text("Reload").clicked() {
                         if let Err(e) = map_manager.reload_map(&file_path, world) {
                             log::error!("Failed to reload map: {}", e);
+                        }
+                    }
+                    
+                    // Unload button
+                    if ui.small_button("✖").on_hover_text("Unload").clicked() {
+                        map_manager.unload_map(&file_path, world);
+                    }
+                } else {
+                    // Load button for unloaded files
+                    if ui.small_button("📂").on_hover_text("Load").clicked() {
+                        if let Err(e) = map_manager.load_map(&file_path, world) {
+                            log::error!("Failed to load map: {}", e);
                         }
                     }
                 }

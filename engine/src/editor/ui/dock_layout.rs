@@ -52,7 +52,7 @@ pub struct TabContext<'a> {
     pub texture_inspector: &'a mut texture_inspector::TextureInspector,
     pub show_debug_lines: &'a mut bool,
     pub debug_draw: &'a mut crate::editor::debug_draw::DebugDrawManager,
-    pub map_manager: &'a crate::editor::map_manager::MapManager,
+    pub map_manager: &'a mut crate::editor::map_manager::MapManager,
     pub dt: f32,
 }
 
@@ -177,13 +177,11 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                 self.context.console.render(ui);
             }
             EditorTab::MapView => {
-                // Render map view panel
-                super::map_view::render_map_view(
+                // Render maps panel with MapManager
+                super::maps_panel::render_maps_panel_content(
                     ui,
+                    self.context.map_manager,
                     self.context.world,
-                    self.context.project_path,
-                    self.context.map_view_state,
-                    self.context.console,
                 );
             }
             EditorTab::Project => {

@@ -1048,7 +1048,7 @@ fn main() -> Result<()> {
                                         &mut editor_state.map_view_state,
                                         &mut editor_state.show_debug_lines,
                                         &mut editor_state.debug_draw,
-                                        &editor_state.map_manager,
+                                        &mut editor_state.map_manager,
                                         dt,
                                     );
                                 } else {
