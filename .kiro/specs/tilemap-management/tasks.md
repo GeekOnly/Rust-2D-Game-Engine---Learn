@@ -75,8 +75,13 @@
     - **Validates: Requirements 2.2, 7.3**
     - Test that all colliders have Grid Entity as parent
 
-- [ ] 4. Implement composite collider optimization
-  - [ ] 4.1 Implement greedy meshing algorithm
+- [x] 4. Implement composite collider optimization
+
+
+
+  - [x] 4.1 Implement greedy meshing algorithm
+
+
     - Implement find_rectangles function
     - Implement find_largest_rectangle function
     - Optimize for minimal collider count
@@ -87,7 +92,8 @@
     - **Validates: Requirements 2.4**
     - Test that N adjacent tiles produce fewer than N colliders
 
-  - [ ] 4.3 Implement generate_composite_colliders_from_intgrid
+  - [x] 4.3 Implement generate_composite_colliders_from_intgrid
+
     - Parse IntGrid CSV data
     - Apply greedy meshing algorithm
     - Create collider entities with correct sizes
@@ -98,16 +104,30 @@
     - **Validates: Requirements 9.4**
     - Test that only tiles with specified collision value get colliders
 
-- [ ] 5. Checkpoint - Ensure all tests pass
+- [x] 5. Checkpoint - Ensure all tests pass
+
+
+
+
+
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 6. Implement MapManager core functionality
-  - [ ] 6.1 Implement MapManager structure and basic methods
+- [x] 6. Implement MapManager core functionality
+
+
+
+
+
+
+
+  - [x] 6.1 Implement MapManager structure and basic methods
+
     - Create MapManager struct with HashMap for loaded maps
     - Implement new(), scan_ldtk_files(), and file scanning
     - _Requirements: 1.1, 1.5_
 
-  - [ ] 6.2 Implement load_map method
+  - [x] 6.2 Implement load_map method
+
     - Call LdtkLoader::load_project_with_grid_and_colliders
     - Store LoadedMap with Grid, layers, and colliders
     - Track file metadata (path, last_modified)
@@ -118,7 +138,11 @@
     - **Validates: Requirements 1.5**
     - Test that loading N maps results in N entries in loaded_maps
 
-  - [ ] 6.4 Implement reload_map method
+  - [x] 6.4 Implement reload_map method
+
+
+
+
     - Preserve Grid Entity ID during reload
     - Update layers and colliders
     - Maintain layer visibility states
@@ -134,7 +158,8 @@
     - **Validates: Requirements 3.5, 6.3**
     - Test that custom visibility states are preserved after reload
 
-  - [ ] 6.7 Implement unload_map method
+  - [x] 6.7 Implement unload_map method
+
     - Despawn Grid Entity
     - Verify all children are automatically despawned
     - Remove from loaded_maps HashMap
