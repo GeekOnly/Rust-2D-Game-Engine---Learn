@@ -13,6 +13,7 @@ pub mod camera_settings;
 pub mod sprite_picker;
 pub mod map_inspector;
 pub mod map_view;
+pub mod maps_panel;
 
 // Re-exports
 use ecs::{World, Entity, EntityTag};

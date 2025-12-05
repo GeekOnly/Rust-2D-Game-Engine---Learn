@@ -110,6 +110,7 @@ pub struct EditorState {
     pub texture_inspector: super::ui::texture_inspector::TextureInspector,  // Texture import settings inspector
     pub map_view_state: super::ui::map_view::MapViewState,  // Map view panel state
     pub debug_draw: super::debug_draw::DebugDrawManager,  // Debug draw system (Unity/Unreal style)
+    pub map_manager: super::map_manager::MapManager,  // Map manager for LDtk files
 }
 
 #[allow(dead_code)]
@@ -184,6 +185,7 @@ impl EditorState {
             texture_inspector: super::ui::texture_inspector::TextureInspector::default(),
             map_view_state: super::ui::map_view::MapViewState::default(),
             debug_draw: super::debug_draw::DebugDrawManager::new(),
+            map_manager: super::map_manager::MapManager::new(),
         }
     }
 

@@ -1,0 +1,291 @@
+{
+  "surfaces": [
+    {
+      "Main": {
+        "nodes": [
+          {
+            "Horizontal": {
+              "rect": {
+                "min": {
+                  "x": 8.0,
+                  "y": 32.0
+                },
+                "max": {
+                  "x": 1912.0,
+                  "y": 1001.0
+                }
+              },
+              "fraction": 0.77258384
+            }
+          },
+          {
+            "Vertical": {
+              "rect": {
+                "min": {
+                  "x": 8.0,
+                  "y": 32.0
+                },
+                "max": {
+                  "x": 1478.0,
+                  "y": 1001.0
+                }
+              },
+              "fraction": 0.7
+            }
+          },
+          {
+            "Leaf": {
+              "rect": {
+                "min": {
+                  "x": 1479.0,
+                  "y": 32.0
+                },
+                "max": {
+                  "x": 1912.0,
+                  "y": 1001.0
+                }
+              },
+              "viewport": {
+                "min": {
+                  "x": 1479.0,
+                  "y": 56.0
+                },
+                "max": {
+                  "x": 1912.0,
+                  "y": 1001.0
+                }
+              },
+              "tabs": [
+                "Inspector"
+              ],
+              "active": 0,
+              "scroll": 0.0
+            }
+          },
+          {
+            "Horizontal": {
+              "rect": {
+                "min": {
+                  "x": 8.0,
+                  "y": 32.0
+                },
+                "max": {
+                  "x": 1478.0,
+                  "y": 710.0
+                }
+              },
+              "fraction": 0.28256294
+            }
+          },
+          {
+            "Horizontal": {
+              "rect": {
+                "min": {
+                  "x": 8.0,
+                  "y": 711.0
+                },
+                "max": {
+                  "x": 1478.0,
+                  "y": 1001.0
+                }
+              },
+              "fraction": 0.5
+            }
+          },
+          "Empty",
+          "Empty",
+          {
+            "Leaf": {
+              "rect": {
+                "min": {
+                  "x": 8.0,
+                  "y": 32.0
+                },
+                "max": {
+                  "x": 423.0,
+                  "y": 710.0
+                }
+              },
+              "viewport": {
+                "min": {
+                  "x": 8.0,
+                  "y": 56.0
+                },
+                "max": {
+                  "x": 423.0,
+                  "y": 710.0
+                }
+              },
+              "tabs": [
+                "Hierarchy"
+              ],
+              "active": 0,
+              "scroll": 0.0
+            }
+          },
+          {
+            "Horizontal": {
+              "rect": {
+                "min": {
+                  "x": 424.0,
+                  "y": 32.0
+                },
+                "max": {
+                  "x": 1478.0,
+                  "y": 710.0
+                }
+              },
+              "fraction": 0.71916544
+            }
+          },
+          {
+            "Leaf": {
+              "rect": {
+                "min": {
+                  "x": 8.0,
+                  "y": 711.0
+                },
+                "max": {
+                  "x": 743.0,
+                  "y": 1001.0
+                }
+              },
+              "viewport": {
+                "min": {
+                  "x": 8.0,
+                  "y": 735.0
+                },
+                "max": {
+                  "x": 743.0,
+                  "y": 1001.0
+                }
+              },
+              "tabs": [
+                "Console",
+                "Project"
+              ],
+              "active": 1,
+              "scroll": 0.0
+            }
+          },
+          {
+            "Leaf": {
+              "rect": {
+                "min": {
+                  "x": 744.0,
+                  "y": 711.0
+                },
+                "max": {
+                  "x": 1478.0,
+                  "y": 1001.0
+                }
+              },
+              "viewport": {
+                "min": {
+                  "x": 744.0,
+                  "y": 735.0
+                },
+                "max": {
+                  "x": 1478.0,
+                  "y": 1001.0
+                }
+              },
+              "tabs": [
+                "Game"
+              ],
+              "active": 0,
+              "scroll": 0.0
+            }
+          },
+          "Empty",
+          "Empty",
+          "Empty",
+          "Empty",
+          "Empty",
+          "Empty",
+          {
+            "Leaf": {
+              "rect": {
+                "min": {
+                  "x": 424.0,
+                  "y": 32.0
+                },
+                "max": {
+                  "x": 1182.0,
+                  "y": 710.0
+                }
+              },
+              "viewport": {
+                "min": {
+                  "x": 424.0,
+                  "y": 56.0
+                },
+                "max": {
+                  "x": 1182.0,
+                  "y": 710.0
+                }
+              },
+              "tabs": [
+                "Scene"
+              ],
+              "active": 0,
+              "scroll": 0.0
+            }
+          },
+          {
+            "Leaf": {
+              "rect": {
+                "min": {
+                  "x": 1183.0,
+                  "y": 32.0
+                },
+                "max": {
+                  "x": 1478.0,
+                  "y": 710.0
+                }
+              },
+              "viewport": {
+                "min": {
+                  "x": 1183.0,
+                  "y": 56.0
+                },
+                "max": {
+                  "x": 1478.0,
+                  "y": 710.0
+                }
+              },
+              "tabs": [
+                "MapView"
+              ],
+              "active": 0,
+              "scroll": 0.0
+            }
+          },
+          "Empty",
+          "Empty",
+          "Empty",
+          "Empty",
+          "Empty",
+          "Empty",
+          "Empty",
+          "Empty",
+          "Empty",
+          "Empty",
+          "Empty",
+          "Empty"
+        ],
+        "focused_node": 9
+      }
+    }
+  ],
+  "focused_surface": 0,
+  "translations": {
+    "tab_context_menu": {
+      "close_button": "Close",
+      "eject_button": "Eject"
+    },
+    "window": {
+      "close_button_tooltip": "This window contains non-closable tabs."
+    }
+  }
+}

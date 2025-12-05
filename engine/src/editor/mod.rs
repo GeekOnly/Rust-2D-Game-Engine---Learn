@@ -19,6 +19,7 @@ pub mod shortcuts_handler;
 pub mod sprite_editor;
 pub mod texture_import_settings;
 pub mod debug_draw;
+pub mod map_manager;
 
 // Re-exports for convenience
 pub use console::Console;
@@ -35,3 +36,4 @@ pub use selection::{SelectionManager, SelectionMode};
 pub use clipboard::{Clipboard, copy_selected, paste_from_clipboard, duplicate_selected};
 pub use sprite_editor::{SpriteEditorWindow, SpriteMetadata};
 pub use debug_draw::DebugDrawManager;
+pub use map_manager::MapManager;
