@@ -584,6 +584,8 @@ pub struct World {
     pub tilesets: HashMap<Entity, TileSet>,
     // Map component (LDtk/Tiled integration)
     pub maps: HashMap<Entity, Map>,
+    // Grid component (Unity-like)
+    pub grids: HashMap<Entity, Grid>,
 }
 
 impl World {
@@ -631,6 +633,7 @@ impl World {
         self.tilemaps.remove(&e);
         self.tilesets.remove(&e);
         self.maps.remove(&e);
+        self.grids.remove(&e);
     }
 
     pub fn clear(&mut self) {
@@ -653,6 +656,7 @@ impl World {
         self.tilemaps.clear();
         self.tilesets.clear();
         self.maps.clear();
+        self.grids.clear();
         self.next_entity = 0;
     }
 

@@ -5,8 +5,10 @@
 pub mod sprite_sheet;
 pub mod tilemap;
 pub mod map;
+pub mod grid;
 
 // Re-export all components
 pub use sprite_sheet::{SpriteSheet, SpriteFrame, AnimatedSprite, AnimationMode};
 pub use tilemap::{TileSet, Tilemap, Tile, TileData, TilemapChunk};
 pub use map::{Map, MapType};
+pub use grid::{Grid, GridLayout, HexagonOrientation, CellSwizzle};
