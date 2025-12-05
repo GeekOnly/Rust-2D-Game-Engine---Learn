@@ -101,15 +101,21 @@ impl MapManager {
         }
     }
     
-    /// Load a map file
+    /// Load a map file with auto-generated colliders
     pub fn load_map(&mut self, path: &PathBuf, world: &mut World) -> Result<(), String> {
         // Remove old map if exists
         if let Some(old_map) = self.loaded_maps.remove(path) {
             world.despawn(old_map.grid_entity);
         }
         
-        // Load new map with Grid
-        let (grid_entity, layer_entities) = ecs::loaders::LdtkLoader::load_project_with_grid(path, world)?;
+        // Load new map with Grid and auto-generated colliders
+        let (grid_entity, layer_entities, collider_entities) = 
+            ecs::loaders::LdtkLoader::load_project_with_grid_and_colliders(
+                path,
+                world,
+                true,  // auto_generate_colliders
+                1,     // collision_value
+            )?;
         
         // Create LayerInfo for each layer
         let layer_infos: Vec<LayerInfo> = layer_entities.iter().map(|&entity| {
@@ -137,7 +143,7 @@ impl MapManager {
         let loaded_map = LoadedMap {
             grid_entity,
             layer_entities: layer_infos,
-            collider_entities: Vec::new(),
+            collider_entities,  // Now includes auto-generated colliders
             file_path: path.clone(),
             last_modified,
         };
@@ -162,45 +168,71 @@ impl MapManager {
         }
     }
     
-    /// Generate colliders for a map
-    pub fn generate_colliders(&mut self, path: &PathBuf, world: &mut World) -> Result<usize, String> {
-        let colliders = ecs::loaders::LdtkLoader::generate_composite_colliders_from_intgrid(
-            path,
-            world,
-            1, // collision_value
-        )?;
-        
-        // Store collider entities
+    /// Regenerate colliders for a map
+    pub fn regenerate_colliders(&mut self, path: &PathBuf, world: &mut World) -> Result<usize, String> {
         if let Some(loaded_map) = self.loaded_maps.get_mut(path) {
-            loaded_map.collider_entities.extend(colliders.iter());
+            // Remove old colliders
+            for &collider in &loaded_map.collider_entities {
+                world.despawn(collider);
+            }
+            loaded_map.collider_entities.clear();
+            
+            // Generate new colliders
+            let colliders = ecs::loaders::LdtkLoader::generate_composite_colliders_from_intgrid(
+                path,
+                world,
+                1, // collision_value
+            )?;
+            
+            // Set as children of Grid
+            for &collider in &colliders {
+                world.set_parent(collider, Some(loaded_map.grid_entity));
+            }
+            
+            // Update tracking
+            loaded_map.collider_entities = colliders.clone();
+            
+            log::info!("Regenerated {} colliders for {:?}", colliders.len(), path);
+            Ok(colliders.len())
+        } else {
+            Err(format!("Map not loaded: {:?}", path))
         }
-        
-        log::info!("Generated {} colliders for {:?}", colliders.len(), path);
-        Ok(colliders.len())
     }
     
-    /// Clean up all LDtk colliders
-    pub fn clean_up_colliders(&mut self, world: &mut World) -> usize {
-        let mut colliders_to_remove = Vec::new();
-        
-        for (entity, name) in &world.names {
-            if name.starts_with("CompositeCollider") || name.starts_with("Collider_") {
-                colliders_to_remove.push(*entity);
+    /// Clean up colliders for a specific map
+    pub fn clean_up_colliders(&mut self, path: &PathBuf, world: &mut World) -> usize {
+        if let Some(loaded_map) = self.loaded_maps.get_mut(path) {
+            let count = loaded_map.collider_entities.len();
+            
+            // Remove colliders
+            for &collider in &loaded_map.collider_entities {
+                world.despawn(collider);
             }
+            
+            // Clear tracking
+            loaded_map.collider_entities.clear();
+            
+            log::info!("Cleaned up {} colliders for {:?}", count, path);
+            count
+        } else {
+            0
         }
+    }
+    
+    /// Clean up all LDtk colliders (all maps)
+    pub fn clean_up_all_colliders(&mut self, world: &mut World) -> usize {
+        let mut total = 0;
         
-        let count = colliders_to_remove.len();
-        for entity in colliders_to_remove {
-            world.despawn(entity);
-        }
-        
-        // Clear stored collider entities
         for loaded_map in self.loaded_maps.values_mut() {
+            for &collider in &loaded_map.collider_entities {
+                world.despawn(collider);
+            }
+            total += loaded_map.collider_entities.len();
             loaded_map.collider_entities.clear();
         }
         
-        log::info!("Cleaned up {} colliders", count);
-        count
+        log::info!("Cleaned up {} colliders (all maps)", total);
+        total
     }
     
     /// Count LDtk colliders in world

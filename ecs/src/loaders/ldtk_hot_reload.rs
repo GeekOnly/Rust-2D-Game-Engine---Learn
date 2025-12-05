@@ -64,16 +64,23 @@ impl LdtkHotReloader {
         // This handles the case where scene was saved with LDTK entities
         self.remove_existing_ldtk_entities(world);
 
-        // Load the file with Grid support
-        let (grid_entity, tilemap_entities) = super::LdtkLoader::load_project_with_grid(path, world)?;
+        // Load the file with Grid support and auto-generated colliders
+        let (grid_entity, tilemap_entities, collider_entities) = 
+            super::LdtkLoader::load_project_with_grid_and_colliders(
+                path,
+                world,
+                true,  // auto_generate_colliders
+                1,     // collision_value
+            )?;
         
-        // Store all entities (Grid + Tilemaps) for this file
+        // Store all entities (Grid + Tilemaps + Colliders) for this file
         let mut all_entities = vec![grid_entity];
         all_entities.extend(tilemap_entities);
+        all_entities.extend(collider_entities);
         
         self.watched_files.insert(canonical_path.clone(), all_entities.clone());
         
-        info!("Watching LDtk file: {:?} ({} entities including Grid)", canonical_path, all_entities.len());
+        info!("Watching LDtk file: {:?} ({} entities including Grid and Colliders)", canonical_path, all_entities.len());
         
         Ok(all_entities)
     }
@@ -156,13 +163,14 @@ impl LdtkHotReloader {
             // Wait a bit for file to be fully written (some editors write in chunks)
             std::thread::sleep(std::time::Duration::from_millis(50));
 
-            // Reload the file with Grid support
-            match super::LdtkLoader::load_project_with_grid(&path, world) {
-                Ok((grid_entity, tilemap_entities)) => {
+            // Reload the file with Grid support and auto-generated colliders
+            match super::LdtkLoader::load_project_with_grid_and_colliders(&path, world, true, 1) {
+                Ok((grid_entity, tilemap_entities, collider_entities)) => {
                     let mut entities = vec![grid_entity];
                     entities.extend(tilemap_entities);
+                    entities.extend(collider_entities);
                     
-                    info!("Successfully reloaded {} entities (including Grid) from {:?}", entities.len(), path);
+                    info!("Successfully reloaded {} entities (Grid + Layers + Colliders) from {:?}", entities.len(), path);
                     self.watched_files.insert(path.clone(), entities.clone());
                     all_entities.extend(entities);
                 }

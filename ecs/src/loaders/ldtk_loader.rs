@@ -9,6 +9,44 @@ use std::path::Path;
 pub struct LdtkLoader;
 
 impl LdtkLoader {
+    /// Load an LDTK project file with Grid component and auto-generated colliders
+    /// Returns (grid_entity, tilemap_entities, collider_entities)
+    pub fn load_project_with_grid_and_colliders(
+        path: impl AsRef<Path>,
+        world: &mut World,
+        auto_generate_colliders: bool,
+        collision_value: i64,
+    ) -> Result<(Entity, Vec<Entity>, Vec<Entity>), String> {
+        // Load grid and tilemaps
+        let (grid_entity, tilemap_entities) = Self::load_project_with_grid(path.as_ref(), world)?;
+        
+        let mut collider_entities = Vec::new();
+        
+        if auto_generate_colliders {
+            // Generate colliders
+            match Self::generate_composite_colliders_from_intgrid(
+                path.as_ref(),
+                world,
+                collision_value,
+            ) {
+                Ok(colliders) => {
+                    // Set colliders as children of Grid
+                    for &collider in &colliders {
+                        world.set_parent(collider, Some(grid_entity));
+                    }
+                    
+                    collider_entities = colliders;
+                    log::info!("Auto-generated {} colliders for map", collider_entities.len());
+                }
+                Err(e) => {
+                    log::warn!("Failed to auto-generate colliders: {}", e);
+                }
+            }
+        }
+        
+        Ok((grid_entity, tilemap_entities, collider_entities))
+    }
+
     /// Load an LDTK project file with Grid component
     /// Returns (grid_entity, tilemap_entities)
     pub fn load_project_with_grid(

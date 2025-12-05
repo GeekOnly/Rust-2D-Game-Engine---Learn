@@ -190,9 +190,12 @@ fn render_actions_section(
     ui.collapsing(RichText::new("⚙️ Actions").strong(), |ui| {
         let has_selection = map_manager.selected_map.is_some();
         
-        // Reload Map
+        // Reload Map (with auto-generated colliders)
         ui.add_enabled_ui(has_selection, |ui| {
-            if ui.button("🔄 Reload Map").clicked() {
+            if ui.button("🔄 Reload Map")
+                .on_hover_text("Reload map with auto-generated colliders")
+                .clicked() 
+            {
                 if let Some(path) = &map_manager.selected_map.clone() {
                     if let Err(e) = map_manager.reload_map(path, world) {
                         log::error!("Failed to reload map: {}", e);
@@ -201,27 +204,53 @@ fn render_actions_section(
             }
         });
         
-        // Generate Colliders
+        // Regenerate Colliders (replaces Generate + Clean Up)
         ui.add_enabled_ui(has_selection, |ui| {
-            if ui.button("🔨 Generate Colliders").clicked() {
+            if ui.button("🔨 Regenerate Colliders")
+                .on_hover_text("Remove old colliders and generate new ones")
+                .clicked() 
+            {
                 if let Some(path) = &map_manager.selected_map.clone() {
-                    match map_manager.generate_colliders(path, world) {
+                    match map_manager.regenerate_colliders(path, world) {
                         Ok(count) => {
-                            log::info!("Generated {} colliders", count);
+                            log::info!("Regenerated {} colliders", count);
                         }
                         Err(e) => {
-                            log::error!("Failed to generate colliders: {}", e);
+                            log::error!("Failed to regenerate colliders: {}", e);
                         }
                     }
                 }
             }
         });
         
-        // Clean Up Colliders
-        let collider_count = map_manager.count_colliders(world);
-        if ui.button(format!("🧹 Clean Up Colliders ({})", collider_count)).clicked() {
-            let removed = map_manager.clean_up_colliders(world);
-            log::info!("Removed {} colliders", removed);
+        ui.separator();
+        
+        // Clean Up Colliders (for selected map)
+        ui.add_enabled_ui(has_selection, |ui| {
+            let selected_path = map_manager.selected_map.clone();
+            if let Some(path) = selected_path {
+                let collider_count = map_manager.loaded_maps.get(&path)
+                    .map(|m| m.collider_entities.len())
+                    .unwrap_or(0);
+                
+                if ui.button(format!("🧹 Clean Up Colliders ({})", collider_count))
+                    .on_hover_text("Remove all colliders for this map")
+                    .clicked() 
+                {
+                    let removed = map_manager.clean_up_colliders(&path, world);
+                    log::info!("Removed {} colliders", removed);
+                }
+            }
+        });
+        
+        // Clean Up All Colliders
+        let total_colliders = map_manager.count_colliders(world);
+        if ui.button(format!("🧹 Clean Up All ({})", total_colliders))
+            .on_hover_text("Remove all colliders from all maps")
+            .clicked() 
+        {
+            let removed = map_manager.clean_up_all_colliders(world);
+            log::info!("Removed {} colliders from all maps", removed);
         }
     });
 }
