@@ -64,15 +64,18 @@ impl LdtkHotReloader {
         // This handles the case where scene was saved with LDTK entities
         self.remove_existing_ldtk_entities(world);
 
-        // Load the file
-        let entities = super::LdtkLoader::load_project(path, world)?;
+        // Load the file with Grid support
+        let (grid_entity, tilemap_entities) = super::LdtkLoader::load_project_with_grid(path, world)?;
         
-        // Store the entities for this file
-        self.watched_files.insert(canonical_path.clone(), entities.clone());
+        // Store all entities (Grid + Tilemaps) for this file
+        let mut all_entities = vec![grid_entity];
+        all_entities.extend(tilemap_entities);
         
-        info!("Watching LDtk file: {:?} ({} entities)", canonical_path, entities.len());
+        self.watched_files.insert(canonical_path.clone(), all_entities.clone());
         
-        Ok(entities)
+        info!("Watching LDtk file: {:?} ({} entities including Grid)", canonical_path, all_entities.len());
+        
+        Ok(all_entities)
     }
 
     /// Stop watching a file
@@ -153,10 +156,13 @@ impl LdtkHotReloader {
             // Wait a bit for file to be fully written (some editors write in chunks)
             std::thread::sleep(std::time::Duration::from_millis(50));
 
-            // Reload the file
-            match super::LdtkLoader::load_project(&path, world) {
-                Ok(entities) => {
-                    info!("Successfully reloaded {} entities from {:?}", entities.len(), path);
+            // Reload the file with Grid support
+            match super::LdtkLoader::load_project_with_grid(&path, world) {
+                Ok((grid_entity, tilemap_entities)) => {
+                    let mut entities = vec![grid_entity];
+                    entities.extend(tilemap_entities);
+                    
+                    info!("Successfully reloaded {} entities (including Grid) from {:?}", entities.len(), path);
                     self.watched_files.insert(path.clone(), entities.clone());
                     all_entities.extend(entities);
                 }
@@ -187,11 +193,11 @@ impl LdtkHotReloader {
     /// Remove all existing LDTK entities from the world
     /// This is used to clean up before loading/reloading
     fn remove_existing_ldtk_entities(&self, world: &mut World) {
-        // Collect all entities with names starting with "LDTK Layer:"
+        // Collect all entities with names starting with "LDTK Layer:" or "LDtk Grid"
         let mut ldtk_entities = Vec::new();
         
         for (entity, name) in &world.names {
-            if name.starts_with("LDTK Layer:") {
+            if name.starts_with("LDTK Layer:") || name.starts_with("LDtk Grid") {
                 ldtk_entities.push(*entity);
             }
         }
@@ -206,7 +212,7 @@ impl LdtkHotReloader {
             }
         }
         
-        // Despawn all LDTK entities
+        // Despawn all LDTK entities (this will also despawn children)
         if !ldtk_entities.is_empty() {
             info!("Removing {} existing LDTK entities before reload", ldtk_entities.len());
             for entity in ldtk_entities {
