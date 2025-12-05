@@ -14,6 +14,7 @@ pub enum EditorTab {
     Game,
     Console,
     Project,
+    MapView,  // LDtk map management panel
     SpriteEditor(std::path::PathBuf),  // Sprite editor for a specific texture file
 }
 
@@ -28,6 +29,7 @@ pub struct TabContext<'a> {
     pub load_file_request: &'a mut Option<std::path::PathBuf>,
     pub console: &'a mut Console,
     pub scene_view_tab: &'a mut usize,
+    pub map_view_state: &'a mut super::map_view::MapViewState,
     pub is_playing: bool,
     pub show_colliders: &'a mut bool,
     pub show_velocities: &'a mut bool,
@@ -67,6 +69,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
             EditorTab::Game => "Game".into(),
             EditorTab::Console => "Console".into(),
             EditorTab::Project => "Project".into(),
+            EditorTab::MapView => "🗺️ Maps".into(),
             EditorTab::SpriteEditor(path) => {
                 let file_name = path.file_stem()
                     .and_then(|s| s.to_str())
@@ -166,6 +169,16 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
             EditorTab::Console => {
                 // Render console with full functionality
                 self.context.console.render(ui);
+            }
+            EditorTab::MapView => {
+                // Render map view panel
+                super::map_view::render_map_view(
+                    ui,
+                    self.context.world,
+                    self.context.project_path,
+                    self.context.map_view_state,
+                    self.context.console,
+                );
             }
             EditorTab::Project => {
                 if let Some(ref mut manager) = self.context.asset_manager {

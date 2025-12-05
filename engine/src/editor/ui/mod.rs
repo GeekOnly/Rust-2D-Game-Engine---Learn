@@ -12,6 +12,7 @@ pub mod dock_layout;
 pub mod camera_settings;
 pub mod sprite_picker;
 pub mod map_inspector;
+pub mod map_view;
 
 // Re-exports
 use ecs::{World, Entity, EntityTag};
@@ -286,6 +287,7 @@ impl EditorUI {
         sprite_editor_windows: &mut Vec<crate::editor::SpriteEditorWindow>,
         sprite_picker_state: &mut sprite_picker::SpritePickerState,
         texture_inspector: &mut texture_inspector::TextureInspector,
+        map_view_state: &mut map_view::MapViewState,
         dt: f32,
     ) {
         // Handle layout change request (will be processed by caller)
@@ -329,6 +331,7 @@ impl EditorUI {
                 load_file_request,
                 console,
                 scene_view_tab,
+                map_view_state,
                 is_playing,
                 show_colliders,
                 show_velocities,

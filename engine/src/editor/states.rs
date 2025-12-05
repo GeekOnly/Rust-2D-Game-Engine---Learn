@@ -107,6 +107,7 @@ pub struct EditorState {
     pub open_sprite_editor_request: Option<PathBuf>,  // Request to open sprite editor for a texture
     pub sprite_picker_state: super::ui::sprite_picker::SpritePickerState,  // Sprite picker popup state
     pub texture_inspector: super::ui::texture_inspector::TextureInspector,  // Texture import settings inspector
+    pub map_view_state: super::ui::map_view::MapViewState,  // Map view panel state
 }
 
 #[allow(dead_code)]
@@ -178,6 +179,7 @@ impl EditorState {
             open_sprite_editor_request: None,
             sprite_picker_state: super::ui::sprite_picker::SpritePickerState::new(),
             texture_inspector: super::ui::texture_inspector::TextureInspector::default(),
+            map_view_state: super::ui::map_view::MapViewState::default(),
         }
     }
 

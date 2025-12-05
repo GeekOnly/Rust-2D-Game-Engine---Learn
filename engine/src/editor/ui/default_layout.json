@@ -176,7 +176,8 @@
               },
               "tabs": [
                 "Console",
-                "Project"
+                "Project",
+                "MapView"
               ],
               "active": 0,
               "scroll": 0.0
