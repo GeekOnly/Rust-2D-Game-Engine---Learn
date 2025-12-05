@@ -39,8 +39,15 @@
     - **Validates: Requirements 7.2**
     - Test that get_tile(x, y) returns the tile set by set_tile(x, y, tile)
 
-- [ ] 3. Implement LdtkLoader with Grid hierarchy
-  - [ ] 3.1 Implement load_project_with_grid method
+- [x] 3. Implement LdtkLoader with Grid hierarchy
+
+
+
+
+
+  - [x] 3.1 Implement load_project_with_grid method
+
+
     - Create Grid Entity as root
     - Load layers as children of Grid
     - Set up proper parent-child relationships
@@ -51,7 +58,8 @@
     - **Validates: Requirements 1.2, 7.1, 7.2**
     - Test that loading creates exactly one Grid with all layers as children
 
-  - [ ] 3.3 Implement load_project_with_grid_and_colliders method
+  - [x] 3.3 Implement load_project_with_grid_and_colliders method
+
     - Call load_project_with_grid
     - Generate colliders automatically
     - Set colliders as children of Grid

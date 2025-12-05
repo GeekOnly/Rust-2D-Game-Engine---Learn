@@ -245,4 +245,232 @@ mod tilemap_unit_tests {
         
         assert_eq!(rect.area(), 15);
     }
+    
+    #[test]
+    fn test_load_project_with_grid_creates_hierarchy() {
+        use ecs::{World, loaders::LdtkLoader};
+        use serde_json::json;
+        
+        let test_dir = create_test_dir();
+        
+        // Create a mock LDtk project with tile data so layers are actually created
+        let project = json!({
+            "defaultGridSize": 8,
+            "levels": [
+                {
+                    "identifier": "Level_Test",
+                    "worldX": 0,
+                    "worldY": 0,
+                    "pxWid": 80,
+                    "pxHei": 80,
+                    "layerInstances": [
+                        {
+                            "__identifier": "Tiles_layer",
+                            "__type": "Tiles",
+                            "__cWid": 10,
+                            "__cHei": 10,
+                            "__gridSize": 8,
+                            "__pxTotalOffsetX": 0,
+                            "__pxTotalOffsetY": 0,
+                            "__tilesetDefUid": 1,
+                            "layerDefUid": 1,
+                            "intGridCsv": [],
+                            "gridTiles": [
+                                {
+                                    "px": [0, 0],
+                                    "t": 0,
+                                    "f": 0
+                                },
+                                {
+                                    "px": [8, 0],
+                                    "t": 1,
+                                    "f": 0
+                                }
+                            ],
+                            "autoLayerTiles": []
+                        }
+                    ]
+                }
+            ],
+            "defs": {
+                "tilesets": [
+                    {
+                        "uid": 1,
+                        "relPath": "../test_tileset.png",
+                        "pxWid": 256,
+                        "pxHei": 256
+                    }
+                ]
+            }
+        });
+        
+        let file_path = create_temp_ldtk_file(&test_dir, "test_hierarchy", &project);
+        
+        let mut world = World::new();
+        
+        // Load project with Grid
+        let result = LdtkLoader::load_project_with_grid(&file_path, &mut world);
+        
+        assert!(result.is_ok(), "Failed to load project: {:?}", result.err());
+        
+        let (grid_entity, layer_entities) = result.unwrap();
+        
+        // Verify Grid entity exists
+        assert!(world.transforms.contains_key(&grid_entity));
+        assert!(world.grids.contains_key(&grid_entity));
+        assert_eq!(world.names.get(&grid_entity).unwrap(), "LDtk Grid");
+        
+        // Verify Grid component properties
+        let grid = world.grids.get(&grid_entity).unwrap();
+        assert_eq!(grid.cell_size, (1.0, 1.0)); // 8 pixels / 8 pixels_per_unit = 1.0
+        
+        // Verify layers exist and are children of Grid
+        assert_eq!(layer_entities.len(), 1);
+        
+        for &layer_entity in &layer_entities {
+            // Check layer has parent set to Grid
+            let parent = world.get_parent(layer_entity);
+            assert_eq!(parent, Some(grid_entity), "Layer should have Grid as parent");
+            
+            // Check Grid has layer as child
+            let children = world.get_children(grid_entity);
+            assert!(children.contains(&layer_entity), "Grid should have layer as child");
+        }
+        
+        cleanup_test_dir(&test_dir);
+    }
+    
+    #[test]
+    fn test_load_project_with_grid_and_colliders() {
+        use ecs::{World, loaders::LdtkLoader};
+        use serde_json::json;
+        
+        let test_dir = create_test_dir();
+        
+        // Create a mock LDtk project with IntGrid collision tiles
+        let project = json!({
+            "defaultGridSize": 8,
+            "levels": [
+                {
+                    "identifier": "Level_Test",
+                    "worldX": 0,
+                    "worldY": 0,
+                    "pxWid": 40,
+                    "pxHei": 40,
+                    "layerInstances": [
+                        {
+                            "__identifier": "IntGrid_layer",
+                            "__type": "IntGrid",
+                            "__cWid": 5,
+                            "__cHei": 5,
+                            "__gridSize": 8,
+                            "__pxTotalOffsetX": 0,
+                            "__pxTotalOffsetY": 0,
+                            "layerDefUid": 1,
+                            "intGridCsv": [
+                                1, 1, 1, 0, 0,
+                                1, 1, 1, 0, 0,
+                                0, 0, 0, 0, 0,
+                                0, 0, 1, 1, 1,
+                                0, 0, 1, 1, 1
+                            ],
+                            "gridTiles": [],
+                            "autoLayerTiles": []
+                        }
+                    ]
+                }
+            ],
+            "defs": {
+                "tilesets": []
+            }
+        });
+        
+        let file_path = create_temp_ldtk_file(&test_dir, "test_colliders", &project);
+        
+        let mut world = World::new();
+        
+        // Load project with Grid and auto-generate colliders
+        let result = LdtkLoader::load_project_with_grid_and_colliders(
+            &file_path,
+            &mut world,
+            true,  // auto_generate_colliders
+            1,     // collision_value
+        );
+        
+        assert!(result.is_ok(), "Failed to load project: {:?}", result.err());
+        
+        let (grid_entity, layer_entities, collider_entities) = result.unwrap();
+        
+        // Verify Grid entity exists
+        assert!(world.grids.contains_key(&grid_entity));
+        
+        // Verify layers exist (IntGrid layers without tiles don't create layer entities)
+        // So we expect 0 layer entities since IntGrid has no visual tiles
+        assert_eq!(layer_entities.len(), 0);
+        
+        // Verify colliders were generated
+        assert!(!collider_entities.is_empty(), "Should have generated colliders");
+        
+        // Verify all colliders are children of Grid
+        for &collider_entity in &collider_entities {
+            let parent = world.get_parent(collider_entity);
+            assert_eq!(parent, Some(grid_entity), "Collider should have Grid as parent");
+            
+            // Verify collider has required components
+            assert!(world.colliders.contains_key(&collider_entity), "Collider entity should have Collider component");
+            assert!(world.rigidbodies.contains_key(&collider_entity), "Collider entity should have Rigidbody2D component");
+            assert!(world.transforms.contains_key(&collider_entity), "Collider entity should have Transform component");
+        }
+        
+        // Verify Grid has all children (layers + colliders)
+        let children = world.get_children(grid_entity);
+        assert_eq!(children.len(), layer_entities.len() + collider_entities.len());
+        
+        cleanup_test_dir(&test_dir);
+    }
+    
+    #[test]
+    fn test_unload_grid_cleans_up_hierarchy() {
+        use ecs::{World, loaders::LdtkLoader};
+        
+        let test_dir = create_test_dir();
+        
+        // Create a mock LDtk project with collision tiles
+        let intgrid_data = vec![1, 1, 0, 0, 1, 1, 0, 0, 1];
+        let project = create_mock_ldtk_project(3, 3, 8, Some(intgrid_data));
+        let file_path = create_temp_ldtk_file(&test_dir, "test_cleanup", &project);
+        
+        let mut world = World::new();
+        
+        // Load project
+        let result = LdtkLoader::load_project_with_grid_and_colliders(
+            &file_path,
+            &mut world,
+            true,
+            1,
+        );
+        
+        assert!(result.is_ok());
+        let (grid_entity, layer_entities, collider_entities) = result.unwrap();
+        
+        // Verify entities exist
+        assert!(world.transforms.contains_key(&grid_entity));
+        for &entity in layer_entities.iter().chain(collider_entities.iter()) {
+            assert!(world.transforms.contains_key(&entity));
+        }
+        
+        // Despawn Grid entity (should clean up all children)
+        world.despawn(grid_entity);
+        
+        // Verify Grid is gone
+        assert!(!world.transforms.contains_key(&grid_entity));
+        assert!(!world.grids.contains_key(&grid_entity));
+        
+        // Verify all children are gone
+        for &entity in layer_entities.iter().chain(collider_entities.iter()) {
+            assert!(!world.transforms.contains_key(&entity), "Child entity {} should be despawned", entity);
+        }
+        
+        cleanup_test_dir(&test_dir);
+    }
 }
