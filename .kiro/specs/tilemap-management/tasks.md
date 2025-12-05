@@ -170,8 +170,14 @@
     - **Validates: Requirements 1.4, 2.5**
     - Test that unloading despawns Grid and all children
 
-- [ ] 7. Implement collider management operations
-  - [ ] 7.1 Implement regenerate_colliders method
+- [x] 7. Implement collider management operations
+
+
+
+
+  - [x] 7.1 Implement regenerate_colliders method
+
+
     - Despawn existing colliders
     - Generate new colliders from current IntGrid data
     - Set as children of Grid
@@ -183,18 +189,29 @@
     - **Validates: Requirements 2.3**
     - Test that regenerating produces colliders matching current data
 
-  - [ ] 7.3 Implement clean_up_colliders and clean_up_all_colliders
+  - [x] 7.3 Implement clean_up_colliders and clean_up_all_colliders
+
+
     - Remove colliders for specific map or all maps
     - Update LoadedMap tracking
     - _Requirements: 2.3_
 
-  - [ ] 7.4 Implement is_map_entity helper
+  - [x] 7.4 Implement is_map_entity helper
+
+
     - Check if entity belongs to any loaded map
     - Used for hierarchy filtering
     - _Requirements: 7.4_
 
-- [ ] 8. Implement layer visibility management
-  - [ ] 8.1 Implement toggle_layer_visibility method
+- [x] 8. Implement layer visibility management
+
+
+
+
+
+
+  - [x] 8.1 Implement toggle_layer_visibility method
+
     - Toggle active component on layer entity
     - Update LayerInfo tracking
     - _Requirements: 3.1, 3.2, 3.3_
@@ -209,35 +226,69 @@
     - **Validates: Requirements 3.2, 3.3**
     - Test that hiding sets active=false and showing sets active=true
 
-- [ ] 9. Checkpoint - Ensure all tests pass
+- [x] 9. Checkpoint - Ensure all tests pass
+
+
+
+
+
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 10. Implement Maps Panel UI
-  - [ ] 10.1 Create render_maps_panel function
+- [x] 10. Implement Maps Panel UI
+
+
+
+
+
+
+
+  - [x] 10.1 Create render_maps_panel function
+
     - Display window with file list
     - Show loaded maps section
     - Add actions section
+
     - _Requirements: 1.1, 1.5_
 
-  - [ ] 10.2 Implement LDtk files section
+
+  - [x] 10.2 Implement LDtk files section
+
+
+
+
     - Display available .ldtk files
     - Show load status indicators
+
     - Handle file selection and loading
     - _Requirements: 1.1, 1.2_
 
-  - [ ] 10.3 Implement loaded maps section
+
+  - [x] 10.3 Implement loaded maps section
+
+
+
+
+
     - Display Grid entity and layers
+
     - Show layer visibility toggles
     - Display layer information (size, name)
     - _Requirements: 1.5, 3.1_
 
-  - [ ] 10.4 Implement actions section
+  - [x] 10.4 Implement actions section
+
     - Add Reload Map button
     - Add Regenerate Colliders button
     - Add Clean Up Colliders buttons
+
     - _Requirements: 1.3, 2.3_
 
-  - [ ] 10.5 Implement statistics section
+  - [x] 10.5 Implement statistics section
+
+
+
+
+
     - Display entity counts
     - Show tilemap and collider counts
     - _Requirements: 8.1, 8.2, 8.3_
