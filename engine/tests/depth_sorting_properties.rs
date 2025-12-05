@@ -23,6 +23,8 @@ fn create_entity_at_depth(world: &mut World, z: f32, has_alpha: bool) -> Entity 
         billboard: false,
         flip_x: false,
         flip_y: false,
+        sprite_rect: None,
+        pixels_per_unit: 100.0,
     });
     
     entity

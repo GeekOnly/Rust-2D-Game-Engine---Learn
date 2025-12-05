@@ -418,17 +418,30 @@
     - Implement lock/unlock button
     - _Requirements: 3.1_
 
-- [ ] 13. Checkpoint - Ensure all tests pass
+- [x] 13. Checkpoint - Ensure all tests pass
+
+
+
+
+
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 14. Implement hot-reload system
-  - [ ] 14.1 Set up file watching with notify crate
+- [x] 14. Implement hot-reload system
+
+
+
+
+
+  - [x] 14.1 Set up file watching with notify crate
+
+
     - Create file watcher for .ldtk files
     - Handle Create, Modify, Remove events
     - Debounce rapid file changes
     - _Requirements: 6.1, 6.2_
 
-  - [ ] 14.2 Implement hot-reload logic
+  - [x] 14.2 Implement hot-reload logic
+
     - Detect file changes
     - Call reload_map on MapManager
     - Preserve layer states
@@ -444,7 +457,8 @@
     - **Validates: Requirements 6.4**
     - Test that colliders are regenerated during hot-reload
 
-  - [ ] 14.3 Implement error recovery for hot-reload
+  - [x] 14.3 Implement error recovery for hot-reload
+
     - Catch file corruption errors
     - Preserve last valid state on error
     - Display error message to user

@@ -2,6 +2,7 @@ use ecs::{World, Entity};
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::time::SystemTime;
+use super::hot_reload::HotReloadWatcher;
 
 /// Map Manager for handling LDtk files in the editor
 pub struct MapManager {
@@ -16,6 +17,15 @@ pub struct MapManager {
     
     /// Project path for scanning files
     pub project_path: Option<PathBuf>,
+    
+    /// Hot-reload watcher for automatic file reloading
+    pub hot_reload_watcher: Option<HotReloadWatcher>,
+    
+    /// Hot-reload enabled flag
+    pub hot_reload_enabled: bool,
+    
+    /// Last error message from hot-reload
+    pub last_hot_reload_error: Option<String>,
 }
 
 /// Information about a loaded map
@@ -55,7 +65,39 @@ impl MapManager {
             available_files: Vec::new(),
             selected_map: None,
             project_path: None,
+            hot_reload_watcher: None,
+            hot_reload_enabled: true,
+            last_hot_reload_error: None,
         }
+    }
+    
+    /// Enable hot-reload functionality
+    pub fn enable_hot_reload(&mut self) -> Result<(), String> {
+        if self.hot_reload_watcher.is_none() {
+            let watcher = HotReloadWatcher::new()?;
+            self.hot_reload_watcher = Some(watcher);
+            self.hot_reload_enabled = true;
+            log::info!("Hot-reload enabled");
+        }
+        Ok(())
+    }
+    
+    /// Disable hot-reload functionality
+    pub fn disable_hot_reload(&mut self) {
+        self.hot_reload_watcher = None;
+        self.hot_reload_enabled = false;
+        log::info!("Hot-reload disabled");
+    }
+    
+    /// Set hot-reload enabled state
+    pub fn set_hot_reload_enabled(&mut self, enabled: bool) -> Result<(), String> {
+        if enabled && self.hot_reload_watcher.is_none() {
+            self.enable_hot_reload()?;
+        } else if !enabled {
+            self.disable_hot_reload();
+        }
+        self.hot_reload_enabled = enabled;
+        Ok(())
     }
     
     /// Set project path and scan for LDtk files
@@ -150,6 +192,15 @@ impl MapManager {
         
         self.loaded_maps.insert(path.clone(), loaded_map);
         self.selected_map = Some(path.clone());
+        
+        // Register file with hot-reload watcher
+        if self.hot_reload_enabled {
+            if let Some(watcher) = &mut self.hot_reload_watcher {
+                if let Err(e) = watcher.watch_file(path) {
+                    log::warn!("Failed to watch file for hot-reload: {}", e);
+                }
+            }
+        }
         
         log::info!("Loaded map: {:?}", path);
         Ok(())
@@ -465,6 +516,14 @@ impl MapManager {
     pub fn unload_map(&mut self, path: &PathBuf, world: &mut World) {
         if let Some(loaded_map) = self.loaded_maps.remove(path) {
             world.despawn(loaded_map.grid_entity);
+            
+            // Unregister file from hot-reload watcher
+            if let Some(watcher) = &mut self.hot_reload_watcher {
+                if let Err(e) = watcher.unwatch(path) {
+                    log::warn!("Failed to unwatch file: {}", e);
+                }
+            }
+            
             log::info!("Unloaded map: {:?}", path);
         }
     }
@@ -582,6 +641,77 @@ impl MapManager {
             map.layer_entities.iter().any(|l| l.entity == entity) ||
             map.collider_entities.contains(&entity)
         })
+    }
+    
+    /// Process hot-reload events (call this each frame)
+    /// Returns list of successfully reloaded files
+    pub fn process_hot_reload(&mut self, world: &mut World) -> Vec<PathBuf> {
+        if !self.hot_reload_enabled {
+            return Vec::new();
+        }
+        
+        let mut reloaded_files = Vec::new();
+        
+        // Get changed files from watcher
+        let changed_files = if let Some(watcher) = &self.hot_reload_watcher {
+            watcher.poll_changes()
+        } else {
+            Vec::new()
+        };
+        
+        // Process each changed file
+        for path in changed_files {
+            // Only reload if the file is currently loaded
+            if self.loaded_maps.contains_key(&path) {
+                log::info!("Hot-reload detected for: {:?}", path);
+                
+                // Attempt to reload the map
+                match self.reload_map_with_error_recovery(&path, world) {
+                    Ok(()) => {
+                        reloaded_files.push(path.clone());
+                        self.last_hot_reload_error = None;
+                        log::info!("Hot-reload successful: {:?}", path);
+                    }
+                    Err(e) => {
+                        // Preserve last valid state on error
+                        let error_msg = format!("Hot-reload failed for {:?}: {}", path, e);
+                        log::error!("{}", error_msg);
+                        self.last_hot_reload_error = Some(error_msg);
+                    }
+                }
+            }
+        }
+        
+        reloaded_files
+    }
+    
+    /// Reload map with error recovery (preserves last valid state on failure)
+    fn reload_map_with_error_recovery(&mut self, path: &PathBuf, world: &mut World) -> Result<(), String> {
+        // Store backup of current state before attempting reload
+        let backup = self.loaded_maps.get(path)
+            .ok_or_else(|| format!("Map not loaded: {:?}", path))?
+            .clone();
+        
+        // Attempt to reload
+        match self.reload_map(path, world) {
+            Ok(()) => Ok(()),
+            Err(e) => {
+                // Restore backup state on error
+                log::warn!("Restoring previous state after reload failure");
+                self.loaded_maps.insert(path.clone(), backup);
+                Err(e)
+            }
+        }
+    }
+    
+    /// Get the last hot-reload error message
+    pub fn get_last_hot_reload_error(&self) -> Option<&str> {
+        self.last_hot_reload_error.as_deref()
+    }
+    
+    /// Clear the last hot-reload error message
+    pub fn clear_hot_reload_error(&mut self) {
+        self.last_hot_reload_error = None;
     }
 }
 

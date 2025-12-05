@@ -922,6 +922,20 @@ fn main() -> Result<()> {
                                     }
                                 }
                                 
+                                // Initialize hot-reload watcher if not yet initialized
+                                if editor_state.map_manager.hot_reload_watcher.is_none() && editor_state.map_manager.hot_reload_enabled {
+                                    if let Err(e) = editor_state.map_manager.enable_hot_reload() {
+                                        editor_state.console.warning(format!("Failed to enable hot-reload: {}", e));
+                                    }
+                                }
+                                
+                                // Set map manager project path if not yet set
+                                if editor_state.map_manager.project_path.is_none() {
+                                    if let Some(ref project_path) = editor_state.current_project_path {
+                                        editor_state.map_manager.set_project_path(project_path.clone());
+                                    }
+                                }
+                                
                                 // Handle layout change request
                                 if let Some(layout_name) = editor_state.layout_request.take() {
                                     if layout_name == "save_default" {
@@ -1000,6 +1014,22 @@ fn main() -> Result<()> {
                                                 }
                                             });
                                         });
+                                }
+
+                                // Process hot-reload for LDtk maps
+                                let reloaded_maps = editor_state.map_manager.process_hot_reload(&mut editor_state.world);
+                                if !reloaded_maps.is_empty() {
+                                    for map_path in &reloaded_maps {
+                                        editor_state.console.info(format!("🔄 Hot-reloaded map: {:?}", map_path));
+                                    }
+                                    editor_state.scene_modified = true;
+                                }
+                                
+                                // Display hot-reload error if any
+                                if let Some(error) = editor_state.map_manager.get_last_hot_reload_error() {
+                                    editor_state.console.error(format!("Hot-reload error: {}", error));
+                                    // Clear error after displaying
+                                    editor_state.map_manager.clear_hot_reload_error();
                                 }
 
                                 // Editor UI - Use docking layout if enabled

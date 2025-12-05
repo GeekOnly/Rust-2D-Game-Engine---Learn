@@ -20,6 +20,7 @@ pub mod sprite_editor;
 pub mod texture_import_settings;
 pub mod debug_draw;
 pub mod map_manager;
+pub mod hot_reload;
 
 // Re-exports for convenience
 pub use console::Console;
