@@ -16,6 +16,35 @@ pub fn render_hierarchy(
     _get_scene_files_fn: impl Fn(&std::path::Path) -> Vec<String>,
     get_entity_icon_fn: &impl Fn(&World, Entity) -> &'static str,
 ) {
+    render_hierarchy_with_filter(
+        ui,
+        world,
+        entity_names,
+        selected_entity,
+        _load_file_request,
+        _project_path,
+        current_scene_path,
+        _console,
+        _get_scene_files_fn,
+        get_entity_icon_fn,
+        None, // No map_manager filter
+    )
+}
+
+/// Render the hierarchy panel with optional map entity filtering
+pub fn render_hierarchy_with_filter(
+    ui: &mut egui::Ui,
+    world: &mut World,
+    entity_names: &mut HashMap<Entity, String>,
+    selected_entity: &mut Option<Entity>,
+    _load_file_request: &mut Option<std::path::PathBuf>,
+    _project_path: &Option<std::path::PathBuf>,
+    current_scene_path: &Option<std::path::PathBuf>,
+    _console: &mut Console,
+    _get_scene_files_fn: impl Fn(&std::path::Path) -> Vec<String>,
+    get_entity_icon_fn: &impl Fn(&World, Entity) -> &'static str,
+    map_manager: Option<&crate::editor::map_manager::MapManager>,
+) {
     // Unity-style header with title and icons
     ui.horizontal(|ui| {
         ui.heading("Hierarchy");
@@ -197,7 +226,21 @@ pub fn render_hierarchy(
             .body(|ui| {
                 // Collect roots (entities with no parent)
                 let mut roots: Vec<Entity> = entity_names.keys()
-                    .filter(|&e| world.parents.get(e).is_none())
+                    .filter(|&e| {
+                        // Filter out entities with no parent
+                        if world.parents.get(e).is_some() {
+                            return false;
+                        }
+                        
+                        // Filter out map entities if map_manager is provided
+                        if let Some(manager) = map_manager {
+                            if is_map_entity(*e, world, manager) {
+                                return false;
+                            }
+                        }
+                        
+                        true
+                    })
                     .cloned()
                     .collect();
 
@@ -215,6 +258,7 @@ pub fn render_hierarchy(
                         &mut entity_to_delete,
                         &mut entity_to_create_child,
                         get_entity_icon_fn,
+                        map_manager,
                     );
                 }
             });
@@ -240,6 +284,32 @@ pub fn render_hierarchy(
 
 }
 
+/// Check if entity is a map-related entity
+fn is_map_entity(
+    entity: Entity,
+    world: &World,
+    map_manager: &crate::editor::map_manager::MapManager,
+) -> bool {
+    // Check if it's a Grid entity
+    if world.grids.contains_key(&entity) {
+        return true;
+    }
+    
+    // Check if name starts with map-related prefixes
+    if let Some(name) = world.names.get(&entity) {
+        if name.starts_with("LDtk Grid") 
+            || name.starts_with("LDTK Layer:") 
+            || name.starts_with("CompositeCollider")
+            || name.starts_with("Collider_") 
+        {
+            return true;
+        }
+    }
+    
+    // Check if it's tracked by map_manager
+    map_manager.is_map_entity(entity)
+}
+
 /// Recursively draw entity node in hierarchy with children (Unity style)
 pub fn draw_entity_node(
     ui: &mut egui::Ui,
@@ -250,6 +320,7 @@ pub fn draw_entity_node(
     entity_to_delete: &mut Option<Entity>,
     entity_to_create_child: &mut Option<Entity>,
     get_entity_icon_fn: &impl Fn(&World, Entity) -> &'static str,
+    map_manager: Option<&crate::editor::map_manager::MapManager>,
 ) {
     let name = entity_names.get(&entity).cloned().unwrap_or(format!("Entity {}", entity));
     let is_selected = *selected_entity == Some(entity);
@@ -309,7 +380,14 @@ pub fn draw_entity_node(
             .body(|ui| {
                 // Draw children with proper indentation
                 for &child in children {
-                    draw_entity_node(ui, child, world, entity_names, selected_entity, entity_to_delete, entity_to_create_child, get_entity_icon_fn);
+                    // Skip map entities
+                    if let Some(manager) = map_manager {
+                        if is_map_entity(child, world, manager) {
+                            continue;
+                        }
+                    }
+                    
+                    draw_entity_node(ui, child, world, entity_names, selected_entity, entity_to_delete, entity_to_create_child, get_entity_icon_fn, map_manager);
                 }
             });
     } else {
