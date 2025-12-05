@@ -8,12 +8,23 @@ use std::collections::HashMap;
 #[cfg(feature = "rapier")]
 mod rapier_bindings;
 
+// Debug draw structures (simple versions for Lua)
+#[derive(Clone, Debug)]
+pub struct DebugLine {
+    pub start: [f32; 3],
+    pub end: [f32; 3],
+    pub color: [f32; 4], // RGBA
+    pub duration: f32,
+}
+
 pub struct ScriptEngine {
     lua: Lua,
     // Per-entity Lua states for proper lifecycle management
     entity_states: HashMap<Entity, Lua>,
     // Store ground state for Rapier (temporary solution)
     pub ground_states: HashMap<Entity, bool>,
+    // Debug draw queue (accessible from Lua scripts)
+    pub debug_lines: RefCell<Vec<DebugLine>>,
 }
 
 impl ScriptEngine {
@@ -23,7 +34,13 @@ impl ScriptEngine {
             lua,
             entity_states: HashMap::new(),
             ground_states: HashMap::new(),
+            debug_lines: RefCell::new(Vec::new()),
         })
+    }
+    
+    /// Get and clear debug lines (called by engine after rendering)
+    pub fn take_debug_lines(&self) -> Vec<DebugLine> {
+        self.debug_lines.borrow_mut().drain(..).collect()
     }
     
     /// Set ground state for entity (called by engine with Rapier result)
@@ -738,6 +755,56 @@ impl ScriptEngine {
                 Ok(())
             })?;
             globals.set("log", print_log)?;
+
+            // ================================================================
+            // DEBUG DRAW (Unity/Unreal style)
+            // ================================================================
+            
+            let debug_lines_ref = &self.debug_lines;
+            
+            // debug_draw_line(start_x, start_y, start_z, end_x, end_y, end_z, r, g, b, a, duration)
+            let debug_draw_line = scope.create_function_mut(move |_, args: (f32, f32, f32, f32, f32, f32, f32, f32, f32, f32, f32)| {
+                let (sx, sy, sz, ex, ey, ez, r, g, b, a, duration) = args;
+                debug_lines_ref.borrow_mut().push(DebugLine {
+                    start: [sx, sy, sz],
+                    end: [ex, ey, ez],
+                    color: [r, g, b, a],
+                    duration,
+                });
+                Ok(())
+            })?;
+            globals.set("debug_draw_line", debug_draw_line)?;
+            
+            // Simplified version for 2D: debug_draw_line_2d(start_x, start_y, end_x, end_y, r, g, b, duration)
+            let debug_lines_ref2 = &self.debug_lines;
+            let debug_draw_line_2d = scope.create_function_mut(move |_, args: (f32, f32, f32, f32, f32, f32, f32, f32)| {
+                let (sx, sy, ex, ey, r, g, b, duration) = args;
+                debug_lines_ref2.borrow_mut().push(DebugLine {
+                    start: [sx, sy, 0.0],
+                    end: [ex, ey, 0.0],
+                    color: [r, g, b, 1.0],
+                    duration,
+                });
+                Ok(())
+            })?;
+            globals.set("debug_draw_line_2d", debug_draw_line_2d)?;
+            
+            // Helper: debug_draw_ray(origin_x, origin_y, origin_z, dir_x, dir_y, dir_z, length, r, g, b, duration)
+            let debug_lines_ref3 = &self.debug_lines;
+            let debug_draw_ray = scope.create_function_mut(move |_, args: (f32, f32, f32, f32, f32, f32, f32, f32, f32, f32, f32)| {
+                let (ox, oy, oz, dx, dy, dz, length, r, g, b, duration) = args;
+                let end_x = ox + dx * length;
+                let end_y = oy + dy * length;
+                let end_z = oz + dz * length;
+                debug_lines_ref3.borrow_mut().push(DebugLine {
+                    start: [ox, oy, oz],
+                    end: [end_x, end_y, end_z],
+                    color: [r, g, b, 1.0],
+                    duration,
+                });
+                Ok(())
+            })?;
+            globals.set("debug_draw_ray", debug_draw_ray)?;
 
             // ================================================================
             // PHYSICS - GROUND CHECK (Rapier support)

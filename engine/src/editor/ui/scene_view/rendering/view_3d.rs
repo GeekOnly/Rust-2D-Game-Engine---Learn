@@ -18,6 +18,7 @@ pub fn render_scene_3d(
     selected_entity: &Option<Entity>,
     show_colliders: &bool,
     show_velocities: &bool,
+    _show_debug_lines: &bool,
     hovered_entity: &mut Option<Entity>,
     response: &egui::Response,
 ) {

@@ -3,7 +3,7 @@
 
 -- Movement parameters
 local move_speed = 3.0  -- Units per second (reduced for better control)
-local jump_force = 25.0  -- Jump velocity (high enough to separate from ground in 1 frame)
+local jump_force = 25.0  -- Jump velocity (positive = up)
 local max_jump_height = 2.0  -- Maximum jump height in units (reduced to compensate for higher jump force)
 local dash_speed = 10.0 -- Dash velocity
 local wall_slide_speed = 1.0

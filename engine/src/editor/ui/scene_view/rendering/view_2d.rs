@@ -130,10 +130,13 @@ pub fn render_scene_2d(
     selected_entity: &Option<Entity>,
     show_colliders: &bool,
     show_velocities: &bool,
+    show_debug_lines: &bool,
+    debug_draw: &mut crate::editor::debug_draw::DebugDrawManager,
     hovered_entity: &mut Option<Entity>,
     response: &egui::Response,
     texture_manager: &mut TextureManager,
     ctx: &egui::Context,
+    rect: egui::Rect,
 ) {
     // In 2D, we just iterate through all entities. 
     // Z-ordering is usually determined by entity order or a specific Z-index component (if we had one).
@@ -235,6 +238,12 @@ pub fn render_scene_2d(
                 render_collider_gizmo(painter, sel_entity, world, screen_x, screen_y, scene_camera, true);
             }
         }
+    }
+
+    // Render debug lines if enabled
+    if *show_debug_lines {
+        let camera_pos = [scene_camera.position.x, scene_camera.position.y, 0.0];
+        debug_draw.render(painter, camera_pos, scene_camera.zoom, rect);
     }
 }
 

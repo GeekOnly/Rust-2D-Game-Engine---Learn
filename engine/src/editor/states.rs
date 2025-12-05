@@ -61,6 +61,7 @@ pub struct EditorState {
     pub input_system: input::InputSystem,
     pub show_colliders: bool,
     pub show_velocities: bool,
+    pub show_debug_lines: bool,  // Show debug draw lines (raycasts, etc.)
     pub console: super::console::Console,
     pub bottom_panel_tab: usize,
     pub show_project_settings: bool,
@@ -108,6 +109,7 @@ pub struct EditorState {
     pub sprite_picker_state: super::ui::sprite_picker::SpritePickerState,  // Sprite picker popup state
     pub texture_inspector: super::ui::texture_inspector::TextureInspector,  // Texture import settings inspector
     pub map_view_state: super::ui::map_view::MapViewState,  // Map view panel state
+    pub debug_draw: super::debug_draw::DebugDrawManager,  // Debug draw system (Unity/Unreal style)
 }
 
 #[allow(dead_code)]
@@ -133,6 +135,7 @@ impl EditorState {
             input_system: input::InputSystem::new(),
             show_colliders: true,
             show_velocities: false,
+            show_debug_lines: true,  // Show debug lines by default
             console,
             bottom_panel_tab: 1,  // Default to Console tab to show logs
             show_project_settings: false,
@@ -180,6 +183,7 @@ impl EditorState {
             sprite_picker_state: super::ui::sprite_picker::SpritePickerState::new(),
             texture_inspector: super::ui::texture_inspector::TextureInspector::default(),
             map_view_state: super::ui::map_view::MapViewState::default(),
+            debug_draw: super::debug_draw::DebugDrawManager::new(),
         }
     }
 

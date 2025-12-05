@@ -304,16 +304,33 @@ impl RapierPhysicsWorld {
     }
     
     /// Raycast downward to check ground
+    /// Casts ray from bottom of collider downward
+    /// Returns (is_grounded, ray_start, ray_end) for debug visualization
     pub fn raycast_ground(&self, entity: Entity, world: &World, distance: f32) -> bool {
         if let Some(transform) = world.transforms.get(&entity) {
+            // Get collider height to cast from bottom
+            let collider_half_height = if let Some(collider) = world.colliders.get(&entity) {
+                collider.get_world_height(transform.scale[1]) / 2.0
+            } else {
+                0.0
+            };
+            
             // Map 3D to 2D: X stays X, Y inverted
-            let ray_origin = point![transform.position[0], -transform.position[1]];  // Negate Y
+            // Start ray from bottom of collider
+            let ray_origin = point![
+                transform.position[0], 
+                -transform.position[1] + collider_half_height  // Bottom of collider in Rapier coords
+            ];
             let ray_dir = vector![0.0, 1.0]; // Down in Rapier (positive Y)
             let max_toi = distance;
             
-            let filter = QueryFilter::default();
+            // Exclude self from raycast
+            let mut filter = QueryFilter::default();
+            if let Some(body_handle) = self.entity_to_body.get(&entity) {
+                filter = filter.exclude_rigid_body(*body_handle);
+            }
             
-            if let Some(_hit) = self.query_pipeline.cast_ray(
+            if let Some((_, toi)) = self.query_pipeline.cast_ray(
                 &self.rigid_body_set,
                 &self.collider_set,
                 &Ray::new(ray_origin, ray_dir),
@@ -321,6 +338,7 @@ impl RapierPhysicsWorld {
                 true,
                 filter,
             ) {
+                log::debug!("✅ Raycast hit ground: entity={}, distance={:.3}", entity, toi);
                 return true;
             }
         }

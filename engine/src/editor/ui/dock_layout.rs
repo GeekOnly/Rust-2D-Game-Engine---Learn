@@ -50,6 +50,8 @@ pub struct TabContext<'a> {
     pub sprite_editor_windows: &'a mut Vec<crate::editor::SpriteEditorWindow>,
     pub sprite_picker_state: &'a mut super::sprite_picker::SpritePickerState,
     pub texture_inspector: &'a mut texture_inspector::TextureInspector,
+    pub show_debug_lines: &'a mut bool,
+    pub debug_draw: &'a mut crate::editor::debug_draw::DebugDrawManager,
     pub dt: f32,
 }
 
@@ -148,6 +150,8 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                     self.context.is_playing,
                     self.context.show_colliders,
                     self.context.show_velocities,
+                    self.context.show_debug_lines,
+                    self.context.debug_draw,
                     self.context.current_tool,
                     self.context.scene_camera,
                     self.context.scene_grid,

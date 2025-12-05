@@ -69,6 +69,7 @@ impl EditorUI {
         texture_manager: &mut crate::texture_manager::TextureManager,
         open_sprite_editor_request: &mut Option<std::path::PathBuf>,
         sprite_picker_state: &mut sprite_picker::SpritePickerState,
+        show_debug_lines: &mut bool,
     ) {
         // Top Menu Bar
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
@@ -87,6 +88,7 @@ impl EditorUI {
                 show_project_settings,
                 show_colliders,
                 show_velocities,
+                show_debug_lines,
                 project_path,
                 current_scene_path,
                 is_playing,
@@ -140,6 +142,8 @@ impl EditorUI {
             let mut dummy_projection_mode = scene_view::ProjectionMode::Perspective;
             let mut dummy_transform_space = scene_view::TransformSpace::Local;
             
+            let mut dummy_debug_draw = crate::editor::debug_draw::DebugDrawManager::new();
+            
             scene_view::render_scene_view(
                 ui,
                 world,
@@ -148,6 +152,8 @@ impl EditorUI {
                 is_playing,
                 show_colliders,
                 show_velocities,
+                show_debug_lines,
+                &mut dummy_debug_draw,
                 current_tool,
                 scene_camera,
                 scene_grid,
@@ -288,6 +294,8 @@ impl EditorUI {
         sprite_picker_state: &mut sprite_picker::SpritePickerState,
         texture_inspector: &mut texture_inspector::TextureInspector,
         map_view_state: &mut map_view::MapViewState,
+        show_debug_lines: &mut bool,
+        debug_draw: &mut crate::editor::debug_draw::DebugDrawManager,
         dt: f32,
     ) {
         // Handle layout change request (will be processed by caller)
@@ -309,6 +317,7 @@ impl EditorUI {
                 show_project_settings,
                 show_colliders,
                 show_velocities,
+                show_debug_lines,
                 project_path,
                 current_scene_path,
                 is_playing,
@@ -352,6 +361,8 @@ impl EditorUI {
                 sprite_editor_windows,
                 sprite_picker_state,
                 texture_inspector,
+                show_debug_lines,
+                debug_draw,
                 dt,
             };
 

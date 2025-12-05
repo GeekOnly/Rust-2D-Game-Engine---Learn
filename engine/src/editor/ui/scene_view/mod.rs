@@ -36,6 +36,8 @@ pub fn render_scene_view(
     is_playing: bool,
     show_colliders: &bool,
     show_velocities: &bool,
+    show_debug_lines: &bool,
+    debug_draw: &mut crate::editor::debug_draw::DebugDrawManager,
     current_tool: &mut TransformTool,
     scene_camera: &mut SceneCamera,
     scene_grid: &SceneGrid,
@@ -160,10 +162,13 @@ pub fn render_scene_view(
                 selected_entity,
                 show_colliders,
                 show_velocities,
+                show_debug_lines,
+                debug_draw,
                 &mut hovered_entity,
                 &response,
                 texture_manager,
                 &ctx,
+                rect,
             );
             
             // Render transform gizmo for selected entity
@@ -189,6 +194,7 @@ pub fn render_scene_view(
                 selected_entity,
                 show_colliders,
                 show_velocities,
+                show_debug_lines,
                 &mut hovered_entity,
                 &response,
             );

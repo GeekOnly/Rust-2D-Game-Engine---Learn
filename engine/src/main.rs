@@ -1046,6 +1046,8 @@ fn main() -> Result<()> {
                                         &mut editor_state.sprite_picker_state,
                                         &mut editor_state.texture_inspector,
                                         &mut editor_state.map_view_state,
+                                        &mut editor_state.show_debug_lines,
+                                        &mut editor_state.debug_draw,
                                         dt,
                                     );
                                 } else {
@@ -1081,6 +1083,7 @@ fn main() -> Result<()> {
                                         &mut editor_state.texture_manager,
                                         &mut editor_state.open_sprite_editor_request,
                                         &mut editor_state.sprite_picker_state,
+                                        &mut editor_state.show_debug_lines,
                                     );
                                 }
 
@@ -1675,14 +1678,50 @@ fn main() -> Result<()> {
                                     let dt = (now - last_frame_time).as_secs_f32();
                                     last_frame_time = now;
 
+                                    // Update debug draw system
+                                    editor_state.debug_draw.update(dt);
+
                                     // Update ground states for Rapier (before running scripts)
                                     #[cfg(feature = "rapier")]
                                     {
                                         let entities_with_rigidbodies: Vec<_> = editor_state.world.rigidbodies.keys().cloned().collect();
                                         for entity in entities_with_rigidbodies {
-                                            let is_grounded = physics.is_grounded(entity, &editor_state.world);
+                                            // Use raycast for more reliable ground detection
+                                            // Cast ray 0.15 units down from player center
+                                            let is_grounded = physics.raycast_ground(entity, &editor_state.world, 0.15);
                                             script_engine.set_ground_state(entity, is_grounded);
-                                            editor_state.console.debug(format!("🔍 Rapier ground check: entity={}, grounded={}", entity, is_grounded));
+                                            
+                                            // Debug draw raycast (Unity-style)
+                                            if let Some(transform) = editor_state.world.transforms.get(&entity) {
+                                                let collider_half_height = if let Some(collider) = editor_state.world.colliders.get(&entity) {
+                                                    collider.get_world_height(transform.scale[1]) / 2.0
+                                                } else {
+                                                    0.0
+                                                };
+                                                
+                                                let ray_start = [
+                                                    transform.position[0],
+                                                    transform.position[1] - collider_half_height,
+                                                    transform.position[2],
+                                                ];
+                                                let ray_end = [
+                                                    transform.position[0],
+                                                    transform.position[1] - collider_half_height - 0.15,
+                                                    transform.position[2],
+                                                ];
+                                                
+                                                // Green if grounded, Red if not
+                                                if is_grounded {
+                                                    editor_state.debug_draw.draw_line_green(ray_start, ray_end, 0.0);
+                                                } else {
+                                                    editor_state.debug_draw.draw_line_red(ray_start, ray_end, 0.0);
+                                                }
+                                            }
+                                            
+                                            // Only log for player (entity with Player tag)
+                                            if editor_state.world.tags.get(&entity).map_or(false, |tag| matches!(tag, ecs::EntityTag::Player)) {
+                                                editor_state.console.debug(format!("🔍 Raycast ground check: entity={}, grounded={}", entity, is_grounded));
+                                            }
                                         }
                                     }
                                     #[cfg(not(feature = "rapier"))]
@@ -1711,6 +1750,19 @@ fn main() -> Result<()> {
                                                 }
                                             }
                                         }
+                                    }
+
+                                    // Transfer debug lines from script engine to debug_draw manager
+                                    let script_debug_lines = script_engine.take_debug_lines();
+                                    for line in script_debug_lines {
+                                        // Convert script DebugLine to editor DebugLine
+                                        let color = egui::Color32::from_rgba_premultiplied(
+                                            (line.color[0] * 255.0) as u8,
+                                            (line.color[1] * 255.0) as u8,
+                                            (line.color[2] * 255.0) as u8,
+                                            (line.color[3] * 255.0) as u8,
+                                        );
+                                        editor_state.debug_draw.draw_line(line.start, line.end, color, line.duration);
                                     }
 
                                     // Accumulate frame time for fixed timestep physics

@@ -18,6 +18,7 @@ pub fn render_menu_bar(
     show_project_settings: &mut bool,
     show_colliders: &mut bool,
     show_velocities: &mut bool,
+    show_debug_lines: &mut bool,
     project_path: &Option<std::path::PathBuf>,
     current_scene_path: &Option<std::path::PathBuf>,
     is_playing: bool,
@@ -63,6 +64,7 @@ pub fn render_menu_bar(
             ui.separator();
             ui.checkbox(show_colliders, "Show Colliders");
             ui.checkbox(show_velocities, "Show Velocities");
+            ui.checkbox(show_debug_lines, "Show Debug Lines");
         });
         ui.menu_button("GameObject", |ui| {
             if ui.button("Create Empty").clicked() {
