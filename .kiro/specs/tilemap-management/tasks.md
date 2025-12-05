@@ -10,8 +10,14 @@
   - Create test utilities module for generating mock LDtk data
   - _Requirements: All (testing infrastructure)_
 
-- [ ] 2. Implement core Grid and Tilemap components
-  - [ ] 2.1 Verify Grid component implementation
+- [x] 2. Implement core Grid and Tilemap components
+
+
+
+
+
+  - [x] 2.1 Verify Grid component implementation
+
     - Review existing Grid component in ecs/src/components/grid.rs
     - Ensure all coordinate conversion methods are correct
     - _Requirements: 7.1_
@@ -21,7 +27,9 @@
     - **Validates: Requirements 7.1**
     - Test that world_to_cell(cell_to_world(x, y)) == (x, y) for all coordinates
 
-  - [ ] 2.3 Verify Tilemap component implementation
+
+  - [x] 2.3 Verify Tilemap component implementation
+
     - Review existing Tilemap component
     - Ensure tile storage and retrieval works correctly
     - _Requirements: 7.2_

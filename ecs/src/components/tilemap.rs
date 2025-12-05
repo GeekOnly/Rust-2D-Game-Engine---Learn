@@ -265,3 +265,158 @@ impl TilemapChunk {
         self.tiles.iter().all(|t| t.is_empty())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_tilemap_creation() {
+        let tilemap = Tilemap::new("test_layer", "tileset_1", 10, 10);
+        
+        assert_eq!(tilemap.name, "test_layer");
+        assert_eq!(tilemap.tileset_id, "tileset_1");
+        assert_eq!(tilemap.width, 10);
+        assert_eq!(tilemap.height, 10);
+        assert_eq!(tilemap.tiles.len(), 100);
+        assert!(tilemap.visible);
+        assert_eq!(tilemap.opacity, 1.0);
+    }
+
+    #[test]
+    fn test_tilemap_get_set_tile() {
+        let mut tilemap = Tilemap::new("test_layer", "tileset_1", 5, 5);
+        
+        // Initially all tiles should be empty
+        let tile = tilemap.get_tile(0, 0).unwrap();
+        assert_eq!(tile.tile_id, 0);
+        assert!(tile.is_empty());
+        
+        // Set a tile
+        let new_tile = Tile::new(42);
+        assert!(tilemap.set_tile(2, 3, new_tile.clone()));
+        
+        // Verify the tile was set
+        let retrieved = tilemap.get_tile(2, 3).unwrap();
+        assert_eq!(retrieved.tile_id, 42);
+        assert!(!retrieved.is_empty());
+        
+        // Verify other tiles are still empty
+        let other = tilemap.get_tile(0, 0).unwrap();
+        assert!(other.is_empty());
+    }
+
+    #[test]
+    fn test_tilemap_bounds_checking() {
+        let mut tilemap = Tilemap::new("test_layer", "tileset_1", 5, 5);
+        
+        // Valid positions
+        assert!(tilemap.get_tile(0, 0).is_some());
+        assert!(tilemap.get_tile(4, 4).is_some());
+        
+        // Out of bounds positions
+        assert!(tilemap.get_tile(5, 0).is_none());
+        assert!(tilemap.get_tile(0, 5).is_none());
+        assert!(tilemap.get_tile(10, 10).is_none());
+        
+        // Set tile out of bounds should return false
+        assert!(!tilemap.set_tile(5, 0, Tile::new(1)));
+        assert!(!tilemap.set_tile(0, 5, Tile::new(1)));
+    }
+
+    #[test]
+    fn test_tilemap_set_tile_id() {
+        let mut tilemap = Tilemap::new("test_layer", "tileset_1", 3, 3);
+        
+        // Set tile by ID
+        assert!(tilemap.set_tile_id(1, 1, 99));
+        
+        // Verify it was set
+        let tile = tilemap.get_tile(1, 1).unwrap();
+        assert_eq!(tile.tile_id, 99);
+    }
+
+    #[test]
+    fn test_tilemap_clear() {
+        let mut tilemap = Tilemap::new("test_layer", "tileset_1", 3, 3);
+        
+        // Set some tiles
+        tilemap.set_tile_id(0, 0, 1);
+        tilemap.set_tile_id(1, 1, 2);
+        tilemap.set_tile_id(2, 2, 3);
+        
+        // Clear all tiles
+        tilemap.clear();
+        
+        // Verify all tiles are empty
+        for y in 0..3 {
+            for x in 0..3 {
+                let tile = tilemap.get_tile(x, y).unwrap();
+                assert!(tile.is_empty());
+            }
+        }
+    }
+
+    #[test]
+    fn test_tile_flips() {
+        let mut tile = Tile::new(10);
+        assert!(!tile.flip_h);
+        assert!(!tile.flip_v);
+        assert!(!tile.flip_d);
+        
+        tile.flip_h = true;
+        tile.flip_v = true;
+        assert!(tile.flip_h);
+        assert!(tile.flip_v);
+    }
+
+    #[test]
+    fn test_tileset_tile_coords() {
+        let tileset = TileSet::new(
+            "test_tileset",
+            "tileset.png",
+            "tileset_1",
+            16,  // tile_width
+            16,  // tile_height
+            8,   // columns
+            64,  // tile_count
+        );
+        
+        // First tile (0,0)
+        assert_eq!(tileset.get_tile_coords(0), Some((0, 0)));
+        
+        // Second tile in first row
+        assert_eq!(tileset.get_tile_coords(1), Some((16, 0)));
+        
+        // First tile in second row
+        assert_eq!(tileset.get_tile_coords(8), Some((0, 16)));
+        
+        // Out of bounds
+        assert_eq!(tileset.get_tile_coords(64), None);
+        assert_eq!(tileset.get_tile_coords(100), None);
+    }
+
+    #[test]
+    fn test_tileset_with_spacing_and_margin() {
+        let mut tileset = TileSet::new(
+            "test_tileset",
+            "tileset.png",
+            "tileset_1",
+            16,  // tile_width
+            16,  // tile_height
+            4,   // columns
+            16,  // tile_count
+        );
+        tileset.spacing = 2;
+        tileset.margin = 1;
+        
+        // First tile should account for margin
+        assert_eq!(tileset.get_tile_coords(0), Some((1, 1)));
+        
+        // Second tile should account for margin + spacing
+        assert_eq!(tileset.get_tile_coords(1), Some((19, 1))); // 1 + 16 + 2
+        
+        // First tile in second row
+        assert_eq!(tileset.get_tile_coords(4), Some((1, 19))); // 1 + 16 + 2
+    }
+}
