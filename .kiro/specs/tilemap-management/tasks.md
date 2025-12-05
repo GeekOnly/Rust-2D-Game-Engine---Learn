@@ -356,20 +356,31 @@
     - Show children count and components list
     - _Requirements: 7.5_
 
-- [ ] 12. Implement Layer Ordering Panel
-  - [ ] 12.1 Create LayerOrderingPanel struct and basic rendering
+- [x] 12. Implement Layer Ordering Panel
+
+
+
+
+
+  - [x] 12.1 Create LayerOrderingPanel struct and basic rendering
+
+
     - Create panel structure with drag state
     - Implement map selection dropdown
     - Display layer list
     - _Requirements: 5.1, 5.2_
 
-  - [ ] 12.2 Implement drag and drop functionality
+  - [x] 12.2 Implement drag and drop functionality
+
+
     - Track drag start and current position
     - Display visual feedback during drag
     - Calculate drop index from drag position
     - _Requirements: 5.1, 5.2_
 
-  - [ ] 12.3 Implement reorder_layers method
+  - [x] 12.3 Implement reorder_layers method
+
+
     - Move layer in list
     - Update all Z-Order values
     - Update tilemap components
@@ -385,7 +396,8 @@
     - **Validates: Requirements 5.3**
     - Test that Z-Orders are monotonically increasing after reorder
 
-  - [ ] 12.6 Implement move up/down buttons
+  - [x] 12.6 Implement move up/down buttons
+
     - Increment Z-Order for move up
     - Decrement Z-Order for move down (min -100)
     - _Requirements: 5.4, 5.5_
@@ -400,7 +412,8 @@
     - **Validates: Requirements 5.5**
     - Test that move down decrements by 1 but never below -100
 
-  - [ ] 12.9 Add visibility and lock toggles
+  - [x] 12.9 Add visibility and lock toggles
+
     - Implement visibility toggle button
     - Implement lock/unlock button
     - _Requirements: 3.1_

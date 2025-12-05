@@ -1050,6 +1050,7 @@ fn main() -> Result<()> {
                                         &mut editor_state.debug_draw,
                                         &mut editor_state.map_manager,
                                         &mut editor_state.layer_properties_panel,
+                                        &mut editor_state.layer_ordering_panel,
                                         dt,
                                     );
                                 } else {

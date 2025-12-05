@@ -112,6 +112,7 @@ pub struct EditorState {
     pub debug_draw: super::debug_draw::DebugDrawManager,  // Debug draw system (Unity/Unreal style)
     pub map_manager: super::map_manager::MapManager,  // Map manager for LDtk files
     pub layer_properties_panel: super::ui::layer_properties_panel::LayerPropertiesPanel,  // Layer properties panel for tilemap layers
+    pub layer_ordering_panel: super::ui::layer_ordering_panel::LayerOrderingPanel,  // Layer ordering panel for reordering tilemap layers
 }
 
 #[allow(dead_code)]
@@ -188,6 +189,7 @@ impl EditorState {
             debug_draw: super::debug_draw::DebugDrawManager::new(),
             map_manager: super::map_manager::MapManager::new(),
             layer_properties_panel: super::ui::layer_properties_panel::LayerPropertiesPanel::new(),
+            layer_ordering_panel: super::ui::layer_ordering_panel::LayerOrderingPanel::new(),
         }
     }
 

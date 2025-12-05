@@ -15,6 +15,7 @@ pub mod map_inspector;
 pub mod map_view;
 pub mod maps_panel;
 pub mod layer_properties_panel;
+pub mod layer_ordering_panel;
 
 // Re-exports
 use ecs::{World, Entity, EntityTag};
@@ -300,6 +301,7 @@ impl EditorUI {
         debug_draw: &mut crate::editor::debug_draw::DebugDrawManager,
         map_manager: &mut crate::editor::map_manager::MapManager,
         layer_properties_panel: &mut layer_properties_panel::LayerPropertiesPanel,
+        layer_ordering_panel: &mut layer_ordering_panel::LayerOrderingPanel,
         dt: f32,
     ) {
         // Handle layout change request (will be processed by caller)
@@ -369,6 +371,7 @@ impl EditorUI {
                 debug_draw,
                 map_manager,
                 layer_properties_panel,
+                layer_ordering_panel,
                 dt,
             };
 
