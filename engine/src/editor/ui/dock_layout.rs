@@ -52,6 +52,7 @@ pub struct TabContext<'a> {
     pub texture_inspector: &'a mut texture_inspector::TextureInspector,
     pub show_debug_lines: &'a mut bool,
     pub debug_draw: &'a mut crate::editor::debug_draw::DebugDrawManager,
+    pub map_manager: &'a crate::editor::map_manager::MapManager,
     pub dt: f32,
 }
 
@@ -84,7 +85,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
     fn ui(&mut self, ui: &mut egui::Ui, tab: &mut Self::Tab) {
         match tab {
             EditorTab::Hierarchy => {
-                hierarchy::render_hierarchy(
+                hierarchy::render_hierarchy_with_filter(
                     ui,
                     self.context.world,
                     self.context.entity_names,
@@ -95,6 +96,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                     self.context.console,
                     get_scene_files,
                     &get_entity_icon,
+                    Some(self.context.map_manager), // Pass map_manager to filter map entities
                 );
             }
             EditorTab::Inspector => {

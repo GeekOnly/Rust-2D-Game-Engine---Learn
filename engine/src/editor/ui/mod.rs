@@ -297,6 +297,7 @@ impl EditorUI {
         map_view_state: &mut map_view::MapViewState,
         show_debug_lines: &mut bool,
         debug_draw: &mut crate::editor::debug_draw::DebugDrawManager,
+        map_manager: &crate::editor::map_manager::MapManager,
         dt: f32,
     ) {
         // Handle layout change request (will be processed by caller)
@@ -364,6 +365,7 @@ impl EditorUI {
                 texture_inspector,
                 show_debug_lines,
                 debug_draw,
+                map_manager,
                 dt,
             };
 
