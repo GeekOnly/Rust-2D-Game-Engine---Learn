@@ -206,7 +206,12 @@ fn render_layer_item(
             RichText::new(layer_text).color(Color32::GRAY)
         };
         
-        ui.label(text);
+        // Make layer selectable (for Layer Properties Panel)
+        if ui.selectable_label(false, text).clicked() {
+            // Layer selection would be handled by the Layer Properties Panel
+            // For now, just log it
+            log::info!("Selected layer: {}", layer.name);
+        }
         
         // Visibility toggle
         let icon = if layer.visible { "👁" } else { "👁‍🗨" };

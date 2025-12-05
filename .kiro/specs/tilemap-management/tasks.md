@@ -293,8 +293,13 @@
     - Show tilemap and collider counts
     - _Requirements: 8.1, 8.2, 8.3_
 
-- [ ] 11. Implement Layer Properties Panel
-  - [ ] 11.1 Create LayerPropertiesPanel struct and basic rendering
+- [x] 11. Implement Layer Properties Panel
+
+
+
+  - [x] 11.1 Create LayerPropertiesPanel struct and basic rendering
+
+
     - Create panel structure with selected_layer field
     - Implement render method with window
     - Handle no selection state
@@ -305,7 +310,9 @@
     - **Validates: Requirements 4.1**
     - Test that selecting a layer displays correct current values
 
-  - [ ] 11.3 Implement transform editing section
+  - [x] 11.3 Implement transform editing section
+
+
     - Add drag values for position, rotation, scale
     - Implement reset buttons
     - Update transform component on change
@@ -321,7 +328,9 @@
     - **Validates: Requirements 4.5**
     - Test that reset button restores default values
 
-  - [ ] 11.6 Implement rendering section
+  - [x] 11.6 Implement rendering section
+
+
     - Add visibility checkbox
     - Add Z-Order drag value
     - Add opacity slider
@@ -333,12 +342,16 @@
     - **Validates: Requirements 4.3**
     - Test that higher Z-Order renders on top
 
-  - [ ] 11.8 Implement tilemap info section
+  - [x] 11.8 Implement tilemap info section
+
+
     - Display tilemap size and tileset
     - Show tile count and memory usage
     - _Requirements: 8.3_
 
-  - [ ] 11.9 Implement advanced section
+  - [x] 11.9 Implement advanced section
+
+
     - Display entity ID and parent info
     - Show children count and components list
     - _Requirements: 7.5_

@@ -1049,6 +1049,7 @@ fn main() -> Result<()> {
                                         &mut editor_state.show_debug_lines,
                                         &mut editor_state.debug_draw,
                                         &mut editor_state.map_manager,
+                                        &mut editor_state.layer_properties_panel,
                                         dt,
                                     );
                                 } else {

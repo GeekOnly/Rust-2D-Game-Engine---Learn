@@ -111,6 +111,7 @@ pub struct EditorState {
     pub map_view_state: super::ui::map_view::MapViewState,  // Map view panel state
     pub debug_draw: super::debug_draw::DebugDrawManager,  // Debug draw system (Unity/Unreal style)
     pub map_manager: super::map_manager::MapManager,  // Map manager for LDtk files
+    pub layer_properties_panel: super::ui::layer_properties_panel::LayerPropertiesPanel,  // Layer properties panel for tilemap layers
 }
 
 #[allow(dead_code)]
@@ -186,6 +187,7 @@ impl EditorState {
             map_view_state: super::ui::map_view::MapViewState::default(),
             debug_draw: super::debug_draw::DebugDrawManager::new(),
             map_manager: super::map_manager::MapManager::new(),
+            layer_properties_panel: super::ui::layer_properties_panel::LayerPropertiesPanel::new(),
         }
     }
 

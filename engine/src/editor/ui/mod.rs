@@ -14,6 +14,7 @@ pub mod sprite_picker;
 pub mod map_inspector;
 pub mod map_view;
 pub mod maps_panel;
+pub mod layer_properties_panel;
 
 // Re-exports
 use ecs::{World, Entity, EntityTag};
@@ -298,6 +299,7 @@ impl EditorUI {
         show_debug_lines: &mut bool,
         debug_draw: &mut crate::editor::debug_draw::DebugDrawManager,
         map_manager: &mut crate::editor::map_manager::MapManager,
+        layer_properties_panel: &mut layer_properties_panel::LayerPropertiesPanel,
         dt: f32,
     ) {
         // Handle layout change request (will be processed by caller)
@@ -366,6 +368,7 @@ impl EditorUI {
                 show_debug_lines,
                 debug_draw,
                 map_manager,
+                layer_properties_panel,
                 dt,
             };
 
