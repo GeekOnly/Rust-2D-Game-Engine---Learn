@@ -588,6 +588,11 @@ pub fn render_inspector(
                                         ui.checkbox(&mut rigidbody.freeze_rotation, "")
                                             .on_hover_text("Prevent rotation (for 2D games)");
                                         ui.end_row();
+
+                                        ui.label("Enable CCD");
+                                        ui.checkbox(&mut rigidbody.enable_ccd, "")
+                                            .on_hover_text("Continuous Collision Detection - prevents fast objects from tunneling through colliders");
+                                        ui.end_row();
                                     });
 
                                 // Sync with legacy velocity

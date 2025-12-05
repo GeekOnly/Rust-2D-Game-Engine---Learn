@@ -323,6 +323,7 @@ impl LdtkLoader {
                                     mass: 1.0,
                                     is_kinematic: true,
                                     freeze_rotation: true,
+                                    enable_ccd: false, // Static objects don't need CCD
                                 };
                                 world.rigidbodies.insert(entity, rigidbody);
                                 
@@ -452,6 +453,7 @@ impl LdtkLoader {
                             mass: 1.0,
                             is_kinematic: true,
                             freeze_rotation: true,
+                            enable_ccd: false, // Static objects don't need CCD
                         };
                         world.rigidbodies.insert(entity, rigidbody);
                         

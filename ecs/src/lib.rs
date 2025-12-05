@@ -371,6 +371,8 @@ pub struct Rigidbody2D {
     pub mass: f32,                  // Mass (affects collision response)
     pub is_kinematic: bool,         // If true, not affected by physics (but still collides)
     pub freeze_rotation: bool,      // Prevent rotation (for 2D games)
+    #[serde(default)]
+    pub enable_ccd: bool,           // Continuous Collision Detection (prevents tunneling)
 }
 
 impl Default for Rigidbody2D {
@@ -381,6 +383,7 @@ impl Default for Rigidbody2D {
             mass: 1.0,
             is_kinematic: false,
             freeze_rotation: true,
+            enable_ccd: false,
         }
     }
 }

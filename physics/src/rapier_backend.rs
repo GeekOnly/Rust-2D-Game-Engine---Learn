@@ -97,7 +97,7 @@ impl RapierPhysicsWorld {
                     .translation(position)
                     .linvel(vector![rigidbody.velocity.0, -rigidbody.velocity.1])  // Negate Y velocity
                     .gravity_scale(rigidbody.gravity_scale)
-                    .ccd_enabled(true) // Enable continuous collision detection
+                    .ccd_enabled(rigidbody.enable_ccd) // Enable CCD if requested (prevents tunneling)
                     .build();
                 
                 let handle = self.rigid_body_set.insert(rigid_body);
