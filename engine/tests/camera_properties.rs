@@ -158,20 +158,75 @@ impl SceneCamera {
     }
     
     pub fn zoom(&mut self, delta: f32, mouse_pos: Vec2) {
-        if self.settings.zoom_to_cursor {
-            let world_pos_before = self.screen_to_world(mouse_pos);
-            self.last_cursor_world_pos = Some(world_pos_before);
+        if !delta.is_finite() || !mouse_pos.is_finite() {
+            return;
         }
+        
+        let world_pos_before = self.screen_to_world(mouse_pos);
+        self.last_cursor_world_pos = Some(world_pos_before);
+        
         let zoom_factor = if delta > 0.0 {
             1.0 + self.settings.zoom_sensitivity
         } else {
             1.0 / (1.0 + self.settings.zoom_sensitivity)
         };
-        self.target_zoom *= zoom_factor;
-        self.target_zoom = self.target_zoom.clamp(self.min_zoom, self.max_zoom);
+        
+        let old_zoom = self.zoom;
+        
+        self.zoom *= zoom_factor;
+        self.zoom = self.zoom.clamp(self.min_zoom, self.max_zoom);
+        self.target_zoom = self.zoom;
+        
+        if self.settings.zoom_to_cursor {
+            let world_pos_after = self.screen_to_world(mouse_pos);
+            let world_offset = world_pos_before - world_pos_after;
+            
+            if world_offset.is_finite() {
+                self.position += world_offset;
+                self.target_position = self.position;
+            }
+        }
+        
         if self.settings.enable_inertia {
-            let zoom_delta = self.target_zoom - self.zoom;
-            self.velocity.zoom_velocity += zoom_delta * 0.1;
+            let zoom_delta = self.zoom - old_zoom;
+            self.velocity.zoom_velocity += zoom_delta * 0.2;
+        }
+    }
+    
+    pub fn zoom_to_cursor(&mut self, delta: f32, cursor_screen_pos: Vec2, viewport_center: Vec2) {
+        if !delta.is_finite() || !cursor_screen_pos.is_finite() || !viewport_center.is_finite() {
+            return;
+        }
+        
+        let screen_pos = cursor_screen_pos - viewport_center;
+        let world_pos_before = self.screen_to_world(screen_pos);
+        self.last_cursor_world_pos = Some(world_pos_before);
+        
+        let zoom_factor = if delta > 0.0 {
+            1.0 + self.settings.zoom_sensitivity
+        } else {
+            1.0 / (1.0 + self.settings.zoom_sensitivity)
+        };
+        
+        let old_zoom = self.zoom;
+        
+        self.zoom *= zoom_factor;
+        self.zoom = self.zoom.clamp(self.min_zoom, self.max_zoom);
+        self.target_zoom = self.zoom;
+        
+        if self.settings.zoom_to_cursor {
+            let world_pos_after = self.screen_to_world(screen_pos);
+            let world_offset = world_pos_before - world_pos_after;
+            
+            if world_offset.is_finite() {
+                self.position += world_offset;
+                self.target_position = self.position;
+            }
+        }
+        
+        if self.settings.enable_inertia {
+            let zoom_delta = self.zoom - old_zoom;
+            self.velocity.zoom_velocity += zoom_delta * 0.2;
         }
     }
     
@@ -1154,5 +1209,85 @@ proptest! {
                 dot_product
             );
         }
+    }
+    
+    // Feature: scene-view-improvements, Property 3: Zoom converges to cursor point
+    // Validates: Requirements 2.3, 8.1, 8.2, 8.3
+    #[test]
+    fn prop_zoom_converges_to_cursor_point(
+        initial_pos in prop_vec2(),
+        initial_zoom in prop_zoom(),
+        cursor_x in -500.0f32..500.0f32,
+        cursor_y in -500.0f32..500.0f32,
+        zoom_delta in -5.0f32..5.0f32,
+        viewport_center_x in -100.0f32..100.0f32,
+        viewport_center_y in -100.0f32..100.0f32,
+    ) {
+        let mut camera = SceneCamera::new();
+        camera.position = initial_pos;
+        camera.zoom = initial_zoom;
+        camera.target_zoom = initial_zoom;
+        camera.settings.zoom_to_cursor = true;
+        camera.settings.enable_inertia = false; // Disable inertia for cleaner test
+        
+        let cursor_screen = Vec2::new(cursor_x, cursor_y);
+        let viewport_center = Vec2::new(viewport_center_x, viewport_center_y);
+        
+        // Get world position under cursor before zoom
+        let screen_pos = cursor_screen - viewport_center;
+        let world_before = camera.screen_to_world(screen_pos);
+        
+        // Perform zoom
+        camera.zoom_to_cursor(zoom_delta, cursor_screen, viewport_center);
+        
+        // Get world position under cursor after zoom
+        let world_after = camera.screen_to_world(screen_pos);
+        
+        // World point should remain stationary (within tolerance)
+        let world_diff = (world_before - world_after).length();
+        
+        // Use a tolerance based on the zoom level and position magnitude
+        // Higher zoom = more precision needed, but floating point errors accumulate
+        let position_magnitude = camera.position.length().max(1.0);
+        let tolerance = (0.1 * position_magnitude / initial_zoom).max(0.1);
+        
+        prop_assert!(
+            world_diff < tolerance,
+            "World point under cursor should remain stationary during zoom. \
+             Initial pos: {:?}, Initial zoom: {}, Final zoom: {}, \
+             World before: {:?}, World after: {:?}, Diff: {}, Tolerance: {}",
+            initial_pos,
+            initial_zoom,
+            camera.zoom,
+            world_before,
+            world_after,
+            world_diff,
+            tolerance
+        );
+        
+        // Verify zoom actually changed (unless at bounds)
+        if zoom_delta.abs() > 0.1 {
+            let zoom_at_min = (camera.zoom - camera.min_zoom).abs() < 0.01;
+            let zoom_at_max = (camera.zoom - camera.max_zoom).abs() < 0.01;
+            
+            if !zoom_at_min && !zoom_at_max {
+                let zoom_changed = (camera.zoom - initial_zoom).abs() > 0.001;
+                prop_assert!(
+                    zoom_changed,
+                    "Zoom should change when not at bounds. Initial: {}, Final: {}",
+                    initial_zoom,
+                    camera.zoom
+                );
+            }
+        }
+        
+        // Verify zoom stays within bounds
+        prop_assert!(
+            camera.zoom >= camera.min_zoom && camera.zoom <= camera.max_zoom,
+            "Zoom should stay within bounds. Zoom: {}, Min: {}, Max: {}",
+            camera.zoom,
+            camera.min_zoom,
+            camera.max_zoom
+        );
     }
 }

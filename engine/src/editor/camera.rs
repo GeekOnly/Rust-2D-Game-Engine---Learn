@@ -193,8 +193,16 @@ impl SceneCamera {
     
     /// Zoom in/out (scroll wheel) - improved version with cursor-based zooming
     pub fn zoom(&mut self, delta: f32, mouse_pos: Vec2) {
+        // Validate inputs
+        if !delta.is_finite() || !mouse_pos.is_finite() {
+            return;
+        }
+        
         // Calculate world position under cursor BEFORE zoom
         let world_pos_before = self.screen_to_world(mouse_pos);
+        
+        // Store for smooth interpolation if needed
+        self.last_cursor_world_pos = Some(world_pos_before);
         
         // Calculate zoom factor
         let zoom_factor = if delta > 0.0 {
@@ -217,11 +225,67 @@ impl SceneCamera {
             
             // Adjust camera position to keep the same world point under cursor
             let world_offset = world_pos_before - world_pos_after;
-            self.position += world_offset;
-            self.target_position = self.position;
+            
+            // Validate offset before applying
+            if world_offset.is_finite() {
+                self.position += world_offset;
+                self.target_position = self.position;
+            }
         }
         
         // Add to velocity for inertia (if enabled)
+        if self.settings.enable_inertia {
+            let zoom_delta = self.zoom - old_zoom;
+            self.velocity.zoom_velocity += zoom_delta * 0.2;
+        }
+    }
+    
+    /// Enhanced zoom with explicit viewport center for better control
+    pub fn zoom_to_cursor(&mut self, delta: f32, cursor_screen_pos: Vec2, viewport_center: Vec2) {
+        // Validate inputs
+        if !delta.is_finite() || !cursor_screen_pos.is_finite() || !viewport_center.is_finite() {
+            return;
+        }
+        
+        // Convert cursor position to screen space relative to viewport center
+        let screen_pos = cursor_screen_pos - viewport_center;
+        
+        // Calculate world position under cursor BEFORE zoom
+        let world_pos_before = self.screen_to_world(screen_pos);
+        
+        // Store for tracking
+        self.last_cursor_world_pos = Some(world_pos_before);
+        
+        // Calculate zoom factor
+        let zoom_factor = if delta > 0.0 {
+            1.0 + self.settings.zoom_sensitivity
+        } else {
+            1.0 / (1.0 + self.settings.zoom_sensitivity)
+        };
+        
+        let old_zoom = self.zoom;
+        
+        // Apply zoom transformation
+        self.zoom *= zoom_factor;
+        self.zoom = self.zoom.clamp(self.min_zoom, self.max_zoom);
+        self.target_zoom = self.zoom;
+        
+        // Adjust camera position to keep cursor point stationary
+        if self.settings.zoom_to_cursor {
+            // Calculate world position under cursor AFTER zoom
+            let world_pos_after = self.screen_to_world(screen_pos);
+            
+            // Calculate offset needed to keep world point stationary
+            let world_offset = world_pos_before - world_pos_after;
+            
+            // Validate and apply offset
+            if world_offset.is_finite() {
+                self.position += world_offset;
+                self.target_position = self.position;
+            }
+        }
+        
+        // Add smooth zoom interpolation velocity
         if self.settings.enable_inertia {
             let zoom_delta = self.zoom - old_zoom;
             self.velocity.zoom_velocity += zoom_delta * 0.2;

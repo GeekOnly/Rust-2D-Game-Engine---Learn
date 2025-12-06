@@ -37,7 +37,12 @@
   - **Property 6: Inertia maintains momentum**
   - **Validates: Requirements 5.1, 5.3**
 
-- [ ] 2. Implement cursor-based zoom with world-space tracking
+- [x] 2. Implement cursor-based zoom with world-space tracking
+
+
+
+
+
   - Enhance zoom() method to track cursor world position
   - Calculate world position under cursor before zoom
   - Apply zoom transformation
@@ -45,7 +50,9 @@
   - Add smooth zoom interpolation
   - _Requirements: 2.3, 8.1, 8.2, 8.3, 8.4, 8.5_
 
-- [ ] 2.1 Write property test for zoom cursor convergence
+- [x] 2.1 Write property test for zoom cursor convergence
+
+
   - **Property 3: Zoom converges to cursor point**
   - **Validates: Requirements 2.3, 8.1, 8.2, 8.3**
 
