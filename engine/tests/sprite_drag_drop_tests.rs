@@ -35,6 +35,8 @@ fn test_sprite_entity_has_required_components() {
         billboard: false,
         flip_x: false,
         flip_y: false,
+        sprite_rect: None,
+        pixels_per_unit: 100.0,
     });
     
     // Add SpriteSheet component
@@ -164,6 +166,8 @@ fn test_sprite_component_matches_first_frame() {
         billboard: false,
         flip_x: false,
         flip_y: false,
+        sprite_rect: None,
+        pixels_per_unit: 100.0,
     });
     
     let sprite = world.sprites.get(&entity).unwrap();

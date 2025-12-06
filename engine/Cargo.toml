@@ -30,9 +30,14 @@ chrono = "0.4"
 glam = { version = "0.30.9", features = ["serde"] }
 arboard = "3.4"
 open = "5.0"
+notify = "6.1"
+notify-debouncer-full = "0.3"
 
 [dev-dependencies]
 proptest = "1.4"
+quickcheck = "1.0"
+quickcheck_macros = "1.0"
+tempfile = "3.8"
 
 [features]
 default = ["rapier"]

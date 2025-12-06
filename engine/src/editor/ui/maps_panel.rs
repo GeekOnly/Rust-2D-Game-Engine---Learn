@@ -2,7 +2,7 @@ use egui::{self, Color32, RichText};
 use ecs::World;
 use crate::editor::map_manager::MapManager;
 
-/// Render the Maps panel
+/// Render the Maps panel as a standalone window
 pub fn render_maps_panel(
     ctx: &egui::Context,
     map_manager: &mut MapManager,
@@ -14,20 +14,57 @@ pub fn render_maps_panel(
         .default_width(300.0)
         .resizable(true)
         .show(ctx, |ui| {
-            render_maps_content(ui, map_manager, world);
+            render_maps_panel_content(ui, map_manager, world);
         });
 }
 
-fn render_maps_content(
+/// Render the Maps panel content (for use in docking system)
+pub fn render_maps_panel_content(
     ui: &mut egui::Ui,
     map_manager: &mut MapManager,
     world: &mut World,
 ) {
-    // Refresh button
+    // Refresh button and help
     ui.horizontal(|ui| {
-        if ui.button("🔄 Refresh").clicked() {
+        if ui.button("🔄 Refresh")
+            .on_hover_text("Scan project directory for .ldtk files")
+            .clicked() 
+        {
             map_manager.scan_ldtk_files();
         }
+        
+        // Help button
+        if ui.button("❓")
+            .on_hover_text("Show help")
+            .clicked() 
+        {
+            // Help will be shown in a collapsing section below
+        }
+    });
+    
+    // Help section
+    ui.collapsing("ℹ️ Help", |ui| {
+        ui.label(RichText::new("Tilemap Management Workflow:").strong());
+        ui.separator();
+        
+        ui.label("1. Click 'Add Map' to browse for .ldtk files");
+        ui.label("2. Select a file to load it into the scene");
+        ui.label("3. Use visibility toggles to show/hide layers");
+        ui.label("4. Colliders are auto-generated from IntGrid layers");
+        ui.label("5. Use 'Reload' to refresh after editing in LDtk");
+        
+        ui.separator();
+        ui.label(RichText::new("Keyboard Shortcuts:").strong());
+        ui.label("• Ctrl+R: Reload selected map");
+        ui.label("• Ctrl+Shift+R: Regenerate colliders");
+        ui.label("• Ctrl+H: Toggle layer visibility");
+        
+        ui.separator();
+        ui.label(RichText::new("Tips:").strong().color(Color32::from_rgb(100, 200, 255)));
+        ui.label("• Enable hot-reload in Collider Settings for automatic reloading");
+        ui.label("• Use Layer Properties panel to adjust layer transforms");
+        ui.label("• Use Layer Ordering panel to reorder layers");
+        ui.label("• Check Performance panel for optimization tips");
     });
     
     ui.separator();
@@ -57,11 +94,34 @@ fn render_ldtk_files_section(
     world: &mut World,
 ) {
     ui.collapsing(RichText::new("📁 LDtk Files").strong(), |ui| {
+        // Add Map button with file dialog
+        if ui.button("➕ Add Map").on_hover_text("Browse for .ldtk file").clicked() {
+            // Open file dialog
+            if let Some(path) = rfd::FileDialog::new()
+                .add_filter("LDtk Files", &["ldtk"])
+                .pick_file()
+            {
+                // Add to available files if not already there
+                if !map_manager.available_files.contains(&path) {
+                    map_manager.available_files.push(path.clone());
+                }
+                
+                // Load the map
+                if let Err(e) = map_manager.load_map(&path, world) {
+                    log::error!("Failed to load map: {}", e);
+                }
+            }
+        }
+        
+        ui.separator();
+        
         if map_manager.available_files.is_empty() {
             ui.label(RichText::new("No LDtk files found").color(Color32::GRAY));
+            ui.label(RichText::new("Click 'Add Map' to browse for files").color(Color32::GRAY).italics());
             return;
         }
         
+        // Display available files
         for file_path in map_manager.available_files.clone() {
             ui.horizontal(|ui| {
                 // File icon
@@ -76,9 +136,9 @@ fn render_ldtk_files_section(
                 let is_loaded = map_manager.loaded_maps.contains_key(&file_path);
                 let is_selected = map_manager.selected_map.as_ref() == Some(&file_path);
                 
-                // Selectable file
+                // Selectable file with load status indicator
                 let text = if is_loaded {
-                    RichText::new(file_name).color(Color32::from_rgb(100, 200, 100))
+                    RichText::new(format!("{} ✓", file_name)).color(Color32::from_rgb(100, 200, 100))
                 } else {
                     RichText::new(file_name)
                 };
@@ -94,11 +154,24 @@ fn render_ldtk_files_section(
                     }
                 }
                 
-                // Reload button (only if loaded)
+                // Action buttons
                 if is_loaded {
+                    // Reload button
                     if ui.small_button("↻").on_hover_text("Reload").clicked() {
                         if let Err(e) = map_manager.reload_map(&file_path, world) {
                             log::error!("Failed to reload map: {}", e);
+                        }
+                    }
+                    
+                    // Unload button
+                    if ui.small_button("✖").on_hover_text("Unload").clicked() {
+                        map_manager.unload_map(&file_path, world);
+                    }
+                } else {
+                    // Load button for unloaded files
+                    if ui.small_button("📂").on_hover_text("Load").clicked() {
+                        if let Err(e) = map_manager.load_map(&file_path, world) {
+                            log::error!("Failed to load map: {}", e);
                         }
                     }
                 }
@@ -169,7 +242,12 @@ fn render_layer_item(
             RichText::new(layer_text).color(Color32::GRAY)
         };
         
-        ui.label(text);
+        // Make layer selectable (for Layer Properties Panel)
+        if ui.selectable_label(false, text).clicked() {
+            // Layer selection would be handled by the Layer Properties Panel
+            // For now, just log it
+            log::info!("Selected layer: {}", layer.name);
+        }
         
         // Visibility toggle
         let icon = if layer.visible { "👁" } else { "👁‍🗨" };

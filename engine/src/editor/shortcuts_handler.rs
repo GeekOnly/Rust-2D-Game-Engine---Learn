@@ -5,6 +5,7 @@
 //! - Selection (Ctrl+A, Escape, Delete)
 //! - Clipboard (Ctrl+C/V/D/X)
 //! - Snapping (Ctrl+G)
+//! - Tilemap Management (Ctrl+R, Ctrl+Shift+R, Ctrl+H)
 
 use crate::editor::{
     EditorState, SelectionMode,
@@ -230,8 +231,8 @@ pub fn handle_editor_shortcuts(
         // SNAPPING
         // ====================================================================
         
-        // Ctrl+G: Toggle Snapping
-        if i.modifiers.ctrl && !i.modifiers.shift && i.key_pressed(egui::Key::G) {
+        // Ctrl+G: Toggle Snapping (only if Shift is not pressed to avoid conflict with regenerate colliders)
+        if i.modifiers.ctrl && !i.modifiers.shift && i.key_pressed(egui::Key::G) && !i.key_pressed(egui::Key::R) && !i.key_pressed(egui::Key::H) {
             state.snap_settings.enabled = !state.snap_settings.enabled;
             state.console.info(format!(
                 "Snapping: {}",
@@ -252,6 +253,67 @@ pub fn handle_editor_shortcuts(
             
             // Save settings
             let _ = state.snap_settings.save();
+        }
+        
+        // ====================================================================
+        // TILEMAP MANAGEMENT
+        // ====================================================================
+        
+        // Ctrl+R: Reload selected map
+        if i.modifiers.ctrl && i.key_pressed(egui::Key::R) {
+            if let Some(selected_map) = &state.map_manager.selected_map.clone() {
+                match state.map_manager.reload_map(selected_map, &mut state.world) {
+                    Ok(()) => {
+                        state.console.info(format!("Reloaded map: {:?}", selected_map.file_name().unwrap_or_default()));
+                        state.scene_modified = true;
+                    }
+                    Err(e) => {
+                        state.console.error(format!("Failed to reload map: {}", e.display_message()));
+                    }
+                }
+            } else {
+                state.console.warning("No map selected to reload");
+            }
+        }
+        
+        // Ctrl+Shift+R: Regenerate colliders for selected map
+        if i.modifiers.ctrl && i.modifiers.shift && i.key_pressed(egui::Key::R) {
+            if let Some(selected_map) = &state.map_manager.selected_map.clone() {
+                match state.map_manager.regenerate_colliders(selected_map, &mut state.world) {
+                    Ok(count) => {
+                        state.console.info(format!("Regenerated {} colliders", count));
+                        state.scene_modified = true;
+                    }
+                    Err(e) => {
+                        state.console.error(format!("Failed to regenerate colliders: {}", e.display_message()));
+                    }
+                }
+            } else {
+                state.console.warning("No map selected to regenerate colliders");
+            }
+        }
+        
+        // Ctrl+H: Toggle visibility of selected layer
+        if i.modifiers.ctrl && i.key_pressed(egui::Key::H) {
+            if let Some(selected_entity) = state.selected_entity {
+                // Check if selected entity is a layer
+                let is_layer = state.map_manager.loaded_maps.values()
+                    .any(|map| map.layer_entities.iter().any(|l| l.entity == selected_entity));
+                
+                if is_layer {
+                    state.map_manager.toggle_layer_visibility(selected_entity, &mut state.world);
+                    let visible = state.world.active.get(&selected_entity).copied().unwrap_or(true);
+                    state.console.info(format!(
+                        "Layer visibility: {}",
+                        if visible { "ON" } else { "OFF" }
+                    ));
+                    state.scene_modified = true;
+                } else {
+                    state.console.warning("Selected entity is not a tilemap layer");
+                }
+            } else {
+                state.console.warning("No layer selected to toggle visibility");
+            }
         }
     });
 }
@@ -278,6 +340,11 @@ pub fn get_shortcut_hints() -> HashMap<&'static str, &'static str> {
     // Snapping
     hints.insert("Toggle Snap", "Ctrl+G");
     hints.insert("Toggle Grid", "Ctrl+Shift+G");
+    
+    // Tilemap Management
+    hints.insert("Reload Map", "Ctrl+R");
+    hints.insert("Regenerate Colliders", "Ctrl+Shift+R");
+    hints.insert("Toggle Layer Visibility", "Ctrl+H");
     
     hints
 }
@@ -352,5 +419,21 @@ pub fn render_shortcuts_help(ui: &mut egui::Ui) {
     ui.horizontal(|ui| {
         ui.label("  Hold Ctrl");
         ui.label("Enable Snap (temp)");
+    });
+    
+    ui.separator();
+    
+    ui.label("Tilemap Management:");
+    ui.horizontal(|ui| {
+        ui.label("  Ctrl+R");
+        ui.label("Reload Map");
+    });
+    ui.horizontal(|ui| {
+        ui.label("  Ctrl+Shift+R");
+        ui.label("Regenerate Colliders");
+    });
+    ui.horizontal(|ui| {
+        ui.label("  Ctrl+H");
+        ui.label("Toggle Layer Visibility");
     });
 }

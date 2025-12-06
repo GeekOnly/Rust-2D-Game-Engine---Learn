@@ -151,9 +151,9 @@ mod hecs_example {
 // ============================================================================
 
 fn main() {
-    println!("=".repeat(60));
+    println!("{}", "=".repeat(60));
     println!("ECS Migration Example: Custom HashMap vs hecs");
-    println!("=".repeat(60));
+    println!("{}", "=".repeat(60));
     println!();
 
     #[cfg(feature = "show_custom_ecs")]
@@ -176,9 +176,9 @@ fn main() {
         println!();
     }
 
-    println!("=".repeat(60));
+    println!("{}", "=".repeat(60));
     println!("Key Differences:");
-    println!("=".repeat(60));
+    println!("{}", "=".repeat(60));
     println!("1. Spawn:");
     println!("   Custom: Separate inserts (3 HashMap operations)");
     println!("   hecs:   Bundle spawn (1 archetype insert)");
@@ -190,5 +190,5 @@ fn main() {
     println!("3. Mutation:");
     println!("   Custom: Collect keys to avoid borrow checker issues");
     println!("   hecs:   Direct mutable iteration");
-    println!("=".repeat(60));
+    println!("{}", "=".repeat(60));
 }

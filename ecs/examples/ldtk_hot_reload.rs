@@ -12,14 +12,14 @@
 /// cargo run --example ldtk_hot_reload -- path/to/your/level.ldtk
 /// ```
 
-use ecs::{World, LdtkHotReloader};
+use ecs::{World, loaders::LdtkHotReloader, traits::EcsWorld};
 use std::env;
 use std::thread;
 use std::time::Duration;
 
 fn main() {
-    // Initialize logger
-    env_logger::init();
+    // Initialize logger (optional - comment out if env_logger not available)
+    // env_logger::init();
 
     // Get file path from command line
     let args: Vec<String> = env::args().collect();

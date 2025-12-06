@@ -111,6 +111,10 @@ pub struct EditorState {
     pub map_view_state: super::ui::map_view::MapViewState,  // Map view panel state
     pub debug_draw: super::debug_draw::DebugDrawManager,  // Debug draw system (Unity/Unreal style)
     pub map_manager: super::map_manager::MapManager,  // Map manager for LDtk files
+    pub layer_properties_panel: super::ui::layer_properties_panel::LayerPropertiesPanel,  // Layer properties panel for tilemap layers
+    pub layer_ordering_panel: super::ui::layer_ordering_panel::LayerOrderingPanel,  // Layer ordering panel for reordering tilemap layers
+    pub performance_panel: super::ui::performance_panel::PerformancePanel,  // Performance monitoring panel for tilemap management
+    pub collider_settings_panel: super::ui::collider_settings_panel::ColliderSettingsPanel,  // Collider configuration panel for tilemap colliders
 }
 
 #[allow(dead_code)]
@@ -186,6 +190,10 @@ impl EditorState {
             map_view_state: super::ui::map_view::MapViewState::default(),
             debug_draw: super::debug_draw::DebugDrawManager::new(),
             map_manager: super::map_manager::MapManager::new(),
+            layer_properties_panel: super::ui::layer_properties_panel::LayerPropertiesPanel::new(),
+            layer_ordering_panel: super::ui::layer_ordering_panel::LayerOrderingPanel::new(),
+            performance_panel: super::ui::performance_panel::PerformancePanel::new(),
+            collider_settings_panel: super::ui::collider_settings_panel::ColliderSettingsPanel::new(),
         }
     }
 

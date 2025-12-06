@@ -20,6 +20,9 @@ pub mod sprite_editor;
 pub mod texture_import_settings;
 pub mod debug_draw;
 pub mod map_manager;
+pub mod hot_reload;
+pub mod tilemap_error;
+pub mod tilemap_settings;
 
 // Re-exports for convenience
 pub use console::Console;
@@ -37,3 +40,5 @@ pub use clipboard::{Clipboard, copy_selected, paste_from_clipboard, duplicate_se
 pub use sprite_editor::{SpriteEditorWindow, SpriteMetadata};
 pub use debug_draw::DebugDrawManager;
 pub use map_manager::MapManager;
+pub use tilemap_error::TilemapError;
+pub use tilemap_settings::TilemapSettings;

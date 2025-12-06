@@ -124,7 +124,7 @@
             }
           },
           {
-            "Leaf": {
+            "Horizontal": {
               "rect": {
                 "min": {
                   "x": 424.0,
@@ -135,21 +135,7 @@
                   "y": 710.0
                 }
               },
-              "viewport": {
-                "min": {
-                  "x": 424.0,
-                  "y": 56.0
-                },
-                "max": {
-                  "x": 1478.0,
-                  "y": 710.0
-                }
-              },
-              "tabs": [
-                "Scene"
-              ],
-              "active": 0,
-              "scroll": 0.0
+              "fraction": 0.71916544
             }
           },
           {
@@ -176,10 +162,9 @@
               },
               "tabs": [
                 "Console",
-                "Project",
-                "MapView"
+                "Project"
               ],
-              "active": 0,
+              "active": 1,
               "scroll": 0.0
             }
           },
@@ -218,8 +203,64 @@
           "Empty",
           "Empty",
           "Empty",
-          "Empty",
-          "Empty",
+          {
+            "Leaf": {
+              "rect": {
+                "min": {
+                  "x": 424.0,
+                  "y": 32.0
+                },
+                "max": {
+                  "x": 1182.0,
+                  "y": 710.0
+                }
+              },
+              "viewport": {
+                "min": {
+                  "x": 424.0,
+                  "y": 56.0
+                },
+                "max": {
+                  "x": 1182.0,
+                  "y": 710.0
+                }
+              },
+              "tabs": [
+                "Scene"
+              ],
+              "active": 0,
+              "scroll": 0.0
+            }
+          },
+          {
+            "Leaf": {
+              "rect": {
+                "min": {
+                  "x": 1183.0,
+                  "y": 32.0
+                },
+                "max": {
+                  "x": 1478.0,
+                  "y": 710.0
+                }
+              },
+              "viewport": {
+                "min": {
+                  "x": 1183.0,
+                  "y": 56.0
+                },
+                "max": {
+                  "x": 1478.0,
+                  "y": 710.0
+                }
+              },
+              "tabs": [
+                "MapView"
+              ],
+              "active": 0,
+              "scroll": 0.0
+            }
+          },
           "Empty",
           "Empty",
           "Empty",
@@ -233,7 +274,7 @@
           "Empty",
           "Empty"
         ],
-        "focused_node": 7
+        "focused_node": 9
       }
     }
   ],

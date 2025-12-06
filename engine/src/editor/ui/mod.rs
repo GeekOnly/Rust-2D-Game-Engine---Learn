@@ -14,6 +14,10 @@ pub mod sprite_picker;
 pub mod map_inspector;
 pub mod map_view;
 pub mod maps_panel;
+pub mod layer_properties_panel;
+pub mod layer_ordering_panel;
+pub mod performance_panel;
+pub mod collider_settings_panel;
 
 // Re-exports
 use ecs::{World, Entity, EntityTag};
@@ -102,6 +106,8 @@ impl EditorUI {
 
         // Hierarchy Panel (Left)
         egui::SidePanel::left("hierarchy").min_width(200.0).show(ctx, |ui| {
+            // Note: This is the old non-dock layout. Map filtering is not available here
+            // as MapManager is not passed to this function. Use the dock layout for full features.
             hierarchy::render_hierarchy(
                 ui,
                 world,
@@ -297,7 +303,11 @@ impl EditorUI {
         map_view_state: &mut map_view::MapViewState,
         show_debug_lines: &mut bool,
         debug_draw: &mut crate::editor::debug_draw::DebugDrawManager,
-        map_manager: &crate::editor::map_manager::MapManager,
+        map_manager: &mut crate::editor::map_manager::MapManager,
+        layer_properties_panel: &mut layer_properties_panel::LayerPropertiesPanel,
+        layer_ordering_panel: &mut layer_ordering_panel::LayerOrderingPanel,
+        performance_panel: &mut performance_panel::PerformancePanel,
+        collider_settings_panel: &mut collider_settings_panel::ColliderSettingsPanel,
         dt: f32,
     ) {
         // Handle layout change request (will be processed by caller)
@@ -366,6 +376,10 @@ impl EditorUI {
                 show_debug_lines,
                 debug_draw,
                 map_manager,
+                layer_properties_panel,
+                layer_ordering_panel,
+                performance_panel,
+                collider_settings_panel,
                 dt,
             };
 
