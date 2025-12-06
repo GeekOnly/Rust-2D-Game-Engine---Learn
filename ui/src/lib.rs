@@ -98,6 +98,7 @@ pub use animation::{
 pub use rendering::{
     UIMask,
     ClipRegion, ViewportClippingSystem,
+    MaskingSystem, MaskState,
 };
 
 // Re-export prefab types

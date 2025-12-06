@@ -3,8 +3,10 @@
 use serde::{Deserialize, Serialize};
 
 pub mod clipping;
+pub mod mask_system;
 
 pub use clipping::{ClipRegion, ViewportClippingSystem};
+pub use mask_system::{MaskingSystem, MaskState};
 
 /// UI Mask component for clipping
 #[derive(Clone, Debug, Serialize, Deserialize)]
