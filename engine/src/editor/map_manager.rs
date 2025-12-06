@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 use std::time::SystemTime;
 use super::hot_reload::HotReloadWatcher;
+use super::tilemap_error::TilemapError;
 
 /// Map Manager for handling LDtk files in the editor
 pub struct MapManager {
@@ -152,7 +153,23 @@ impl MapManager {
     }
     
     /// Load a map file with auto-generated colliders
-    pub fn load_map(&mut self, path: &PathBuf, world: &mut World) -> Result<(), String> {
+    pub fn load_map(&mut self, path: &PathBuf, world: &mut World) -> Result<(), TilemapError> {
+        // Check if file exists
+        if !path.exists() {
+            let error = TilemapError::FileNotFound(path.clone());
+            error.log_error();
+            return Err(error);
+        }
+        
+        // Validate file extension
+        if path.extension().and_then(|s| s.to_str()) != Some("ldtk") {
+            let error = TilemapError::InvalidFormat(
+                format!("Expected .ldtk file, got: {:?}", path.extension())
+            );
+            error.log_error();
+            return Err(error);
+        }
+        
         // Remove old map if exists
         if let Some(old_map) = self.loaded_maps.remove(path) {
             world.despawn(old_map.grid_entity);
@@ -165,7 +182,12 @@ impl MapManager {
                 world,
                 true,  // auto_generate_colliders
                 self.collision_value,  // Use configured collision value
-            )?;
+            ).map_err(|e| {
+                // Convert string error to TilemapError and log it
+                let error: TilemapError = e.into();
+                error.log_error();
+                error
+            })?;
         
         // Create LayerInfo for each layer
         let layer_infos: Vec<LayerInfo> = layer_entities.iter().map(|&entity| {
@@ -215,10 +237,21 @@ impl MapManager {
     }
     
     /// Reload a map file while preserving Grid Entity ID
-    pub fn reload_map(&mut self, path: &PathBuf, world: &mut World) -> Result<(), String> {
+    pub fn reload_map(&mut self, path: &PathBuf, world: &mut World) -> Result<(), TilemapError> {
+        // Check if file exists
+        if !path.exists() {
+            let error = TilemapError::FileNotFound(path.clone());
+            error.log_error();
+            return Err(error);
+        }
+        
         // Get existing map info
         let existing_map = self.loaded_maps.get(path)
-            .ok_or_else(|| format!("Map not loaded: {:?}", path))?;
+            .ok_or_else(|| {
+                let error = TilemapError::ValidationError(format!("Map not loaded: {:?}", path));
+                error.log_error();
+                error
+            })?;
         
         let grid_entity = existing_map.grid_entity;
         
@@ -236,10 +269,18 @@ impl MapManager {
         
         // Load the project JSON
         let project_data = std::fs::read_to_string(path)
-            .map_err(|e| format!("Failed to read LDTK file: {}", e))?;
+            .map_err(|e| {
+                let error = TilemapError::IoError(format!("Failed to read LDTK file: {}", e));
+                error.log_error();
+                error
+            })?;
         
         let project: serde_json::Value = serde_json::from_str(&project_data)
-            .map_err(|e| format!("Failed to parse LDTK JSON: {}", e))?;
+            .map_err(|e| {
+                let error = TilemapError::JsonError(format!("Failed to parse LDTK JSON: {}", e));
+                error.log_error();
+                error
+            })?;
         
         // Update Grid component
         let grid_size = project["defaultGridSize"]
@@ -259,7 +300,11 @@ impl MapManager {
         let mut layer_entities = Vec::new();
         let levels = project["levels"]
             .as_array()
-            .ok_or("No levels found in LDTK file")?;
+            .ok_or_else(|| {
+                let error = TilemapError::ValidationError("No levels found in LDTK file".to_string());
+                error.log_error();
+                error
+            })?;
 
         for level in levels {
             let entities = self.load_level_as_children(
@@ -278,7 +323,11 @@ impl MapManager {
                 path,
                 world,
                 self.collision_value,  // Use configured collision value
-            )?
+            ).map_err(|e| {
+                let error: TilemapError = e.into();
+                error.log_error();
+                error
+            })?
         } else {
             Vec::new()
         };
@@ -341,7 +390,7 @@ impl MapManager {
         world: &mut World,
         grid_parent: Entity,
         ldtk_path: &PathBuf,
-    ) -> Result<Vec<Entity>, String> {
+    ) -> Result<Vec<Entity>, TilemapError> {
         let mut entities = Vec::new();
 
         // Get level world position
@@ -541,34 +590,63 @@ impl MapManager {
     }
     
     /// Regenerate colliders for a map
-    pub fn regenerate_colliders(&mut self, path: &PathBuf, world: &mut World) -> Result<usize, String> {
+    pub fn regenerate_colliders(&mut self, path: &PathBuf, world: &mut World) -> Result<usize, TilemapError> {
+        // Get loaded map
+        let loaded_map = self.loaded_maps.get(path)
+            .ok_or_else(|| {
+                let error = TilemapError::ValidationError(format!("Map not loaded: {:?}", path));
+                error.log_error();
+                error
+            })?;
+        
+        // Store backup of current collider entities
+        let backup_colliders = loaded_map.collider_entities.clone();
+        let grid_entity = loaded_map.grid_entity;
+        
+        // Remove old colliders from loaded_map (but keep backup)
         if let Some(loaded_map) = self.loaded_maps.get_mut(path) {
-            // Remove old colliders
             for &collider in &loaded_map.collider_entities {
                 world.despawn(collider);
             }
             loaded_map.collider_entities.clear();
-            
-            // Generate new colliders
-            let colliders = ecs::loaders::LdtkLoader::generate_composite_colliders_from_intgrid(
-                path,
-                world,
-                self.collision_value,  // Use configured collision value
-            )?;
-            
-            // Set as children of Grid
-            for &collider in &colliders {
-                world.set_parent(collider, Some(loaded_map.grid_entity));
-            }
-            
-            // Update tracking
-            loaded_map.collider_entities = colliders.clone();
-            
-            log::info!("Regenerated {} colliders for {:?}", colliders.len(), path);
-            Ok(colliders.len())
-        } else {
-            Err(format!("Map not loaded: {:?}", path))
         }
+        
+        // Generate new colliders
+        let colliders = match ecs::loaders::LdtkLoader::generate_composite_colliders_from_intgrid(
+            path,
+            world,
+            self.collision_value,  // Use configured collision value
+        ) {
+            Ok(colliders) => colliders,
+            Err(e) => {
+                // Restore backup colliders on error
+                let error = TilemapError::ColliderGenerationFailed(e);
+                error.log_error();
+                
+                log::warn!("Restoring previous collider state after generation failure");
+                
+                // Note: We can't restore the actual entities since they were despawned
+                // But we clear the tracking to maintain consistency
+                if let Some(loaded_map) = self.loaded_maps.get_mut(path) {
+                    loaded_map.collider_entities.clear();
+                }
+                
+                return Err(error);
+            }
+        };
+        
+        // Set as children of Grid
+        for &collider in &colliders {
+            world.set_parent(collider, Some(grid_entity));
+        }
+        
+        // Update tracking
+        if let Some(loaded_map) = self.loaded_maps.get_mut(path) {
+            loaded_map.collider_entities = colliders.clone();
+        }
+        
+        log::info!("Regenerated {} colliders for {:?}", colliders.len(), path);
+        Ok(colliders.len())
     }
     
     /// Clean up colliders for a specific map
@@ -686,8 +764,9 @@ impl MapManager {
                     }
                     Err(e) => {
                         // Preserve last valid state on error
-                        let error_msg = format!("Hot-reload failed for {:?}: {}", path, e);
-                        log::error!("{}", error_msg);
+                        let error_msg = e.display_message();
+                        log::error!("Hot-reload failed for {:?}: {}", path, error_msg);
+                        e.log_error_with_context(&format!("Hot-reload for {:?}", path));
                         self.last_hot_reload_error = Some(error_msg);
                     }
                 }
@@ -698,10 +777,14 @@ impl MapManager {
     }
     
     /// Reload map with error recovery (preserves last valid state on failure)
-    fn reload_map_with_error_recovery(&mut self, path: &PathBuf, world: &mut World) -> Result<(), String> {
+    fn reload_map_with_error_recovery(&mut self, path: &PathBuf, world: &mut World) -> Result<(), TilemapError> {
         // Store backup of current state before attempting reload
         let backup = self.loaded_maps.get(path)
-            .ok_or_else(|| format!("Map not loaded: {:?}", path))?
+            .ok_or_else(|| {
+                let error = TilemapError::ValidationError(format!("Map not loaded: {:?}", path));
+                error.log_error();
+                error
+            })?
             .clone();
         
         // Attempt to reload
