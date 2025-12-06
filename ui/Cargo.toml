@@ -1,0 +1,22 @@
+[package]
+name = "ui"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Core dependencies
+ecs = { path = "../ecs" }
+render = { path = "../render" }
+
+# Math and utilities
+glam = { version = "0.25", features = ["serde"] }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Logging
+log = { workspace = true }
+
+[dev-dependencies]
+proptest = "1.4"

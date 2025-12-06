@@ -1,14 +1,25 @@
 # Implementation Plan
 
-- [ ] 1. Set up UI crate structure and core types
+- [x] 1. Set up UI crate structure and core types
+
+
+
+
+
   - Create new `ui` crate with module structure
   - Define core types: Vec2, Vec4, Rect, Color
   - Set up dependencies (ecs, render, serde, glam)
   - Create public API in lib.rs with re-exports
   - _Requirements: All requirements - foundation_
 
-- [ ] 2. Implement RectTransform system
-  - [ ] 2.1 Create RectTransform component
+- [x] 2. Implement RectTransform system
+
+
+
+
+  - [x] 2.1 Create RectTransform component
+
+
     - Define RectTransform struct with anchor, pivot, position, size
     - Implement helper methods (anchored, stretched, get_size, set_size)
     - Implement contains_point for raycasting
@@ -30,7 +41,9 @@
     - **Property 7: Pivot change preserves visual position**
     - **Validates: Requirements 2.5**
   
-  - [ ] 2.6 Implement RectTransform calculation system
+  - [x] 2.6 Implement RectTransform calculation system
+
+
     - Create system to calculate world corners and rects
     - Handle parent-child transform calculations
     - Implement dirty flagging for efficient updates
@@ -530,3 +543,221 @@
     - Document all public types and functions
     - Add usage examples to doc comments
     - Create getting started guide
+
+
+---
+
+## Migration Tasks (Legacy HUD System → UI Crate)
+
+**Note:** These tasks handle the migration from `engine/src/hud` and `engine/src/editor/widget_editor` to the new `ui` crate system. See `MIGRATION_PLAN.md` for detailed migration strategy.
+
+- [ ] 21. Create HUD to UIPrefab converter
+  - [ ] 21.1 Implement converter core
+    - Create HudToUIPrefabConverter struct
+    - Implement HudAsset → UIPrefab conversion
+    - Implement HudElement → UIPrefabElement conversion
+    - Handle all HudElementType variants
+    - _Migration Phase 3_
+  
+  - [ ] 21.2 Implement anchor conversion
+    - Convert Anchor enum to RectTransform
+    - Map all 9 anchor positions correctly
+    - Handle offset and size conversion
+    - _Migration Phase 3_
+  
+  - [ ] 21.3 Implement component mapping
+    - Map Text → UIText
+    - Map DynamicText → UIText (with notes for Lua binding)
+    - Map HealthBar → UIImage (background) + UIImage (fill)
+    - Map ProgressBar → UIImage (background) + UIImage (fill)
+    - Map Image → UIImage
+    - Map Container → parent-child hierarchy
+    - Handle Minimap (custom component or notes)
+    - _Migration Phase 3_
+  
+  - [ ]* 21.4 Write unit tests for converter
+    - Test anchor conversion for all 9 positions
+    - Test component mapping for all types
+    - Test hierarchy preservation
+    - Test property preservation
+    - _Migration Phase 3_
+
+- [ ] 22. Create migration script
+  - [ ] 22.1 Implement file discovery
+    - Recursively find all .hud files in project
+    - Support multiple project directories
+    - _Migration Phase 3_
+  
+  - [ ] 22.2 Implement batch conversion
+    - Load each .hud file
+    - Convert to UIPrefab
+    - Save as .uiprefab file
+    - Generate migration report
+    - _Migration Phase 3_
+  
+  - [ ] 22.3 Create migration CLI tool
+    - Add command-line arguments
+    - Support dry-run mode
+    - Support backup creation
+    - Add progress reporting
+    - _Migration Phase 3_
+  
+  - [ ] 22.4 Test migration on sample HUD files
+    - Test with simple HUD
+    - Test with complex HUD
+    - Test with nested containers
+    - Verify visual output matches
+    - _Migration Phase 3_
+
+- [ ] 23. Refactor Widget Editor → UI Prefab Editor
+  - [ ] 23.1 Update editor data structures
+    - Replace HudAsset with UIPrefab
+    - Replace HudElement with UIPrefabElement
+    - Update WidgetEditorState to PrefabEditorState
+    - _Migration Phase 4_
+  
+  - [ ] 23.2 Implement prefab loading/saving
+    - Load .uiprefab files
+    - Save .uiprefab files
+    - Handle file format validation
+    - _Migration Phase 4_
+  
+  - [ ] 23.3 Update canvas rendering
+    - Render UIPrefabElements with RectTransform
+    - Show anchor visualization
+    - Show pivot point
+    - Handle all UI component types
+    - _Migration Phase 4_
+  
+  - [ ] 23.4 Implement RectTransform visual editing
+    - Anchor point handles
+    - Pivot point manipulation
+    - Size handles (corners and edges)
+    - Position dragging
+    - _Migration Phase 4_
+  
+  - [ ] 23.5 Create component palette
+    - List all available UI components
+    - Drag-and-drop to add components
+    - Component icons and descriptions
+    - _Migration Phase 4_
+  
+  - [ ] 23.6 Create hierarchy panel
+    - Tree view of UI element hierarchy
+    - Drag-and-drop to reparent
+    - Show/hide elements
+    - Delete elements
+    - Duplicate elements
+    - _Migration Phase 4_
+  
+  - [ ] 23.7 Enhance properties panel
+    - Edit RectTransform properties
+    - Edit all component properties
+    - Color pickers
+    - Sprite selectors
+    - Event callback editors
+    - _Migration Phase 4_
+  
+  - [ ] 23.8 Implement layout preview
+    - Preview different resolutions
+    - Show layout group effects
+    - Toggle grid and safe area
+    - _Migration Phase 4_
+  
+  - [ ] 23.9 Add undo/redo system
+    - Command pattern implementation
+    - Undo/redo stack
+    - Keyboard shortcuts (Ctrl+Z, Ctrl+Y)
+    - _Migration Phase 4_
+
+- [ ] 24. Update engine integration
+  - [ ] 24.1 Remove HUD system from engine
+    - Delete engine/src/hud module
+    - Remove HudManager from engine state
+    - Remove HUD rendering code
+    - _Migration Phase 5_
+  
+  - [ ] 24.2 Integrate UI system with engine
+    - Add ui crate dependency to engine
+    - Create UI system manager
+    - Integrate with ECS world
+    - Integrate with rendering pipeline
+    - _Migration Phase 5_
+  
+  - [ ] 24.3 Update Lua bindings
+    - Remove old HUD Lua API
+    - Add new UI Lua API
+    - Update Lua scripts in examples
+    - _Migration Phase 5_
+  
+  - [ ] 24.4 Update examples
+    - Convert example HUD files to prefabs
+    - Update example Lua scripts
+    - Update example documentation
+    - _Migration Phase 5_
+
+- [ ] 25. Create migration documentation
+  - [ ] 25.1 Write migration guide
+    - Step-by-step migration instructions
+    - Before/after code examples
+    - Common issues and solutions
+    - _Migration Phase 5_
+  
+  - [ ] 25.2 Document API changes
+    - Old API → New API mapping
+    - Breaking changes list
+    - Deprecation notices
+    - _Migration Phase 5_
+  
+  - [ ] 25.3 Create video tutorials (optional)
+    - Using the new UI system
+    - Using the UI Prefab Editor
+    - Migrating existing HUD files
+    - _Migration Phase 5_
+  
+  - [ ] 25.4 Update README files
+    - Update main README
+    - Update UI system README
+    - Add migration notes
+    - _Migration Phase 5_
+
+- [ ] 26. Final migration verification
+  - [ ] 26.1 Verify all HUD files migrated
+    - Check all .hud files converted
+    - Verify no references to old system
+    - Test all converted prefabs
+    - _Migration Phase 5_
+  
+  - [ ] 26.2 Performance testing
+    - Benchmark UI rendering
+    - Compare with legacy system
+    - Optimize if needed
+    - _Migration Phase 5_
+  
+  - [ ] 26.3 Visual regression testing
+    - Screenshot comparison
+    - Verify layouts match
+    - Test multiple resolutions
+    - _Migration Phase 5_
+  
+  - [ ] 26.4 Final cleanup
+    - Remove migration tools (or move to tools/)
+    - Remove temporary compatibility code
+    - Update version numbers
+    - Create migration completion report
+    - _Migration Phase 5_
+
+---
+
+## Migration Timeline Summary
+
+| Phase | Tasks | Duration | Dependencies |
+|-------|-------|----------|--------------|
+| Phase 1: Foundation | Tasks 1-7 | 2 weeks | None |
+| Phase 2: Advanced Features | Tasks 8-18 | 2 weeks | Phase 1 |
+| Phase 3: Migration Tools | Tasks 21-22 | 1 week | Phase 2 |
+| Phase 4: UI Prefab Editor | Task 23 | 3 weeks | Phase 3 |
+| Phase 5: Cleanup | Tasks 24-26 | 1 week | Phase 4 |
+| **Total** | **26 task groups** | **9 weeks** | Sequential |
+
+**Note:** Migration tasks (21-26) should only be started after the core UI system (tasks 1-20) is functional and tested.

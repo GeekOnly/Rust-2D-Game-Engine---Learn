@@ -8,6 +8,7 @@ members = [
   "input",
   "editor",
   "engine",
+  "ui",
 ]
 resolver = "2"
 default-members = ["engine"]
