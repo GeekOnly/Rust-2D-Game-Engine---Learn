@@ -31,6 +31,7 @@ pub mod canvas_system;
 pub mod rect_transform;
 pub mod rect_transform_system;
 pub mod hierarchy_system;
+pub mod layout_system;
 pub mod components;
 pub mod layout;
 pub mod events;
@@ -45,6 +46,7 @@ pub use canvas_system::CanvasSystem;
 pub use rect_transform::RectTransform;
 pub use rect_transform_system::{RectTransformSystem, Entity};
 pub use hierarchy_system::UIHierarchySystem;
+pub use layout_system::LayoutSystem;
 
 // Re-export component types
 pub use components::{
