@@ -1,5 +1,10 @@
 //! UI animation system with tweening and easing
 
+pub mod easing;
+pub mod tween;
+
+pub use tween::{AnimationManager};
+
 use serde::{Deserialize, Serialize};
 use glam::Vec2;
 use crate::Color;
