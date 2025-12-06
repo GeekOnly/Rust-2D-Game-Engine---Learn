@@ -1,4 +1,14 @@
-use serde::{Deserialize, Serialize};
+//! Sprite Editor Window
+//!
+//! Visual editor window for sprite sheets
+
+// Import from sprite_editor crate
+use sprite_editor::{
+    SpriteMetadata, SpriteDefinition, ExportFormat,
+    SpriteStatistics, AutoSlicer,
+};
+
+// Local imports
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::SystemTime;

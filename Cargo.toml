@@ -8,7 +8,7 @@ members = [
   "input",
   "editor",
   "engine",
-  "ui",
+  "ui", "sprite_editor",
 ]
 resolver = "2"
 default-members = ["engine"]

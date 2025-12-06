@@ -135,3 +135,125 @@ This specification defines requirements for improving the 3D Scene View to achie
 3. WHEN the camera moves THEN the Grid System SHALL update only changed grid sections
 4. WHEN rendering many grid lines THEN the Grid System SHALL maintain 60 FPS performance
 5. WHEN the grid is disabled THEN the Grid System SHALL skip all grid calculations and rendering
+
+### Requirement 11
+
+**User Story:** As a game developer, I want to snap objects to the grid like Unity, so that I can align objects precisely and quickly.
+
+#### Acceptance Criteria
+
+1. WHEN the user holds Ctrl while moving an object THEN the Transform System SHALL snap position to grid increments
+2. WHEN the user holds Ctrl while rotating an object THEN the Transform System SHALL snap rotation to angle increments
+3. WHEN the user holds Ctrl while scaling an object THEN the Transform System SHALL snap scale to scale increments
+4. WHEN snap settings are configured THEN the Transform System SHALL use the configured snap increments
+5. WHEN snapping is active THEN the Scene View SHALL display visual indicators showing snap points
+
+### Requirement 12
+
+**User Story:** As a game developer, I want to select multiple objects like Unity, so that I can manipulate groups of objects efficiently.
+
+#### Acceptance Criteria
+
+1. WHEN the user drags a box in the scene THEN the Selection System SHALL select all entities within the box
+2. WHEN the user holds Ctrl and clicks an entity THEN the Selection System SHALL add or remove that entity from selection
+3. WHEN the user holds Shift and clicks an entity THEN the Selection System SHALL add that entity to selection
+4. WHEN multiple entities are selected THEN the Scene View SHALL display a multi-selection gizmo at the center
+5. WHEN the user presses Ctrl+A THEN the Selection System SHALL select all entities in the scene
+
+### Requirement 13
+
+**User Story:** As a game developer, I want enhanced gizmos like Unity, so that I can manipulate objects more precisely in 3D space.
+
+#### Acceptance Criteria
+
+1. WHEN using the move tool THEN the Transform Gizmo SHALL display planar movement handles for XY, XZ, and YZ planes
+2. WHEN hovering over a gizmo handle THEN the Transform Gizmo SHALL highlight that handle in yellow
+3. WHEN the camera zooms THEN the Transform Gizmo SHALL maintain constant screen size
+4. WHEN using the scale tool THEN the Transform Gizmo SHALL display a center handle for uniform scaling
+5. WHEN in 3D mode THEN the Transform Gizmo SHALL render proper 3D arrows and handles
+
+### Requirement 14
+
+**User Story:** As a game developer, I want improved 2.5D support like Unity, so that I can work with isometric and orthographic 3D games.
+
+#### Acceptance Criteria
+
+1. WHEN in 2.5D mode THEN the Scene Camera SHALL use orthographic projection in 3D space
+2. WHEN entities have Z-positions THEN the Renderer SHALL sort sprites by Z-depth
+3. WHEN viewing in 2.5D mode THEN the Scene View SHALL display Z-depth indicators for selected entities
+4. WHEN sprites are in 3D space THEN the Renderer SHALL support billboard mode for sprites
+5. WHEN in 2.5D mode THEN the Grid System SHALL render an isometric grid aligned with the camera
+
+### Requirement 15
+
+**User Story:** As a game developer, I want enhanced scene view toolbar like Unity, so that I can access rendering options quickly.
+
+#### Acceptance Criteria
+
+1. WHEN clicking the shading mode dropdown THEN the Scene View SHALL display options for Wireframe, Shaded, and Textured modes
+2. WHEN selecting a shading mode THEN the Renderer SHALL apply that mode to all entities
+3. WHEN clicking the gizmos dropdown THEN the Scene View SHALL display options to toggle different gizmo types
+4. WHEN toggling gizmo visibility THEN the Scene View SHALL show or hide the selected gizmo types
+5. WHEN clicking the scene view options menu THEN the Scene View SHALL display camera and grid settings
+
+### Requirement 16
+
+**User Story:** As a game developer, I want viewport statistics overlay like Unity, so that I can monitor performance while editing.
+
+#### Acceptance Criteria
+
+1. WHEN the stats overlay is enabled THEN the Scene View SHALL display current FPS
+2. WHEN rendering the scene THEN the Scene View SHALL display entity count
+3. WHEN rendering the scene THEN the Scene View SHALL display visible entity count
+4. WHEN the stats overlay is enabled THEN the Scene View SHALL display draw call count
+5. WHEN clicking the stats overlay THEN the Scene View SHALL toggle between detailed and minimal views
+
+### Requirement 17
+
+**User Story:** As a game developer, I want camera speed modifiers like Unity, so that I can navigate quickly or precisely as needed.
+
+#### Acceptance Criteria
+
+1. WHEN the user holds Shift while moving the camera THEN the Scene Camera SHALL move at 3x speed
+2. WHEN the user holds Ctrl while moving the camera THEN the Scene Camera SHALL move at 0.3x speed
+3. WHEN speed modifiers are active THEN the Scene Camera SHALL apply the modifier to all movement types
+4. WHEN the user releases the modifier key THEN the Scene Camera SHALL return to normal speed smoothly
+5. WHEN speed modifiers are combined with sensitivity THEN the Scene Camera SHALL multiply both factors
+
+### Requirement 18
+
+**User Story:** As a game developer, I want flythrough camera mode like Unity, so that I can navigate 3D scenes naturally with WASD controls.
+
+#### Acceptance Criteria
+
+1. WHEN the user holds right-click in 3D mode THEN the Scene Camera SHALL enter flythrough mode
+2. WHEN in flythrough mode and pressing W THEN the Scene Camera SHALL move forward in the view direction
+3. WHEN in flythrough mode and pressing S THEN the Scene Camera SHALL move backward in the view direction
+4. WHEN in flythrough mode and pressing A THEN the Scene Camera SHALL move left relative to the view direction
+5. WHEN in flythrough mode and pressing D THEN the Scene Camera SHALL move right relative to the view direction
+6. WHEN in flythrough mode and moving the mouse THEN the Scene Camera SHALL rotate the view direction
+7. WHEN the user releases right-click THEN the Scene Camera SHALL exit flythrough mode
+
+### Requirement 19
+
+**User Story:** As a game developer, I want frame all functionality like Unity, so that I can quickly view all objects in the scene.
+
+#### Acceptance Criteria
+
+1. WHEN the user presses A key THEN the Scene Camera SHALL calculate bounds of all entities
+2. WHEN framing all entities THEN the Scene Camera SHALL position to view all entities comfortably
+3. WHEN no entities exist THEN the Scene Camera SHALL frame the world origin
+4. WHEN framing completes THEN the Scene Camera SHALL animate smoothly to the target position
+5. WHEN entities are very spread out THEN the Scene Camera SHALL zoom out appropriately to fit all
+
+### Requirement 20
+
+**User Story:** As a game developer, I want enhanced scene gizmo like Unity, so that I can navigate camera views more intuitively.
+
+#### Acceptance Criteria
+
+1. WHEN clicking on an axis label (X/Y/Z) THEN the Scene Camera SHALL animate to that orthographic view
+2. WHEN clicking the center cube THEN the Scene Camera SHALL toggle between perspective and orthographic
+3. WHEN hovering over an axis THEN the Scene Gizmo SHALL highlight that axis and show a tooltip
+4. WHEN transitioning views THEN the Scene Camera SHALL animate smoothly over 0.3 seconds
+5. WHEN in orthographic view THEN the Scene Gizmo SHALL display the axis labels more prominently

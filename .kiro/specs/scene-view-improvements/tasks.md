@@ -205,3 +205,248 @@
 
 - [ ] 13. Final checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
+
+- [ ] 14. Implement snapping system
+  - Create SnapSettings struct with position/rotation/scale increments
+  - Implement snap_position(), snap_rotation(), snap_scale() methods
+  - Add Ctrl key detection for snap activation
+  - Integrate snapping into transform gizmo interactions
+  - Add visual snap indicators (grid highlights)
+  - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5_
+
+- [ ] 14.1 Write property test for grid snapping consistency
+  - **Property 16: Grid snapping is consistent**
+  - **Validates: Requirements 11.1**
+
+- [ ] 14.2 Write property test for snap increments
+  - **Property 17: Snap increments are configurable**
+  - **Validates: Requirements 11.4**
+
+- [ ]* 14.3 Write unit tests for snapping
+  - Test position snapping with various grid sizes
+  - Test rotation snapping with various angles
+  - Test scale snapping with various increments
+  - Test relative vs absolute snap modes
+  - _Requirements: 11.1, 11.2, 11.3_
+
+- [ ] 15. Implement multi-selection system
+  - Create Selection struct with entity list management
+  - Implement box selection (drag to select)
+  - Add Ctrl+Click to add/remove from selection
+  - Add Shift+Click to add to selection
+  - Implement Ctrl+A to select all
+  - Add selection outline rendering
+  - _Requirements: 12.1, 12.2, 12.3, 12.5_
+
+- [ ] 15.1 Write property test for box selection
+  - **Property 18: Box selection is inclusive**
+  - **Validates: Requirements 12.1**
+
+- [ ] 15.2 Write property test for multi-selection order
+  - **Property 19: Multi-selection preserves order**
+  - **Validates: Requirements 12.2, 12.3**
+
+- [ ] 15.3 Write property test for select all
+  - **Property 20: Select all includes all entities**
+  - **Validates: Requirements 12.5**
+
+- [ ]* 15.4 Write unit tests for selection
+  - Test single selection
+  - Test multi-selection operations
+  - Test selection clearing
+  - Test selection bounds calculation
+  - _Requirements: 12.1, 12.2, 12.3, 12.5_
+
+- [ ] 16. Implement enhanced gizmo system
+  - Create EnhancedGizmo struct with handle types
+  - Add planar movement handles (XY, XZ, YZ planes)
+  - Implement screen-constant gizmo sizing
+  - Add hover highlighting (yellow on hover)
+  - Implement uniform scale handle (center cube)
+  - Add proper 3D gizmo rendering
+  - _Requirements: 13.1, 13.2, 13.3, 13.4, 13.5_
+
+- [ ] 16.1 Write property test for gizmo screen-constant size
+  - **Property 21: Gizmo size is screen-constant**
+  - **Validates: Requirements 13.3**
+
+- [ ] 16.2 Write property test for planar movement
+  - **Property 22: Planar handles move in plane**
+  - **Validates: Requirements 13.1**
+
+- [ ]* 16.3 Write unit tests for gizmo rendering
+  - Test gizmo size calculation at various zoom levels
+  - Test hover detection for handles
+  - Test planar handle rendering
+  - _Requirements: 13.1, 13.2, 13.3_
+
+- [ ] 17. Implement multi-selection gizmo
+  - Calculate center point of selected entities
+  - Render gizmo at multi-selection center
+  - Apply transforms to all selected entities
+  - Maintain relative positions during transform
+  - _Requirements: 12.4_
+
+- [ ]* 17.1 Write unit tests for multi-selection transforms
+  - Test moving multiple entities
+  - Test rotating multiple entities
+  - Test scaling multiple entities
+  - Test relative position preservation
+  - _Requirements: 12.4_
+
+- [ ] 18. Implement 2.5D support enhancements
+  - Create Scene25DSettings struct
+  - Implement sprite Z-depth sorting
+  - Add Z-depth visualization for selected entities
+  - Implement billboard sprite mode
+  - Add isometric grid rendering for 2.5D mode
+  - _Requirements: 14.1, 14.2, 14.3, 14.4, 14.5_
+
+- [ ] 18.1 Write property test for Z-depth sorting
+  - **Property 23: Z-depth sorting is correct**
+  - **Validates: Requirements 14.2**
+
+- [ ] 18.2 Write property test for orthographic projection
+  - **Property 24: Orthographic projection preserves parallels**
+  - **Validates: Requirements 14.1**
+
+- [ ]* 18.3 Write unit tests for 2.5D rendering
+  - Test sprite sorting by Z-position
+  - Test billboard sprite orientation
+  - Test isometric grid rendering
+  - _Requirements: 14.1, 14.2, 14.4, 14.5_
+
+- [ ] 19. Implement enhanced scene view toolbar
+  - Add shading mode dropdown (Wireframe, Shaded, Textured)
+  - Add gizmos visibility dropdown
+  - Add scene view options menu
+  - Implement shading mode rendering
+  - Add toolbar icons and styling
+  - _Requirements: 15.1, 15.2, 15.3, 15.4, 15.5_
+
+- [ ]* 19.1 Write unit tests for toolbar
+  - Test shading mode switching
+  - Test gizmo visibility toggles
+  - Test toolbar state persistence
+  - _Requirements: 15.1, 15.2, 15.3_
+
+- [ ] 20. Implement viewport statistics overlay
+  - Create ViewportStats struct
+  - Track FPS and frame time
+  - Count entities and visible entities
+  - Track draw calls (estimate)
+  - Add toggle for detailed/minimal view
+  - Render stats overlay in corner
+  - _Requirements: 16.1, 16.2, 16.3, 16.4, 16.5_
+
+- [ ]* 20.1 Write unit tests for stats tracking
+  - Test FPS calculation
+  - Test entity counting
+  - Test stats overlay rendering
+  - _Requirements: 16.1, 16.2, 16.3_
+
+- [ ] 21. Implement camera speed modifiers
+  - Add Shift key detection for 3x speed
+  - Add Ctrl key detection for 0.3x speed
+  - Apply speed modifiers to all camera movements
+  - Implement smooth speed transitions
+  - Combine modifiers with sensitivity settings
+  - _Requirements: 17.1, 17.2, 17.3, 17.4, 17.5_
+
+- [ ] 21.1 Write property test for speed modifiers
+  - **Property 25: Speed modifiers multiply correctly**
+  - **Validates: Requirements 17.1, 17.2, 17.3**
+
+- [ ]* 21.2 Write unit tests for speed modifiers
+  - Test Shift modifier (3x speed)
+  - Test Ctrl modifier (0.3x speed)
+  - Test smooth speed transitions
+  - Test modifier combination with sensitivity
+  - _Requirements: 17.1, 17.2, 17.3, 17.4_
+
+- [ ] 22. Implement flythrough camera mode
+  - Create FlythroughMode struct
+  - Detect right-click to enter flythrough mode
+  - Implement WASD movement in view direction
+  - Implement mouse look (rotate view)
+  - Add Q/E for up/down movement
+  - Apply speed modifiers in flythrough mode
+  - Exit flythrough on right-click release
+  - _Requirements: 18.1, 18.2, 18.3, 18.4, 18.5, 18.6, 18.7_
+
+- [ ] 22.1 Write property test for flythrough movement
+  - **Property 26: Flythrough movement is view-relative**
+  - **Validates: Requirements 18.2, 18.3, 18.4, 18.5**
+
+- [ ]* 22.2 Write unit tests for flythrough mode
+  - Test WASD movement calculations
+  - Test mouse look rotation
+  - Test flythrough activation/deactivation
+  - Test speed modifiers in flythrough
+  - _Requirements: 18.1, 18.2, 18.3, 18.6, 18.7_
+
+- [ ] 23. Implement frame all functionality
+  - Add A key detection for frame all
+  - Calculate bounds of all entities in scene
+  - Calculate optimal camera position and zoom
+  - Animate camera to frame all entities
+  - Handle empty scene (frame origin)
+  - Handle very spread out entities
+  - _Requirements: 19.1, 19.2, 19.3, 19.4, 19.5_
+
+- [ ] 23.1 Write property test for frame all
+  - **Property 27: Frame all includes all entities**
+  - **Validates: Requirements 19.1, 19.2**
+
+- [ ]* 23.2 Write unit tests for frame all
+  - Test bounds calculation for multiple entities
+  - Test camera positioning for various bounds
+  - Test empty scene handling
+  - Test animation to target position
+  - _Requirements: 19.1, 19.2, 19.3, 19.4_
+
+- [ ] 24. Implement enhanced scene gizmo
+  - Create EnhancedSceneGizmo struct
+  - Make axis labels clickable
+  - Add center cube for perspective toggle
+  - Implement smooth camera transitions (0.3s)
+  - Add hover tooltips for axes
+  - Highlight axes on hover
+  - Make axis arrows cone-shaped (not circles)
+  - _Requirements: 20.1, 20.2, 20.3, 20.4, 20.5_
+
+- [ ] 24.1 Write property test for axis alignment
+  - **Property 28: Axis click aligns view**
+  - **Validates: Requirements 20.1**
+
+- [ ]* 24.2 Write unit tests for scene gizmo
+  - Test axis click detection
+  - Test camera view transitions
+  - Test perspective/orthographic toggle
+  - Test hover detection and tooltips
+  - _Requirements: 20.1, 20.2, 20.3, 20.5_
+
+- [ ] 25. Checkpoint - Ensure all new features work together
+  - Test snapping with multi-selection
+  - Test gizmos with 2.5D mode
+  - Test flythrough with speed modifiers
+  - Test frame all with various entity configurations
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [ ] 26. Polish and integration
+  - Fine-tune all animation timings
+  - Adjust colors for professional appearance
+  - Optimize rendering performance
+  - Add keyboard shortcut hints to UI
+  - Test all features in combination
+  - _Requirements: All_
+
+- [ ]* 26.1 Write integration tests
+  - Test complete workflows (select, move, snap)
+  - Test mode switching (2D, 3D, 2.5D)
+  - Test camera navigation workflows
+  - Test multi-selection workflows
+  - _Requirements: All_
+
+- [ ] 27. Final checkpoint - Complete Unity-like scene editor
+  - Ensure all tests pass, ask the user if questions arise.
