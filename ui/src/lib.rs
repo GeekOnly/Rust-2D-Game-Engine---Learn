@@ -32,6 +32,7 @@ pub mod rect_transform;
 pub mod rect_transform_system;
 pub mod hierarchy_system;
 pub mod layout_system;
+pub mod scroll_view_system;
 pub mod components;
 pub mod layout;
 pub mod events;
@@ -47,6 +48,7 @@ pub use rect_transform::RectTransform;
 pub use rect_transform_system::{RectTransformSystem, Entity};
 pub use hierarchy_system::UIHierarchySystem;
 pub use layout_system::LayoutSystem;
+pub use scroll_view_system::ScrollViewSystem;
 
 // Re-export component types
 pub use components::{
@@ -87,6 +89,7 @@ pub use animation::{
 // Re-export rendering types
 pub use rendering::{
     UIMask,
+    ClipRegion, ViewportClippingSystem,
 };
 
 // Re-export prefab types
