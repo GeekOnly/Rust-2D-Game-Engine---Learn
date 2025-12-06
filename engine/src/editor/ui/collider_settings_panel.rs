@@ -126,6 +126,38 @@ impl ColliderSettingsPanel {
                 ui.label(RichText::new("Unsaved changes").color(Color32::from_rgb(255, 200, 0)).italics());
             });
         }
+        
+        ui.separator();
+        
+        // Help section
+        ui.collapsing("ℹ️ Help", |ui| {
+            ui.label(RichText::new("Collider Configuration:").strong());
+            ui.separator();
+            
+            ui.label("Collider Types:");
+            ui.label("• Composite: Merges adjacent tiles (recommended)");
+            ui.label("• Individual: One collider per tile");
+            ui.label("• Polygon: Advanced shapes (not yet implemented)");
+            
+            ui.separator();
+            ui.label("Collision Value:");
+            ui.label("• IntGrid value that triggers collider generation");
+            ui.label("• Default: 1 (solid tiles)");
+            ui.label("• Set different values in LDtk for different behaviors");
+            
+            ui.separator();
+            ui.label("Auto-Regenerate:");
+            ui.label("• Automatically regenerates colliders on reload");
+            ui.label("• Works with hot-reload for seamless workflow");
+            ui.label("• Disable for manual control");
+            
+            ui.separator();
+            ui.label(RichText::new("Tips:").strong().color(Color32::from_rgb(100, 200, 255)));
+            ui.label("• Use Composite type for better performance");
+            ui.label("• Click 'Apply Settings' to regenerate colliders");
+            ui.label("• Settings are saved to project configuration");
+            ui.label("• Use Ctrl+Shift+R to manually regenerate");
+        });
     }
     
     /// Render action buttons with apply functionality (returns true if settings were applied)
@@ -133,12 +165,18 @@ impl ColliderSettingsPanel {
         let mut applied = false;
         
         ui.horizontal(|ui| {
-            if ui.button("💾 Apply Settings").clicked() {
+            if ui.button("💾 Apply Settings")
+                .on_hover_text("Apply collider settings and regenerate colliders")
+                .clicked() 
+            {
                 applied = true;
                 self.has_changes = false;
             }
             
-            if ui.button("↺ Reset to Defaults").clicked() {
+            if ui.button("↺ Reset to Defaults")
+                .on_hover_text("Reset all settings to default values")
+                .clicked() 
+            {
                 self.configuration = ColliderConfiguration::default();
                 self.has_changes = true;
             }
@@ -262,12 +300,18 @@ impl ColliderSettingsPanel {
     /// Render action buttons
     fn render_action_buttons(&mut self, ui: &mut egui::Ui) {
         ui.horizontal(|ui| {
-            if ui.button("💾 Save Settings").clicked() {
+            if ui.button("💾 Save Settings")
+                .on_hover_text("Save collider settings to project configuration")
+                .clicked() 
+            {
                 // Settings will be saved by the caller
                 self.has_changes = false;
             }
             
-            if ui.button("↺ Reset to Defaults").clicked() {
+            if ui.button("↺ Reset to Defaults")
+                .on_hover_text("Reset all settings to default values")
+                .clicked() 
+            {
                 self.configuration = ColliderConfiguration::default();
                 self.has_changes = true;
             }

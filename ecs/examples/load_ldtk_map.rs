@@ -10,7 +10,7 @@
 use ecs::{World, loaders::LdtkLoader};
 
 fn main() {
-    env_logger::init();
+    // env_logger::init(); // Optional - comment out if not available
     
     println!("=== Load LDtk Map Example ===\n");
     

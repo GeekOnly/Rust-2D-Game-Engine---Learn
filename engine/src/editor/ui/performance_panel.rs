@@ -202,9 +202,38 @@ impl PerformancePanel {
                     .clamp_range(64.0..=4096.0));
             });
             
-            if ui.button("Reset to Defaults").clicked() {
+            if ui.button("Reset to Defaults")
+                .on_hover_text("Reset all thresholds to default values")
+                .clicked() 
+            {
                 self.thresholds = PerformanceThresholds::default();
             }
+        });
+        
+        ui.separator();
+        
+        // Help section
+        ui.collapsing("ℹ️ Help", |ui| {
+            ui.label(RichText::new("Performance Monitoring:").strong());
+            ui.separator();
+            
+            ui.label("Metrics:");
+            ui.label("• Draw Calls: Number of render batches");
+            ui.label("• Triangles/Vertices: Geometry complexity");
+            ui.label("• Memory: Estimated memory usage");
+            
+            ui.separator();
+            ui.label("Warning Indicators:");
+            ui.label("• ⚠ Yellow: Threshold exceeded");
+            ui.label("• Adjust thresholds in settings");
+            
+            ui.separator();
+            ui.label(RichText::new("Optimization Tips:").strong().color(Color32::from_rgb(100, 200, 255)));
+            ui.label("• Use composite colliders to reduce count");
+            ui.label("• Unload unused maps to free memory");
+            ui.label("• Hide layers you're not editing");
+            ui.label("• Limit number of loaded maps");
+            ui.label("• Use smaller tileset textures when possible");
         });
     }
     

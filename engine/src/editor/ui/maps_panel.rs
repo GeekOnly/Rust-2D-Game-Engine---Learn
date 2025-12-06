@@ -24,11 +24,47 @@ pub fn render_maps_panel_content(
     map_manager: &mut MapManager,
     world: &mut World,
 ) {
-    // Refresh button
+    // Refresh button and help
     ui.horizontal(|ui| {
-        if ui.button("🔄 Refresh").clicked() {
+        if ui.button("🔄 Refresh")
+            .on_hover_text("Scan project directory for .ldtk files")
+            .clicked() 
+        {
             map_manager.scan_ldtk_files();
         }
+        
+        // Help button
+        if ui.button("❓")
+            .on_hover_text("Show help")
+            .clicked() 
+        {
+            // Help will be shown in a collapsing section below
+        }
+    });
+    
+    // Help section
+    ui.collapsing("ℹ️ Help", |ui| {
+        ui.label(RichText::new("Tilemap Management Workflow:").strong());
+        ui.separator();
+        
+        ui.label("1. Click 'Add Map' to browse for .ldtk files");
+        ui.label("2. Select a file to load it into the scene");
+        ui.label("3. Use visibility toggles to show/hide layers");
+        ui.label("4. Colliders are auto-generated from IntGrid layers");
+        ui.label("5. Use 'Reload' to refresh after editing in LDtk");
+        
+        ui.separator();
+        ui.label(RichText::new("Keyboard Shortcuts:").strong());
+        ui.label("• Ctrl+R: Reload selected map");
+        ui.label("• Ctrl+Shift+R: Regenerate colliders");
+        ui.label("• Ctrl+H: Toggle layer visibility");
+        
+        ui.separator();
+        ui.label(RichText::new("Tips:").strong().color(Color32::from_rgb(100, 200, 255)));
+        ui.label("• Enable hot-reload in Collider Settings for automatic reloading");
+        ui.label("• Use Layer Properties panel to adjust layer transforms");
+        ui.label("• Use Layer Ordering panel to reorder layers");
+        ui.label("• Check Performance panel for optimization tips");
     });
     
     ui.separator();

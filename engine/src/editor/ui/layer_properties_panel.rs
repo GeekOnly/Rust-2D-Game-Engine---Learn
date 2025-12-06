@@ -52,12 +52,37 @@ impl LayerPropertiesPanel {
             // Render layer properties
             self.render_layer_properties(ui, layer_entity, world, map_manager);
         } else {
-            // No selection state
+            // No selection state with help
             ui.vertical_centered(|ui| {
                 ui.add_space(20.0);
                 ui.label(RichText::new("No layer selected").color(Color32::GRAY).italics());
                 ui.add_space(10.0);
                 ui.label(RichText::new("Select a layer from the Maps Panel").color(Color32::GRAY).small());
+            });
+            
+            ui.separator();
+            
+            // Help section
+            ui.collapsing("ℹ️ Help", |ui| {
+                ui.label(RichText::new("Layer Properties:").strong());
+                ui.separator();
+                
+                ui.label("Transform:");
+                ui.label("• Adjust position, rotation, and scale");
+                ui.label("• Use reset buttons to restore defaults");
+                
+                ui.separator();
+                ui.label("Rendering:");
+                ui.label("• Toggle visibility with the eye icon");
+                ui.label("• Adjust Z-Order to control render order");
+                ui.label("• Higher Z-Order renders on top");
+                ui.label("• Modify opacity and color tint");
+                
+                ui.separator();
+                ui.label(RichText::new("Tips:").strong().color(Color32::from_rgb(100, 200, 255)));
+                ui.label("• Changes apply immediately");
+                ui.label("• Use Layer Ordering panel for drag & drop reordering");
+                ui.label("• Press Ctrl+H to toggle visibility");
             });
         }
     }

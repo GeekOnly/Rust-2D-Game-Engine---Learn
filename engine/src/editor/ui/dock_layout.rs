@@ -289,11 +289,16 @@ pub fn create_default_layout() -> DockState<EditorTab> {
         vec![EditorTab::Hierarchy],
     );
 
-    // Split to create right panel (Inspector)
+    // Split to create right panel (Inspector + Layer Properties + Layer Ordering + Collider Settings)
     let [center, _right] = dock_state.main_surface_mut().split_right(
         main,
         0.23,
-        vec![EditorTab::Inspector],
+        vec![
+            EditorTab::Inspector,
+            EditorTab::LayerProperties,
+            EditorTab::LayerOrdering,
+            EditorTab::ColliderSettings,
+        ],
     );
 
     // Split center vertically: Scene (top) and bottom area
@@ -303,11 +308,16 @@ pub fn create_default_layout() -> DockState<EditorTab> {
         vec![EditorTab::Game],
     );
 
-    // Split bottom area: Console/Project (left) and Game (right)
+    // Split bottom area: Console/Project/Maps/Performance (left) and Game (right)
     let [_console, _game] = dock_state.main_surface_mut().split_right(
         bottom_area,
         0.5,
-        vec![EditorTab::Console, EditorTab::Project],
+        vec![
+            EditorTab::Console,
+            EditorTab::Project,
+            EditorTab::MapView,
+            EditorTab::Performance,
+        ],
     );
 
     dock_state

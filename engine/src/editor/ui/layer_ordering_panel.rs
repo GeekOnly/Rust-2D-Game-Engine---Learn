@@ -79,6 +79,36 @@ impl LayerOrderingPanel {
                 ui.add_space(10.0);
                 ui.label(RichText::new("Select a map from the dropdown above").color(Color32::GRAY).small());
             });
+            
+            ui.separator();
+            
+            // Help section
+            ui.collapsing("ℹ️ Help", |ui| {
+                ui.label(RichText::new("Layer Ordering:").strong());
+                ui.separator();
+                
+                ui.label("Drag & Drop:");
+                ui.label("• Click and drag layers to reorder");
+                ui.label("• Drop at desired position");
+                ui.label("• Z-Orders update automatically");
+                
+                ui.separator();
+                ui.label("Move Buttons:");
+                ui.label("• ⬆ Move Up: Increment Z-Order by 1");
+                ui.label("• ⬇ Move Down: Decrement Z-Order by 1");
+                ui.label("• Minimum Z-Order: -100");
+                
+                ui.separator();
+                ui.label("Visibility & Lock:");
+                ui.label("• 👁 Toggle layer visibility");
+                ui.label("• 🔒 Lock/unlock layer editing");
+                
+                ui.separator();
+                ui.label(RichText::new("Tips:").strong().color(Color32::from_rgb(100, 200, 255)));
+                ui.label("• Higher Z-Order renders on top");
+                ui.label("• Layers are ordered bottom to top");
+                ui.label("• Use Layer Properties for fine-tuned control");
+            });
         }
     }
     
