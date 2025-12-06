@@ -528,8 +528,14 @@
     - **Validates: Requirements 8.5**
     - Test that indicators appear when thresholds are exceeded
 
-- [ ] 17. Implement collider configuration UI
-  - [ ] 17.1 Create ColliderSettingsPanel struct
+- [x] 17. Implement collider configuration UI
+
+
+
+
+  - [x] 17.1 Create ColliderSettingsPanel struct
+
+
     - Display current configuration
     - Show collider type selection
     - Add collision value input
@@ -540,7 +546,8 @@
     - **Validates: Requirements 9.1**
     - Test that opening settings displays current configuration
 
-  - [ ] 17.3 Implement collider type selection
+  - [x] 17.3 Implement collider type selection
+
     - Add radio buttons for Composite/Individual/Polygon
     - Update configuration on change
     - _Requirements: 9.2, 9.3_
@@ -555,7 +562,8 @@
     - **Validates: Requirements 9.3**
     - Test that Individual type produces one collider per tile
 
-  - [ ] 17.6 Implement auto-regenerate toggle
+  - [x] 17.6 Implement auto-regenerate toggle
+
     - Add checkbox for auto-regenerate on reload
     - Store setting in configuration
     - _Requirements: 9.5_

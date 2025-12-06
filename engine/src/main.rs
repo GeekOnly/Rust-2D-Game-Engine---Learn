@@ -1082,6 +1082,7 @@ fn main() -> Result<()> {
                                         &mut editor_state.layer_properties_panel,
                                         &mut editor_state.layer_ordering_panel,
                                         &mut editor_state.performance_panel,
+                                        &mut editor_state.collider_settings_panel,
                                         dt,
                                     );
                                 } else {

@@ -17,6 +17,7 @@ pub mod maps_panel;
 pub mod layer_properties_panel;
 pub mod layer_ordering_panel;
 pub mod performance_panel;
+pub mod collider_settings_panel;
 
 // Re-exports
 use ecs::{World, Entity, EntityTag};
@@ -306,6 +307,7 @@ impl EditorUI {
         layer_properties_panel: &mut layer_properties_panel::LayerPropertiesPanel,
         layer_ordering_panel: &mut layer_ordering_panel::LayerOrderingPanel,
         performance_panel: &mut performance_panel::PerformancePanel,
+        collider_settings_panel: &mut collider_settings_panel::ColliderSettingsPanel,
         dt: f32,
     ) {
         // Handle layout change request (will be processed by caller)
@@ -377,6 +379,7 @@ impl EditorUI {
                 layer_properties_panel,
                 layer_ordering_panel,
                 performance_panel,
+                collider_settings_panel,
                 dt,
             };
 

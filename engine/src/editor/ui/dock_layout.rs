@@ -18,6 +18,7 @@ pub enum EditorTab {
     LayerProperties,  // Layer properties panel for tilemap layers
     LayerOrdering,  // Layer ordering panel for reordering tilemap layers
     Performance,  // Performance monitoring panel for tilemap management
+    ColliderSettings,  // Collider configuration panel for tilemap colliders
     SpriteEditor(std::path::PathBuf),  // Sprite editor for a specific texture file
 }
 
@@ -59,6 +60,7 @@ pub struct TabContext<'a> {
     pub layer_properties_panel: &'a mut super::layer_properties_panel::LayerPropertiesPanel,
     pub layer_ordering_panel: &'a mut super::layer_ordering_panel::LayerOrderingPanel,
     pub performance_panel: &'a mut super::performance_panel::PerformancePanel,
+    pub collider_settings_panel: &'a mut super::collider_settings_panel::ColliderSettingsPanel,
     pub dt: f32,
 }
 
@@ -82,6 +84,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
             EditorTab::LayerProperties => "🎨 Layer Properties".into(),
             EditorTab::LayerOrdering => "📑 Layer Ordering".into(),
             EditorTab::Performance => "📊 Performance".into(),
+            EditorTab::ColliderSettings => "⚙️ Collider Settings".into(),
             EditorTab::SpriteEditor(path) => {
                 let file_name = path.file_stem()
                     .and_then(|s| s.to_str())
@@ -214,6 +217,13 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                 self.context.performance_panel.render_content(
                     ui,
                     self.context.world,
+                    self.context.map_manager,
+                );
+            }
+            EditorTab::ColliderSettings => {
+                // Render collider settings panel
+                self.context.collider_settings_panel.render_content(
+                    ui,
                     self.context.map_manager,
                 );
             }

@@ -114,6 +114,7 @@ pub struct EditorState {
     pub layer_properties_panel: super::ui::layer_properties_panel::LayerPropertiesPanel,  // Layer properties panel for tilemap layers
     pub layer_ordering_panel: super::ui::layer_ordering_panel::LayerOrderingPanel,  // Layer ordering panel for reordering tilemap layers
     pub performance_panel: super::ui::performance_panel::PerformancePanel,  // Performance monitoring panel for tilemap management
+    pub collider_settings_panel: super::ui::collider_settings_panel::ColliderSettingsPanel,  // Collider configuration panel for tilemap colliders
 }
 
 #[allow(dead_code)]
@@ -192,6 +193,7 @@ impl EditorState {
             layer_properties_panel: super::ui::layer_properties_panel::LayerPropertiesPanel::new(),
             layer_ordering_panel: super::ui::layer_ordering_panel::LayerOrderingPanel::new(),
             performance_panel: super::ui::performance_panel::PerformancePanel::new(),
+            collider_settings_panel: super::ui::collider_settings_panel::ColliderSettingsPanel::new(),
         }
     }
 

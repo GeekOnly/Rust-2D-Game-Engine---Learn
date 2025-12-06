@@ -26,6 +26,12 @@ pub struct MapManager {
     
     /// Last error message from hot-reload
     pub last_hot_reload_error: Option<String>,
+    
+    /// Collision value to use for collider generation (default: 1)
+    pub collision_value: i64,
+    
+    /// Auto-regenerate colliders on reload
+    pub auto_regenerate_colliders: bool,
 }
 
 /// Information about a loaded map
@@ -68,6 +74,8 @@ impl MapManager {
             hot_reload_watcher: None,
             hot_reload_enabled: true,
             last_hot_reload_error: None,
+            collision_value: 1,  // Default collision value
+            auto_regenerate_colliders: true,  // Auto-regenerate by default
         }
     }
     
@@ -156,7 +164,7 @@ impl MapManager {
                 path,
                 world,
                 true,  // auto_generate_colliders
-                1,     // collision_value
+                self.collision_value,  // Use configured collision value
             )?;
         
         // Create LayerInfo for each layer
@@ -264,12 +272,16 @@ impl MapManager {
             layer_entities.extend(entities);
         }
         
-        // Generate new colliders
-        let collider_entities = ecs::loaders::LdtkLoader::generate_composite_colliders_from_intgrid(
-            path,
-            world,
-            1, // collision_value
-        )?;
+        // Generate new colliders (only if auto-regenerate is enabled)
+        let collider_entities = if self.auto_regenerate_colliders {
+            ecs::loaders::LdtkLoader::generate_composite_colliders_from_intgrid(
+                path,
+                world,
+                self.collision_value,  // Use configured collision value
+            )?
+        } else {
+            Vec::new()
+        };
         
         // Set colliders as children of Grid
         for &collider in &collider_entities {
@@ -541,7 +553,7 @@ impl MapManager {
             let colliders = ecs::loaders::LdtkLoader::generate_composite_colliders_from_intgrid(
                 path,
                 world,
-                1, // collision_value
+                self.collision_value,  // Use configured collision value
             )?;
             
             // Set as children of Grid
@@ -712,6 +724,28 @@ impl MapManager {
     /// Clear the last hot-reload error message
     pub fn clear_hot_reload_error(&mut self) {
         self.last_hot_reload_error = None;
+    }
+    
+    /// Set collision value for collider generation
+    pub fn set_collision_value(&mut self, value: i64) {
+        self.collision_value = value;
+        log::info!("Collision value set to: {}", value);
+    }
+    
+    /// Get current collision value
+    pub fn get_collision_value(&self) -> i64 {
+        self.collision_value
+    }
+    
+    /// Set auto-regenerate colliders flag
+    pub fn set_auto_regenerate_colliders(&mut self, enabled: bool) {
+        self.auto_regenerate_colliders = enabled;
+        log::info!("Auto-regenerate colliders: {}", if enabled { "enabled" } else { "disabled" });
+    }
+    
+    /// Get auto-regenerate colliders flag
+    pub fn get_auto_regenerate_colliders(&self) -> bool {
+        self.auto_regenerate_colliders
     }
 }
 
