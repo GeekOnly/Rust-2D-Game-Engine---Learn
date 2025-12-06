@@ -1,6 +1,7 @@
 mod editor;
 mod runtime;
 mod texture_manager;
+pub mod hud;
 
 use anyhow::Result;
 use engine_core::{EngineContext, EngineModule, project::ProjectManager};
@@ -547,6 +548,19 @@ fn main() -> Result<()> {
 
                                                         // Load editor layout
                                                         editor_state.load_editor_layout();
+                                                        
+                                                        // Setup HUD bindings
+                                                        editor_state.setup_hud_bindings();
+                                                        
+                                                        // Try to load HUD asset if exists
+                                                        let hud_path = folder.join("assets/ui/celeste_hud.hud");
+                                                        if hud_path.exists() {
+                                                            if let Err(e) = editor_state.hud_manager.load(hud_path.to_str().unwrap()) {
+                                                                editor_state.console.warning(format!("Failed to load HUD: {}", e));
+                                                            } else {
+                                                                editor_state.console.info("✅ HUD loaded successfully");
+                                                            }
+                                                        }
 
                                                         // Try to load last opened scene first, then startup scene
                                                         let mut scene_loaded = false;
@@ -623,6 +637,19 @@ fn main() -> Result<()> {
                                                                         app_state = AppState::Editor;
                                                                         editor_state = EditorState::new();
                                                                         editor_state.current_project_path = Some(celeste_path.clone());
+                                                                        
+                                                                        // Setup HUD bindings
+                                                                        editor_state.setup_hud_bindings();
+                                                                        
+                                                                        // Load HUD asset
+                                                                        let hud_path = celeste_path.join("assets/ui/celeste_hud.hud");
+                                                                        if hud_path.exists() {
+                                                                            if let Err(e) = editor_state.hud_manager.load(hud_path.to_str().unwrap()) {
+                                                                                log::warn!("Failed to load HUD: {}", e);
+                                                                            } else {
+                                                                                log::info!("✅ HUD loaded successfully");
+                                                                            }
+                                                                        }
                                                                         
                                                                         // Load the main scene
                                                                         let scene_path = celeste_path.join("scenes/main.json");
@@ -1083,6 +1110,8 @@ fn main() -> Result<()> {
                                         &mut editor_state.layer_ordering_panel,
                                         &mut editor_state.performance_panel,
                                         &mut editor_state.collider_settings_panel,
+                                        &mut editor_state.hud_manager,
+                                        &mut editor_state.game_view_settings,
                                         dt,
                                     );
                                 } else {

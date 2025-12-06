@@ -586,6 +586,8 @@ pub struct World {
     pub maps: HashMap<Entity, Map>,
     // Grid component (Unity-like)
     pub grids: HashMap<Entity, Grid>,
+    // World-space UI components
+    pub world_uis: HashMap<Entity, WorldUI>,
 }
 
 impl World {
@@ -634,6 +636,7 @@ impl World {
         self.tilesets.remove(&e);
         self.maps.remove(&e);
         self.grids.remove(&e);
+        self.world_uis.remove(&e);
     }
 
     pub fn clear(&mut self) {
@@ -657,6 +660,7 @@ impl World {
         self.tilesets.clear();
         self.maps.clear();
         self.grids.clear();
+        self.world_uis.clear();
         self.next_entity = 0;
     }
 
@@ -706,6 +710,7 @@ impl World {
             tilesets: Vec<(Entity, TileSet)>,
             grids: Vec<(Entity, Grid)>,
             maps: Vec<(Entity, Map)>,
+            world_uis: Vec<(Entity, WorldUI)>,
         }
 
         let data = SceneData {
@@ -729,6 +734,7 @@ impl World {
             tilesets: self.tilesets.iter().map(|(k, v)| (*k, v.clone())).collect(),
             grids: self.grids.iter().map(|(k, v)| (*k, v.clone())).collect(),
             maps: self.maps.iter().map(|(k, v)| (*k, v.clone())).collect(),
+            world_uis: self.world_uis.iter().map(|(k, v)| (*k, v.clone())).collect(),
         };
 
         serde_json::to_string_pretty(&data)
@@ -777,6 +783,8 @@ impl World {
             grids: Vec<(Entity, Grid)>,
             #[serde(default)]
             maps: Vec<(Entity, Map)>,
+            #[serde(default)]
+            world_uis: Vec<(Entity, WorldUI)>,
         }
 
         let data: SceneData = serde_json::from_str(json)?;
@@ -848,6 +856,9 @@ impl World {
         }
         for (entity, map) in data.maps {
             self.maps.insert(entity, map);
+        }
+        for (entity, world_ui) in data.world_uis {
+            self.world_uis.insert(entity, world_ui);
         }
         
         // Reconstruct hierarchy

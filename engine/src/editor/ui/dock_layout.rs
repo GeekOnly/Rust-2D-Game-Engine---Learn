@@ -61,7 +61,73 @@ pub struct TabContext<'a> {
     pub layer_ordering_panel: &'a mut super::layer_ordering_panel::LayerOrderingPanel,
     pub performance_panel: &'a mut super::performance_panel::PerformancePanel,
     pub collider_settings_panel: &'a mut super::collider_settings_panel::ColliderSettingsPanel,
+    pub hud_manager: &'a mut crate::hud::HudManager,
+    pub game_view_settings: &'a mut crate::runtime::GameViewSettings,
     pub dt: f32,
+}
+
+/// Render game view toolbar (resolution selector, etc.)
+fn render_game_view_toolbar(ui: &mut egui::Ui, settings: &mut crate::runtime::GameViewSettings) {
+    use crate::runtime::GameViewResolution;
+    
+    ui.horizontal(|ui| {
+        ui.label("Resolution:");
+        
+        // Resolution dropdown
+        egui::ComboBox::from_id_source("game_view_resolution")
+            .selected_text(settings.resolution.get_name())
+            .show_ui(ui, |ui| {
+                // Free
+                ui.selectable_value(&mut settings.resolution, GameViewResolution::Free, "Free (Fit to Window)");
+                ui.separator();
+                
+                // PC Resolutions
+                ui.label(egui::RichText::new("PC").strong());
+                ui.selectable_value(&mut settings.resolution, GameViewResolution::FullHD, "Full HD (1920x1080)");
+                ui.selectable_value(&mut settings.resolution, GameViewResolution::HD, "HD (1280x720)");
+                ui.selectable_value(&mut settings.resolution, GameViewResolution::WXGA, "WXGA (1366x768)");
+                ui.selectable_value(&mut settings.resolution, GameViewResolution::QHD, "QHD (2560x1440)");
+                ui.selectable_value(&mut settings.resolution, GameViewResolution::UHD4K, "4K UHD (3840x2160)");
+                ui.separator();
+                
+                // Mobile Portrait
+                ui.label(egui::RichText::new("Mobile (Portrait)").strong());
+                ui.selectable_value(&mut settings.resolution, GameViewResolution::IPhone14, "iPhone 14 (1170x2532)");
+                ui.selectable_value(&mut settings.resolution, GameViewResolution::IPhone14Pro, "iPhone 14 Pro (1179x2556)");
+                ui.selectable_value(&mut settings.resolution, GameViewResolution::IPhoneSE, "iPhone SE (750x1334)");
+                ui.selectable_value(&mut settings.resolution, GameViewResolution::Pixel7, "Pixel 7 (1080x2400)");
+                ui.selectable_value(&mut settings.resolution, GameViewResolution::GalaxyS23, "Galaxy S23 (1080x2340)");
+                ui.separator();
+                
+                // Mobile Landscape
+                ui.label(egui::RichText::new("Mobile (Landscape)").strong());
+                ui.selectable_value(&mut settings.resolution, GameViewResolution::IPhone14Landscape, "iPhone 14 Landscape");
+                ui.selectable_value(&mut settings.resolution, GameViewResolution::IPhone14ProLandscape, "iPhone 14 Pro Landscape");
+                ui.selectable_value(&mut settings.resolution, GameViewResolution::Pixel7Landscape, "Pixel 7 Landscape");
+                ui.separator();
+                
+                // Tablet
+                ui.label(egui::RichText::new("Tablet").strong());
+                ui.selectable_value(&mut settings.resolution, GameViewResolution::IPadPro, "iPad Pro (2048x2732)");
+                ui.selectable_value(&mut settings.resolution, GameViewResolution::IPadAir, "iPad Air (1640x2360)");
+            });
+        
+        ui.separator();
+        
+        // Scale slider
+        if !matches!(settings.resolution, GameViewResolution::Free) {
+            ui.label("Scale:");
+            ui.add(egui::Slider::new(&mut settings.scale, 0.1..=1.0).suffix("%").custom_formatter(|n, _| format!("{:.0}", n * 100.0)));
+            
+            ui.separator();
+        }
+        
+        // Show safe area toggle
+        ui.checkbox(&mut settings.show_safe_area, "Safe Area");
+        
+        // Show resolution info toggle
+        ui.checkbox(&mut settings.show_resolution_info, "Info");
+    });
 }
 
 /// Tab viewer implementation for egui_dock
@@ -182,7 +248,22 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
             }
             EditorTab::Game => {
                 // Game view - camera view only (what player sees)
-                crate::runtime::render_game_view(ui, self.context.world, self.context.texture_manager);
+                
+                // Render game view settings toolbar
+                egui::TopBottomPanel::top("game_view_toolbar")
+                    .frame(egui::Frame::none().inner_margin(4.0))
+                    .show_inside(ui, |ui| {
+                        render_game_view_toolbar(ui, self.context.game_view_settings);
+                    });
+                
+                // Render game view
+                crate::runtime::render_game_view(
+                    ui,
+                    self.context.world,
+                    self.context.texture_manager,
+                    Some(self.context.hud_manager),
+                    Some(self.context.game_view_settings),
+                );
             }
             EditorTab::Console => {
                 // Render console with full functionality
