@@ -290,7 +290,7 @@ pub fn render_scene_view(
                 // Check if it's a sprite file
                 if asset.path.extension().and_then(|s| s.to_str()) == Some("sprite") {
                     // Load sprite metadata
-                    if let Ok(metadata) = crate::editor::sprite_editor::SpriteMetadata::load(&asset.path) {
+                    if let Ok(metadata) = sprite_editor::SpriteMetadata::load(&asset.path) {
                         // Get drop position in world coordinates
                         if let Some(screen_pos) = drag_drop.drop_position {
                             let center = rect.center();

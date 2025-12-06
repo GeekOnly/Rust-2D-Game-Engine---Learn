@@ -538,7 +538,7 @@ impl AssetBrowser {
             if asset.asset_type == AssetType::SpriteSheet {
                 if ui.button("✏ Edit Sprite Sheet").clicked() {
                     // Load the .sprite file to get the texture path
-                    if let Ok(metadata) = crate::editor::sprite_editor::SpriteMetadata::load(&asset.path) {
+                    if let Ok(metadata) = sprite_editor::SpriteMetadata::load(&asset.path) {
                         // Get the texture path (relative to project)
                         let texture_path = std::path::PathBuf::from(&metadata.texture_path);
                         action = Some(AssetBrowserAction::OpenSpriteEditor(texture_path));

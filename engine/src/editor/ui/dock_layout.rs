@@ -340,7 +340,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
             EditorTab::SpriteEditor(texture_path) => {
                 // Find or create sprite editor window for this texture
                 let window_idx = self.context.sprite_editor_windows.iter()
-                    .position(|w| w.state.texture_path == *texture_path);
+                    .position(|w| w.state().texture_path == *texture_path);
 
                 if let Some(idx) = window_idx {
                     // Render inline without window frame

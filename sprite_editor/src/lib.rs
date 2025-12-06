@@ -17,7 +17,13 @@ pub mod statistics;
 pub mod auto_slicer;
 pub mod utils;
 
+#[cfg(feature = "editor_ui")]
+pub mod ui;
+
 // Re-export main types
 pub use metadata::{ExportFormat, SpriteDefinition, SpriteMetadata};
 pub use statistics::SpriteStatistics;
 pub use auto_slicer::AutoSlicer;
+
+#[cfg(feature = "editor_ui")]
+pub use ui::{SpriteEditorWindow, SpriteEditorState, DragMode, ResizeHandle, TextureManager};

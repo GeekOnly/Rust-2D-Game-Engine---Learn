@@ -18,7 +18,10 @@
       "Bash(if [ -d game ])",
       "Bash(then mv game engine)",
       "Bash(find:*)",
-      "Bash(cloc:*)"
+      "Bash(cloc:*)",
+      "Bash(ls:*)",
+      "Bash(cargo test:*)",
+      "Bash(cargo clean:*)"
     ],
     "deny": [],
     "ask": []

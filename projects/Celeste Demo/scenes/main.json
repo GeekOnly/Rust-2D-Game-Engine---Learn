@@ -8863,7 +8863,7 @@
       284,
       {
         "name": "tileset_9",
-        "texture_path": "C:/Users/XS Studio/AppData/Local/Programs/ldtk/extraFiles/samples/atlas/Cavernas_by_Adam_Saltsman.png",
+        "texture_path": "assets/Cavernas_by_Adam_Saltsman.png",
         "texture_id": "tileset_9",
         "tile_width": 8,
         "tile_height": 8,

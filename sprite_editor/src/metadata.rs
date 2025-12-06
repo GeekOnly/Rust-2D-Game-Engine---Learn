@@ -110,10 +110,33 @@ impl SpriteMetadata {
             .map_err(|e| format!("Failed to read sprite file: {}", e))?;
 
         // Deserialize from JSON
-        let metadata: SpriteMetadata = serde_json::from_str(&contents)
+        let mut metadata: SpriteMetadata = serde_json::from_str(&contents)
             .map_err(|e| format!("Failed to parse sprite JSON: {}", e))?;
 
+        // Normalize texture path (convert absolute paths to relative)
+        metadata.texture_path = Self::normalize_texture_path(&metadata.texture_path);
+
         Ok(metadata)
+    }
+
+    /// Normalize texture path - extract just the filename if it's an absolute path
+    fn normalize_texture_path(path: &str) -> String {
+        use std::path::Path as StdPath;
+
+        // Check if it's an absolute path (Windows or Unix style)
+        if path.contains(":\\") || path.starts_with('/') {
+            // Extract just the filename
+            if let Some(filename) = StdPath::new(path).file_name() {
+                if let Some(name) = filename.to_str() {
+                    // Return as assets/filename
+                    log::info!("Normalized absolute path '{}' to 'assets/{}'", path, name);
+                    return format!("assets/{}", name);
+                }
+            }
+        }
+
+        // Already relative, return as-is
+        path.to_string()
     }
 
     /// Export sprite metadata to a file in the specified format
@@ -251,5 +274,23 @@ mod tests {
         let removed = metadata.remove_sprite(0);
         assert!(removed.is_some());
         assert_eq!(metadata.sprites.len(), 0);
+    }
+
+    #[test]
+    fn test_normalize_texture_path() {
+        // Absolute Windows path
+        let path = "C:\\Users\\Test\\file.png";
+        let normalized = SpriteMetadata::normalize_texture_path(path);
+        assert_eq!(normalized, "assets/file.png");
+
+        // Absolute Unix path
+        let path = "/home/user/file.png";
+        let normalized = SpriteMetadata::normalize_texture_path(path);
+        assert_eq!(normalized, "assets/file.png");
+
+        // Already relative
+        let path = "assets/file.png";
+        let normalized = SpriteMetadata::normalize_texture_path(path);
+        assert_eq!(normalized, "assets/file.png");
     }
 }

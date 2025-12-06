@@ -19,8 +19,26 @@ pub struct TileData {
     pub properties: HashMap<String, String>,
 }
 
+/// Helper for deserializing TileSet with path normalization
+#[derive(Deserialize)]
+struct TileSetRaw {
+    name: String,
+    texture_path: String,
+    texture_id: String,
+    tile_width: u32,
+    tile_height: u32,
+    columns: u32,
+    tile_count: u32,
+    #[serde(default)]
+    spacing: u32,
+    #[serde(default)]
+    margin: u32,
+    #[serde(default)]
+    tiles: HashMap<u32, TileData>,
+}
+
 /// Tileset component containing tile data and texture information
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize)]
 pub struct TileSet {
     /// Name of the tileset
     pub name: String,
@@ -43,6 +61,53 @@ pub struct TileSet {
     /// Individual tile data (for tiles with custom properties)
     #[serde(default)]
     pub tiles: HashMap<u32, TileData>,
+}
+
+impl From<TileSetRaw> for TileSet {
+    fn from(raw: TileSetRaw) -> Self {
+        Self {
+            name: raw.name,
+            texture_path: normalize_texture_path(&raw.texture_path),
+            texture_id: raw.texture_id,
+            tile_width: raw.tile_width,
+            tile_height: raw.tile_height,
+            columns: raw.columns,
+            tile_count: raw.tile_count,
+            spacing: raw.spacing,
+            margin: raw.margin,
+            tiles: raw.tiles,
+        }
+    }
+}
+
+impl<'de> serde::Deserialize<'de> for TileSet {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let raw = TileSetRaw::deserialize(deserializer)?;
+        Ok(TileSet::from(raw))
+    }
+}
+
+/// Normalize texture path - extract filename from absolute paths
+fn normalize_texture_path(path: &str) -> String {
+    use std::path::Path;
+
+    // Check if it's an absolute path (Windows or Unix style)
+    if path.contains(":\\") || path.starts_with('/') {
+        // Extract just the filename
+        if let Some(filename) = Path::new(path).file_name() {
+            if let Some(name) = filename.to_str() {
+                // Return as assets/filename
+                log::info!("TileSet: Normalized absolute path '{}' to 'assets/{}'", path, name);
+                return format!("assets/{}", name);
+            }
+        }
+    }
+
+    // Already relative, return as-is
+    path.to_string()
 }
 
 impl TileSet {

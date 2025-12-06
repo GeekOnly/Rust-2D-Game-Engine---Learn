@@ -104,7 +104,7 @@ pub struct EditorState {
     pub selection: super::selection::SelectionManager,  // Multi-selection system
     pub clipboard: super::clipboard::Clipboard,  // Copy/Paste/Duplicate system
     pub snap_settings: super::snapping::SnapSettings,  // Snap to Grid system
-    pub sprite_editor_windows: Vec<super::sprite_editor::SpriteEditorWindow>,  // Open sprite editor windows
+    pub sprite_editor_windows: Vec<super::SpriteEditorWindow>,  // Open sprite editor windows
     pub open_sprite_editor_request: Option<PathBuf>,  // Request to open sprite editor for a texture
     pub sprite_picker_state: super::ui::sprite_picker::SpritePickerState,  // Sprite picker popup state
     pub texture_inspector: super::ui::texture_inspector::TextureInspector,  // Texture import settings inspector
@@ -473,7 +473,7 @@ end
     /// Update all entities that use a specific sprite file when it changes
     pub fn update_entities_using_sprite_file(&mut self, sprite_file_path: &PathBuf) {
         // Load the updated sprite metadata
-        let metadata = match super::sprite_editor::SpriteMetadata::load(sprite_file_path) {
+        let metadata = match sprite_editor::SpriteMetadata::load(sprite_file_path) {
             Ok(m) => m,
             Err(e) => {
                 log::warn!("Failed to load sprite metadata for hot-reload: {}", e);
@@ -606,19 +606,19 @@ mod tests {
         let texture_path = "assets/test_texture.png";
         
         // Create initial sprite metadata
-        let metadata = crate::editor::sprite_editor::SpriteMetadata {
+        let metadata = sprite_editor::SpriteMetadata {
             texture_path: texture_path.to_string(),
             texture_width: 256,
             texture_height: 256,
             sprites: vec![
-                crate::editor::sprite_editor::SpriteDefinition {
+                sprite_editor::SpriteDefinition {
                     name: "sprite_0".to_string(),
                     x: 0,
                     y: 0,
                     width: 32,
                     height: 32,
                 },
-                crate::editor::sprite_editor::SpriteDefinition {
+                sprite_editor::SpriteDefinition {
                     name: "sprite_1".to_string(),
                     x: 32,
                     y: 0,

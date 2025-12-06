@@ -1210,7 +1210,7 @@ fn main() -> Result<()> {
                                         
                                         if is_sprite_sheet {
                                             // Load sprite metadata to get sprite rect
-                                            match crate::editor::sprite_editor::SpriteMetadata::load(&result.sprite_file_path) {
+                                            match sprite_editor::SpriteMetadata::load(&result.sprite_file_path) {
                                                 Ok(metadata) => {
                                                     // Find the selected sprite definition
                                                     if let Some(sprite_def) = metadata.find_sprite(&result.sprite_name) {
@@ -1608,7 +1608,7 @@ fn main() -> Result<()> {
                                     } else {
                                         // In non-docking mode, use floating windows (old behavior)
                                         let already_open = editor_state.sprite_editor_windows.iter()
-                                            .any(|w| w.state.texture_path == texture_path);
+                                            .any(|w| w.state().texture_path == texture_path);
 
                                         if !already_open {
                                             let window = crate::editor::SpriteEditorWindow::new(texture_path.clone());
@@ -1623,9 +1623,9 @@ fn main() -> Result<()> {
                                     let mut reloaded_sprite_files = Vec::new();
                                     editor_state.sprite_editor_windows.retain_mut(|window| {
                                         // Check if file was reloaded during render
-                                        let was_reloaded = window.state.check_and_reload(dt);
+                                        let was_reloaded = window.state_mut().check_and_reload(dt);
                                         if was_reloaded {
-                                            reloaded_sprite_files.push(window.state.metadata_path.clone());
+                                            reloaded_sprite_files.push(window.state().metadata_path.clone());
                                         }
 
                                         window.render(&egui_ctx, &mut editor_state.texture_manager, dt);

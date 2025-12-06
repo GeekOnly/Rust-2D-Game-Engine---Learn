@@ -1,28 +1,18 @@
 # Implementation Plan
 
 - [x] 1. Set up UI crate structure and core types
-
-
-
-
-
   - Create new `ui` crate with module structure
   - Define core types: Vec2, Vec4, Rect, Color
-  - Set up dependencies (ecs, render, serde, glam)
+  - Set up dependencies (ecs, render, serde, glam, proptest)
   - Create public API in lib.rs with re-exports
   - _Requirements: All requirements - foundation_
 
 - [x] 2. Implement RectTransform system
-
-
-
-
   - [x] 2.1 Create RectTransform component
-
-
     - Define RectTransform struct with anchor, pivot, position, size
     - Implement helper methods (anchored, stretched, get_size, set_size)
     - Implement contains_point for raycasting
+    - Implement anchor clamping in setters
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7_
   
   - [ ]* 2.2 Write property test for anchor clamping
@@ -42,22 +32,13 @@
     - **Validates: Requirements 2.5**
   
   - [x] 2.6 Implement RectTransform calculation system
-
-
     - Create system to calculate world corners and rects
     - Handle parent-child transform calculations
     - Implement dirty flagging for efficient updates
     - _Requirements: 2.1, 2.6, 3.1_
 
 - [x] 3. Implement Canvas system
-
-
-
-
-
   - [x] 3.1 Create Canvas and CanvasScaler components
-
-
     - Define Canvas struct with render mode and sort order
     - Define CanvasScaler with all scale modes
     - Implement scale factor calculation for each mode
@@ -84,30 +65,22 @@
     - **Validates: Requirements 7.1, 7.2, 7.3, 7.4, 7.6**
   
   - [x] 3.6 Create Canvas management system
-
-
     - Implement canvas creation and initialization
     - Handle screen resolution changes
     - Update scale factors and mark canvases dirty
     - _Requirements: 1.1, 1.5, 7.5_
 
 - [x] 4. Implement UI hierarchy system
-
-
-
-
   - [x] 4.1 Create UIElement base component
-
     - Define UIElement struct with raycast, color, alpha, interactable
     - Implement z-order and canvas caching
     - _Requirements: 3.1, 3.7, 6.1, 6.7_
   
-
-  - [ ] 4.2 Implement hierarchy propagation systems
-    - Create system for transform propagation
+  - [x] 4.2 Implement hierarchy propagation systems
+    - Create system for canvas entity propagation
     - Create system for visibility propagation
     - Create system for destruction propagation
-    - Handle sibling index ordering
+    - Handle sibling index ordering and render order
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7_
   
   - [ ]* 4.3 Write property test for transform propagation
@@ -126,99 +99,99 @@
     - **Property 11: Sibling index determines render order**
     - **Validates: Requirements 3.7**
 
-- [ ] 5. Implement core UI components
-  - [ ] 5.1 Create UIImage component
+- [x] 5. Define core UI component types
+  - [x] 5.1 Create UIImage component type
     - Define UIImage struct with sprite, image type, 9-slice
-    - Implement fill methods (horizontal, vertical, radial)
-    - Implement preserve aspect ratio
+    - Define fill methods (horizontal, vertical, radial)
+    - Define preserve aspect ratio
     - _Requirements: 4.1, 4.5_
   
-  - [ ] 5.2 Implement 9-slice rendering
-    - Create 9-slice mesh generation
-    - Handle border preservation
-    - _Requirements: 4.5_
-  
-  - [ ]* 5.3 Write property test for 9-slice corner preservation
-    - **Property 12: 9-slice corner preservation**
-    - **Validates: Requirements 4.5**
-  
-  - [ ] 5.4 Create UIText component
+  - [x] 5.2 Create UIText component type
     - Define UIText struct with font, size, color, alignment
-    - Implement overflow modes (wrap, truncate, overflow)
-    - Implement rich text support
+    - Define overflow modes (wrap, truncate, overflow)
+    - Define rich text support
     - _Requirements: 4.2, 4.6_
   
-  - [ ]* 5.5 Write property test for text overflow handling
-    - **Property 13: Text overflow handling**
-    - **Validates: Requirements 4.6**
-  
-  - [ ] 5.6 Create UIButton component
+  - [x] 5.3 Create UIButton component type
     - Define UIButton struct with states and transitions
-    - Implement color tint transition
-    - Implement sprite swap transition
-    - Handle button state changes
+    - Define color tint transition
+    - Define sprite swap transition
+    - Define button state changes
     - _Requirements: 4.3_
   
-  - [ ] 5.7 Create UIPanel component
+  - [x] 5.4 Create UIPanel component type
     - Define UIPanel struct with background and padding
     - Support 9-slice backgrounds
     - _Requirements: 4.4_
   
-  - [ ]* 5.8 Write property test for color tint application
-    - **Property 14: Color tint application**
-    - **Validates: Requirements 4.7**
+  - [x] 5.5 Create advanced component types
+    - Define UISlider, UIToggle, UIDropdown, UIInputField, UIScrollView
+    - _Requirements: 9.1-9.8, 10.1-10.8_
 
-- [ ] 6. Implement layout system
-  - [ ] 6.1 Create layout group components
+- [x] 6. Define layout system types
+  - [x] 6.1 Create layout group component types
     - Define HorizontalLayoutGroup struct
     - Define VerticalLayoutGroup struct
     - Define GridLayoutGroup struct
+    - Define Alignment, Corner, Axis enums
     - _Requirements: 5.1, 5.2, 5.3_
-  
-  - [ ] 6.2 Implement layout calculation system
-    - Create horizontal layout algorithm
-    - Create vertical layout algorithm
-    - Create grid layout algorithm
+
+- [ ] 7. Implement layout calculation system
+
+
+
+  - [ ] 7.1 Implement horizontal layout algorithm
+    - Create system to arrange children horizontally
     - Handle padding, spacing, and alignment
     - Handle force expand and child control
-    - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7_
+    - _Requirements: 5.1, 5.4, 5.5, 5.6, 5.7_
   
-  - [ ]* 6.3 Write property test for layout spacing
+  - [ ] 7.2 Implement vertical layout algorithm
+    - Create system to arrange children vertically
+    - Handle padding, spacing, and alignment
+    - Handle force expand and child control
+    - _Requirements: 5.2, 5.4, 5.5, 5.6, 5.7_
+  
+  - [ ] 7.3 Implement grid layout algorithm
+    - Create system to arrange children in grid
+    - Handle padding, spacing, cell size, and alignment
+    - Handle constraints (flexible, fixed column/row count)
+    - _Requirements: 5.3, 5.4, 5.5, 5.6, 5.7_
+  
+  - [ ]* 7.4 Write property test for layout spacing
     - **Property 15: Layout spacing consistency**
     - **Validates: Requirements 5.1, 5.2, 5.3**
   
-  - [ ]* 6.4 Write property test for layout padding
+  - [ ]* 7.5 Write property test for layout padding
     - **Property 16: Layout padding application**
     - **Validates: Requirements 5.4**
   
-  - [ ]* 6.5 Write property test for layout alignment
+  - [ ]* 7.6 Write property test for layout alignment
     - **Property 17: Layout child alignment**
     - **Validates: Requirements 5.5**
   
-  - [ ]* 6.6 Write property test for layout force expand
+  - [ ]* 7.7 Write property test for layout force expand
     - **Property 18: Layout force expand**
     - **Validates: Requirements 5.6**
   
-  - [ ]* 6.7 Write property test for layout recalculation
+  - [ ]* 7.8 Write property test for layout recalculation
     - **Property 19: Layout recalculation on size change**
     - **Validates: Requirements 5.7**
 
-- [ ] 7. Checkpoint - Ensure all tests pass
-  - Ensure all tests pass, ask the user if questions arise.
-
 - [ ] 8. Implement event system
-  - [ ] 8.1 Create UI event types and handler
-    - Define UIEvent enum with all event types
-    - Define UIEventHandler with listener registration
-    - Track hover, pressed, and drag state
-    - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8_
-  
-  - [ ] 8.2 Implement UI raycasting
+  - [ ] 8.1 Implement UI raycasting
     - Create raycast system to find elements at point
     - Handle raycast target filtering
     - Handle raycast blocking
     - Sort by Z-order for correct event delivery
     - _Requirements: 6.1, 6.6, 6.7_
+  
+  - [ ] 8.2 Implement input event processing
+    - Process mouse/touch input
+    - Generate UI events (click, hover, drag)
+    - Dispatch events to elements
+    - Update button states based on events
+    - _Requirements: 6.2, 6.3, 6.4, 6.5, 6.8_
   
   - [ ]* 8.3 Write property test for raycast target inclusion
     - **Property 20: Raycast target inclusion**
@@ -232,29 +205,22 @@
     - **Property 22: Raycast blocking**
     - **Validates: Requirements 6.7**
   
-  - [ ] 8.3 Implement input event processing
-    - Process mouse/touch input
-    - Generate UI events (click, hover, drag)
-    - Dispatch events to elements
-    - Invoke Lua callbacks
-    - _Requirements: 6.2, 6.3, 6.4, 6.5, 6.8_
-  
-  - [ ]* 8.7 Write property test for event callback invocation
+  - [ ]* 8.6 Write property test for event callback invocation
     - **Property 23: Event callback invocation**
     - **Validates: Requirements 6.2, 6.3, 6.4, 6.5, 6.8**
 
 - [ ] 9. Implement animation system
-  - [ ] 9.1 Create animation types and system
-    - Define UIAnimation struct with property, values, easing
-    - Define EasingFunction enum with all easing types
-    - Implement easing function calculations
+  - [ ] 9.1 Implement easing function calculations
+    - Implement all easing functions (linear, quad, cubic, etc.)
+    - Create easing function evaluator
     - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 8.8_
   
   - [ ] 9.2 Implement animation update system
     - Update animation elapsed time
-    - Calculate interpolated values
-    - Apply values to components
-    - Handle animation completion
+    - Calculate interpolated values using easing
+    - Apply values to RectTransform and UIElement components
+    - Handle animation completion and callbacks
+    - Handle loop modes (once, loop, ping-pong)
     - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.8_
   
   - [ ]* 9.3 Write property test for animation interpolation
@@ -266,20 +232,18 @@
     - **Validates: Requirements 8.8**
 
 - [ ] 10. Implement scroll view system
-  - [ ] 10.1 Create UIScrollView component
-    - Define UIScrollView struct with content, viewport, scrollbars
-    - Define movement types (unrestricted, elastic, clamped)
-    - Track scroll position and velocity
-    - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7, 9.8_
+  - [ ] 10.1 Implement viewport clipping system
+    - Create clipping mask for viewport
+    - Cull content outside viewport bounds
+    - _Requirements: 9.1, 9.8_
   
-  - [ ] 10.2 Implement scroll view systems
-    - Create viewport clipping system
+  - [ ] 10.2 Implement scroll view interaction
     - Implement drag scrolling
     - Implement scrollbar updates
     - Implement programmatic scrolling
     - Implement elastic spring-back
     - Implement inertia deceleration
-    - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7, 9.8_
+    - _Requirements: 9.2, 9.3, 9.4, 9.5, 9.6, 9.7_
   
   - [ ]* 10.3 Write property test for viewport clipping
     - **Property 31: Scroll view viewport clipping**
@@ -305,247 +269,250 @@
     - **Property 36: Scroll inertia deceleration**
     - **Validates: Requirements 9.7**
 
-- [ ] 11. Implement advanced UI components
-  - [ ] 11.1 Create UISlider component
-    - Define UISlider struct with fill, handle, min/max
+- [ ] 11. Implement advanced component systems
+  - [ ] 11.1 Implement slider interaction system
     - Implement value clamping
-    - Implement handle positioning
-    - Handle drag interaction
-    - _Requirements: 10.1, 10.5_
+    - Implement handle positioning based on value
+    - Handle drag interaction to update value
+    - _Requirements: 10.1, 10.5**
   
   - [ ]* 11.2 Write property tests for slider
     - **Property 37: Slider value clamping**
     - **Property 38: Slider handle position reflects value**
     - **Validates: Requirements 10.1**
   
-  - [ ] 11.3 Create UIToggle component
-    - Define UIToggle struct with graphic and state
-    - Implement state toggling
-    - Update visual state
-    - _Requirements: 10.2, 10.6_
+  - [ ] 11.3 Implement toggle interaction system
+    - Implement state toggling on click
+    - Update visual state (checkmark visibility)
+    - _Requirements: 10.2, 10.6**
   
   - [ ]* 11.4 Write property test for toggle state consistency
     - **Property 39: Toggle state consistency**
     - **Validates: Requirements 10.2, 10.6**
   
-  - [ ] 11.5 Create UIDropdown component
-    - Define UIDropdown struct with template, options
-    - Implement dropdown list display
+  - [ ] 11.5 Implement dropdown interaction system
+    - Implement dropdown list display/hide
     - Handle option selection
-    - _Requirements: 10.3, 10.7_
+    - Update caption text
+    - _Requirements: 10.3, 10.7**
   
   - [ ]* 11.6 Write property test for dropdown display
     - **Property 40: Dropdown displays selected option**
     - **Validates: Requirements 10.3, 10.7**
   
-  - [ ] 11.7 Create UIInputField component
-    - Define UIInputField struct with text, validation
+  - [ ] 11.7 Implement input field interaction system
     - Implement text input handling
-    - Implement cursor and selection
+    - Implement cursor positioning and selection
     - Implement content type validation
-    - _Requirements: 10.4, 10.8_
+    - _Requirements: 10.4, 10.8**
   
   - [ ]* 11.8 Write property test for input field validation
     - **Property 41: Input field content type validation**
     - **Validates: Requirements 10.8**
 
-- [ ] 12. Checkpoint - Ensure all tests pass
-  - Ensure all tests pass, ask the user if questions arise.
-
-- [ ] 13. Implement masking system
-  - [ ] 13.1 Create UIMask component
-    - Define UIMask struct with show_mask_graphic, use_sprite_alpha
-    - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5_
+- [ ] 12. Implement masking system
+  - [ ] 12.1 Implement stencil-based clipping
+    - Create stencil buffer setup for masks
+    - Clip children to mask bounds
+    - Handle nested masks (intersection)
+    - _Requirements: 11.1, 11.3_
   
-  - [ ] 13.2 Implement masking rendering
-    - Create stencil-based clipping
-    - Implement sprite alpha masking
-    - Handle nested masks
-    - Control mask graphic visibility
-    - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5_
+  - [ ] 12.2 Implement sprite alpha masking
+    - Implement alpha-based masking using sprite alpha channel
+    - _Requirements: 11.2_
   
-  - [ ]* 13.3 Write property test for mask clipping
+  - [ ] 12.3 Implement mask graphic visibility control
+    - Control whether mask graphic itself is rendered
+    - _Requirements: 11.4, 11.5_
+  
+  - [ ]* 12.4 Write property test for mask clipping
     - **Property 42: Mask clips children to bounds**
     - **Validates: Requirements 11.1**
   
-  - [ ]* 13.4 Write property test for sprite alpha masking
+  - [ ]* 12.5 Write property test for sprite alpha masking
     - **Property 43: Sprite alpha masking**
     - **Validates: Requirements 11.2**
   
-  - [ ]* 13.5 Write property test for nested masks
+  - [ ]* 12.6 Write property test for nested masks
     - **Property 44: Nested mask intersection**
     - **Validates: Requirements 11.3**
   
-  - [ ]* 13.6 Write property test for mask graphic visibility
+  - [ ]* 12.7 Write property test for mask graphic visibility
     - **Property 45: Mask graphic visibility**
     - **Validates: Requirements 11.4, 11.5**
 
-- [ ] 14. Implement UI rendering system
-  - [ ] 14.1 Create UI batch builder
-    - Collect all visible UI elements
-    - Sort by canvas, Z-order
-    - Group elements for batching
+- [ ] 13. Implement UI rendering system
+  - [ ] 13.1 Implement 9-slice mesh generation
+    - Create 9-slice mesh generator for UIImage
+    - Handle border preservation
+    - _Requirements: 4.5_
+  
+  - [ ]* 13.2 Write property test for 9-slice corner preservation
+    - **Property 12: 9-slice corner preservation**
+    - **Validates: Requirements 4.5**
+  
+  - [ ] 13.3 Create UI batch builder
+    - Collect all visible UI elements from hierarchy
+    - Sort by canvas sort order, then Z-order
+    - Group elements for batching by material/texture
     - Generate vertex and index buffers
     - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5, 12.6_
   
-  - [ ] 14.2 Implement batching optimization
+  - [ ] 13.4 Implement batching optimization
     - Batch elements with same material/texture
     - Break batches for Z-order changes
-    - Handle dirty flagging
-    - Implement culling
+    - Handle dirty flagging for efficient updates
+    - Implement culling for off-screen elements
     - _Requirements: 12.1, 12.2, 12.3, 12.6_
   
-  - [ ]* 14.3 Write property test for UI batching
+  - [ ]* 13.5 Write property test for UI batching
     - **Property 46: UI batching reduces draw calls**
     - **Validates: Requirements 12.1**
   
-  - [ ]* 14.4 Write property test for Z-order batch breaking
+  - [ ]* 13.6 Write property test for Z-order batch breaking
     - **Property 47: Z-order breaks batches**
     - **Validates: Requirements 12.2**
   
-  - [ ]* 14.5 Write property test for dirty marking
+  - [ ]* 13.7 Write property test for dirty marking
     - **Property 48: Property changes mark dirty**
     - **Validates: Requirements 12.3**
   
-  - [ ]* 14.6 Write property test for transparent render order
+  - [ ]* 13.8 Write property test for transparent render order
     - **Property 49: Transparent elements render back-to-front**
     - **Validates: Requirements 12.4**
   
-  - [ ]* 14.7 Write property test for canvas dirty rebuild
+  - [ ]* 13.9 Write property test for canvas dirty rebuild
     - **Property 50: Canvas dirty triggers rebuild**
     - **Validates: Requirements 12.5**
   
-  - [ ]* 14.8 Write property test for culling
+  - [ ]* 13.10 Write property test for culling
     - **Property 51: Culled elements excluded from rendering**
     - **Validates: Requirements 12.6**
   
-  - [ ] 14.9 Integrate with render crate
+  - [ ] 13.11 Integrate with render crate
     - Create UI render pass
     - Submit batches to sprite renderer
-    - Handle multiple canvases
+    - Handle multiple canvases with different render modes
     - _Requirements: 1.2, 1.3, 1.4, 1.6_
 
-- [ ] 15. Implement text rendering
-  - [ ] 15.1 Create text rendering system
-    - Load and cache fonts
-    - Generate text meshes
-    - Handle text alignment
-    - Handle text overflow modes
-    - Support rich text markup
+- [ ] 14. Implement text rendering
+  - [ ] 14.1 Create text rendering system
+    - Load and cache fonts (integrate with existing font system)
+    - Generate text meshes from UIText components
+    - Handle text alignment (9 positions)
+    - Handle text overflow modes (wrap, truncate, overflow)
     - _Requirements: 4.2, 4.6_
   
-  - [ ] 15.2 Integrate text with UI rendering
-    - Add text to UI batches
+  - [ ]* 14.2 Write property test for text overflow handling
+    - **Property 13: Text overflow handling**
+    - **Validates: Requirements 4.6**
+  
+  - [ ] 14.3 Integrate text with UI rendering
+    - Add text quads to UI batches
     - Handle text color and alpha
-    - _Requirements: 4.2_
+    - Apply UIElement color tint to text
+    - _Requirements: 4.2, 4.7_
+  
+  - [ ]* 14.4 Write property test for color tint application
+    - **Property 14: Color tint application**
+    - **Validates: Requirements 4.7**
 
-- [ ] 16. Implement Lua bindings
-  - [ ] 16.1 Create Lua API for UI creation
-    - Bind Canvas creation
-    - Bind UI element creation (Image, Text, Button, Panel, etc.)
-    - Bind hierarchy operations (set parent, get children)
-    - _Requirements: 13.1, 13.4_
-  
-  - [ ]* 16.2 Write property test for Lua element creation
-    - **Property 52: Lua element creation**
-    - **Validates: Requirements 13.1**
-  
-  - [ ]* 16.3 Write property test for Lua element destruction
-    - **Property 55: Lua element destruction**
-    - **Validates: Requirements 13.4**
-  
-  - [ ] 16.4 Create Lua API for UI manipulation
-    - Bind property getters and setters
-    - Bind animation functions
-    - Bind event callback registration
-    - Bind element queries (by name, tag)
-    - _Requirements: 13.2, 13.3, 13.5, 13.6_
-  
-  - [ ]* 16.5 Write property test for Lua property modification
-    - **Property 53: Lua property modification**
-    - **Validates: Requirements 13.2**
-  
-  - [ ]* 16.6 Write property test for Lua callback registration
-    - **Property 54: Lua callback registration**
-    - **Validates: Requirements 13.3**
-  
-  - [ ]* 16.7 Write property test for Lua property queries
-    - **Property 56: Lua property queries**
-    - **Validates: Requirements 13.5**
-  
-  - [ ]* 16.8 Write property test for Lua animation execution
-    - **Property 57: Lua animation execution**
-    - **Validates: Requirements 13.6**
+- [ ] 15. Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 17. Implement UI prefab system
-  - [ ] 17.1 Create UIPrefab types
-    - Define UIPrefab and UIPrefabElement structs
-    - Support all UI component types
-    - _Requirements: 14.1, 14.2, 14.3, 14.4, 14.5_
+- [ ] 16. Implement prefab instantiation system
+  - [ ] 16.1 Implement prefab instantiation
+    - Create entities from UIPrefab hierarchy
+    - Apply all component values from prefab
+    - Set up parent-child relationships
+    - Support parameterization (override specific values)
+    - _Requirements: 14.1, 14.2, 14.3_
   
-  - [ ] 17.2 Implement prefab serialization
-    - Serialize UI hierarchy to JSON
-    - Deserialize JSON to UI hierarchy
-    - _Requirements: 14.4, 14.5_
-  
-  - [ ]* 17.3 Write property test for prefab serialization round-trip
+  - [ ]* 16.2 Write property test for prefab serialization round-trip
     - **Property 58: Prefab serialization round-trip**
     - **Validates: Requirements 14.4, 14.5**
   
-  - [ ] 17.4 Implement prefab instantiation
-    - Create entities from prefab hierarchy
-    - Apply component values
-    - Support parameterization
-    - _Requirements: 14.1, 14.2, 14.3_
-  
-  - [ ]* 17.5 Write property test for prefab instantiation
+  - [ ]* 16.3 Write property test for prefab instantiation
     - **Property 59: Prefab instantiation completeness**
     - **Validates: Requirements 14.1, 14.2**
   
-  - [ ]* 17.6 Write property test for prefab parameterization
+  - [ ]* 16.4 Write property test for prefab parameterization
     - **Property 60: Prefab parameterization**
     - **Validates: Requirements 14.3**
 
-- [ ] 18. Implement UI styling system
-  - [ ] 18.1 Create UIStyle and UITheme types
-    - Define UIStyle struct with colors, fonts, sprites
-    - Define UITheme struct with style collection
+- [ ] 17. Implement UI styling system
+  - [ ] 17.1 Implement style application system
+    - Apply UIStyle to UI elements
+    - Handle style inheritance from parent
+    - Handle theme changes (update all elements)
+    - Support style animations (smooth transitions)
     - _Requirements: 15.1, 15.2, 15.3, 15.4, 15.5_
   
-  - [ ] 18.2 Implement style application system
-    - Apply styles to UI elements
-    - Handle style inheritance
-    - Handle theme changes
-    - Support style animations
-    - _Requirements: 15.1, 15.2, 15.3, 15.4, 15.5_
-  
-  - [ ]* 18.3 Write property test for style application
+  - [ ]* 17.2 Write property test for style application
     - **Property 61: Style application updates visuals**
     - **Validates: Requirements 15.1, 15.2**
   
-  - [ ]* 18.4 Write property test for theme changes
+  - [ ]* 17.3 Write property test for theme changes
     - **Property 62: Theme change updates all elements**
     - **Validates: Requirements 15.3**
   
-  - [ ]* 18.5 Write property test for style inheritance
+  - [ ]* 17.4 Write property test for style inheritance
     - **Property 63: Style inheritance**
     - **Validates: Requirements 15.4**
   
-  - [ ]* 18.6 Write property test for style animations
+  - [ ]* 17.5 Write property test for style animations
     - **Property 64: Style animation transitions**
     - **Validates: Requirements 15.5**
+
+- [ ] 18. Implement Lua bindings
+  - [ ] 18.1 Create Lua API for UI creation
+    - Bind Canvas creation functions
+    - Bind UI element creation (Image, Text, Button, Panel, etc.)
+    - Bind hierarchy operations (set_parent, get_children, destroy)
+    - _Requirements: 13.1, 13.4_
+  
+  - [ ]* 18.2 Write property test for Lua element creation
+    - **Property 52: Lua element creation**
+    - **Validates: Requirements 13.1**
+  
+  - [ ]* 18.3 Write property test for Lua element destruction
+    - **Property 55: Lua element destruction**
+    - **Validates: Requirements 13.4**
+  
+  - [ ] 18.4 Create Lua API for UI manipulation
+    - Bind property getters and setters for all components
+    - Bind animation functions (animate_position, animate_color, etc.)
+    - Bind event callback registration
+    - Bind element queries (find_by_name, find_by_tag)
+    - _Requirements: 13.2, 13.3, 13.5, 13.6_
+  
+  - [ ]* 18.5 Write property test for Lua property modification
+    - **Property 53: Lua property modification**
+    - **Validates: Requirements 13.2**
+  
+  - [ ]* 18.6 Write property test for Lua callback registration
+    - **Property 54: Lua callback registration**
+    - **Validates: Requirements 13.3**
+  
+  - [ ]* 18.7 Write property test for Lua property queries
+    - **Property 56: Lua property queries**
+    - **Validates: Requirements 13.5**
+  
+  - [ ]* 18.8 Write property test for Lua animation execution
+    - **Property 57: Lua animation execution**
+    - **Validates: Requirements 13.6**
 
 - [ ] 19. Final checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 20. Create UI examples and documentation
   - [ ] 20.1 Create basic UI example
-    - Create example showing Canvas, Image, Text, Button
+    - Create Rust example showing Canvas, Image, Text, Button
     - Demonstrate anchoring and layout
     - _Requirements: All core requirements_
   
   - [ ] 20.2 Create advanced UI example
-    - Create example with Scroll View, Slider, Toggle, Dropdown, Input Field
+    - Create Rust example with Scroll View, Slider, Toggle, Dropdown, Input Field
     - Demonstrate animations and events
     - _Requirements: Advanced component requirements_
   
@@ -555,16 +522,16 @@
     - _Requirements: 13.1, 13.2, 13.3, 13.4, 13.5, 13.6_
   
   - [ ] 20.4 Write API documentation
-    - Document all public types and functions
+    - Document all public types and functions with doc comments
     - Add usage examples to doc comments
-    - Create getting started guide
+    - Create getting started guide in README
 
 
 ---
 
 ## Migration Tasks (Legacy HUD System → UI Crate)
 
-**Note:** These tasks handle the migration from `engine/src/hud` and `engine/src/editor/widget_editor` to the new `ui` crate system. See `MIGRATION_PLAN.md` for detailed migration strategy.
+**Note:** These tasks handle the migration from `engine/src/hud` and `engine/src/editor/widget_editor` to the new `ui` crate system. See `MIGRATION_PLAN.md` for detailed migration strategy. **These tasks should only be started after tasks 1-20 are complete and the core UI system is functional.**
 
 - [ ] 21. Create HUD to UIPrefab converter
   - [ ] 21.1 Implement converter core
