@@ -37,6 +37,7 @@ notify-debouncer-full = "0.3"
 proptest = "1.4"
 quickcheck = "1.0"
 quickcheck_macros = "1.0"
+tempfile = "3.8"
 
 [features]
 default = ["rapier"]

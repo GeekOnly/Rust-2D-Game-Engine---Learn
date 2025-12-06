@@ -4,6 +4,7 @@ use std::path::PathBuf;
 use std::time::SystemTime;
 use super::hot_reload::HotReloadWatcher;
 use super::tilemap_error::TilemapError;
+use super::tilemap_settings::TilemapSettings;
 
 /// Map Manager for handling LDtk files in the editor
 pub struct MapManager {
@@ -33,6 +34,9 @@ pub struct MapManager {
     
     /// Auto-regenerate colliders on reload
     pub auto_regenerate_colliders: bool,
+    
+    /// Tilemap settings (loaded from project settings)
+    pub settings: TilemapSettings,
 }
 
 /// Information about a loaded map
@@ -77,6 +81,7 @@ impl MapManager {
             last_hot_reload_error: None,
             collision_value: 1,  // Default collision value
             auto_regenerate_colliders: true,  // Auto-regenerate by default
+            settings: TilemapSettings::default(),
         }
     }
     
@@ -106,13 +111,54 @@ impl MapManager {
             self.disable_hot_reload();
         }
         self.hot_reload_enabled = enabled;
+        
+        // Save settings to persist the change
+        if let Err(e) = self.save_settings() {
+            log::warn!("Failed to save tilemap settings: {}", e);
+        }
+        
         Ok(())
     }
     
     /// Set project path and scan for LDtk files
     pub fn set_project_path(&mut self, path: PathBuf) {
         self.project_path = Some(path.clone());
+        
+        // Load tilemap settings from project
+        self.load_settings();
+        
         self.scan_ldtk_files();
+    }
+    
+    /// Load tilemap settings from project directory
+    pub fn load_settings(&mut self) {
+        if let Some(project_path) = &self.project_path {
+            self.settings = TilemapSettings::load(project_path);
+            
+            // Apply settings to MapManager
+            self.collision_value = self.settings.collision_value;
+            self.auto_regenerate_colliders = self.settings.auto_generate_colliders;
+            self.hot_reload_enabled = self.settings.hot_reload_enabled;
+            
+            log::info!("Loaded tilemap settings: collision_value={}, auto_generate={}, hot_reload={}", 
+                self.collision_value, self.auto_regenerate_colliders, self.hot_reload_enabled);
+        }
+    }
+    
+    /// Save tilemap settings to project directory
+    pub fn save_settings(&mut self) -> Result<(), String> {
+        if let Some(project_path) = &self.project_path {
+            // Update settings from current MapManager state
+            self.settings.collision_value = self.collision_value;
+            self.settings.auto_generate_colliders = self.auto_regenerate_colliders;
+            self.settings.hot_reload_enabled = self.hot_reload_enabled;
+            
+            self.settings.save(project_path)?;
+            log::info!("Saved tilemap settings");
+            Ok(())
+        } else {
+            Err("No project path set".to_string())
+        }
     }
     
     /// Scan project directory for LDtk files
@@ -813,6 +859,11 @@ impl MapManager {
     pub fn set_collision_value(&mut self, value: i64) {
         self.collision_value = value;
         log::info!("Collision value set to: {}", value);
+        
+        // Save settings to persist the change
+        if let Err(e) = self.save_settings() {
+            log::warn!("Failed to save tilemap settings: {}", e);
+        }
     }
     
     /// Get current collision value
@@ -824,6 +875,11 @@ impl MapManager {
     pub fn set_auto_regenerate_colliders(&mut self, enabled: bool) {
         self.auto_regenerate_colliders = enabled;
         log::info!("Auto-regenerate colliders: {}", if enabled { "enabled" } else { "disabled" });
+        
+        // Save settings to persist the change
+        if let Err(e) = self.save_settings() {
+            log::warn!("Failed to save tilemap settings: {}", e);
+        }
     }
     
     /// Get auto-regenerate colliders flag
