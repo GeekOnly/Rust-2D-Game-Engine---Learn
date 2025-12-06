@@ -94,6 +94,67 @@ impl HudManager {
         }
     }
     
+    /// Render HUD clipped to a specific rect (for Game View)
+    pub fn render_egui_clipped(&self, ui: &mut egui::Ui, world: &World, screen_width: f32, screen_height: f32, clip_rect: egui::Rect) {
+        if let Some(hud) = &self.current_hud {
+            // Set clip rect to limit rendering to game view
+            ui.set_clip_rect(clip_rect);
+            
+            for element in &hud.elements {
+                if !element.visible {
+                    continue;
+                }
+                
+                // Calculate position relative to clip rect
+                let pos = element.get_screen_position(screen_width, screen_height);
+                let absolute_pos = [
+                    clip_rect.min.x + pos[0],
+                    clip_rect.min.y + pos[1],
+                ];
+                
+                self.render_element_egui_at(ui.ctx(), element, world, absolute_pos, element.size);
+            }
+        }
+    }
+    
+    fn render_element_egui_at(
+        &self,
+        ctx: &egui::Context,
+        element: &HudElement,
+        world: &World,
+        pos: [f32; 2],
+        size: [f32; 2],
+    ) {
+        match &element.element_type {
+            HudElementType::HealthBar { binding, color, background_color } => {
+                self.render_health_bar_egui(ctx, &element.id, pos, size, binding, *color, *background_color);
+            }
+            HudElementType::ProgressBar { binding, color, background_color } => {
+                self.render_progress_bar_egui(ctx, &element.id, pos, size, binding, *color, *background_color);
+            }
+            HudElementType::Text { text, font_size, color } => {
+                self.render_text_egui(ctx, &element.id, pos, text, *font_size, *color);
+            }
+            HudElementType::DynamicText { format, font_size, color } => {
+                let text = self.format_text(format);
+                self.render_text_egui(ctx, &element.id, pos, &text, *font_size, *color);
+            }
+            HudElementType::Minimap { zoom, background_color } => {
+                self.render_minimap_egui(ctx, &element.id, pos, size, *zoom, *background_color, world);
+            }
+            HudElementType::Image { .. } => {
+                // TODO: Implement image rendering
+            }
+            HudElementType::Container { children } => {
+                for child in children {
+                    let child_pos = child.get_screen_position(size[0], size[1]);
+                    let absolute_child_pos = [pos[0] + child_pos[0], pos[1] + child_pos[1]];
+                    self.render_element_egui_at(ctx, child, world, absolute_child_pos, child.size);
+                }
+            }
+        }
+    }
+    
     fn render_element_egui(
         &self,
         ctx: &egui::Context,

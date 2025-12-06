@@ -268,7 +268,14 @@ impl EditorState {
         // FPS (will be updated from actual delta time)
         self.hud_manager.bind("fps", |_world| 60.0);
         
-        self.console.info("HUD bindings configured");
+        self.console.info("✅ HUD bindings configured");
+        
+        // Debug: Check if HUD is loaded
+        if self.hud_manager.get_hud().is_some() {
+            self.console.info("✅ HUD asset is loaded");
+        } else {
+            self.console.warning("⚠️ No HUD asset loaded yet");
+        }
     }
 
     /// Save current layout as default

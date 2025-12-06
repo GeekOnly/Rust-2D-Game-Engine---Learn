@@ -553,13 +553,28 @@ fn main() -> Result<()> {
                                                         editor_state.setup_hud_bindings();
                                                         
                                                         // Try to load HUD asset if exists
-                                                        let hud_path = folder.join("assets/ui/celeste_hud.hud");
+                                                        // Try test HUD first, then celeste HUD
+                                                        let test_hud_path = folder.join("assets/ui/test_hud.hud");
+                                                        let celeste_hud_path = folder.join("assets/ui/celeste_hud.hud");
+                                                        
+                                                        let hud_path = if test_hud_path.exists() {
+                                                            test_hud_path
+                                                        } else {
+                                                            celeste_hud_path
+                                                        };
+                                                        
                                                         if hud_path.exists() {
+                                                            editor_state.console.info(format!("Loading HUD from: {:?}", hud_path));
                                                             if let Err(e) = editor_state.hud_manager.load(hud_path.to_str().unwrap()) {
-                                                                editor_state.console.warning(format!("Failed to load HUD: {}", e));
+                                                                editor_state.console.error(format!("❌ Failed to load HUD: {}", e));
                                                             } else {
                                                                 editor_state.console.info("✅ HUD loaded successfully");
+                                                                if let Some(hud) = editor_state.hud_manager.get_hud() {
+                                                                    editor_state.console.info(format!("HUD has {} elements", hud.elements.len()));
+                                                                }
                                                             }
+                                                        } else {
+                                                            editor_state.console.warning(format!("⚠️ HUD file not found: {:?}", hud_path));
                                                         }
 
                                                         // Try to load last opened scene first, then startup scene
@@ -638,18 +653,32 @@ fn main() -> Result<()> {
                                                                         editor_state = EditorState::new();
                                                                         editor_state.current_project_path = Some(celeste_path.clone());
                                                                         
-                                                                        // Setup HUD bindings
-                                                                        editor_state.setup_hud_bindings();
+                                                                        // Load HUD asset BEFORE setup bindings
+                                                                        let test_hud_path = celeste_path.join("assets/ui/test_hud.hud");
+                                                                        let celeste_hud_path = celeste_path.join("assets/ui/celeste_hud.hud");
                                                                         
-                                                                        // Load HUD asset
-                                                                        let hud_path = celeste_path.join("assets/ui/celeste_hud.hud");
+                                                                        let hud_path = if test_hud_path.exists() {
+                                                                            test_hud_path
+                                                                        } else {
+                                                                            celeste_hud_path
+                                                                        };
+                                                                        
                                                                         if hud_path.exists() {
+                                                                            log::info!("Loading HUD from: {:?}", hud_path);
                                                                             if let Err(e) = editor_state.hud_manager.load(hud_path.to_str().unwrap()) {
-                                                                                log::warn!("Failed to load HUD: {}", e);
+                                                                                log::error!("❌ Failed to load HUD: {}", e);
                                                                             } else {
                                                                                 log::info!("✅ HUD loaded successfully");
+                                                                                if let Some(hud) = editor_state.hud_manager.get_hud() {
+                                                                                    log::info!("HUD has {} elements", hud.elements.len());
+                                                                                }
                                                                             }
+                                                                        } else {
+                                                                            log::warn!("⚠️ HUD file not found: {:?}", hud_path);
                                                                         }
+                                                                        
+                                                                        // Setup HUD bindings AFTER loading HUD
+                                                                        editor_state.setup_hud_bindings();
                                                                         
                                                                         // Load the main scene
                                                                         let scene_path = celeste_path.join("scenes/main.json");
