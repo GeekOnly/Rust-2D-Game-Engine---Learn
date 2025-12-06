@@ -33,6 +33,10 @@ pub mod rect_transform_system;
 pub mod hierarchy_system;
 pub mod layout_system;
 pub mod scroll_view_system;
+pub mod slider_system;
+pub mod toggle_system;
+pub mod dropdown_system;
+pub mod input_field_system;
 pub mod components;
 pub mod layout;
 pub mod events;
@@ -49,6 +53,10 @@ pub use rect_transform_system::{RectTransformSystem, Entity};
 pub use hierarchy_system::UIHierarchySystem;
 pub use layout_system::LayoutSystem;
 pub use scroll_view_system::ScrollViewSystem;
+pub use slider_system::SliderSystem;
+pub use toggle_system::ToggleSystem;
+pub use dropdown_system::DropdownSystem;
+pub use input_field_system::InputFieldSystem;
 
 // Re-export component types
 pub use components::{
