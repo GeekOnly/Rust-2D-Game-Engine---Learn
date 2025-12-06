@@ -20,6 +20,7 @@ pub enum EditorTab {
     Performance,  // Performance monitoring panel for tilemap management
     ColliderSettings,  // Collider configuration panel for tilemap colliders
     SpriteEditor(std::path::PathBuf),  // Sprite editor for a specific texture file
+    WidgetEditor,  // Visual HUD/UI widget editor (UMG-style)
 }
 
 /// Context for tab rendering
@@ -63,6 +64,7 @@ pub struct TabContext<'a> {
     pub collider_settings_panel: &'a mut super::collider_settings_panel::ColliderSettingsPanel,
     pub hud_manager: &'a mut crate::hud::HudManager,
     pub game_view_settings: &'a mut crate::runtime::GameViewSettings,
+    pub widget_editor: &'a mut crate::editor::WidgetEditor,
     pub dt: f32,
 }
 
@@ -151,6 +153,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
             EditorTab::LayerOrdering => "📑 Layer Ordering".into(),
             EditorTab::Performance => "📊 Performance".into(),
             EditorTab::ColliderSettings => "⚙️ Collider Settings".into(),
+            EditorTab::WidgetEditor => "🎨 Widget Editor".into(),
             EditorTab::SpriteEditor(path) => {
                 let file_name = path.file_stem()
                     .and_then(|s| s.to_str())
@@ -329,6 +332,10 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                 } else {
                     ui.label("No project open");
                 }
+            }
+            EditorTab::WidgetEditor => {
+                // Render widget editor
+                self.context.widget_editor.render(ui);
             }
             EditorTab::SpriteEditor(texture_path) => {
                 // Find or create sprite editor window for this texture

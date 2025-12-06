@@ -117,6 +117,7 @@ pub struct EditorState {
     pub collider_settings_panel: super::ui::collider_settings_panel::ColliderSettingsPanel,  // Collider configuration panel for tilemap colliders
     pub hud_manager: crate::hud::HudManager,  // HUD system for game view
     pub game_view_settings: crate::runtime::GameViewSettings,  // Game view resolution and display settings
+    pub widget_editor: super::widget_editor::WidgetEditor,  // Visual HUD/UI widget editor (UMG-style)
 }
 
 #[allow(dead_code)]
@@ -198,6 +199,7 @@ impl EditorState {
             collider_settings_panel: super::ui::collider_settings_panel::ColliderSettingsPanel::new(),
             hud_manager: crate::hud::HudManager::new(),
             game_view_settings: crate::runtime::GameViewSettings::default(),
+            widget_editor: super::widget_editor::WidgetEditor::new(),
         }
     }
 
