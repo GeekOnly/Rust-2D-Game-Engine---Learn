@@ -4,9 +4,13 @@
 
 use ecs::{World, Entity, MeshType};
 use egui;
+use glam::Vec2;
 use crate::editor::SceneCamera;
 use super::super::types::*;
 use super::gizmos::{render_camera_gizmo, render_collider_gizmo, render_velocity_gizmo};
+use super::sprite_3d::Sprite3DRenderer;
+use super::tilemap_3d::Tilemap3DRenderer;
+use super::render_queue::{RenderQueue, RenderObject, GizmoData, GizmoType};
 
 /// Render the scene in 3D mode
 pub fn render_scene_3d(
@@ -22,79 +26,172 @@ pub fn render_scene_3d(
     hovered_entity: &mut Option<Entity>,
     response: &egui::Response,
 ) {
-    // Collect and sort entities by Z position for proper depth rendering
-    let mut entities: Vec<(Entity, &ecs::Transform)> = world.transforms.iter()
+    // Create render queue for proper depth sorting
+    let mut render_queue = RenderQueue::new();
+    
+    // Create sprite and tilemap renderers
+    let mut sprite_renderer = Sprite3DRenderer::new();
+    let mut tilemap_renderer = Tilemap3DRenderer::new();
+    
+    // Collect sprites from world
+    let mut sprites = sprite_renderer.collect_sprites(world);
+    
+    // Depth sort sprites
+    sprite_renderer.depth_sort(&mut sprites, scene_camera);
+    
+    // Add sprites to render queue
+    for sprite in sprites {
+        render_queue.push(RenderObject::Sprite(sprite));
+    }
+    
+    // Collect tilemaps from world
+    let mut tilemap_layers = tilemap_renderer.collect_tilemaps(world);
+    
+    // Depth sort tilemap layers
+    tilemap_renderer.depth_sort_layers(&mut tilemap_layers);
+    
+    // Add tilemaps to render queue
+    for layer in tilemap_layers {
+        render_queue.push(RenderObject::Tilemap(layer));
+    }
+    
+    // Collect mesh entities (not handled by sprite/tilemap renderers)
+    let mut mesh_entities: Vec<(Entity, &ecs::Transform)> = world.transforms.iter()
+        .filter(|(entity, _)| {
+            world.meshes.contains_key(entity) && !world.sprites.contains_key(entity)
+        })
         .map(|(&e, t)| (e, t))
         .collect();
     
-    // Sort by Z position (far to near) for painter's algorithm
-    entities.sort_by(|a, b| a.1.position[2].partial_cmp(&b.1.position[2]).unwrap_or(std::cmp::Ordering::Equal));
+    // Sort mesh entities by Z position
+    mesh_entities.sort_by(|a, b| {
+        b.1.position[2].partial_cmp(&a.1.position[2]).unwrap_or(std::cmp::Ordering::Equal)
+    });
     
-    // Separate entities into opaque and transparent
-    let (opaque_entities, transparent_entities): (Vec<_>, Vec<_>) = entities.into_iter()
-        .partition(|(entity, _)| {
-            if let Some(sprite) = world.sprites.get(entity) {
-                sprite.color[3] >= 1.0
-            } else if let Some(mesh) = world.meshes.get(entity) {
-                mesh.color[3] >= 1.0
-            } else {
-                true
+    // Sort render queue by depth
+    render_queue.sort_by_depth(scene_camera);
+    
+    // Get viewport rect for rendering
+    let viewport_rect = egui::Rect::from_center_size(
+        center,
+        egui::vec2(painter.clip_rect().width(), painter.clip_rect().height()),
+    );
+    
+    // Render all objects in sorted order
+    for render_object in render_queue.get_sorted() {
+        match render_object {
+            RenderObject::Grid => {
+                // Grid is rendered separately in the main scene view
             }
-        });
+            RenderObject::Sprite(sprite_data) => {
+                // Render sprite using sprite renderer
+                sprite_renderer.render(painter, &[sprite_data.clone()], scene_camera, viewport_rect);
+                
+                // Check for hover
+                if let Some(screen_sprite) = sprite_renderer.project_sprite_to_screen(
+                    sprite_data,
+                    scene_camera,
+                    Vec2::new(center.x, center.y),
+                ) {
+                    let rect = egui::Rect::from_center_size(
+                        egui::pos2(screen_sprite.screen_pos.x, screen_sprite.screen_pos.y),
+                        egui::vec2(screen_sprite.screen_size.x, screen_sprite.screen_size.y),
+                    );
+                    
+                    if let Some(hover_pos) = response.hover_pos() {
+                        if rect.contains(hover_pos) {
+                            *hovered_entity = Some(sprite_data.entity);
+                        }
+                    }
+                }
+            }
+            RenderObject::Tilemap(layer) => {
+                // Render tilemap using tilemap renderer
+                tilemap_renderer.render(painter, &[layer.clone()], scene_camera, viewport_rect);
+                
+                // Check for hover on tilemap bounds
+                if let Some(hover_pos) = response.hover_pos() {
+                    // Project bounds to screen space for hover detection
+                    let viewport_center = Vec2::new(center.x, center.y);
+                    let screen_tiles = tilemap_renderer.project_tilemap_to_screen(layer, scene_camera, viewport_center);
+                    
+                    for screen_tile in screen_tiles {
+                        let rect = egui::Rect::from_min_size(
+                            egui::pos2(screen_tile.screen_pos.x, screen_tile.screen_pos.y),
+                            egui::vec2(screen_tile.screen_size.x, screen_tile.screen_size.y),
+                        );
+                        
+                        if rect.contains(hover_pos) {
+                            *hovered_entity = Some(layer.entity);
+                            break;
+                        }
+                    }
+                }
+            }
+            RenderObject::Gizmo(_) => {
+                // Gizmos are rendered separately
+            }
+        }
+    }
     
-    // Render opaque entities first
-    for (entity, transform) in opaque_entities.iter() {
+    // Render mesh entities (legacy rendering for non-sprite/tilemap entities)
+    for (entity, transform) in mesh_entities.iter() {
         render_entity_3d(
-            painter, 
-            *entity, 
-            transform, 
-            world, 
-            scene_camera, 
-            projection_mode, 
-            center, 
-            selected_entity, 
-            show_colliders, 
-            show_velocities, 
-            hovered_entity, 
-            response
+            painter,
+            *entity,
+            transform,
+            world,
+            scene_camera,
+            projection_mode,
+            center,
+            selected_entity,
+            show_colliders,
+            show_velocities,
+            hovered_entity,
+            response,
         );
     }
     
-    // Render transparent entities after
-    for (entity, transform) in transparent_entities.iter() {
-        render_entity_3d(
-            painter, 
-            *entity, 
-            transform, 
-            world, 
-            scene_camera, 
-            projection_mode, 
-            center, 
-            selected_entity, 
-            show_colliders, 
-            show_velocities, 
-            hovered_entity, 
-            response
-        );
-    }
-
-    // Render selection outline on top
+    // Render selection outline and bounds on top
     if let Some(sel_entity) = *selected_entity {
         if let Some(transform) = world.transforms.get(&sel_entity) {
-            let (screen_x, screen_y) = project_point_3d(transform, scene_camera, center);
+            let viewport_center = Vec2::new(center.x, center.y);
             
-            // Draw selection outline
-            if let Some(_sprite) = world.sprites.get(&sel_entity) {
-                let scale = calculate_perspective_scale(transform, scene_camera);
-                let transform_scale = glam::Vec2::new(transform.scale[0], transform.scale[1]);
-                let size = egui::vec2(transform_scale.x * scale, transform_scale.y * scale);
+            // Render sprite bounds
+            if world.sprites.contains_key(&sel_entity) {
+                // Find sprite in collected sprites
+                let sprite_data = sprite_renderer.collect_sprites(world)
+                    .into_iter()
+                    .find(|s| s.entity == sel_entity);
                 
-                painter.rect_stroke(
-                    egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), size + egui::vec2(4.0, 4.0)),
-                    2.0,
-                    egui::Stroke::new(2.0, egui::Color32::from_rgb(255, 200, 0)),
-                );
-            } else if world.meshes.contains_key(&sel_entity) {
+                if let Some(sprite) = sprite_data {
+                    sprite_renderer.render_bounds(
+                        painter,
+                        &sprite,
+                        scene_camera,
+                        viewport_center,
+                        egui::Color32::from_rgb(255, 200, 0),
+                    );
+                }
+            }
+            // Render tilemap bounds
+            else if world.tilemaps.contains_key(&sel_entity) {
+                let tilemap_layers = tilemap_renderer.collect_tilemaps(world);
+                let layer = tilemap_layers.into_iter().find(|l| l.entity == sel_entity);
+                
+                if let Some(layer) = layer {
+                    tilemap_renderer.render_bounds(
+                        painter,
+                        &layer,
+                        scene_camera,
+                        viewport_center,
+                        egui::Color32::from_rgb(255, 200, 0),
+                    );
+                }
+            }
+            // Render mesh bounds (legacy)
+            else if world.meshes.contains_key(&sel_entity) {
+                let (screen_x, screen_y) = project_point_3d(transform, scene_camera, center);
                 let scale_vec = glam::Vec3::from(transform.scale);
                 let world_size = 2.0;
                 let scale_factor = calculate_perspective_scale(transform, scene_camera);
@@ -110,6 +207,7 @@ pub fn render_scene_3d(
             
             // Draw selected entity's collider gizmo on top
             if *show_colliders {
+                let (screen_x, screen_y) = project_point_3d(transform, scene_camera, center);
                 render_collider_gizmo(painter, sel_entity, world, screen_x, screen_y, scene_camera, true);
             }
         }

@@ -442,7 +442,12 @@
   - **Property 25: Depth sorting is consistent across object types**
   - **Validates: Requirements 14.1, 14.4**
 
-- [ ] 19. Implement bounds rendering for sprites and tilemaps
+- [x] 19. Implement bounds rendering for sprites and tilemaps
+
+
+
+
+
   - Add render_bounds() method to Sprite3DRenderer
   - Add render_bounds() method to Tilemap3DRenderer
   - Render wireframe boxes for selected objects
@@ -450,7 +455,9 @@
   - Apply depth testing to bounds rendering
   - _Requirements: 15.1, 15.2, 15.3, 15.4, 15.5_
 
-- [ ] 19.1 Write property test for bounds depth testing
+
+- [x] 19.1 Write property test for bounds depth testing
+
   - **Property 26: Bounds respect depth testing**
   - **Validates: Requirements 15.4**
 
@@ -461,7 +468,12 @@
   - Test bounds rendering for hovered objects
   - _Requirements: 15.1, 15.2, 15.3, 15.5_
 
-- [ ] 20. Integrate 3D rendering into scene view
+- [x] 20. Integrate 3D rendering into scene view
+
+
+
+
+
   - Update scene_view.rs to use Sprite3DRenderer
   - Update scene_view.rs to use Tilemap3DRenderer
   - Wire up RenderQueue for proper render order

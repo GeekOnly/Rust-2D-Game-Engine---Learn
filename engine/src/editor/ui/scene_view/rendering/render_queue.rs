@@ -166,6 +166,11 @@ impl RenderQueue {
     pub fn is_empty(&self) -> bool {
         self.objects.is_empty()
     }
+    
+    /// Calculate depth of a sprite from camera (public version for testing)
+    pub fn calculate_sprite_depth(&self, position: &glam::Vec3, camera: &SceneCamera) -> f32 {
+        Self::calculate_sprite_depth_static(position, camera.position, camera.rotation, camera.pitch)
+    }
 }
 
 impl Default for RenderQueue {
