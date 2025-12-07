@@ -147,7 +147,7 @@ impl Sprite3DRenderer {
     }
     
     /// Calculate billboard rotation for a sprite to face the camera
-    fn calculate_billboard_rotation(&self, sprite_pos: Vec3, camera: &SceneCamera) -> f32 {
+    pub fn calculate_billboard_rotation(&self, sprite_pos: Vec3, camera: &SceneCamera) -> f32 {
         // Calculate vector from sprite to camera
         let to_camera = Vec2::new(
             camera.position.x - sprite_pos.x,
@@ -177,7 +177,7 @@ impl Sprite3DRenderer {
     }
     
     /// Project sprite to screen space
-    fn project_sprite_to_screen(
+    pub fn project_sprite_to_screen(
         &self,
         sprite: &SpriteRenderData,
         camera: &SceneCamera,

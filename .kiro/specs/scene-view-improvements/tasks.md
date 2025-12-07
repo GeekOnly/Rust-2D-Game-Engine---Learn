@@ -417,7 +417,12 @@
   - **Property 23: Tilemap perspective updates with camera**
   - **Validates: Requirements 13.3**
 
-- [ ] 18. Implement depth testing and render queue
+- [x] 18. Implement depth testing and render queue
+
+
+
+
+
   - Create RenderQueue struct to manage render order
   - Create RenderObject enum for different object types
   - Implement depth-based sorting for all objects
@@ -425,11 +430,15 @@
   - Implement proper occlusion based on depth
   - _Requirements: 14.1, 14.2, 14.3, 14.4, 14.5_
 
-- [ ] 18.1 Write property test for depth occlusion
+- [x] 18.1 Write property test for depth occlusion
+
+
   - **Property 24: Closer objects occlude farther objects**
   - **Validates: Requirements 14.2, 14.3, 14.4**
 
-- [ ] 18.2 Write property test for consistent depth sorting
+- [x] 18.2 Write property test for consistent depth sorting
+
+
   - **Property 25: Depth sorting is consistent across object types**
   - **Validates: Requirements 14.1, 14.4**
 

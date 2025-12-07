@@ -259,6 +259,123 @@ proptest! {
             }
         }
     }
+    
+    // Feature: scene-view-improvements, Property 19: Billboard sprites face camera
+    // **Validates: Requirements 12.1, 12.2**
+    #[test]
+    fn prop_billboard_sprites_face_camera(
+        // Sprite position
+        sprite_x in -500.0f32..500.0f32,
+        sprite_z in -500.0f32..500.0f32,
+        sprite_y in -200.0f32..200.0f32,
+        // Camera position
+        cam_x in -500.0f32..500.0f32,
+        cam_y in -500.0f32..500.0f32,
+        // Camera rotation (should not affect billboard rotation)
+        yaw in -180.0f32..180.0f32,
+        pitch in -45.0f32..45.0f32,
+    ) {
+        // Skip cases where camera and sprite are at the same position
+        let dx = cam_x - sprite_x;
+        let dz = cam_y - sprite_z;
+        let distance = (dx * dx + dz * dz).sqrt();
+        
+        if distance < 0.01 {
+            // Skip this case - camera too close to sprite
+            return Ok(());
+        }
+        
+        // Create camera
+        let mut camera = SceneCamera::new();
+        camera.position = Vec2::new(cam_x, cam_y);
+        camera.rotation = yaw;
+        camera.pitch = pitch;
+        camera.zoom = 1.0;
+        
+        // Create sprite with billboard enabled
+        let sprite_pos = Vec3::new(sprite_x, sprite_y, sprite_z);
+        let mut sprite = create_test_sprite(sprite_pos, Vec2::new(1.0, 1.0), 1);
+        sprite.billboard = true;
+        
+        // Create renderer
+        let renderer = Sprite3DRenderer::new();
+        
+        // Calculate billboard rotation
+        let billboard_rotation = renderer.calculate_billboard_rotation(sprite_pos, &camera);
+        
+        // Verify rotation is finite
+        prop_assert!(billboard_rotation.is_finite(), 
+            "Billboard rotation should be finite");
+        
+        // Verify rotation is in [-π, π] range
+        prop_assert!(billboard_rotation >= -std::f32::consts::PI && billboard_rotation <= std::f32::consts::PI,
+            "Billboard rotation should be in [-π, π] range, got {}", billboard_rotation);
+        
+        // Calculate expected rotation: angle from sprite to camera
+        let to_camera_x = cam_x - sprite_x;
+        let to_camera_z = cam_y - sprite_z;
+        let expected_angle = to_camera_z.atan2(to_camera_x);
+        
+        // Normalize expected angle to [-π, π]
+        let normalized_expected = expected_angle.rem_euclid(std::f32::consts::TAU);
+        let normalized_expected = if normalized_expected > std::f32::consts::PI {
+            normalized_expected - std::f32::consts::TAU
+        } else {
+            normalized_expected
+        };
+        
+        // The billboard rotation should match the expected angle (within tolerance)
+        // Allow 0.1 radian tolerance as specified in the property
+        let angle_diff = (billboard_rotation - normalized_expected).abs();
+        let angle_diff_wrapped = angle_diff.min((std::f32::consts::TAU - angle_diff).abs());
+        
+        prop_assert!(angle_diff_wrapped < 0.1,
+            "Billboard rotation should point toward camera: got {}, expected {} (diff: {})",
+            billboard_rotation, normalized_expected, angle_diff_wrapped);
+    }
+    
+    // Feature: scene-view-improvements, Property 20: Non-billboard sprites use world rotation
+    // **Validates: Requirements 12.3**
+    #[test]
+    fn prop_non_billboard_sprites_use_world_rotation(
+        // Sprite position
+        sprite_x in -500.0f32..500.0f32,
+        sprite_z in -500.0f32..500.0f32,
+        sprite_y in -200.0f32..200.0f32,
+        // Sprite world rotation
+        world_rotation in -std::f32::consts::PI..std::f32::consts::PI,
+        // Camera position
+        cam_x in -500.0f32..500.0f32,
+        cam_y in -500.0f32..500.0f32,
+        // Camera rotation
+        yaw in -180.0f32..180.0f32,
+        pitch in -45.0f32..45.0f32,
+    ) {
+        // Create camera
+        let mut camera = SceneCamera::new();
+        camera.position = Vec2::new(cam_x, cam_y);
+        camera.rotation = yaw;
+        camera.pitch = pitch;
+        camera.zoom = 1.0;
+        
+        // Create sprite with billboard disabled and specific world rotation
+        let sprite_pos = Vec3::new(sprite_x, sprite_y, sprite_z);
+        let mut sprite = create_test_sprite(sprite_pos, Vec2::new(1.0, 1.0), 1);
+        sprite.billboard = false;
+        sprite.rotation = world_rotation;
+        
+        // Create renderer
+        let renderer = Sprite3DRenderer::new();
+        let viewport_center = Vec2::new(400.0, 300.0);
+        
+        // Project sprite to screen space
+        if let Some(screen_sprite) = renderer.project_sprite_to_screen(&sprite, &camera, viewport_center) {
+            // The screen sprite's rotation should match the world rotation
+            // (not the billboard rotation)
+            prop_assert_eq!(screen_sprite.rotation, world_rotation,
+                "Non-billboard sprite should use world rotation {} regardless of camera position/orientation, got {}",
+                world_rotation, screen_sprite.rotation);
+        }
+        // If projection fails (sprite behind camera), that's okay - we just skip this case
+    }
 }
-
-
