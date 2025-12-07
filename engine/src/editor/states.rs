@@ -681,12 +681,12 @@ mod tests {
         let sprite_file_path = temp_dir.join("test_sprite2.sprite");
         
         // Create sprite metadata with a different texture path
-        let metadata = crate::editor::sprite_editor::SpriteMetadata {
+        let metadata = sprite_editor::SpriteMetadata {
             texture_path: "assets/different_texture.png".to_string(),
             texture_width: 256,
             texture_height: 256,
             sprites: vec![
-                crate::editor::sprite_editor::SpriteDefinition {
+                sprite_editor::SpriteDefinition {
                     name: "sprite_0".to_string(),
                     x: 0,
                     y: 0,

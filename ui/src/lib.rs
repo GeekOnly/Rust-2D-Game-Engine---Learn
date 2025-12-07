@@ -105,6 +105,7 @@ pub use rendering::{
 // Re-export prefab types
 pub use prefab::{
     UIPrefab, UIPrefabElement,
+    PrefabInstantiator, PrefabParameters, PrefabValue, InstantiatedPrefab,
 };
 
 // Re-export style types
