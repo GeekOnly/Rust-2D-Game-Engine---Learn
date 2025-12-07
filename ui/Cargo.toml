@@ -18,5 +18,13 @@ serde_json = { workspace = true }
 # Logging
 log = { workspace = true }
 
+# Rendering (optional, for integration with render crate)
+wgpu = { version = "0.19", optional = true }
+bytemuck = { version = "1.14", features = ["derive"], optional = true }
+
+[features]
+default = ["rendering"]
+rendering = ["wgpu", "bytemuck"]
+
 [dev-dependencies]
 proptest = "1.4"
