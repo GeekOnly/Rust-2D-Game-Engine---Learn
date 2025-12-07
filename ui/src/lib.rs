@@ -44,6 +44,7 @@ pub mod rendering;
 pub mod animation;
 pub mod prefab;
 pub mod style;
+pub mod style_system;
 
 // Re-export main types for convenience
 pub use canvas::{Canvas, CanvasRenderMode, CanvasScaler, ScaleMode};
@@ -110,5 +111,8 @@ pub use prefab::{
 
 // Re-export style types
 pub use style::{
-    UIStyle, UITheme,
+    UIStyle, UITheme, StyledElement, StyleTransition,
 };
+
+// Re-export style system
+pub use style_system::StyleSystem;
