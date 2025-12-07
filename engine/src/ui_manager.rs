@@ -253,6 +253,77 @@ impl UIManager {
         
         egui::Rect::from_min_size(final_min, final_size)
     }
+    
+    /// Set element color (for images)
+    pub fn set_element_color(&mut self, instance_name: &str, element_name: &str, r: f32, g: f32, b: f32, a: f32) -> Result<(), String> {
+        let prefab = self.active_uis.get_mut(instance_name)
+            .ok_or_else(|| format!("UI instance not found: {}", instance_name))?;
+        
+        if let Some(element) = Self::find_element_mut(&mut prefab.root, element_name) {
+            element.ui_element.color = [r, g, b, a];
+            Ok(())
+        } else {
+            Err(format!("Element not found: {}", element_name))
+        }
+    }
+    
+    /// Set element fill amount (for filled images)
+    pub fn set_element_fill(&mut self, instance_name: &str, element_name: &str, fill_amount: f32) -> Result<(), String> {
+        let prefab = self.active_uis.get_mut(instance_name)
+            .ok_or_else(|| format!("UI instance not found: {}", instance_name))?;
+        
+        if let Some(element) = Self::find_element_mut(&mut prefab.root, element_name) {
+            if let Some(image) = &mut element.image {
+                image.fill_amount = fill_amount.clamp(0.0, 1.0);
+                Ok(())
+            } else {
+                Err(format!("Element '{}' has no image component", element_name))
+            }
+        } else {
+            Err(format!("Element not found: {}", element_name))
+        }
+    }
+    
+    /// Show element (set alpha to 1.0)
+    pub fn show_element(&mut self, instance_name: &str, element_name: &str) -> Result<(), String> {
+        let prefab = self.active_uis.get_mut(instance_name)
+            .ok_or_else(|| format!("UI instance not found: {}", instance_name))?;
+        
+        if let Some(element) = Self::find_element_mut(&mut prefab.root, element_name) {
+            element.ui_element.alpha = 1.0;
+            Ok(())
+        } else {
+            Err(format!("Element not found: {}", element_name))
+        }
+    }
+    
+    /// Hide element (set alpha to 0.0)
+    pub fn hide_element(&mut self, instance_name: &str, element_name: &str) -> Result<(), String> {
+        let prefab = self.active_uis.get_mut(instance_name)
+            .ok_or_else(|| format!("UI instance not found: {}", instance_name))?;
+        
+        if let Some(element) = Self::find_element_mut(&mut prefab.root, element_name) {
+            element.ui_element.alpha = 0.0;
+            Ok(())
+        } else {
+            Err(format!("Element not found: {}", element_name))
+        }
+    }
+    
+    /// Find element by name (recursive, mutable)
+    fn find_element_mut<'a>(element: &'a mut UIPrefabElement, name: &str) -> Option<&'a mut UIPrefabElement> {
+        if element.name == name {
+            return Some(element);
+        }
+        
+        for child in &mut element.children {
+            if let Some(found) = Self::find_element_mut(child, name) {
+                return Some(found);
+            }
+        }
+        
+        None
+    }
 }
 
 impl Default for UIManager {

@@ -1867,6 +1867,62 @@ fn main() -> Result<()> {
                                         );
                                         editor_state.debug_draw.draw_line(line.start, line.end, color, line.duration);
                                     }
+                                    
+                                    // Process UI commands from Lua scripts
+                                    let ui_commands = script_engine.take_ui_commands();
+                                    for command in ui_commands {
+                                        use script::UICommand;
+                                        match command {
+                                            UICommand::LoadPrefab { path } => {
+                                                if let Err(e) = editor_state.ui_manager.load_prefab(&path) {
+                                                    editor_state.console.error(format!("Failed to load prefab '{}': {}", path, e));
+                                                }
+                                            }
+                                            UICommand::ActivatePrefab { path, instance_name } => {
+                                                if let Err(e) = editor_state.ui_manager.activate_prefab(&path, &instance_name) {
+                                                    editor_state.console.error(format!("Failed to activate prefab '{}': {}", path, e));
+                                                }
+                                            }
+                                            UICommand::DeactivatePrefab { instance_name } => {
+                                                editor_state.ui_manager.deactivate_prefab(&instance_name);
+                                            }
+                                            UICommand::SetText { element_path, text } => {
+                                                editor_state.ui_manager.set_ui_data(&element_path, text);
+                                            }
+                                            UICommand::SetImageFill { element_path, fill_amount } => {
+                                                // Parse element_path: "instance_name/element_name"
+                                                if let Some((instance, element)) = element_path.split_once('/') {
+                                                    if let Err(e) = editor_state.ui_manager.set_element_fill(instance, element, fill_amount) {
+                                                        editor_state.console.error(format!("Failed to set fill: {}", e));
+                                                    }
+                                                }
+                                            }
+                                            UICommand::SetColor { element_path, r, g, b, a } => {
+                                                // Parse element_path: "instance_name/element_name"
+                                                if let Some((instance, element)) = element_path.split_once('/') {
+                                                    if let Err(e) = editor_state.ui_manager.set_element_color(instance, element, r, g, b, a) {
+                                                        editor_state.console.error(format!("Failed to set color: {}", e));
+                                                    }
+                                                }
+                                            }
+                                            UICommand::ShowElement { element_path } => {
+                                                // Parse element_path: "instance_name/element_name"
+                                                if let Some((instance, element)) = element_path.split_once('/') {
+                                                    if let Err(e) = editor_state.ui_manager.show_element(instance, element) {
+                                                        editor_state.console.error(format!("Failed to show element: {}", e));
+                                                    }
+                                                }
+                                            }
+                                            UICommand::HideElement { element_path } => {
+                                                // Parse element_path: "instance_name/element_name"
+                                                if let Some((instance, element)) = element_path.split_once('/') {
+                                                    if let Err(e) = editor_state.ui_manager.hide_element(instance, element) {
+                                                        editor_state.console.error(format!("Failed to hide element: {}", e));
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
 
                                     // Accumulate frame time for fixed timestep physics
                                     physics_accumulator += dt;

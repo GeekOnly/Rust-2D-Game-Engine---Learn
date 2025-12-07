@@ -17,6 +17,19 @@ pub struct DebugLine {
     pub duration: f32,
 }
 
+// UI command types for Lua -> Engine communication
+#[derive(Clone, Debug)]
+pub enum UICommand {
+    LoadPrefab { path: String },
+    ActivatePrefab { path: String, instance_name: String },
+    DeactivatePrefab { instance_name: String },
+    SetText { element_path: String, text: String },
+    SetImageFill { element_path: String, fill_amount: f32 },
+    SetColor { element_path: String, r: f32, g: f32, b: f32, a: f32 },
+    ShowElement { element_path: String },
+    HideElement { element_path: String },
+}
+
 pub struct ScriptEngine {
     lua: Lua,
     // Per-entity Lua states for proper lifecycle management
@@ -25,6 +38,8 @@ pub struct ScriptEngine {
     pub ground_states: HashMap<Entity, bool>,
     // Debug draw queue (accessible from Lua scripts)
     pub debug_lines: RefCell<Vec<DebugLine>>,
+    // UI command queue (Lua -> Engine)
+    pub ui_commands: RefCell<Vec<UICommand>>,
 }
 
 impl ScriptEngine {
@@ -35,12 +50,18 @@ impl ScriptEngine {
             entity_states: HashMap::new(),
             ground_states: HashMap::new(),
             debug_lines: RefCell::new(Vec::new()),
+            ui_commands: RefCell::new(Vec::new()),
         })
     }
     
     /// Get and clear debug lines (called by engine after rendering)
     pub fn take_debug_lines(&self) -> Vec<DebugLine> {
         self.debug_lines.borrow_mut().drain(..).collect()
+    }
+    
+    /// Get and clear UI commands (called by engine to process UI updates)
+    pub fn take_ui_commands(&self) -> Vec<UICommand> {
+        self.ui_commands.borrow_mut().drain(..).collect()
     }
     
     /// Set ground state for entity (called by engine with Rapier result)
@@ -818,62 +839,65 @@ impl ScriptEngine {
             // UI SYSTEM API
             // ================================================================
             
-            // Note: UI functions are placeholders that will be implemented by the engine
-            // The engine will need to pass a UIManager reference to make these functional
+            // UI functions - queue commands for engine to process
+            let ui_commands_clone = self.ui_commands.clone();
             
             // UI.load_prefab(path) -> boolean
-            let ui_load_prefab = scope.create_function(|_, _path: String| {
-                // Placeholder - engine needs to implement
-                log::warn!("UI.load_prefab called but not implemented");
-                Ok(false)
+            let ui_load_prefab = scope.create_function(move |_, path: String| {
+                ui_commands_clone.borrow_mut().push(UICommand::LoadPrefab { path });
+                Ok(true)
             })?;
             
+            let ui_commands_clone = self.ui_commands.clone();
             // UI.activate_prefab(path, instance_name) -> boolean
-            let ui_activate_prefab = scope.create_function(|_, (_path, _instance_name): (String, String)| {
-                // Placeholder - engine needs to implement
-                log::warn!("UI.activate_prefab called but not implemented");
-                Ok(false)
+            let ui_activate_prefab = scope.create_function(move |_, (path, instance_name): (String, String)| {
+                ui_commands_clone.borrow_mut().push(UICommand::ActivatePrefab { path, instance_name });
+                Ok(true)
             })?;
             
+            let ui_commands_clone = self.ui_commands.clone();
             // UI.deactivate_prefab(instance_name)
-            let ui_deactivate_prefab = scope.create_function(|_, _instance_name: String| {
-                // Placeholder - engine needs to implement
-                log::warn!("UI.deactivate_prefab called but not implemented");
+            let ui_deactivate_prefab = scope.create_function(move |_, instance_name: String| {
+                ui_commands_clone.borrow_mut().push(UICommand::DeactivatePrefab { instance_name });
                 Ok(())
             })?;
             
+            let ui_commands_clone = self.ui_commands.clone();
             // UI.set_text(element_path, text)
-            let ui_set_text = scope.create_function(|_, (_element_path, _text): (String, String)| {
-                // Placeholder - engine needs to implement
-                log::warn!("UI.set_text called but not implemented");
+            let ui_set_text = scope.create_function(move |_, (element_path, text): (String, String)| {
+                ui_commands_clone.borrow_mut().push(UICommand::SetText { element_path, text });
                 Ok(())
             })?;
             
+            let ui_commands_clone = self.ui_commands.clone();
             // UI.set_image_fill(element_path, fill_amount)
-            let ui_set_image_fill = scope.create_function(|_, (_element_path, _fill_amount): (String, f32)| {
-                // Placeholder - engine needs to implement
-                log::warn!("UI.set_image_fill called but not implemented");
+            let ui_set_image_fill = scope.create_function(move |_, (element_path, fill_amount): (String, f32)| {
+                ui_commands_clone.borrow_mut().push(UICommand::SetImageFill { element_path, fill_amount });
                 Ok(())
             })?;
             
+            let ui_commands_clone = self.ui_commands.clone();
             // UI.set_color(element_path, {r, g, b, a})
-            let ui_set_color = scope.create_function(|_, (_element_path, _color): (String, Table)| {
-                // Placeholder - engine needs to implement
-                log::warn!("UI.set_color called but not implemented");
+            let ui_set_color = scope.create_function(move |_, (element_path, color): (String, Table)| {
+                let r = color.get::<_, f32>("r").unwrap_or(1.0);
+                let g = color.get::<_, f32>("g").unwrap_or(1.0);
+                let b = color.get::<_, f32>("b").unwrap_or(1.0);
+                let a = color.get::<_, f32>("a").unwrap_or(1.0);
+                ui_commands_clone.borrow_mut().push(UICommand::SetColor { element_path, r, g, b, a });
                 Ok(())
             })?;
             
+            let ui_commands_clone = self.ui_commands.clone();
             // UI.show_element(element_path)
-            let ui_show_element = scope.create_function(|_, _element_path: String| {
-                // Placeholder - engine needs to implement
-                log::warn!("UI.show_element called but not implemented");
+            let ui_show_element = scope.create_function(move |_, element_path: String| {
+                ui_commands_clone.borrow_mut().push(UICommand::ShowElement { element_path });
                 Ok(())
             })?;
             
+            let ui_commands_clone = self.ui_commands.clone();
             // UI.hide_element(element_path)
-            let ui_hide_element = scope.create_function(|_, _element_path: String| {
-                // Placeholder - engine needs to implement
-                log::warn!("UI.hide_element called but not implemented");
+            let ui_hide_element = scope.create_function(move |_, element_path: String| {
+                ui_commands_clone.borrow_mut().push(UICommand::HideElement { element_path });
                 Ok(())
             })?;
             
