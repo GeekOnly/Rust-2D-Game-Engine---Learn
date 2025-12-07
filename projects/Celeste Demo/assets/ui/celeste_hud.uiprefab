@@ -1,0 +1,816 @@
+{
+  "name": "Celeste Demo HUD",
+  "root": {
+    "name": "Celeste Demo HUD",
+    "rect_transform": {
+      "anchor_min": [
+        0.0,
+        0.0
+      ],
+      "anchor_max": [
+        1.0,
+        1.0
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "anchored_position": [
+        0.0,
+        0.0
+      ],
+      "size_delta": [
+        -0.0,
+        -0.0
+      ],
+      "rotation": 0.0,
+      "scale": [
+        1.0,
+        1.0
+      ]
+    },
+    "ui_element": {
+      "raycast_target": true,
+      "blocks_raycasts": true,
+      "z_order": 0,
+      "color": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "alpha": 1.0,
+      "interactable": true,
+      "ignore_layout": false
+    },
+    "image": null,
+    "text": null,
+    "button": null,
+    "panel": null,
+    "slider": null,
+    "toggle": null,
+    "dropdown": null,
+    "input_field": null,
+    "scroll_view": null,
+    "mask": null,
+    "horizontal_layout": null,
+    "vertical_layout": null,
+    "grid_layout": null,
+    "children": [
+      {
+        "name": "player_health /* HealthBar: Add UIImage child with fill_method=Horizontal, bind 'player.health' to fill_amount in Lua. Colors: fg=[0.2, 1.0, 0.3, 1.0], bg=[0.15, 0.15, 0.15, 0.9] */",
+        "rect_transform": {
+          "anchor_min": [
+            0.0,
+            1.0
+          ],
+          "anchor_max": [
+            0.0,
+            1.0
+          ],
+          "pivot": [
+            0.0,
+            1.0
+          ],
+          "anchored_position": [
+            20.0,
+            20.0
+          ],
+          "size_delta": [
+            180.0,
+            24.0
+          ],
+          "rotation": 0.0,
+          "scale": [
+            1.0,
+            1.0
+          ]
+        },
+        "ui_element": {
+          "raycast_target": true,
+          "blocks_raycasts": true,
+          "z_order": 0,
+          "color": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "alpha": 1.0,
+          "interactable": true,
+          "ignore_layout": false
+        },
+        "image": null,
+        "text": null,
+        "button": null,
+        "panel": {
+          "background": null,
+          "use_nine_slice": false,
+          "slice_borders": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "slider": null,
+        "toggle": null,
+        "dropdown": null,
+        "input_field": null,
+        "scroll_view": null,
+        "mask": null,
+        "horizontal_layout": null,
+        "vertical_layout": null,
+        "grid_layout": null,
+        "children": []
+      },
+      {
+        "name": "stamina_bar /* ProgressBar: Add UIImage child with fill_method=Horizontal, bind 'player.stamina' to fill_amount in Lua. Colors: fg=[1.0, 0.8, 0.2, 1.0], bg=[0.15, 0.15, 0.15, 0.9] */",
+        "rect_transform": {
+          "anchor_min": [
+            0.0,
+            1.0
+          ],
+          "anchor_max": [
+            0.0,
+            1.0
+          ],
+          "pivot": [
+            0.0,
+            1.0
+          ],
+          "anchored_position": [
+            20.0,
+            50.0
+          ],
+          "size_delta": [
+            180.0,
+            16.0
+          ],
+          "rotation": 0.0,
+          "scale": [
+            1.0,
+            1.0
+          ]
+        },
+        "ui_element": {
+          "raycast_target": true,
+          "blocks_raycasts": true,
+          "z_order": 0,
+          "color": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "alpha": 1.0,
+          "interactable": true,
+          "ignore_layout": false
+        },
+        "image": null,
+        "text": null,
+        "button": null,
+        "panel": {
+          "background": null,
+          "use_nine_slice": false,
+          "slice_borders": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "slider": null,
+        "toggle": null,
+        "dropdown": null,
+        "input_field": null,
+        "scroll_view": null,
+        "mask": null,
+        "horizontal_layout": null,
+        "vertical_layout": null,
+        "grid_layout": null,
+        "children": []
+      },
+      {
+        "name": "dash_indicator /* DynamicText: Bind 'Dash: {dash_count}' in Lua using set_text() */",
+        "rect_transform": {
+          "anchor_min": [
+            0.0,
+            1.0
+          ],
+          "anchor_max": [
+            0.0,
+            1.0
+          ],
+          "pivot": [
+            0.0,
+            1.0
+          ],
+          "anchored_position": [
+            20.0,
+            75.0
+          ],
+          "size_delta": [
+            120.0,
+            30.0
+          ],
+          "rotation": 0.0,
+          "scale": [
+            1.0,
+            1.0
+          ]
+        },
+        "ui_element": {
+          "raycast_target": true,
+          "blocks_raycasts": true,
+          "z_order": 0,
+          "color": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "alpha": 1.0,
+          "interactable": true,
+          "ignore_layout": false
+        },
+        "image": null,
+        "text": {
+          "text": "Dash: {dash_count}",
+          "font": "default",
+          "font_size": 18.0,
+          "color": [
+            0.3,
+            0.8,
+            1.0,
+            1.0
+          ],
+          "alignment": "MiddleCenter",
+          "horizontal_overflow": "Wrap",
+          "vertical_overflow": "Truncate",
+          "rich_text": false,
+          "line_spacing": 1.0,
+          "best_fit": false,
+          "best_fit_min_size": 10.0,
+          "best_fit_max_size": 40.0
+        },
+        "button": null,
+        "panel": null,
+        "slider": null,
+        "toggle": null,
+        "dropdown": null,
+        "input_field": null,
+        "scroll_view": null,
+        "mask": null,
+        "horizontal_layout": null,
+        "vertical_layout": null,
+        "grid_layout": null,
+        "children": []
+      },
+      {
+        "name": "position_debug /* DynamicText: Bind 'X: {pos_x} Y: {pos_y}' in Lua using set_text() */",
+        "rect_transform": {
+          "anchor_min": [
+            1.0,
+            1.0
+          ],
+          "anchor_max": [
+            1.0,
+            1.0
+          ],
+          "pivot": [
+            1.0,
+            1.0
+          ],
+          "anchored_position": [
+            -180.0,
+            10.0
+          ],
+          "size_delta": [
+            170.0,
+            25.0
+          ],
+          "rotation": 0.0,
+          "scale": [
+            1.0,
+            1.0
+          ]
+        },
+        "ui_element": {
+          "raycast_target": true,
+          "blocks_raycasts": true,
+          "z_order": 0,
+          "color": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "alpha": 1.0,
+          "interactable": true,
+          "ignore_layout": false
+        },
+        "image": null,
+        "text": {
+          "text": "X: {pos_x} Y: {pos_y}",
+          "font": "default",
+          "font_size": 14.0,
+          "color": [
+            0.7,
+            0.7,
+            0.7,
+            0.8
+          ],
+          "alignment": "MiddleCenter",
+          "horizontal_overflow": "Wrap",
+          "vertical_overflow": "Truncate",
+          "rich_text": false,
+          "line_spacing": 1.0,
+          "best_fit": false,
+          "best_fit_min_size": 10.0,
+          "best_fit_max_size": 40.0
+        },
+        "button": null,
+        "panel": null,
+        "slider": null,
+        "toggle": null,
+        "dropdown": null,
+        "input_field": null,
+        "scroll_view": null,
+        "mask": null,
+        "horizontal_layout": null,
+        "vertical_layout": null,
+        "grid_layout": null,
+        "children": []
+      },
+      {
+        "name": "velocity_debug /* DynamicText: Bind 'VX: {vel_x} VY: {vel_y}' in Lua using set_text() */",
+        "rect_transform": {
+          "anchor_min": [
+            1.0,
+            1.0
+          ],
+          "anchor_max": [
+            1.0,
+            1.0
+          ],
+          "pivot": [
+            1.0,
+            1.0
+          ],
+          "anchored_position": [
+            -180.0,
+            35.0
+          ],
+          "size_delta": [
+            170.0,
+            25.0
+          ],
+          "rotation": 0.0,
+          "scale": [
+            1.0,
+            1.0
+          ]
+        },
+        "ui_element": {
+          "raycast_target": true,
+          "blocks_raycasts": true,
+          "z_order": 0,
+          "color": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "alpha": 1.0,
+          "interactable": true,
+          "ignore_layout": false
+        },
+        "image": null,
+        "text": {
+          "text": "VX: {vel_x} VY: {vel_y}",
+          "font": "default",
+          "font_size": 14.0,
+          "color": [
+            0.7,
+            0.7,
+            0.7,
+            0.8
+          ],
+          "alignment": "MiddleCenter",
+          "horizontal_overflow": "Wrap",
+          "vertical_overflow": "Truncate",
+          "rich_text": false,
+          "line_spacing": 1.0,
+          "best_fit": false,
+          "best_fit_min_size": 10.0,
+          "best_fit_max_size": 40.0
+        },
+        "button": null,
+        "panel": null,
+        "slider": null,
+        "toggle": null,
+        "dropdown": null,
+        "input_field": null,
+        "scroll_view": null,
+        "mask": null,
+        "horizontal_layout": null,
+        "vertical_layout": null,
+        "grid_layout": null,
+        "children": []
+      },
+      {
+        "name": "fps_counter /* DynamicText: Bind 'FPS: {fps}' in Lua using set_text() */",
+        "rect_transform": {
+          "anchor_min": [
+            1.0,
+            1.0
+          ],
+          "anchor_max": [
+            1.0,
+            1.0
+          ],
+          "pivot": [
+            1.0,
+            1.0
+          ],
+          "anchored_position": [
+            -100.0,
+            60.0
+          ],
+          "size_delta": [
+            90.0,
+            30.0
+          ],
+          "rotation": 0.0,
+          "scale": [
+            1.0,
+            1.0
+          ]
+        },
+        "ui_element": {
+          "raycast_target": true,
+          "blocks_raycasts": true,
+          "z_order": 0,
+          "color": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "alpha": 1.0,
+          "interactable": true,
+          "ignore_layout": false
+        },
+        "image": null,
+        "text": {
+          "text": "FPS: {fps}",
+          "font": "default",
+          "font_size": 16.0,
+          "color": [
+            0.5,
+            1.0,
+            0.5,
+            1.0
+          ],
+          "alignment": "MiddleCenter",
+          "horizontal_overflow": "Wrap",
+          "vertical_overflow": "Truncate",
+          "rich_text": false,
+          "line_spacing": 1.0,
+          "best_fit": false,
+          "best_fit_min_size": 10.0,
+          "best_fit_max_size": 40.0
+        },
+        "button": null,
+        "panel": null,
+        "slider": null,
+        "toggle": null,
+        "dropdown": null,
+        "input_field": null,
+        "scroll_view": null,
+        "mask": null,
+        "horizontal_layout": null,
+        "vertical_layout": null,
+        "grid_layout": null,
+        "children": []
+      },
+      {
+        "name": "grounded_indicator",
+        "rect_transform": {
+          "anchor_min": [
+            0.0,
+            0.0
+          ],
+          "anchor_max": [
+            0.0,
+            0.0
+          ],
+          "pivot": [
+            0.0,
+            0.0
+          ],
+          "anchored_position": [
+            20.0,
+            -30.0
+          ],
+          "size_delta": [
+            100.0,
+            25.0
+          ],
+          "rotation": 0.0,
+          "scale": [
+            1.0,
+            1.0
+          ]
+        },
+        "ui_element": {
+          "raycast_target": false,
+          "blocks_raycasts": true,
+          "z_order": 0,
+          "color": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "alpha": 1.0,
+          "interactable": false,
+          "ignore_layout": false
+        },
+        "image": null,
+        "text": {
+          "text": "GROUNDED",
+          "font": "default",
+          "font_size": 14.0,
+          "color": [
+            0.3,
+            1.0,
+            0.3,
+            1.0
+          ],
+          "alignment": "MiddleCenter",
+          "horizontal_overflow": "Wrap",
+          "vertical_overflow": "Truncate",
+          "rich_text": false,
+          "line_spacing": 1.0,
+          "best_fit": false,
+          "best_fit_min_size": 10.0,
+          "best_fit_max_size": 40.0
+        },
+        "button": null,
+        "panel": null,
+        "slider": null,
+        "toggle": null,
+        "dropdown": null,
+        "input_field": null,
+        "scroll_view": null,
+        "mask": null,
+        "horizontal_layout": null,
+        "vertical_layout": null,
+        "grid_layout": null,
+        "children": []
+      },
+      {
+        "name": "wall_slide_indicator",
+        "rect_transform": {
+          "anchor_min": [
+            0.0,
+            0.0
+          ],
+          "anchor_max": [
+            0.0,
+            0.0
+          ],
+          "pivot": [
+            0.0,
+            0.0
+          ],
+          "anchored_position": [
+            20.0,
+            -55.0
+          ],
+          "size_delta": [
+            100.0,
+            25.0
+          ],
+          "rotation": 0.0,
+          "scale": [
+            1.0,
+            1.0
+          ]
+        },
+        "ui_element": {
+          "raycast_target": false,
+          "blocks_raycasts": true,
+          "z_order": 0,
+          "color": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "alpha": 1.0,
+          "interactable": false,
+          "ignore_layout": false
+        },
+        "image": null,
+        "text": {
+          "text": "WALL SLIDE",
+          "font": "default",
+          "font_size": 14.0,
+          "color": [
+            0.3,
+            0.6,
+            1.0,
+            1.0
+          ],
+          "alignment": "MiddleCenter",
+          "horizontal_overflow": "Wrap",
+          "vertical_overflow": "Truncate",
+          "rich_text": false,
+          "line_spacing": 1.0,
+          "best_fit": false,
+          "best_fit_min_size": 10.0,
+          "best_fit_max_size": 40.0
+        },
+        "button": null,
+        "panel": null,
+        "slider": null,
+        "toggle": null,
+        "dropdown": null,
+        "input_field": null,
+        "scroll_view": null,
+        "mask": null,
+        "horizontal_layout": null,
+        "vertical_layout": null,
+        "grid_layout": null,
+        "children": []
+      },
+      {
+        "name": "dashing_indicator",
+        "rect_transform": {
+          "anchor_min": [
+            0.5,
+            0.5
+          ],
+          "anchor_max": [
+            0.5,
+            0.5
+          ],
+          "pivot": [
+            0.5,
+            0.5
+          ],
+          "anchored_position": [
+            -50.0,
+            -100.0
+          ],
+          "size_delta": [
+            100.0,
+            35.0
+          ],
+          "rotation": 0.0,
+          "scale": [
+            1.0,
+            1.0
+          ]
+        },
+        "ui_element": {
+          "raycast_target": false,
+          "blocks_raycasts": true,
+          "z_order": 0,
+          "color": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "alpha": 1.0,
+          "interactable": false,
+          "ignore_layout": false
+        },
+        "image": null,
+        "text": {
+          "text": "DASHING!",
+          "font": "default",
+          "font_size": 20.0,
+          "color": [
+            1.0,
+            0.3,
+            0.3,
+            1.0
+          ],
+          "alignment": "MiddleCenter",
+          "horizontal_overflow": "Wrap",
+          "vertical_overflow": "Truncate",
+          "rich_text": false,
+          "line_spacing": 1.0,
+          "best_fit": false,
+          "best_fit_min_size": 10.0,
+          "best_fit_max_size": 40.0
+        },
+        "button": null,
+        "panel": null,
+        "slider": null,
+        "toggle": null,
+        "dropdown": null,
+        "input_field": null,
+        "scroll_view": null,
+        "mask": null,
+        "horizontal_layout": null,
+        "vertical_layout": null,
+        "grid_layout": null,
+        "children": []
+      },
+      {
+        "name": "controls_hint",
+        "rect_transform": {
+          "anchor_min": [
+            0.5,
+            0.0
+          ],
+          "anchor_max": [
+            0.5,
+            0.0
+          ],
+          "pivot": [
+            0.5,
+            0.0
+          ],
+          "anchored_position": [
+            -180.0,
+            -15.0
+          ],
+          "size_delta": [
+            360.0,
+            25.0
+          ],
+          "rotation": 0.0,
+          "scale": [
+            1.0,
+            1.0
+          ]
+        },
+        "ui_element": {
+          "raycast_target": true,
+          "blocks_raycasts": true,
+          "z_order": 0,
+          "color": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "alpha": 1.0,
+          "interactable": true,
+          "ignore_layout": false
+        },
+        "image": null,
+        "text": {
+          "text": "WASD: Move | Space: Jump | Shift: Dash",
+          "font": "default",
+          "font_size": 14.0,
+          "color": [
+            0.8,
+            0.8,
+            0.8,
+            0.7
+          ],
+          "alignment": "MiddleCenter",
+          "horizontal_overflow": "Wrap",
+          "vertical_overflow": "Truncate",
+          "rich_text": false,
+          "line_spacing": 1.0,
+          "best_fit": false,
+          "best_fit_min_size": 10.0,
+          "best_fit_max_size": 40.0
+        },
+        "button": null,
+        "panel": null,
+        "slider": null,
+        "toggle": null,
+        "dropdown": null,
+        "input_field": null,
+        "scroll_view": null,
+        "mask": null,
+        "horizontal_layout": null,
+        "vertical_layout": null,
+        "grid_layout": null,
+        "children": []
+      }
+    ]
+  }
+}

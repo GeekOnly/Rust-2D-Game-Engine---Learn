@@ -670,21 +670,29 @@
 
 **Note:** These tasks handle the migration from `engine/src/hud` and `engine/src/editor/widget_editor` to the new `ui` crate system. See `MIGRATION_PLAN.md` for detailed migration strategy. **These tasks should only be started after tasks 1-20 are complete and the core UI system is functional.**
 
-- [ ] 21. Create HUD to UIPrefab converter
-  - [ ] 21.1 Implement converter core
+- [x] 21. Create HUD to UIPrefab converter
+
+
+
+
+  - [x] 21.1 Implement converter core
+
+
     - Create HudToUIPrefabConverter struct
     - Implement HudAsset → UIPrefab conversion
     - Implement HudElement → UIPrefabElement conversion
     - Handle all HudElementType variants
     - _Migration Phase 3_
   
-  - [ ] 21.2 Implement anchor conversion
+  - [x] 21.2 Implement anchor conversion
+
     - Convert Anchor enum to RectTransform
     - Map all 9 anchor positions correctly
     - Handle offset and size conversion
     - _Migration Phase 3_
   
-  - [ ] 21.3 Implement component mapping
+  - [x] 21.3 Implement component mapping
+
     - Map Text → UIText
     - Map DynamicText → UIText (with notes for Lua binding)
     - Map HealthBar → UIImage (background) + UIImage (fill)
@@ -701,27 +709,53 @@
     - Test property preservation
     - _Migration Phase 3_
 
-- [ ] 22. Create migration script
-  - [ ] 22.1 Implement file discovery
+- [x] 22. Create migration script
+
+
+
+
+
+  - [x] 22.1 Implement file discovery
+
+
     - Recursively find all .hud files in project
     - Support multiple project directories
     - _Migration Phase 3_
   
-  - [ ] 22.2 Implement batch conversion
+
+
+  - [x] 22.2 Implement batch conversion
+
+
+
+
     - Load each .hud file
     - Convert to UIPrefab
     - Save as .uiprefab file
     - Generate migration report
+
+
     - _Migration Phase 3_
   
-  - [ ] 22.3 Create migration CLI tool
+  - [x] 22.3 Create migration CLI tool
+
+
+
+
+
     - Add command-line arguments
     - Support dry-run mode
+
+
     - Support backup creation
     - Add progress reporting
     - _Migration Phase 3_
   
-  - [ ] 22.4 Test migration on sample HUD files
+  - [x] 22.4 Test migration on sample HUD files
+
+
+
+
     - Test with simple HUD
     - Test with complex HUD
     - Test with nested containers

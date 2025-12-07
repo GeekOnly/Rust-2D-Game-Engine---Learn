@@ -45,6 +45,8 @@ pub mod animation;
 pub mod prefab;
 pub mod style;
 pub mod style_system;
+pub mod lua_bindings;
+pub mod hud_converter;
 
 // Re-export main types for convenience
 pub use canvas::{Canvas, CanvasRenderMode, CanvasScaler, ScaleMode};
@@ -116,3 +118,9 @@ pub use style::{
 
 // Re-export style system
 pub use style_system::StyleSystem;
+
+// Re-export Lua bindings
+pub use lua_bindings::UILuaBindings;
+
+// Re-export HUD converter
+pub use hud_converter::{HudToUIPrefabConverter, HudAsset, HudElement, HudElementType, Anchor};

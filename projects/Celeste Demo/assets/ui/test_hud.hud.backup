@@ -1,0 +1,44 @@
+{
+  "name": "Test HUD",
+  "elements": [
+    {
+      "id": "test_text",
+      "element_type": {
+        "type": "Text",
+        "text": "HUD IS WORKING!",
+        "font_size": 32.0,
+        "color": [1.0, 0.0, 0.0, 1.0]
+      },
+      "anchor": "Center",
+      "offset": [0.0, 0.0],
+      "size": [300.0, 50.0],
+      "visible": true
+    },
+    {
+      "id": "top_left_test",
+      "element_type": {
+        "type": "Text",
+        "text": "TOP LEFT",
+        "font_size": 24.0,
+        "color": [0.0, 1.0, 0.0, 1.0]
+      },
+      "anchor": "TopLeft",
+      "offset": [20.0, 20.0],
+      "size": [200.0, 40.0],
+      "visible": true
+    },
+    {
+      "id": "bottom_right_test",
+      "element_type": {
+        "type": "Text",
+        "text": "BOTTOM RIGHT",
+        "font_size": 24.0,
+        "color": [0.0, 0.0, 1.0, 1.0]
+      },
+      "anchor": "BottomRight",
+      "offset": [-220.0, -60.0],
+      "size": [200.0, 40.0],
+      "visible": true
+    }
+  ]
+}

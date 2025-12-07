@@ -18,9 +18,17 @@ serde_json = { workspace = true }
 # Logging
 log = { workspace = true }
 
+# Lua scripting
+mlua = { version = "0.9", features = ["lua54", "vendored"] }
+anyhow = "1.0"
+
 # Rendering (optional, for integration with render crate)
 wgpu = { version = "0.19", optional = true }
 bytemuck = { version = "1.14", features = ["derive"], optional = true }
+
+# Binary dependencies (used by hud_migrator)
+walkdir = "2.4"
+clap = { version = "4.4", features = ["derive"] }
 
 [features]
 default = ["rendering"]
@@ -28,3 +36,4 @@ rendering = ["wgpu", "bytemuck"]
 
 [dev-dependencies]
 proptest = "1.4"
+tempfile = "3.8"
