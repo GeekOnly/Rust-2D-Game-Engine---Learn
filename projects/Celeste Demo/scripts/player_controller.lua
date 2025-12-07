@@ -60,12 +60,7 @@ function Update(dt)
     -- ใช้ contact normals จาก Rapier แทนการเช็คตำแหน่ง
     is_grounded = is_grounded_rapier
     
-    -- Debug: log ground state
-    if is_grounded then
-        log("🟢 GROUNDED (can jump)")
-    else
-        log("🔴 IN AIR (cannot jump)")
-    end
+    -- Ground state updated (debug logs disabled)
     
     -- Reset dash when grounded
     if is_grounded then
@@ -117,7 +112,6 @@ end
 function handle_jump()
     -- Jump (use is_key_just_pressed for single press detection)
     if is_key_just_pressed("Space") then
-        log(string.format("🎮 SPACE PRESSED! is_grounded=%s", tostring(is_grounded)))
         if is_grounded then
             -- Record jump start position
             local pos = get_position()
@@ -129,9 +123,6 @@ function handle_jump()
             velocity_y = jump_force
             is_grounded = false  -- Immediately set to false to prevent double jump
             set_velocity(velocity_x, velocity_y)  -- Apply jump velocity
-            log(string.format("✅ JUMPED! velocity_y = %.1f", velocity_y))
-        else
-            log("❌ CANNOT JUMP - not grounded")
         end
     end
     
@@ -190,7 +181,6 @@ function handle_dash()
         is_dashing = true
         can_dash = false
         dash_timer = 0.0
-        log("DASH!")
     end
 end
 
