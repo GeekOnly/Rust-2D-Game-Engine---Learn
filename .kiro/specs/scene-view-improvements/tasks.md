@@ -363,7 +363,12 @@
   - **Property 18: Sprites maintain position under camera rotation**
   - **Validates: Requirements 11.4**
 
-- [ ] 16. Implement billboard mode for sprites
+- [x] 16. Implement billboard mode for sprites
+
+
+
+
+
   - Add billboard flag to sprite rendering
   - Implement calculate_billboard_rotation() method
   - Calculate rotation to face camera for billboarded sprites
@@ -371,15 +376,23 @@
   - Ensure non-billboarded sprites use world rotation
   - _Requirements: 12.1, 12.2, 12.3_
 
-- [ ] 16.1 Write property test for billboard rotation
+- [x] 16.1 Write property test for billboard rotation
+
+
   - **Property 19: Billboard sprites face camera**
   - **Validates: Requirements 12.1, 12.2**
 
-- [ ] 16.2 Write property test for non-billboard rotation
+- [x] 16.2 Write property test for non-billboard rotation
+
   - **Property 20: Non-billboard sprites use world rotation**
   - **Validates: Requirements 12.3**
 
-- [ ] 17. Implement tilemap 3D renderer
+- [x] 17. Implement tilemap 3D renderer
+
+
+
+
+
   - Create Tilemap3DRenderer struct
   - Create TilemapLayer and TileRenderData structs
   - Implement collect_tilemaps() to gather tilemaps from world
@@ -388,15 +401,19 @@
   - Implement render() to draw tilemaps in 3D mode
   - _Requirements: 13.1, 13.2, 13.3, 13.4_
 
-- [ ] 17.1 Write property test for tilemap layer depth
+- [x] 17.1 Write property test for tilemap layer depth
+
+
   - **Property 21: Tilemap layers render at correct Z depths**
   - **Validates: Requirements 13.1, 13.2**
 
-- [ ] 17.2 Write property test for tilemap layer sorting
+- [x] 17.2 Write property test for tilemap layer sorting
+
   - **Property 22: Tilemap layer depth sorting is correct**
   - **Validates: Requirements 13.2, 13.4**
 
-- [ ] 17.3 Write property test for tilemap perspective
+- [x] 17.3 Write property test for tilemap perspective
+
   - **Property 23: Tilemap perspective updates with camera**
   - **Validates: Requirements 13.3**
 
