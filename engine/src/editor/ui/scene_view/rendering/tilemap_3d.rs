@@ -174,12 +174,28 @@ impl Tilemap3DRenderer {
     pub fn depth_sort_layers(&mut self, layers: &mut Vec<TilemapLayer>) {
         // Sort in descending order (farther first)
         layers.sort_by(|a, b| {
-            b.z_depth.partial_cmp(&a.z_depth).unwrap_or(std::cmp::Ordering::Equal)
+            // Handle NaN/Inf depths - treat as far plane
+            let safe_depth_a = if !a.z_depth.is_finite() { f32::MAX } else { a.z_depth };
+            let safe_depth_b = if !b.z_depth.is_finite() { f32::MAX } else { b.z_depth };
+            
+            // Use total_cmp for consistent ordering even with special values
+            safe_depth_b.total_cmp(&safe_depth_a)
         });
     }
     
     /// Calculate depth of a tile from camera
     pub fn calculate_depth_from_camera(&self, position: &Vec3, camera: &SceneCamera) -> f32 {
+        // Validate inputs
+        if !position.is_finite() {
+            eprintln!("Warning: Invalid tile position in depth calculation");
+            return f32::MAX; // Treat as far away
+        }
+        
+        if !camera.position.is_finite() {
+            eprintln!("Warning: Invalid camera position in depth calculation");
+            return f32::MAX;
+        }
+        
         // Transform position relative to camera
         let relative_pos = Vec3::new(
             position.x - camera.position.x,
@@ -187,9 +203,20 @@ impl Tilemap3DRenderer {
             position.z - camera.position.y,
         );
         
+        // Validate relative position
+        if !relative_pos.is_finite() {
+            return f32::MAX;
+        }
+        
         // Apply camera rotation to get depth in camera space
         let yaw = camera.rotation.to_radians();
         let pitch = camera.pitch.to_radians();
+        
+        // Validate angles
+        if !yaw.is_finite() || !pitch.is_finite() {
+            eprintln!("Warning: Invalid camera angles in depth calculation");
+            return f32::MAX;
+        }
         
         // Rotate around Y axis (yaw)
         let cos_yaw = yaw.cos();
@@ -202,6 +229,11 @@ impl Tilemap3DRenderer {
         let sin_pitch = pitch.sin();
         let final_y = relative_pos.y * cos_pitch - rotated_z * sin_pitch;
         let final_z = relative_pos.y * sin_pitch + rotated_z * cos_pitch;
+        
+        // Validate final depth
+        if !final_z.is_finite() {
+            return f32::MAX;
+        }
         
         // Return Z depth (distance from camera)
         final_z
@@ -233,6 +265,41 @@ impl Tilemap3DRenderer {
         viewport_center: Vec2,
         layer_opacity: f32,
     ) -> Option<ScreenTile> {
+        // Validate inputs
+        if !tile.world_pos.is_finite() {
+            eprintln!("Warning: Invalid tile position in projection");
+            return None;
+        }
+        
+        if !camera.position.is_finite() {
+            eprintln!("Warning: Invalid camera position in projection");
+            return None;
+        }
+        
+        if !viewport_center.is_finite() {
+            eprintln!("Warning: Invalid viewport center in projection");
+            return None;
+        }
+        
+        if !camera.zoom.is_finite() || camera.zoom <= 0.0 {
+            eprintln!("Warning: Invalid camera zoom in projection");
+            return None;
+        }
+        
+        if !layer_opacity.is_finite() || layer_opacity < 0.0 || layer_opacity > 1.0 {
+            eprintln!("Warning: Invalid layer opacity in projection");
+            return None;
+        }
+        
+        // Validate tile dimensions
+        if !tile.width.is_finite() || !tile.height.is_finite() {
+            return None;
+        }
+        
+        if tile.width <= 0.0 || tile.height <= 0.0 {
+            return None;
+        }
+        
         // Transform position relative to camera
         let pos_3d = Point3D::new(
             tile.world_pos.x - camera.position.x,
@@ -243,6 +310,13 @@ impl Tilemap3DRenderer {
         // Apply camera rotation
         let yaw = camera.rotation.to_radians();
         let pitch = camera.pitch.to_radians();
+        
+        // Validate angles
+        if !yaw.is_finite() || !pitch.is_finite() {
+            eprintln!("Warning: Invalid camera angles in projection");
+            return None;
+        }
+        
         let rotated = pos_3d
             .rotate_y(-yaw)
             .rotate_x(pitch);
@@ -251,8 +325,18 @@ impl Tilemap3DRenderer {
         let distance = 500.0;
         let perspective_z = rotated.z + distance;
         
+        // Validate perspective_z
+        if !perspective_z.is_finite() {
+            return None;
+        }
+        
         if perspective_z <= 10.0 {
             // Tile is behind camera or too close
+            return None;
+        }
+        
+        // Check for extreme distances that could cause overflow
+        if perspective_z > 1000000.0 {
             return None;
         }
         
@@ -261,6 +345,11 @@ impl Tilemap3DRenderer {
         
         // Validate scale
         if !scale.is_finite() || scale <= 0.0 {
+            return None;
+        }
+        
+        // Check for extreme scale values that could cause overflow
+        if scale > 10000.0 || scale < 0.0001 {
             return None;
         }
         
@@ -273,6 +362,11 @@ impl Tilemap3DRenderer {
             return None;
         }
         
+        // Check for extreme screen positions (likely overflow)
+        if screen_x.abs() > 1000000.0 || screen_y.abs() > 1000000.0 {
+            return None;
+        }
+        
         // Calculate screen size
         let screen_width = tile.width * scale;
         let screen_height = tile.height * scale;
@@ -282,13 +376,29 @@ impl Tilemap3DRenderer {
             return None;
         }
         
+        // Check for zero or negative screen size
+        if screen_width <= 0.0 || screen_height <= 0.0 {
+            return None;
+        }
+        
+        // Check for extreme screen sizes (likely overflow)
+        if screen_width > 100000.0 || screen_height > 100000.0 {
+            return None;
+        }
+        
         // Convert color with layer opacity
         let final_alpha = tile.color[3] * layer_opacity;
+        
+        // Validate final alpha
+        if !final_alpha.is_finite() {
+            return None;
+        }
+        
         let color = egui::Color32::from_rgba_unmultiplied(
             (tile.color[0] * 255.0) as u8,
             (tile.color[1] * 255.0) as u8,
             (tile.color[2] * 255.0) as u8,
-            (final_alpha * 255.0) as u8,
+            (final_alpha.clamp(0.0, 1.0) * 255.0) as u8,
         );
         
         Some(ScreenTile {
@@ -353,9 +463,57 @@ impl Tilemap3DRenderer {
         viewport_center: Vec2,
         color: egui::Color32,
     ) {
+        // Validate inputs
+        if !viewport_center.is_finite() {
+            eprintln!("Warning: Invalid viewport center in bounds rendering");
+            return;
+        }
+        
+        if !camera.position.is_finite() {
+            eprintln!("Warning: Invalid camera position in bounds rendering");
+            return;
+        }
+        
+        if !camera.zoom.is_finite() || camera.zoom <= 0.0 {
+            eprintln!("Warning: Invalid camera zoom in bounds rendering");
+            return;
+        }
+        
+        if !layer.z_depth.is_finite() {
+            eprintln!("Warning: Invalid layer z_depth in bounds rendering");
+            return;
+        }
+        
+        // Check for zero-size bounds
+        if layer.bounds == egui::Rect::NOTHING || 
+           !layer.bounds.is_finite() ||
+           layer.bounds.width() <= 0.0 || 
+           layer.bounds.height() <= 0.0 {
+            // Render as a point instead
+            let center_pos = Vec3::new(
+                layer.bounds.center().x,
+                layer.bounds.center().y,
+                layer.z_depth
+            );
+            
+            if let Some(screen_pos) = self.project_point_to_screen(&center_pos, camera, viewport_center) {
+                painter.circle_stroke(
+                    egui::pos2(screen_pos.x, screen_pos.y),
+                    4.0,
+                    egui::Stroke::new(2.0, color),
+                );
+            }
+            return;
+        }
+        
         // Project bounds corners to screen space
         let min_pos = Vec3::new(layer.bounds.min.x, layer.bounds.min.y, layer.z_depth);
         let max_pos = Vec3::new(layer.bounds.max.x, layer.bounds.max.y, layer.z_depth);
+        
+        // Validate bounds positions
+        if !min_pos.is_finite() || !max_pos.is_finite() {
+            return;
+        }
         
         // Project corners
         let corners = [
@@ -367,28 +525,22 @@ impl Tilemap3DRenderer {
         
         let mut screen_corners = Vec::new();
         for corner in &corners {
-            let pos_3d = Point3D::new(
-                corner.x - camera.position.x,
-                corner.y,
-                corner.z - camera.position.y,
-            );
-            
-            let yaw = camera.rotation.to_radians();
-            let pitch = camera.pitch.to_radians();
-            let rotated = pos_3d.rotate_y(-yaw).rotate_x(pitch);
-            
-            let distance = 500.0;
-            let perspective_z = rotated.z + distance;
-            
-            if perspective_z <= 10.0 {
-                return; // Bounds behind camera
+            if let Some(screen_pos) = self.project_point_to_screen(corner, camera, viewport_center) {
+                // Validate screen position
+                if !screen_pos.is_finite() {
+                    continue;
+                }
+                
+                // Check for extreme screen positions (likely off-screen or overflow)
+                if screen_pos.x.abs() > 100000.0 || screen_pos.y.abs() > 100000.0 {
+                    continue;
+                }
+                
+                screen_corners.push(egui::pos2(screen_pos.x, screen_pos.y));
+            } else {
+                // If any corner fails to project, don't render bounds
+                return;
             }
-            
-            let scale = (distance / perspective_z) * camera.zoom;
-            let screen_x = viewport_center.x + rotated.x * scale;
-            let screen_y = viewport_center.y + rotated.y * scale;
-            
-            screen_corners.push(egui::pos2(screen_x, screen_y));
         }
         
         // Draw bounds as wireframe
@@ -396,9 +548,74 @@ impl Tilemap3DRenderer {
             for i in 0..4 {
                 let start = screen_corners[i];
                 let end = screen_corners[(i + 1) % 4];
+                
+                // Validate line segment
+                if !start.is_finite() || !end.is_finite() {
+                    continue;
+                }
+                
                 painter.line_segment([start, end], egui::Stroke::new(2.0, color));
             }
         }
+    }
+    
+    /// Helper method to project a single point to screen space
+    fn project_point_to_screen(
+        &self,
+        point: &Vec3,
+        camera: &SceneCamera,
+        viewport_center: Vec2,
+    ) -> Option<Vec2> {
+        // Validate inputs
+        if !point.is_finite() || !camera.position.is_finite() || !viewport_center.is_finite() {
+            return None;
+        }
+        
+        let pos_3d = Point3D::new(
+            point.x - camera.position.x,
+            point.y,
+            point.z - camera.position.y,
+        );
+        
+        let yaw = camera.rotation.to_radians();
+        let pitch = camera.pitch.to_radians();
+        
+        // Validate angles
+        if !yaw.is_finite() || !pitch.is_finite() {
+            return None;
+        }
+        
+        let rotated = pos_3d.rotate_y(-yaw).rotate_x(pitch);
+        
+        let distance = 500.0;
+        let perspective_z = rotated.z + distance;
+        
+        // Validate perspective_z
+        if !perspective_z.is_finite() || perspective_z <= 10.0 {
+            return None;
+        }
+        
+        // Check for extreme distances
+        if perspective_z > 1000000.0 {
+            return None;
+        }
+        
+        let scale = (distance / perspective_z) * camera.zoom;
+        
+        // Validate scale
+        if !scale.is_finite() || scale <= 0.0 {
+            return None;
+        }
+        
+        let screen_x = viewport_center.x + rotated.x * scale;
+        let screen_y = viewport_center.y + rotated.y * scale;
+        
+        // Validate screen position
+        if !screen_x.is_finite() || !screen_y.is_finite() {
+            return None;
+        }
+        
+        Some(Vec2::new(screen_x, screen_y))
     }
     
     /// Set selected tilemaps

@@ -488,7 +488,12 @@
   - Test selection and bounds rendering
   - _Requirements: All new requirements_
 
-- [ ] 21. Add error handling for 3D rendering
+- [x] 21. Add error handling for 3D rendering
+
+
+
+
+
   - Add validation for sprite data (textures, rectangles, scales)
   - Add projection error handling (behind camera, overflow)
   - Add depth sorting error handling (NaN/Inf depths)
@@ -504,7 +509,12 @@
   - Test bounds rendering edge cases
   - _Requirements: All new requirements_
 
-- [ ] 22. Checkpoint - Ensure all 3D rendering tests pass
+- [x] 22. Checkpoint - Ensure all 3D rendering tests pass
+
+
+
+
+
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 23. Performance optimization for 3D rendering

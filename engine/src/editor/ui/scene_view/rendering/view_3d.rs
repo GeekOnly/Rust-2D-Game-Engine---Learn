@@ -25,6 +25,8 @@ pub fn render_scene_3d(
     _show_debug_lines: &bool,
     hovered_entity: &mut Option<Entity>,
     response: &egui::Response,
+    texture_manager: &mut crate::texture_manager::TextureManager,
+    ctx: &egui::Context,
 ) {
     // Create render queue for proper depth sorting
     let mut render_queue = RenderQueue::new();
@@ -85,7 +87,7 @@ pub fn render_scene_3d(
             }
             RenderObject::Sprite(sprite_data) => {
                 // Render sprite using sprite renderer
-                sprite_renderer.render(painter, &[sprite_data.clone()], scene_camera, viewport_rect);
+                sprite_renderer.render(painter, &[sprite_data.clone()], scene_camera, viewport_rect, texture_manager, ctx);
                 
                 // Check for hover
                 if let Some(screen_sprite) = sprite_renderer.project_sprite_to_screen(

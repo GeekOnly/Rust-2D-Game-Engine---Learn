@@ -211,6 +211,8 @@ pub fn render_scene_view(
                 show_debug_lines,
                 &mut hovered_entity,
                 &response,
+                texture_manager,
+                &ctx,
             );
         }
     }

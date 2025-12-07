@@ -119,18 +119,65 @@ impl ProjectionMatrix {
         viewport_size: Vec2,
     ) -> Option<Vec2> {
         // Validate inputs
-        if !point.is_finite() || !viewport_size.is_finite() {
+        if !point.is_finite() {
+            eprintln!("Warning: Invalid point in projection");
+            return None;
+        }
+        
+        if !viewport_size.is_finite() {
+            eprintln!("Warning: Invalid viewport size in projection");
+            return None;
+        }
+        
+        // Check for zero or negative viewport dimensions
+        if viewport_size.x <= 0.0 || viewport_size.y <= 0.0 {
+            eprintln!("Warning: Invalid viewport dimensions in projection");
+            return None;
+        }
+        
+        // Check for extreme viewport sizes (likely overflow)
+        if viewport_size.x > 100000.0 || viewport_size.y > 100000.0 {
+            return None;
+        }
+        
+        // Validate projection parameters
+        if !self.fov.is_finite() || !self.aspect.is_finite() || 
+           !self.near.is_finite() || !self.far.is_finite() {
+            eprintln!("Warning: Invalid projection parameters");
+            return None;
+        }
+        
+        // Check for invalid projection parameters
+        if self.fov <= 0.0 || self.aspect <= 0.0 || 
+           self.near <= 0.0 || self.far <= self.near {
+            eprintln!("Warning: Invalid projection parameter values");
             return None;
         }
         
         // Create projection matrix
         let proj_matrix = self.to_matrix();
         
+        // Validate matrices
+        if !view_matrix.is_finite() || !proj_matrix.is_finite() {
+            eprintln!("Warning: Invalid matrices in projection");
+            return None;
+        }
+        
         // Transform point to clip space
         let clip_space = proj_matrix * (*view_matrix) * Vec4::from((point, 1.0));
         
+        // Validate clip space
+        if !clip_space.is_finite() {
+            return None;
+        }
+        
         // Check if point is behind camera (negative W)
         if clip_space.w <= 0.0 {
+            return None;
+        }
+        
+        // Check for extreme W values (likely overflow)
+        if clip_space.w.abs() > 1000000.0 {
             return None;
         }
         
@@ -139,6 +186,11 @@ impl ProjectionMatrix {
         
         // Check if point is within NDC bounds [-1, 1]
         if !ndc.is_finite() {
+            return None;
+        }
+        
+        // Check for extreme NDC values (likely overflow)
+        if ndc.x.abs() > 100.0 || ndc.y.abs() > 100.0 || ndc.z.abs() > 100.0 {
             return None;
         }
         
@@ -152,6 +204,11 @@ impl ProjectionMatrix {
         
         // Validate screen position
         if !screen_pos.is_finite() {
+            return None;
+        }
+        
+        // Check for extreme screen positions (likely overflow)
+        if screen_pos.x.abs() > 1000000.0 || screen_pos.y.abs() > 1000000.0 {
             return None;
         }
         
@@ -230,6 +287,18 @@ impl Ray3D {
     pub fn intersect_aabb(&self, min: Vec3, max: Vec3) -> Option<f32> {
         // Validate inputs
         if !min.is_finite() || !max.is_finite() {
+            eprintln!("Warning: Invalid AABB bounds in intersection test");
+            return None;
+        }
+        
+        // Validate ray
+        if !self.origin.is_finite() || !self.direction.is_finite() {
+            eprintln!("Warning: Invalid ray in AABB intersection test");
+            return None;
+        }
+        
+        // Check for degenerate AABB (min >= max)
+        if min.x >= max.x || min.y >= max.y || min.z >= max.z {
             return None;
         }
         
@@ -240,8 +309,14 @@ impl Ray3D {
             if self.direction.z != 0.0 { 1.0 / self.direction.z } else { f32::INFINITY },
         );
         
+        // Note: inv_dir can contain INFINITY values, which is correct for the slab method
+        // when the ray is parallel to an axis. We don't validate is_finite() here.
+        
         let t1 = (min - self.origin) * inv_dir;
         let t2 = (max - self.origin) * inv_dir;
+        
+        // Note: t1 and t2 can contain INFINITY values when inv_dir contains INFINITY
+        // This is correct for the slab method. We don't validate is_finite() here.
         
         let tmin = t1.min(t2);
         let tmax = t1.max(t2);
@@ -249,13 +324,25 @@ impl Ray3D {
         let t_near = tmin.x.max(tmin.y).max(tmin.z);
         let t_far = tmax.x.min(tmax.y).min(tmax.z);
         
+        // Validate final t values
+        if !t_near.is_finite() || !t_far.is_finite() {
+            return None;
+        }
+        
         // Check if ray intersects AABB
         if t_near > t_far || t_far < 0.0 {
             return None;
         }
         
         // Return nearest intersection point
-        Some(if t_near < 0.0 { t_far } else { t_near })
+        let result = if t_near < 0.0 { t_far } else { t_near };
+        
+        // Validate result
+        if !result.is_finite() || result < 0.0 {
+            return None;
+        }
+        
+        Some(result)
     }
     
     /// Test intersection with a plane defined by a point and normal
@@ -263,17 +350,46 @@ impl Ray3D {
     pub fn intersect_plane(&self, plane_point: Vec3, plane_normal: Vec3) -> Option<f32> {
         // Validate inputs
         if !plane_point.is_finite() || !plane_normal.is_finite() {
+            eprintln!("Warning: Invalid plane parameters in intersection test");
+            return None;
+        }
+        
+        // Validate ray
+        if !self.origin.is_finite() || !self.direction.is_finite() {
+            eprintln!("Warning: Invalid ray in plane intersection test");
+            return None;
+        }
+        
+        // Check for degenerate plane normal (zero length)
+        if plane_normal.length_squared() < 1e-10 {
             return None;
         }
         
         let denom = self.direction.dot(plane_normal);
+        
+        // Validate denom
+        if !denom.is_finite() {
+            return None;
+        }
         
         // Check if ray is parallel to plane
         if denom.abs() < 1e-6 {
             return None;
         }
         
-        let t = (plane_point - self.origin).dot(plane_normal) / denom;
+        let numerator = (plane_point - self.origin).dot(plane_normal);
+        
+        // Validate numerator
+        if !numerator.is_finite() {
+            return None;
+        }
+        
+        let t = numerator / denom;
+        
+        // Validate t
+        if !t.is_finite() {
+            return None;
+        }
         
         // Check if intersection is behind ray origin
         if t < 0.0 {
@@ -287,24 +403,73 @@ impl Ray3D {
     /// Returns Some(t) where t is the distance along the ray to the nearest intersection point
     pub fn intersect_sphere(&self, center: Vec3, radius: f32) -> Option<f32> {
         // Validate inputs
-        if !center.is_finite() || !radius.is_finite() || radius <= 0.0 {
+        if !center.is_finite() {
+            eprintln!("Warning: Invalid sphere center in intersection test");
+            return None;
+        }
+        
+        if !radius.is_finite() || radius <= 0.0 {
+            eprintln!("Warning: Invalid sphere radius in intersection test");
+            return None;
+        }
+        
+        // Check for extreme radius values
+        if radius > 1000000.0 {
+            return None;
+        }
+        
+        // Validate ray
+        if !self.origin.is_finite() || !self.direction.is_finite() {
+            eprintln!("Warning: Invalid ray in sphere intersection test");
             return None;
         }
         
         let oc = self.origin - center;
+        
+        // Validate oc
+        if !oc.is_finite() {
+            return None;
+        }
+        
         let a = self.direction.dot(self.direction);
         let b = 2.0 * oc.dot(self.direction);
         let c = oc.dot(oc) - radius * radius;
         
+        // Validate coefficients
+        if !a.is_finite() || !b.is_finite() || !c.is_finite() {
+            return None;
+        }
+        
+        // Check for degenerate ray direction (zero length)
+        if a < 1e-10 {
+            return None;
+        }
+        
         let discriminant = b * b - 4.0 * a * c;
+        
+        // Validate discriminant
+        if !discriminant.is_finite() {
+            return None;
+        }
         
         if discriminant < 0.0 {
             return None;
         }
         
         let sqrt_discriminant = discriminant.sqrt();
+        
+        // Validate sqrt
+        if !sqrt_discriminant.is_finite() {
+            return None;
+        }
+        
         let t1 = (-b - sqrt_discriminant) / (2.0 * a);
         let t2 = (-b + sqrt_discriminant) / (2.0 * a);
+        
+        // Validate t values
+        if !t1.is_finite() || !t2.is_finite() {
+            return None;
+        }
         
         // Return nearest positive intersection
         if t1 > 0.0 {
