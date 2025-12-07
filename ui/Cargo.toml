@@ -37,3 +37,8 @@ rendering = ["wgpu", "bytemuck"]
 [dev-dependencies]
 proptest = "1.4"
 tempfile = "3.8"
+criterion = "0.5"
+
+[[bench]]
+name = "ui_performance"
+harness = false

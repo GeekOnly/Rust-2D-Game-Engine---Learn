@@ -52,6 +52,7 @@ pub struct TabContext<'a> {
     pub transform_space: &'a mut scene_view::TransformSpace,
     pub texture_manager: &'a mut crate::texture_manager::TextureManager,
     pub open_sprite_editor_request: &'a mut Option<std::path::PathBuf>,
+    pub open_prefab_editor_request: &'a mut Option<std::path::PathBuf>,
     pub sprite_editor_windows: &'a mut Vec<crate::editor::SpriteEditorWindow>,
     pub sprite_picker_state: &'a mut super::sprite_picker::SpritePickerState,
     pub texture_inspector: &'a mut texture_inspector::TextureInspector,
@@ -326,6 +327,10 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                             }
                             asset_browser::AssetBrowserAction::SelectTexture(path) => {
                                 self.context.texture_inspector.set_texture(path);
+                            }
+                            asset_browser::AssetBrowserAction::OpenUIPrefabEditor(path) => {
+                                // Set request to open prefab editor (handled in main.rs)
+                                *self.context.open_prefab_editor_request = Some(path);
                             }
                         }
                     }

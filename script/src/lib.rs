@@ -815,6 +815,81 @@ impl ScriptEngine {
             globals.set("is_grounded_rapier", is_grounded)?;
 
             // ================================================================
+            // UI SYSTEM API
+            // ================================================================
+            
+            // Note: UI functions are placeholders that will be implemented by the engine
+            // The engine will need to pass a UIManager reference to make these functional
+            
+            // UI.load_prefab(path) -> boolean
+            let ui_load_prefab = scope.create_function(|_, _path: String| {
+                // Placeholder - engine needs to implement
+                log::warn!("UI.load_prefab called but not implemented");
+                Ok(false)
+            })?;
+            
+            // UI.activate_prefab(path, instance_name) -> boolean
+            let ui_activate_prefab = scope.create_function(|_, (_path, _instance_name): (String, String)| {
+                // Placeholder - engine needs to implement
+                log::warn!("UI.activate_prefab called but not implemented");
+                Ok(false)
+            })?;
+            
+            // UI.deactivate_prefab(instance_name)
+            let ui_deactivate_prefab = scope.create_function(|_, _instance_name: String| {
+                // Placeholder - engine needs to implement
+                log::warn!("UI.deactivate_prefab called but not implemented");
+                Ok(())
+            })?;
+            
+            // UI.set_text(element_path, text)
+            let ui_set_text = scope.create_function(|_, (_element_path, _text): (String, String)| {
+                // Placeholder - engine needs to implement
+                log::warn!("UI.set_text called but not implemented");
+                Ok(())
+            })?;
+            
+            // UI.set_image_fill(element_path, fill_amount)
+            let ui_set_image_fill = scope.create_function(|_, (_element_path, _fill_amount): (String, f32)| {
+                // Placeholder - engine needs to implement
+                log::warn!("UI.set_image_fill called but not implemented");
+                Ok(())
+            })?;
+            
+            // UI.set_color(element_path, {r, g, b, a})
+            let ui_set_color = scope.create_function(|_, (_element_path, _color): (String, Table)| {
+                // Placeholder - engine needs to implement
+                log::warn!("UI.set_color called but not implemented");
+                Ok(())
+            })?;
+            
+            // UI.show_element(element_path)
+            let ui_show_element = scope.create_function(|_, _element_path: String| {
+                // Placeholder - engine needs to implement
+                log::warn!("UI.show_element called but not implemented");
+                Ok(())
+            })?;
+            
+            // UI.hide_element(element_path)
+            let ui_hide_element = scope.create_function(|_, _element_path: String| {
+                // Placeholder - engine needs to implement
+                log::warn!("UI.hide_element called but not implemented");
+                Ok(())
+            })?;
+            
+            // Create UI table and add functions
+            let ui_table = lua.create_table()?;
+            ui_table.set("load_prefab", ui_load_prefab)?;
+            ui_table.set("activate_prefab", ui_activate_prefab)?;
+            ui_table.set("deactivate_prefab", ui_deactivate_prefab)?;
+            ui_table.set("set_text", ui_set_text)?;
+            ui_table.set("set_image_fill", ui_set_image_fill)?;
+            ui_table.set("set_color", ui_set_color)?;
+            ui_table.set("show_element", ui_show_element)?;
+            ui_table.set("hide_element", ui_hide_element)?;
+            globals.set("UI", ui_table)?;
+
+            // ================================================================
             // INJECT SCRIPT PARAMETERS AS GLOBALS
             // ================================================================
 

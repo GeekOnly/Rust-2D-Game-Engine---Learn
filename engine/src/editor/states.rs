@@ -106,6 +106,7 @@ pub struct EditorState {
     pub snap_settings: super::snapping::SnapSettings,  // Snap to Grid system
     pub sprite_editor_windows: Vec<super::SpriteEditorWindow>,  // Open sprite editor windows
     pub open_sprite_editor_request: Option<PathBuf>,  // Request to open sprite editor for a texture
+    pub open_prefab_editor_request: Option<PathBuf>,  // Request to open prefab editor for a UI prefab
     pub sprite_picker_state: super::ui::sprite_picker::SpritePickerState,  // Sprite picker popup state
     pub texture_inspector: super::ui::texture_inspector::TextureInspector,  // Texture import settings inspector
     pub map_view_state: super::ui::map_view::MapViewState,  // Map view panel state
@@ -188,6 +189,7 @@ impl EditorState {
             texture_manager: crate::texture_manager::TextureManager::new(),
             sprite_editor_windows: Vec::new(),
             open_sprite_editor_request: None,
+            open_prefab_editor_request: None,
             sprite_picker_state: super::ui::sprite_picker::SpritePickerState::new(),
             texture_inspector: super::ui::texture_inspector::TextureInspector::default(),
             map_view_state: super::ui::map_view::MapViewState::default(),

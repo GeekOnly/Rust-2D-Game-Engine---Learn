@@ -530,6 +530,7 @@ mod tests {
                     offset: [10.0, 10.0],
                     size: [200.0, 30.0],
                     visible: true,
+                    children: vec![],
                 },
             ],
         };
@@ -637,6 +638,7 @@ mod tests {
                     offset: [-50.0, 10.0],
                     size: [40.0, 40.0],
                     visible: true,
+                    children: vec![],
                 },
             ],
         };
@@ -668,6 +670,7 @@ mod tests {
                     offset: [0.0, 10.0],
                     size: [150.0, 30.0],
                     visible: true,
+                    children: vec![],
                 },
             ],
         };
@@ -711,6 +714,7 @@ mod tests {
                     offset: [0.0, 0.0],
                     size: [200.0, 100.0],
                     visible: true,
+                    children: vec![],
                 },
             ],
         };
@@ -746,6 +750,7 @@ mod tests {
                     offset: [10.0, 10.0],
                     size: [200.0, 20.0],
                     visible: true,
+                    children: vec![],
                 },
             ],
         };
@@ -776,6 +781,7 @@ mod tests {
                     offset: [-150.0, 10.0],
                     size: [140.0, 140.0],
                     visible: true,
+                    children: vec![],
                 },
             ],
         };

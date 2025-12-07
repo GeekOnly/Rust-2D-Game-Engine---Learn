@@ -383,8 +383,16 @@ impl AssetBrowser {
             if response.double_clicked() {
                 if asset.asset_type == AssetType::Folder {
                     asset_manager.navigate_to(&asset.path);
+                } else if let Some(ext) = asset.path.extension() {
+                    match ext.to_str() {
+                        Some("uiprefab") => {
+                            action = Some(AssetBrowserAction::OpenUIPrefabEditor(asset.path.clone()));
+                        }
+                        _ => {
+                            // TODO: Open other asset types
+                        }
+                    }
                 }
-                // TODO: Open asset in appropriate editor
             }
         }
         
@@ -502,6 +510,15 @@ impl AssetBrowser {
             if response.double_clicked() {
                 if asset.asset_type == AssetType::Folder {
                     asset_manager.navigate_to(&asset.path);
+                } else if let Some(ext) = asset.path.extension() {
+                    match ext.to_str() {
+                        Some("uiprefab") => {
+                            action = Some(AssetBrowserAction::OpenUIPrefabEditor(asset.path.clone()));
+                        }
+                        _ => {
+                            // TODO: Open other asset types
+                        }
+                    }
                 }
             }
         }
@@ -595,4 +612,5 @@ impl AssetBrowser {
 pub enum AssetBrowserAction {
     OpenSpriteEditor(PathBuf),
     SelectTexture(PathBuf),  // Select texture to show import settings
+    OpenUIPrefabEditor(PathBuf),  // Open UI Prefab Editor
 }
