@@ -1211,6 +1211,188 @@ proptest! {
         }
     }
     
+    // Feature: scene-view-improvements, Property 5: Sensitivity scales linearly
+    // Validates: Requirements 3.1, 3.2, 3.3
+    #[test]
+    fn prop_sensitivity_scales_linearly(
+        initial_pos in prop_vec2(),
+        initial_zoom in prop_zoom(),
+        initial_rotation in prop_angle(),
+        initial_pitch in prop_pitch(),
+        mouse_start in prop_vec2(),
+        mouse_delta_x in -50.0f32..50.0f32,
+        mouse_delta_y in -50.0f32..50.0f32,
+        base_sensitivity in 0.1f32..2.0f32,
+    ) {
+        // Skip test if mouse movement is too small (would cause division by zero or unstable ratios)
+        let mouse_delta_length = (mouse_delta_x * mouse_delta_x + mouse_delta_y * mouse_delta_y).sqrt();
+        if mouse_delta_length < 5.0 {
+            return Ok(());
+        }
+        // Test pan sensitivity scaling
+        {
+            let mut camera1 = SceneCamera::new();
+            camera1.position = initial_pos;
+            camera1.target_position = initial_pos;
+            camera1.zoom = initial_zoom;
+            camera1.rotation = 0.0;
+            camera1.settings.pan_sensitivity = base_sensitivity;
+            camera1.settings.enable_inertia = false;
+            
+            let mut camera2 = SceneCamera::new();
+            camera2.position = initial_pos;
+            camera2.target_position = initial_pos;
+            camera2.zoom = initial_zoom;
+            camera2.rotation = 0.0;
+            camera2.settings.pan_sensitivity = base_sensitivity * 2.0;
+            camera2.settings.enable_inertia = false;
+            
+            let mouse_end = mouse_start + Vec2::new(mouse_delta_x, mouse_delta_y);
+            
+            // Apply same pan input to both cameras
+            camera1.start_pan(mouse_start);
+            camera1.update_pan(mouse_end);
+            
+            camera2.start_pan(mouse_start);
+            camera2.update_pan(mouse_end);
+            
+            // Camera with 2x sensitivity should move 2x as far
+            let delta1 = (camera1.target_position - initial_pos).length();
+            let delta2 = (camera2.target_position - initial_pos).length();
+            
+            if delta1 > 0.1 {
+                let ratio = delta2 / delta1;
+                prop_assert!(
+                    (ratio - 2.0).abs() < 0.2,
+                    "Pan sensitivity should scale linearly. Expected ratio: 2.0, Actual: {}, Delta1: {}, Delta2: {}",
+                    ratio,
+                    delta1,
+                    delta2
+                );
+            }
+        }
+        
+        // Test rotation sensitivity scaling
+        {
+            let mut camera1 = SceneCamera::new();
+            camera1.rotation = initial_rotation;
+            camera1.pitch = initial_pitch;
+            camera1.target_rotation = initial_rotation;
+            camera1.target_pitch = initial_pitch;
+            camera1.settings.rotation_sensitivity = base_sensitivity;
+            camera1.settings.enable_inertia = false;
+            
+            let mut camera2 = SceneCamera::new();
+            camera2.rotation = initial_rotation;
+            camera2.pitch = initial_pitch;
+            camera2.target_rotation = initial_rotation;
+            camera2.target_pitch = initial_pitch;
+            camera2.settings.rotation_sensitivity = base_sensitivity * 2.0;
+            camera2.settings.enable_inertia = false;
+            
+            let mouse_end = mouse_start + Vec2::new(mouse_delta_x, mouse_delta_y);
+            
+            // Apply same rotation input to both cameras
+            camera1.start_rotate(mouse_start);
+            camera1.update_rotate(mouse_end);
+            
+            camera2.start_rotate(mouse_start);
+            camera2.update_rotate(mouse_end);
+            
+            // Camera with 2x sensitivity should rotate 2x as much
+            // Handle angle wrapping for both deltas
+            let mut rotation_delta1 = camera1.target_rotation - initial_rotation;
+            if rotation_delta1 > 180.0 {
+                rotation_delta1 -= 360.0;
+            } else if rotation_delta1 < -180.0 {
+                rotation_delta1 += 360.0;
+            }
+            
+            let mut rotation_delta2 = camera2.target_rotation - initial_rotation;
+            if rotation_delta2 > 180.0 {
+                rotation_delta2 -= 360.0;
+            } else if rotation_delta2 < -180.0 {
+                rotation_delta2 += 360.0;
+            }
+            
+            if rotation_delta1.abs() > 0.1 && mouse_delta_x.abs() > 1.0 {
+                let ratio = rotation_delta2.abs() / rotation_delta1.abs();
+                prop_assert!(
+                    (ratio - 2.0).abs() < 0.15,
+                    "Rotation sensitivity should scale linearly. Expected ratio: 2.0, Actual: {}, Delta1: {}, Delta2: {}",
+                    ratio,
+                    rotation_delta1,
+                    rotation_delta2
+                );
+            }
+        }
+        
+        // Test zoom sensitivity scaling
+        // Only test if we're not near the zoom bounds (to avoid clamping effects)
+        if initial_zoom > 10.0 && initial_zoom < 150.0 {
+            let mut camera1 = SceneCamera::new();
+            camera1.zoom = initial_zoom;
+            camera1.target_zoom = initial_zoom;
+            camera1.settings.zoom_sensitivity = 0.1;
+            camera1.settings.zoom_to_cursor = false; // Disable cursor zoom for cleaner test
+            camera1.settings.enable_inertia = false;
+            
+            let mut camera2 = SceneCamera::new();
+            camera2.zoom = initial_zoom;
+            camera2.target_zoom = initial_zoom;
+            camera2.settings.zoom_sensitivity = 0.2; // 2x sensitivity
+            camera2.settings.zoom_to_cursor = false;
+            camera2.settings.enable_inertia = false;
+            
+            // Apply same zoom input to both cameras
+            camera1.zoom(1.0, Vec2::ZERO);
+            camera2.zoom(1.0, Vec2::ZERO);
+            
+            // Calculate zoom factors
+            let zoom_factor1 = camera1.zoom / initial_zoom;
+            let zoom_factor2 = camera2.zoom / initial_zoom;
+            
+            // With 2x sensitivity, zoom factor should be squared
+            // zoom_factor1 = 1 + 0.1 = 1.1
+            // zoom_factor2 = 1 + 0.2 = 1.2
+            // The relationship is: (1 + 2*s) vs (1 + s)
+            let expected_factor1 = 1.0 + 0.1;
+            let expected_factor2 = 1.0 + 0.2;
+            
+            // Only check if zoom wasn't clamped
+            if camera1.zoom < camera1.max_zoom - 1.0 && camera2.zoom < camera2.max_zoom - 1.0 {
+                prop_assert!(
+                    (zoom_factor1 - expected_factor1).abs() < 0.02,
+                    "Zoom factor with base sensitivity should match expected. Expected: {}, Actual: {}",
+                    expected_factor1,
+                    zoom_factor1
+                );
+                
+                prop_assert!(
+                    (zoom_factor2 - expected_factor2).abs() < 0.02,
+                    "Zoom factor with 2x sensitivity should match expected. Expected: {}, Actual: {}",
+                    expected_factor2,
+                    zoom_factor2
+                );
+                
+                // Verify that doubling sensitivity approximately doubles the zoom effect
+                let zoom_delta1 = (camera1.zoom - initial_zoom).abs();
+                let zoom_delta2 = (camera2.zoom - initial_zoom).abs();
+                
+                if zoom_delta1 > 0.1 {
+                    let ratio = zoom_delta2 / zoom_delta1;
+                    // For zoom, the relationship is multiplicative: (1+2s) vs (1+s)
+                    // So ratio should be approximately 2 for small s
+                    prop_assert!(
+                        ratio > 1.5 && ratio < 2.5,
+                        "Zoom sensitivity should scale approximately linearly for small values. Ratio: {}",
+                        ratio
+                    );
+                }
+            }
+        }
+    }
+    
     // Feature: scene-view-improvements, Property 3: Zoom converges to cursor point
     // Validates: Requirements 2.3, 8.1, 8.2, 8.3
     #[test]

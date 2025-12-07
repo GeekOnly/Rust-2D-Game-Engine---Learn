@@ -2,8 +2,40 @@
 // These tests validate specific examples and edge cases for camera operations
 
 use glam::{Vec2, Vec3, Mat4};
+use serde::{Deserialize, Serialize};
 
 // Copy the necessary types for testing
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CameraSettings {
+    pub pan_sensitivity: f32,
+    pub rotation_sensitivity: f32,
+    pub zoom_sensitivity: f32,
+    pub pan_damping: f32,
+    pub rotation_damping: f32,
+    pub zoom_damping: f32,
+    pub enable_inertia: bool,
+    pub inertia_decay: f32,
+    pub zoom_to_cursor: bool,
+    pub zoom_speed: f32,
+}
+
+impl Default for CameraSettings {
+    fn default() -> Self {
+        Self {
+            pan_sensitivity: 0.5,
+            rotation_sensitivity: 0.5,
+            zoom_sensitivity: 0.01,
+            pan_damping: 0.08,
+            rotation_damping: 0.12,
+            zoom_damping: 0.08,
+            enable_inertia: false,
+            inertia_decay: 0.92,
+            zoom_to_cursor: true,
+            zoom_speed: 20.0,
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct CameraState {
     pub position: Vec2,
@@ -34,6 +66,7 @@ pub struct SceneCamera {
     last_mouse_pos: Vec2,
     is_rotating: bool,
     is_orbiting: bool,
+    pub settings: CameraSettings,
     pub rotation_sensitivity: f32,
     pub zoom_sensitivity: f32,
     pub pan_speed: f32,
@@ -45,6 +78,7 @@ pub struct SceneCamera {
 impl SceneCamera {
     pub fn new() -> Self {
         let initial_zoom = 50.0;
+        let settings = CameraSettings::default();
         Self {
             position: Vec2::ZERO,
             zoom: initial_zoom,
@@ -60,13 +94,41 @@ impl SceneCamera {
             last_mouse_pos: Vec2::ZERO,
             is_rotating: false,
             is_orbiting: false,
-            rotation_sensitivity: 0.5,
-            zoom_sensitivity: 0.1,
+            settings: settings.clone(),
+            rotation_sensitivity: settings.rotation_sensitivity,
+            zoom_sensitivity: settings.zoom_sensitivity,
             pan_speed: 1.0,
             target_zoom: initial_zoom,
             zoom_interpolation_speed: 10.0,
             saved_3d_state: None,
         }
+    }
+    
+    pub fn load_settings(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        let settings_path = std::path::Path::new(".kiro/settings/camera_settings.json");
+        if settings_path.exists() {
+            let contents = std::fs::read_to_string(settings_path)?;
+            self.settings = serde_json::from_str(&contents)?;
+            self.rotation_sensitivity = self.settings.rotation_sensitivity;
+            self.zoom_sensitivity = self.settings.zoom_sensitivity;
+        }
+        Ok(())
+    }
+    
+    pub fn save_settings(&self) -> Result<(), Box<dyn std::error::Error>> {
+        let settings_dir = std::path::Path::new(".kiro/settings");
+        std::fs::create_dir_all(settings_dir)?;
+        
+        let settings_path = settings_dir.join("camera_settings.json");
+        let contents = serde_json::to_string_pretty(&self.settings)?;
+        std::fs::write(settings_path, contents)?;
+        Ok(())
+    }
+    
+    pub fn reset_settings_to_default(&mut self) {
+        self.settings = CameraSettings::default();
+        self.rotation_sensitivity = self.settings.rotation_sensitivity;
+        self.zoom_sensitivity = self.settings.zoom_sensitivity;
     }
     
     pub fn screen_to_world(&self, screen_pos: Vec2) -> Vec2 {
@@ -518,5 +580,235 @@ mod projection_matrix_tests {
         // Matrices should be different (zoom affects orthographic bounds)
         let diff = (proj1.col(0) - proj2.col(0)).length();
         assert!(diff > 0.01, "Zoom should affect isometric projection matrix");
+    }
+}
+
+// ============================================================================
+// Unit Tests for Settings Persistence
+// Requirements: 3.4, 3.5
+// ============================================================================
+
+#[cfg(test)]
+mod settings_persistence_tests {
+    use super::*;
+    use std::fs;
+    use std::path::Path;
+    
+    // Helper to clean up test settings file
+    fn cleanup_test_settings() {
+        let settings_path = Path::new(".kiro/settings/camera_settings.json");
+        if settings_path.exists() {
+            let _ = fs::remove_file(settings_path);
+        }
+    }
+    
+    #[test]
+    fn test_save_and_load_camera_settings() {
+        cleanup_test_settings();
+        
+        // Create camera with custom settings
+        let mut camera = SceneCamera::new();
+        camera.settings.pan_sensitivity = 1.5;
+        camera.settings.rotation_sensitivity = 0.75;
+        camera.settings.zoom_sensitivity = 0.15;
+        camera.settings.pan_damping = 0.25;
+        camera.settings.rotation_damping = 0.18;
+        camera.settings.zoom_damping = 0.22;
+        camera.settings.enable_inertia = true;
+        camera.settings.inertia_decay = 0.88;
+        camera.settings.zoom_to_cursor = false;
+        camera.settings.zoom_speed = 15.0;
+        
+        // Save settings
+        camera.save_settings().expect("Failed to save settings");
+        
+        // Create new camera and load settings
+        let mut camera2 = SceneCamera::new();
+        camera2.load_settings().expect("Failed to load settings");
+        
+        // Verify all settings were loaded correctly
+        assert!((camera2.settings.pan_sensitivity - 1.5).abs() < 0.001, "Pan sensitivity should be loaded");
+        assert!((camera2.settings.rotation_sensitivity - 0.75).abs() < 0.001, "Rotation sensitivity should be loaded");
+        assert!((camera2.settings.zoom_sensitivity - 0.15).abs() < 0.001, "Zoom sensitivity should be loaded");
+        assert!((camera2.settings.pan_damping - 0.25).abs() < 0.001, "Pan damping should be loaded");
+        assert!((camera2.settings.rotation_damping - 0.18).abs() < 0.001, "Rotation damping should be loaded");
+        assert!((camera2.settings.zoom_damping - 0.22).abs() < 0.001, "Zoom damping should be loaded");
+        assert!(camera2.settings.enable_inertia, "Inertia should be enabled");
+        assert!((camera2.settings.inertia_decay - 0.88).abs() < 0.001, "Inertia decay should be loaded");
+        assert!(!camera2.settings.zoom_to_cursor, "Zoom to cursor should be disabled");
+        assert!((camera2.settings.zoom_speed - 15.0).abs() < 0.001, "Zoom speed should be loaded");
+        
+        // Verify backward compatibility fields are updated
+        assert!((camera2.rotation_sensitivity - 0.75).abs() < 0.001, "Backward compat rotation_sensitivity should be updated");
+        assert!((camera2.zoom_sensitivity - 0.15).abs() < 0.001, "Backward compat zoom_sensitivity should be updated");
+        
+        cleanup_test_settings();
+    }
+    
+    #[test]
+    fn test_load_settings_when_file_does_not_exist() {
+        cleanup_test_settings();
+        
+        // Create camera with default settings
+        let mut camera = SceneCamera::new();
+        let default_pan_sensitivity = camera.settings.pan_sensitivity;
+        
+        // Try to load settings (file doesn't exist)
+        let result = camera.load_settings();
+        
+        // Should succeed (no error) and keep default settings
+        assert!(result.is_ok(), "Loading non-existent settings should not error");
+        assert!((camera.settings.pan_sensitivity - default_pan_sensitivity).abs() < 0.001, 
+                "Settings should remain default when file doesn't exist");
+    }
+    
+    #[test]
+    fn test_reset_settings_to_default() {
+        cleanup_test_settings();
+        
+        // Create camera with custom settings
+        let mut camera = SceneCamera::new();
+        camera.settings.pan_sensitivity = 2.0;
+        camera.settings.rotation_sensitivity = 1.0;
+        camera.settings.zoom_sensitivity = 0.5;
+        camera.settings.enable_inertia = true;
+        
+        // Reset to defaults
+        camera.reset_settings_to_default();
+        
+        // Verify settings are back to defaults
+        let defaults = CameraSettings::default();
+        assert!((camera.settings.pan_sensitivity - defaults.pan_sensitivity).abs() < 0.001, 
+                "Pan sensitivity should be reset to default");
+        assert!((camera.settings.rotation_sensitivity - defaults.rotation_sensitivity).abs() < 0.001, 
+                "Rotation sensitivity should be reset to default");
+        assert!((camera.settings.zoom_sensitivity - defaults.zoom_sensitivity).abs() < 0.001, 
+                "Zoom sensitivity should be reset to default");
+        assert_eq!(camera.settings.enable_inertia, defaults.enable_inertia, 
+                   "Inertia should be reset to default");
+        
+        // Verify backward compatibility fields are updated
+        assert!((camera.rotation_sensitivity - defaults.rotation_sensitivity).abs() < 0.001, 
+                "Backward compat rotation_sensitivity should be reset");
+        assert!((camera.zoom_sensitivity - defaults.zoom_sensitivity).abs() < 0.001, 
+                "Backward compat zoom_sensitivity should be reset");
+        
+        cleanup_test_settings();
+    }
+    
+    #[test]
+    fn test_invalid_json_handling() {
+        cleanup_test_settings();
+        
+        // Create settings directory
+        let settings_dir = Path::new(".kiro/settings");
+        fs::create_dir_all(settings_dir).expect("Failed to create settings directory");
+        
+        // Write invalid JSON to settings file
+        let settings_path = settings_dir.join("camera_settings.json");
+        fs::write(&settings_path, "{ invalid json }").expect("Failed to write invalid JSON");
+        
+        // Try to load settings
+        let mut camera = SceneCamera::new();
+        let result = camera.load_settings();
+        
+        // Should return an error
+        assert!(result.is_err(), "Loading invalid JSON should return an error");
+        
+        cleanup_test_settings();
+    }
+    
+    #[test]
+    fn test_settings_persistence_across_sessions() {
+        cleanup_test_settings();
+        
+        // Session 1: Create camera, modify settings, save
+        {
+            let mut camera = SceneCamera::new();
+            camera.settings.pan_sensitivity = 1.25;
+            camera.settings.zoom_to_cursor = false;
+            camera.save_settings().expect("Failed to save settings");
+        }
+        
+        // Session 2: Create new camera, load settings
+        {
+            let mut camera = SceneCamera::new();
+            camera.load_settings().expect("Failed to load settings");
+            
+            assert!((camera.settings.pan_sensitivity - 1.25).abs() < 0.001, 
+                    "Settings should persist across sessions");
+            assert!(!camera.settings.zoom_to_cursor, 
+                    "Boolean settings should persist across sessions");
+        }
+        
+        cleanup_test_settings();
+    }
+    
+    #[test]
+    fn test_partial_settings_file() {
+        cleanup_test_settings();
+        
+        // Create settings directory
+        let settings_dir = Path::new(".kiro/settings");
+        fs::create_dir_all(settings_dir).expect("Failed to create settings directory");
+        
+        // Write partial JSON (missing some fields)
+        let settings_path = settings_dir.join("camera_settings.json");
+        let partial_json = r#"{
+            "pan_sensitivity": 1.5,
+            "rotation_sensitivity": 0.75,
+            "zoom_sensitivity": 0.15
+        }"#;
+        fs::write(&settings_path, partial_json).expect("Failed to write partial JSON");
+        
+        // Try to load settings
+        let mut camera = SceneCamera::new();
+        let result = camera.load_settings();
+        
+        // Should return an error (missing required fields)
+        assert!(result.is_err(), "Loading partial JSON should return an error due to missing fields");
+        
+        cleanup_test_settings();
+    }
+    
+    #[test]
+    fn test_settings_file_creation() {
+        cleanup_test_settings();
+        
+        let settings_path = Path::new(".kiro/settings/camera_settings.json");
+        
+        // Verify file doesn't exist
+        assert!(!settings_path.exists(), "Settings file should not exist initially");
+        
+        // Save settings
+        let camera = SceneCamera::new();
+        camera.save_settings().expect("Failed to save settings");
+        
+        // Verify file was created
+        assert!(settings_path.exists(), "Settings file should be created after save");
+        
+        // Verify file contains valid JSON
+        let contents = fs::read_to_string(settings_path).expect("Failed to read settings file");
+        let parsed: Result<CameraSettings, _> = serde_json::from_str(&contents);
+        assert!(parsed.is_ok(), "Settings file should contain valid JSON");
+        
+        cleanup_test_settings();
+    }
+    
+    #[test]
+    fn test_default_values_match_specification() {
+        let defaults = CameraSettings::default();
+        
+        // Verify default values match the specification in design.md
+        assert!((defaults.pan_sensitivity - 0.5).abs() < 0.001, "Default pan sensitivity should be 0.5");
+        assert!((defaults.rotation_sensitivity - 0.5).abs() < 0.001, "Default rotation sensitivity should be 0.5");
+        assert!((defaults.zoom_sensitivity - 0.01).abs() < 0.001, "Default zoom sensitivity should be 0.01");
+        assert!((defaults.pan_damping - 0.08).abs() < 0.001, "Default pan damping should be 0.08");
+        assert!((defaults.rotation_damping - 0.12).abs() < 0.001, "Default rotation damping should be 0.12");
+        assert!((defaults.zoom_damping - 0.08).abs() < 0.001, "Default zoom damping should be 0.08");
+        assert!(!defaults.enable_inertia, "Default inertia should be disabled");
+        assert!((defaults.inertia_decay - 0.92).abs() < 0.001, "Default inertia decay should be 0.92");
+        assert!(defaults.zoom_to_cursor, "Default zoom to cursor should be enabled");
+        assert!((defaults.zoom_speed - 20.0).abs() < 0.001, "Default zoom speed should be 20.0");
     }
 }
