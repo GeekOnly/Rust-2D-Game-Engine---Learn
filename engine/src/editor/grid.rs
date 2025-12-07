@@ -148,13 +148,21 @@ impl SceneGrid {
     /// Select appropriate grid level based on zoom
     /// Returns the grid spacing that maintains visual density
     pub fn select_grid_level(&self, zoom: f32) -> f32 {
+        // Validate zoom input
+        if !zoom.is_finite() || zoom <= 0.0 {
+            return self.size;
+        }
+        
+        // Clamp zoom to reasonable range
+        let clamped_zoom = zoom.clamp(0.001, 1000.0);
+        
         let base_spacing = self.size;
         let target_min = self.min_line_spacing;
         let target_max = self.min_line_spacing * 5.0;
         let target_mid = (target_min + target_max) / 2.0;
         
         // Calculate screen-space spacing for base grid
-        let screen_spacing = base_spacing * zoom;
+        let screen_spacing = base_spacing * clamped_zoom;
         
         // If base spacing is in the sweet spot, use it
         if screen_spacing >= target_min && screen_spacing <= target_max {
@@ -167,8 +175,11 @@ impl SceneGrid {
         
         // Check scaling up (for when base is too small)
         for &level in &self.subdivision_levels {
+            if level <= 0.0 || !level.is_finite() {
+                continue;
+            }
             let test_spacing = base_spacing / level;
-            let test_screen = test_spacing * zoom;
+            let test_screen = test_spacing * clamped_zoom;
             if test_screen >= target_min && test_screen <= target_max {
                 let distance = (test_screen - target_mid).abs();
                 if distance < best_distance {
@@ -180,8 +191,11 @@ impl SceneGrid {
         
         // Check scaling down (for when base is too large)
         for &level in &self.subdivision_levels {
+            if level <= 0.0 || !level.is_finite() {
+                continue;
+            }
             let test_spacing = base_spacing * level;
-            let test_screen = test_spacing * zoom;
+            let test_screen = test_spacing * clamped_zoom;
             if test_screen >= target_min && test_screen <= target_max {
                 let distance = (test_screen - target_mid).abs();
                 if distance < best_distance {
@@ -198,11 +212,24 @@ impl SceneGrid {
         
         // Otherwise, calculate the optimal spacing to hit the target range
         // Aim for the middle of the target range
-        let optimal_spacing = target_mid / zoom;
+        let optimal_spacing = target_mid / clamped_zoom;
+        
+        // Validate optimal spacing
+        if !optimal_spacing.is_finite() || optimal_spacing <= 0.0 {
+            return base_spacing;
+        }
+        
+        // Clamp optimal spacing
+        let clamped_optimal = optimal_spacing.clamp(0.001, 10000.0);
         
         // Round to a nice number (power of 10)
-        let magnitude = 10.0_f32.powf(optimal_spacing.log10().floor());
-        let normalized = optimal_spacing / magnitude;
+        let log_value = clamped_optimal.log10();
+        if !log_value.is_finite() {
+            return base_spacing;
+        }
+        
+        let magnitude = 10.0_f32.powf(log_value.floor());
+        let normalized = clamped_optimal / magnitude;
         
         // Round to nearest 1, 2, or 5
         let rounded = if normalized < 1.5 {
@@ -215,7 +242,14 @@ impl SceneGrid {
             10.0
         };
         
-        magnitude * rounded
+        let result = magnitude * rounded;
+        
+        // Final validation
+        if result.is_finite() && result > 0.0 {
+            result.clamp(0.001, 10000.0)
+        } else {
+            base_spacing
+        }
     }
     
     /// Calculate fade alpha based on distance from camera
@@ -374,11 +408,19 @@ impl InfiniteGrid {
     /// Calculate appropriate grid level for current zoom
     /// Returns the grid unit size that maintains visual density
     pub fn calculate_grid_level(&self, zoom: f32) -> f32 {
+        // Validate zoom input
+        if !zoom.is_finite() || zoom <= 0.0 {
+            return self.base_unit;
+        }
+        
+        // Clamp zoom to reasonable range to prevent extreme grid spacing
+        let clamped_zoom = zoom.clamp(0.001, 1000.0);
+        
         let base_spacing = self.base_unit;
         let target_mid = (self.min_pixel_spacing + self.max_pixel_spacing) / 2.0;
         
         // Calculate screen-space spacing for base grid
-        let screen_spacing = base_spacing * zoom;
+        let screen_spacing = base_spacing * clamped_zoom;
         
         // If base spacing is in the sweet spot, use it
         if screen_spacing >= self.min_pixel_spacing && screen_spacing <= self.max_pixel_spacing {
@@ -386,11 +428,24 @@ impl InfiniteGrid {
         }
         
         // Calculate the optimal spacing to hit the target range
-        let optimal_spacing = target_mid / zoom;
+        let optimal_spacing = target_mid / clamped_zoom;
+        
+        // Validate optimal spacing
+        if !optimal_spacing.is_finite() || optimal_spacing <= 0.0 {
+            return base_spacing;
+        }
+        
+        // Clamp optimal spacing to reasonable bounds
+        let clamped_optimal = optimal_spacing.clamp(0.001, 10000.0);
         
         // Round to a nice number (power of 10)
-        let magnitude = 10.0_f32.powf(optimal_spacing.log10().floor());
-        let normalized = optimal_spacing / magnitude;
+        let log_value = clamped_optimal.log10();
+        if !log_value.is_finite() {
+            return base_spacing;
+        }
+        
+        let magnitude = 10.0_f32.powf(log_value.floor());
+        let normalized = clamped_optimal / magnitude;
         
         // Round to nearest 1, 2, or 5
         let rounded = if normalized < 1.5 {
@@ -403,12 +458,29 @@ impl InfiniteGrid {
             10.0
         };
         
-        magnitude * rounded
+        let result = magnitude * rounded;
+        
+        // Final validation and bounds checking
+        if result.is_finite() && result > 0.0 {
+            result.clamp(0.001, 10000.0)
+        } else {
+            base_spacing
+        }
     }
     
     /// Calculate fade alpha for a point based on distance from camera
     pub fn calculate_fade_alpha(&self, point: Vec3, camera_pos: Vec3) -> f32 {
+        // Validate inputs
+        if !point.is_finite() || !camera_pos.is_finite() {
+            return 0.0;
+        }
+        
         let distance = (point - camera_pos).length();
+        
+        // Validate distance
+        if !distance.is_finite() || distance < 0.0 {
+            return 0.0;
+        }
         
         // Far fade (distance from camera)
         let far_alpha = if distance < self.fade_start_distance {
@@ -416,9 +488,13 @@ impl InfiniteGrid {
         } else if distance > self.fade_end_distance {
             0.0
         } else {
-            let fade_progress = (distance - self.fade_start_distance) 
-                / (self.fade_end_distance - self.fade_start_distance);
-            1.0 - fade_progress
+            let denominator = self.fade_end_distance - self.fade_start_distance;
+            if denominator.abs() < 0.001 {
+                1.0
+            } else {
+                let fade_progress = (distance - self.fade_start_distance) / denominator;
+                (1.0 - fade_progress).clamp(0.0, 1.0)
+            }
         };
         
         // Near fade (too close to camera)
@@ -427,13 +503,24 @@ impl InfiniteGrid {
         } else if distance < self.near_fade_end {
             0.0
         } else {
-            let fade_progress = (distance - self.near_fade_end) 
-                / (self.near_fade_start - self.near_fade_end);
-            fade_progress
+            let denominator = self.near_fade_start - self.near_fade_end;
+            if denominator.abs() < 0.001 {
+                1.0
+            } else {
+                let fade_progress = (distance - self.near_fade_end) / denominator;
+                fade_progress.clamp(0.0, 1.0)
+            }
         };
         
         // Combine both fades
-        far_alpha * near_alpha
+        let result = far_alpha * near_alpha;
+        
+        // Validate result
+        if result.is_finite() {
+            result.clamp(0.0, 1.0)
+        } else {
+            0.0
+        }
     }
     
     /// Check if grid geometry needs regeneration
@@ -451,6 +538,18 @@ impl InfiniteGrid {
         camera: &CameraState,
         viewport_size: Vec2,
     ) -> &GridGeometry {
+        // Validate inputs
+        if !camera.position.is_finite() || !camera.zoom.is_finite() || 
+           !camera.rotation.is_finite() || !camera.pitch.is_finite() ||
+           !viewport_size.is_finite() {
+            // Return empty geometry if inputs are invalid
+            self.cached_geometry = Some(GridGeometry {
+                lines: Vec::new(),
+                generation_time: std::time::Instant::now(),
+            });
+            return self.cached_geometry.as_ref().unwrap();
+        }
+        
         // Check if we can use cached geometry
         if !self.needs_regeneration(camera) {
             if let Some(ref geometry) = self.cached_geometry {
@@ -464,6 +563,15 @@ impl InfiniteGrid {
         // Calculate grid level
         let grid_spacing = self.calculate_grid_level(camera.zoom);
         
+        // Validate grid spacing
+        if !grid_spacing.is_finite() || grid_spacing <= 0.0 {
+            self.cached_geometry = Some(GridGeometry {
+                lines: Vec::new(),
+                generation_time: std::time::Instant::now(),
+            });
+            return self.cached_geometry.as_ref().unwrap();
+        }
+        
         // Calculate visible range based on camera position and zoom
         let visible_range = 1000.0; // Extend far into distance
         
@@ -475,11 +583,31 @@ impl InfiniteGrid {
         // Camera position in 3D
         let yaw_rad = camera.rotation.to_radians();
         let pitch_rad = camera.pitch.to_radians();
+        
+        // Validate angles
+        if !yaw_rad.is_finite() || !pitch_rad.is_finite() {
+            self.cached_geometry = Some(GridGeometry {
+                lines: Vec::new(),
+                generation_time: std::time::Instant::now(),
+            });
+            return self.cached_geometry.as_ref().unwrap();
+        }
+        
         let distance = 500.0; // Default distance
         
         let cam_x = camera.position.x + distance * yaw_rad.cos() * pitch_rad.cos();
         let cam_y = distance * pitch_rad.sin();
         let cam_z = camera.position.y + distance * yaw_rad.sin() * pitch_rad.cos();
+        
+        // Validate camera position
+        if !cam_x.is_finite() || !cam_y.is_finite() || !cam_z.is_finite() {
+            self.cached_geometry = Some(GridGeometry {
+                lines: Vec::new(),
+                generation_time: std::time::Instant::now(),
+            });
+            return self.cached_geometry.as_ref().unwrap();
+        }
+        
         let camera_pos_3d = Vec3::new(cam_x, cam_y, cam_z);
         
         // Generate lines parallel to X axis (running along X, constant Z)

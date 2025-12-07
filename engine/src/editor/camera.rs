@@ -24,6 +24,70 @@ pub struct CameraSettings {
     pub zoom_speed: f32,
 }
 
+impl CameraSettings {
+    /// Minimum allowed sensitivity value
+    pub const MIN_SENSITIVITY: f32 = 0.01;
+    /// Maximum allowed sensitivity value
+    pub const MAX_SENSITIVITY: f32 = 10.0;
+    
+    /// Validate and clamp sensitivity values to safe range
+    pub fn validate(&mut self) {
+        // Handle NaN/Inf by replacing with default values
+        if !self.pan_sensitivity.is_finite() {
+            self.pan_sensitivity = 0.5;
+        }
+        if !self.rotation_sensitivity.is_finite() {
+            self.rotation_sensitivity = 0.5;
+        }
+        if !self.zoom_sensitivity.is_finite() {
+            self.zoom_sensitivity = 0.01;
+        }
+        if !self.pan_damping.is_finite() {
+            self.pan_damping = 0.08;
+        }
+        if !self.rotation_damping.is_finite() {
+            self.rotation_damping = 0.12;
+        }
+        if !self.zoom_damping.is_finite() {
+            self.zoom_damping = 0.08;
+        }
+        if !self.inertia_decay.is_finite() {
+            self.inertia_decay = 0.92;
+        }
+        if !self.zoom_speed.is_finite() {
+            self.zoom_speed = 20.0;
+        }
+        
+        // Now clamp to valid ranges
+        self.pan_sensitivity = self.pan_sensitivity.clamp(Self::MIN_SENSITIVITY, Self::MAX_SENSITIVITY);
+        self.rotation_sensitivity = self.rotation_sensitivity.clamp(Self::MIN_SENSITIVITY, Self::MAX_SENSITIVITY);
+        self.zoom_sensitivity = self.zoom_sensitivity.clamp(Self::MIN_SENSITIVITY, Self::MAX_SENSITIVITY);
+        
+        // Clamp damping values to [0.0, 1.0]
+        self.pan_damping = self.pan_damping.clamp(0.0, 1.0);
+        self.rotation_damping = self.rotation_damping.clamp(0.0, 1.0);
+        self.zoom_damping = self.zoom_damping.clamp(0.0, 1.0);
+        
+        // Clamp inertia decay to [0.0, 1.0]
+        self.inertia_decay = self.inertia_decay.clamp(0.0, 1.0);
+        
+        // Clamp zoom speed to reasonable range
+        self.zoom_speed = self.zoom_speed.clamp(1.0, 100.0);
+    }
+    
+    /// Check if all values are finite (not NaN or Inf)
+    pub fn is_valid(&self) -> bool {
+        self.pan_sensitivity.is_finite() &&
+        self.rotation_sensitivity.is_finite() &&
+        self.zoom_sensitivity.is_finite() &&
+        self.pan_damping.is_finite() &&
+        self.rotation_damping.is_finite() &&
+        self.zoom_damping.is_finite() &&
+        self.inertia_decay.is_finite() &&
+        self.zoom_speed.is_finite()
+    }
+}
+
 impl Default for CameraSettings {
     fn default() -> Self {
         Self {
@@ -198,8 +262,23 @@ impl SceneCamera {
             return;
         }
         
+        // Check for extreme zoom levels - graceful degradation
+        if self.zoom <= self.min_zoom * 1.01 && delta < 0.0 {
+            // Already at minimum zoom, don't zoom out further
+            return;
+        }
+        if self.zoom >= self.max_zoom * 0.99 && delta > 0.0 {
+            // Already at maximum zoom, don't zoom in further
+            return;
+        }
+        
         // Calculate world position under cursor BEFORE zoom
         let world_pos_before = self.screen_to_world(mouse_pos);
+        
+        // Validate world position
+        if !world_pos_before.is_finite() {
+            return;
+        }
         
         // Store for smooth interpolation if needed
         self.last_cursor_world_pos = Some(world_pos_before);
@@ -210,6 +289,11 @@ impl SceneCamera {
         } else {
             1.0 / (1.0 + self.settings.zoom_sensitivity)
         };
+        
+        // Validate zoom factor
+        if !zoom_factor.is_finite() || zoom_factor <= 0.0 {
+            return;
+        }
         
         let old_zoom = self.zoom;
         
@@ -222,6 +306,11 @@ impl SceneCamera {
         if self.settings.zoom_to_cursor {
             // Calculate world position under cursor AFTER zoom
             let world_pos_after = self.screen_to_world(mouse_pos);
+            
+            // Validate world position after zoom
+            if !world_pos_after.is_finite() {
+                return;
+            }
             
             // Adjust camera position to keep the same world point under cursor
             let world_offset = world_pos_before - world_pos_after;
@@ -236,7 +325,9 @@ impl SceneCamera {
         // Add to velocity for inertia (if enabled)
         if self.settings.enable_inertia {
             let zoom_delta = self.zoom - old_zoom;
-            self.velocity.zoom_velocity += zoom_delta * 0.2;
+            if zoom_delta.is_finite() {
+                self.velocity.zoom_velocity += zoom_delta * 0.2;
+            }
         }
     }
     
@@ -247,11 +338,31 @@ impl SceneCamera {
             return;
         }
         
+        // Check for extreme zoom levels - graceful degradation
+        if self.zoom <= self.min_zoom * 1.01 && delta < 0.0 {
+            // Already at minimum zoom, don't zoom out further
+            return;
+        }
+        if self.zoom >= self.max_zoom * 0.99 && delta > 0.0 {
+            // Already at maximum zoom, don't zoom in further
+            return;
+        }
+        
         // Convert cursor position to screen space relative to viewport center
         let screen_pos = cursor_screen_pos - viewport_center;
         
+        // Validate screen position
+        if !screen_pos.is_finite() {
+            return;
+        }
+        
         // Calculate world position under cursor BEFORE zoom
         let world_pos_before = self.screen_to_world(screen_pos);
+        
+        // Validate world position
+        if !world_pos_before.is_finite() {
+            return;
+        }
         
         // Store for tracking
         self.last_cursor_world_pos = Some(world_pos_before);
@@ -262,6 +373,11 @@ impl SceneCamera {
         } else {
             1.0 / (1.0 + self.settings.zoom_sensitivity)
         };
+        
+        // Validate zoom factor
+        if !zoom_factor.is_finite() || zoom_factor <= 0.0 {
+            return;
+        }
         
         let old_zoom = self.zoom;
         
@@ -274,6 +390,11 @@ impl SceneCamera {
         if self.settings.zoom_to_cursor {
             // Calculate world position under cursor AFTER zoom
             let world_pos_after = self.screen_to_world(screen_pos);
+            
+            // Validate world position after zoom
+            if !world_pos_after.is_finite() {
+                return;
+            }
             
             // Calculate offset needed to keep world point stationary
             let world_offset = world_pos_before - world_pos_after;
@@ -288,7 +409,9 @@ impl SceneCamera {
         // Add smooth zoom interpolation velocity
         if self.settings.enable_inertia {
             let zoom_delta = self.zoom - old_zoom;
-            self.velocity.zoom_velocity += zoom_delta * 0.2;
+            if zoom_delta.is_finite() {
+                self.velocity.zoom_velocity += zoom_delta * 0.2;
+            }
         }
     }
     
@@ -317,35 +440,57 @@ impl SceneCamera {
     
     /// Apply damping to velocity
     fn apply_damping(&mut self, delta_time: f32) {
+        // Validate delta_time
+        if !delta_time.is_finite() || delta_time <= 0.0 {
+            return;
+        }
+        
         // Exponential damping for smooth deceleration
         let pan_damping_factor = 1.0 - (-self.settings.pan_damping * 10.0 * delta_time).exp();
         let rotation_damping_factor = 1.0 - (-self.settings.rotation_damping * 10.0 * delta_time).exp();
         let zoom_damping_factor = 1.0 - (-self.settings.zoom_damping * 10.0 * delta_time).exp();
         
+        // Validate damping factors
+        if !pan_damping_factor.is_finite() || !rotation_damping_factor.is_finite() || !zoom_damping_factor.is_finite() {
+            return;
+        }
+        
         // Apply damping to position
         if (self.position - self.target_position).length() > 0.001 {
-            self.position = self.position + (self.target_position - self.position) * pan_damping_factor;
+            let new_position = self.position + (self.target_position - self.position) * pan_damping_factor;
+            if new_position.is_finite() {
+                self.position = new_position;
+            }
         } else {
             self.position = self.target_position;
         }
         
         // Apply damping to rotation
         if (self.rotation - self.target_rotation).abs() > 0.01 {
-            self.rotation = self.rotation + (self.target_rotation - self.rotation) * rotation_damping_factor;
+            let new_rotation = self.rotation + (self.target_rotation - self.rotation) * rotation_damping_factor;
+            if new_rotation.is_finite() {
+                self.rotation = new_rotation;
+            }
         } else {
             self.rotation = self.target_rotation;
         }
         
         // Apply damping to pitch
         if (self.pitch - self.target_pitch).abs() > 0.01 {
-            self.pitch = self.pitch + (self.target_pitch - self.pitch) * rotation_damping_factor;
+            let new_pitch = self.pitch + (self.target_pitch - self.pitch) * rotation_damping_factor;
+            if new_pitch.is_finite() {
+                self.pitch = new_pitch;
+            }
         } else {
             self.pitch = self.target_pitch;
         }
         
         // Apply damping to zoom
         if (self.zoom - self.target_zoom).abs() > 0.01 {
-            self.zoom = self.zoom + (self.target_zoom - self.zoom) * zoom_damping_factor;
+            let new_zoom = self.zoom + (self.target_zoom - self.zoom) * zoom_damping_factor;
+            if new_zoom.is_finite() && new_zoom > 0.0 {
+                self.zoom = new_zoom;
+            }
         } else {
             self.zoom = self.target_zoom;
         }
@@ -359,32 +504,64 @@ impl SceneCamera {
             return;
         }
         
+        // Validate delta_time
+        if !delta_time.is_finite() || delta_time <= 0.0 {
+            return;
+        }
+        
         // Apply pan velocity
         if self.velocity.pan_velocity.length() > 0.001 {
-            self.target_position += self.velocity.pan_velocity * delta_time * 60.0;
+            let new_position = self.target_position + self.velocity.pan_velocity * delta_time * 60.0;
+            if new_position.is_finite() {
+                self.target_position = new_position;
+            }
             // Decay velocity exponentially
-            self.velocity.pan_velocity *= self.settings.inertia_decay;
+            let new_velocity = self.velocity.pan_velocity * self.settings.inertia_decay;
+            if new_velocity.is_finite() {
+                self.velocity.pan_velocity = new_velocity;
+            } else {
+                self.velocity.pan_velocity = Vec2::ZERO;
+            }
         } else {
             self.velocity.pan_velocity = Vec2::ZERO;
         }
         
         // Apply rotation velocity
         if self.velocity.rotation_velocity.length() > 0.001 {
-            self.target_rotation += self.velocity.rotation_velocity.x * delta_time * 60.0;
-            self.target_pitch += self.velocity.rotation_velocity.y * delta_time * 60.0;
-            self.target_pitch = self.target_pitch.clamp(self.min_pitch, self.max_pitch);
+            let new_rotation = self.target_rotation + self.velocity.rotation_velocity.x * delta_time * 60.0;
+            let new_pitch = self.target_pitch + self.velocity.rotation_velocity.y * delta_time * 60.0;
+            
+            if new_rotation.is_finite() {
+                self.target_rotation = new_rotation;
+            }
+            if new_pitch.is_finite() {
+                self.target_pitch = new_pitch.clamp(self.min_pitch, self.max_pitch);
+            }
+            
             // Decay velocity exponentially
-            self.velocity.rotation_velocity *= self.settings.inertia_decay;
+            let new_velocity = self.velocity.rotation_velocity * self.settings.inertia_decay;
+            if new_velocity.is_finite() {
+                self.velocity.rotation_velocity = new_velocity;
+            } else {
+                self.velocity.rotation_velocity = Vec2::ZERO;
+            }
         } else {
             self.velocity.rotation_velocity = Vec2::ZERO;
         }
         
         // Apply zoom velocity
         if self.velocity.zoom_velocity.abs() > 0.001 {
-            self.target_zoom += self.velocity.zoom_velocity * delta_time * 60.0;
-            self.target_zoom = self.target_zoom.clamp(self.min_zoom, self.max_zoom);
+            let new_zoom = self.target_zoom + self.velocity.zoom_velocity * delta_time * 60.0;
+            if new_zoom.is_finite() && new_zoom > 0.0 {
+                self.target_zoom = new_zoom.clamp(self.min_zoom, self.max_zoom);
+            }
             // Decay velocity exponentially
-            self.velocity.zoom_velocity *= self.settings.inertia_decay;
+            let new_velocity = self.velocity.zoom_velocity * self.settings.inertia_decay;
+            if new_velocity.is_finite() {
+                self.velocity.zoom_velocity = new_velocity;
+            } else {
+                self.velocity.zoom_velocity = 0.0;
+            }
         } else {
             self.velocity.zoom_velocity = 0.0;
         }
@@ -685,7 +862,18 @@ impl SceneCamera {
         let settings_path = std::path::Path::new(".kiro/settings/camera_settings.json");
         if settings_path.exists() {
             let contents = std::fs::read_to_string(settings_path)?;
-            self.settings = serde_json::from_str(&contents)?;
+            let mut loaded_settings: CameraSettings = serde_json::from_str(&contents)?;
+            
+            // Validate loaded settings
+            if !loaded_settings.is_valid() {
+                // If settings contain NaN/Inf, use defaults
+                loaded_settings = CameraSettings::default();
+            } else {
+                // Clamp values to safe ranges
+                loaded_settings.validate();
+            }
+            
+            self.settings = loaded_settings;
             // Update backward compatibility fields
             self.rotation_sensitivity = self.settings.rotation_sensitivity;
             self.zoom_sensitivity = self.settings.zoom_sensitivity;
