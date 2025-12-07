@@ -668,3 +668,191 @@ impl Default for AdaptiveGridLevels {
         Self::new()
     }
 }
+
+// ============================================================================
+// LINE BATCHING IMPLEMENTATION
+// ============================================================================
+
+/// Batched lines grouped by rendering properties for efficient rendering
+#[derive(Debug, Clone)]
+pub struct LineBatch {
+    pub color: [f32; 4],
+    pub width: f32,
+    pub lines: Vec<(Vec3, Vec3)>,  // (start, end) pairs
+}
+
+/// Line batching system for efficient grid rendering
+#[derive(Debug, Clone)]
+pub struct LineBatcher {
+    batches: Vec<LineBatch>,
+}
+
+impl LineBatcher {
+    pub fn new() -> Self {
+        Self {
+            batches: Vec::new(),
+        }
+    }
+    
+    /// Add a line to the appropriate batch
+    /// Lines with the same color and width are grouped together
+    pub fn add_line(&mut self, start: Vec3, end: Vec3, color: [f32; 4], width: f32) {
+        // Try to find an existing batch with matching properties
+        for batch in &mut self.batches {
+            if Self::colors_match(batch.color, color) && (batch.width - width).abs() < 0.01 {
+                batch.lines.push((start, end));
+                return;
+            }
+        }
+        
+        // No matching batch found, create a new one
+        self.batches.push(LineBatch {
+            color,
+            width,
+            lines: vec![(start, end)],
+        });
+    }
+    
+    /// Check if two colors are approximately equal
+    fn colors_match(c1: [f32; 4], c2: [f32; 4]) -> bool {
+        (c1[0] - c2[0]).abs() < 0.01 &&
+        (c1[1] - c2[1]).abs() < 0.01 &&
+        (c1[2] - c2[2]).abs() < 0.01 &&
+        (c1[3] - c2[3]).abs() < 0.01
+    }
+    
+    /// Get all batches for rendering
+    pub fn get_batches(&self) -> &[LineBatch] {
+        &self.batches
+    }
+    
+    /// Get the number of batches (draw calls)
+    pub fn batch_count(&self) -> usize {
+        self.batches.len()
+    }
+    
+    /// Get the total number of lines across all batches
+    pub fn line_count(&self) -> usize {
+        self.batches.iter().map(|b| b.lines.len()).sum()
+    }
+    
+    /// Clear all batches
+    pub fn clear(&mut self) {
+        self.batches.clear();
+    }
+    
+    /// Perform spatial culling on lines
+    /// Removes lines that are completely outside the viewport bounds
+    pub fn cull_offscreen_lines(&mut self, viewport_bounds: ViewportBounds) {
+        for batch in &mut self.batches {
+            batch.lines.retain(|(start, end)| {
+                Self::line_intersects_viewport(*start, *end, &viewport_bounds)
+            });
+        }
+        
+        // Remove empty batches
+        self.batches.retain(|b| !b.lines.is_empty());
+    }
+    
+    /// Check if a line intersects with the viewport bounds
+    fn line_intersects_viewport(start: Vec3, end: Vec3, bounds: &ViewportBounds) -> bool {
+        // Check if either endpoint is inside the bounds
+        if bounds.contains_point(start) || bounds.contains_point(end) {
+            return true;
+        }
+        
+        // Check if the line crosses any of the viewport boundaries
+        // For simplicity, we use a conservative bounding box check
+        let line_min_x = start.x.min(end.x);
+        let line_max_x = start.x.max(end.x);
+        let line_min_z = start.z.min(end.z);
+        let line_max_z = start.z.max(end.z);
+        
+        // Check for overlap in both dimensions
+        let x_overlap = line_max_x >= bounds.min_x && line_min_x <= bounds.max_x;
+        let z_overlap = line_max_z >= bounds.min_z && line_min_z <= bounds.max_z;
+        
+        x_overlap && z_overlap
+    }
+}
+
+impl Default for LineBatcher {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+/// Viewport bounds for spatial culling
+#[derive(Debug, Clone, Copy)]
+pub struct ViewportBounds {
+    pub min_x: f32,
+    pub max_x: f32,
+    pub min_z: f32,
+    pub max_z: f32,
+}
+
+impl ViewportBounds {
+    pub fn new(min_x: f32, max_x: f32, min_z: f32, max_z: f32) -> Self {
+        Self {
+            min_x,
+            max_x,
+            min_z,
+            max_z,
+        }
+    }
+    
+    /// Create viewport bounds from camera state with a margin
+    pub fn from_camera(camera: &CameraState, viewport_size: Vec2, margin: f32) -> Self {
+        let half_width = (viewport_size.x / (2.0 * camera.zoom)) + margin;
+        let half_height = (viewport_size.y / (2.0 * camera.zoom)) + margin;
+        
+        Self {
+            min_x: camera.position.x - half_width,
+            max_x: camera.position.x + half_width,
+            min_z: camera.position.y - half_height,
+            max_z: camera.position.y + half_height,
+        }
+    }
+    
+    /// Check if a point is inside the bounds
+    pub fn contains_point(&self, point: Vec3) -> bool {
+        point.x >= self.min_x && point.x <= self.max_x &&
+        point.z >= self.min_z && point.z <= self.max_z
+    }
+    
+    /// Expand the bounds by a margin
+    pub fn expand(&self, margin: f32) -> Self {
+        Self {
+            min_x: self.min_x - margin,
+            max_x: self.max_x + margin,
+            min_z: self.min_z - margin,
+            max_z: self.max_z + margin,
+        }
+    }
+}
+
+/// Extension to InfiniteGrid for line batching
+impl InfiniteGrid {
+    /// Generate batched grid geometry for efficient rendering
+    pub fn generate_batched_geometry(
+        &mut self,
+        camera: &CameraState,
+        viewport_size: Vec2,
+    ) -> LineBatcher {
+        let mut batcher = LineBatcher::new();
+        
+        // Generate grid geometry
+        let geometry = self.generate_geometry(camera, viewport_size);
+        
+        // Add all lines to the batcher
+        for line in &geometry.lines {
+            batcher.add_line(line.start, line.end, line.color, line.width);
+        }
+        
+        // Perform spatial culling
+        let viewport_bounds = ViewportBounds::from_camera(camera, viewport_size, 100.0);
+        batcher.cull_offscreen_lines(viewport_bounds);
+        
+        batcher
+    }
+}
