@@ -101,10 +101,10 @@ pub fn render_scene_view(
         world,
     );
 
-    // Background
+    // Background - Unity-like colors
     let bg_color = match scene_view_mode {
         SceneViewMode::Mode2D => egui::Color32::from_rgb(40, 40, 50),
-        SceneViewMode::Mode3D => egui::Color32::from_rgb(50, 55, 65),
+        SceneViewMode::Mode3D => egui::Color32::from_rgb(48, 48, 48),  // Unity-like dark gray
     };
     painter.rect_filled(rect, 0.0, bg_color);
 

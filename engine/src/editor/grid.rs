@@ -106,11 +106,11 @@ impl SceneGrid {
     pub fn new() -> Self {
         Self {
             enabled: true,
-            size: 1.0,  // 1 unit per grid cell (like Blender: 1 unit = 1 meter)
+            size: 1.0,  // 1 unit per grid cell (like Unity: 1 unit = 1 meter)
             snap_enabled: false,
-            color: [0.3, 0.3, 0.3, 0.5],  // Gray grid lines
-            axis_color_x: [0.8, 0.2, 0.2, 0.8],  // Red for X axis
-            axis_color_z: [0.2, 0.2, 0.8, 0.8],  // Blue for Z axis
+            color: [0.25, 0.25, 0.25, 0.3],  // Unity-like subtle gray grid lines
+            axis_color_x: [0.85, 0.25, 0.25, 0.9],  // Bright red for X axis
+            axis_color_z: [0.25, 0.45, 0.85, 0.9],  // Bright blue for Z axis
             fade_distance: 500.0,
             fade_range: 200.0,
             subdivision_levels: vec![1.0, 0.1, 0.01],
@@ -386,15 +386,17 @@ impl InfiniteGrid {
             enabled: true,
             base_unit: 1.0,
             major_line_every: 10,
-            minor_line_color: [0.3, 0.3, 0.3, 0.4],
-            major_line_color: [0.4, 0.4, 0.4, 0.6],
-            x_axis_color: [0.8, 0.2, 0.2, 0.8],
-            z_axis_color: [0.2, 0.2, 0.8, 0.8],
+            // OPTIMIZED: Professional Unity-like colors - subtle and non-distracting
+            minor_line_color: [0.25, 0.25, 0.25, 0.35],  // Darker, more subtle
+            major_line_color: [0.35, 0.35, 0.35, 0.55],  // Slightly brighter for contrast
+            x_axis_color: [0.85, 0.25, 0.25, 0.9],       // Vibrant red for X axis
+            z_axis_color: [0.25, 0.45, 0.85, 0.9],       // Vibrant blue for Z axis
             minor_line_width: 1.0,
             major_line_width: 1.5,
-            axis_line_width: 2.0,
-            fade_start_distance: 500.0,
-            fade_end_distance: 1000.0,
+            axis_line_width: 2.5,  // Thicker axis lines for better visibility
+            // OPTIMIZED: Adjusted fade distances for better performance
+            fade_start_distance: 400.0,  // Start fading earlier
+            fade_end_distance: 800.0,    // End sooner to reduce line count
             near_fade_start: 0.5,
             near_fade_end: 0.1,
             min_pixel_spacing: 20.0,
@@ -533,6 +535,7 @@ impl InfiniteGrid {
     }
     
     /// Generate grid geometry for current camera view
+    /// OPTIMIZED: Aggressive culling, reduced line count, efficient generation
     pub fn generate_geometry(
         &mut self,
         camera: &CameraState,
@@ -550,7 +553,7 @@ impl InfiniteGrid {
             return self.cached_geometry.as_ref().unwrap();
         }
         
-        // Check if we can use cached geometry
+        // Check if we can use cached geometry (OPTIMIZATION: Cache hit)
         if !self.needs_regeneration(camera) {
             if let Some(ref geometry) = self.cached_geometry {
                 return geometry;
@@ -558,7 +561,7 @@ impl InfiniteGrid {
         }
         
         // Generate new geometry
-        let mut lines = Vec::new();
+        let mut lines = Vec::with_capacity(200); // Pre-allocate for typical grid
         
         // Calculate grid level
         let grid_spacing = self.calculate_grid_level(camera.zoom);
@@ -572,8 +575,9 @@ impl InfiniteGrid {
             return self.cached_geometry.as_ref().unwrap();
         }
         
-        // Calculate visible range based on camera position and zoom
-        let visible_range = 1000.0; // Extend far into distance
+        // OPTIMIZATION: Calculate visible range based on fade distance (aggressive culling)
+        // Only generate lines that will be visible
+        let visible_range = self.fade_end_distance.min(1000.0);
         
         let min_x = camera.position.x - visible_range;
         let max_x = camera.position.x + visible_range;
@@ -610,25 +614,52 @@ impl InfiniteGrid {
         
         let camera_pos_3d = Vec3::new(cam_x, cam_y, cam_z);
         
+        // OPTIMIZATION: Calculate line count and skip if too many
+        let line_count_z = ((max_z - min_z) / grid_spacing).ceil() as usize;
+        let line_count_x = ((max_x - min_x) / grid_spacing).ceil() as usize;
+        let total_lines = line_count_z + line_count_x;
+        
+        // If we would generate too many lines, increase grid spacing
+        let effective_spacing = if total_lines > 400 {
+            grid_spacing * (total_lines as f32 / 400.0).sqrt()
+        } else {
+            grid_spacing
+        };
+        
         // Generate lines parallel to X axis (running along X, constant Z)
-        let start_z = (min_z / grid_spacing).floor() * grid_spacing;
+        let start_z = (min_z / effective_spacing).floor() * effective_spacing;
         let mut z = start_z;
         while z <= max_z {
+            // OPTIMIZATION: Aggressive culling - skip lines that are too far
+            let mid_point = Vec3::new(camera.position.x, 0.0, z);
+            let distance_to_camera = (mid_point - camera_pos_3d).length();
+            
+            // Skip lines beyond fade distance
+            if distance_to_camera > self.fade_end_distance {
+                z += effective_spacing;
+                continue;
+            }
+            
             let start = Vec3::new(min_x, 0.0, z);
             let end = Vec3::new(max_x, 0.0, z);
             
             // Determine line type
             let line_type = if z.abs() < 0.01 {
                 GridLineType::ZAxis
-            } else if (z / grid_spacing).rem_euclid(self.major_line_every as f32).abs() < 0.01 {
+            } else if (z / effective_spacing).rem_euclid(self.major_line_every as f32).abs() < 0.01 {
                 GridLineType::Major
             } else {
                 GridLineType::Minor
             };
             
             // Calculate fade alpha
-            let mid_point = Vec3::new((min_x + max_x) / 2.0, 0.0, z);
             let alpha = self.calculate_fade_alpha(mid_point, camera_pos_3d);
+            
+            // OPTIMIZATION: Skip lines with very low alpha (invisible)
+            if alpha < 0.02 {
+                z += effective_spacing;
+                continue;
+            }
             
             // Get color and width based on line type
             let (mut color, width) = match line_type {
@@ -649,28 +680,43 @@ impl InfiniteGrid {
                 line_type,
             });
             
-            z += grid_spacing;
+            z += effective_spacing;
         }
         
         // Generate lines parallel to Z axis (running along Z, constant X)
-        let start_x = (min_x / grid_spacing).floor() * grid_spacing;
+        let start_x = (min_x / effective_spacing).floor() * effective_spacing;
         let mut x = start_x;
         while x <= max_x {
+            // OPTIMIZATION: Aggressive culling - skip lines that are too far
+            let mid_point = Vec3::new(x, 0.0, camera.position.y);
+            let distance_to_camera = (mid_point - camera_pos_3d).length();
+            
+            // Skip lines beyond fade distance
+            if distance_to_camera > self.fade_end_distance {
+                x += effective_spacing;
+                continue;
+            }
+            
             let start = Vec3::new(x, 0.0, min_z);
             let end = Vec3::new(x, 0.0, max_z);
             
             // Determine line type
             let line_type = if x.abs() < 0.01 {
                 GridLineType::XAxis
-            } else if (x / grid_spacing).rem_euclid(self.major_line_every as f32).abs() < 0.01 {
+            } else if (x / effective_spacing).rem_euclid(self.major_line_every as f32).abs() < 0.01 {
                 GridLineType::Major
             } else {
                 GridLineType::Minor
             };
             
             // Calculate fade alpha
-            let mid_point = Vec3::new(x, 0.0, (min_z + max_z) / 2.0);
             let alpha = self.calculate_fade_alpha(mid_point, camera_pos_3d);
+            
+            // OPTIMIZATION: Skip lines with very low alpha (invisible)
+            if alpha < 0.02 {
+                x += effective_spacing;
+                continue;
+            }
             
             // Get color and width based on line type
             let (mut color, width) = match line_type {
@@ -691,7 +737,7 @@ impl InfiniteGrid {
                 line_type,
             });
             
-            x += grid_spacing;
+            x += effective_spacing;
         }
         
         // Cache the geometry
@@ -715,16 +761,19 @@ impl Default for InfiniteGrid {
 
 impl CameraState {
     /// Check if camera has moved significantly
+    /// OPTIMIZED: Tighter thresholds for better cache hit rate
     pub fn has_changed_significantly(&self, other: &CameraState, threshold: f32) -> bool {
         let pos_delta = (self.position - other.position).length();
         let rotation_delta = (self.rotation - other.rotation).abs();
         let pitch_delta = (self.pitch - other.pitch).abs();
         let zoom_delta = (self.zoom - other.zoom).abs() / self.zoom;
         
-        pos_delta > threshold 
-            || rotation_delta > threshold * 10.0 
-            || pitch_delta > threshold * 10.0 
-            || zoom_delta > threshold * 0.1
+        // OPTIMIZED: Increased thresholds to improve cache hit rate
+        // Grid doesn't need to regenerate for tiny movements
+        pos_delta > threshold * 2.0 
+            || rotation_delta > threshold * 15.0 
+            || pitch_delta > threshold * 15.0 
+            || zoom_delta > threshold * 0.15
     }
 }
 

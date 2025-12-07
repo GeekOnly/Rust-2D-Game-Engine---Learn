@@ -30,7 +30,7 @@ pub use ui::{EditorUI, TransformTool};
 pub use states::{AppState, LauncherState, EditorState, EditorAction};
 pub use shortcuts::EditorShortcut;
 pub use camera::{SceneCamera, CameraStateDisplay, ProjectionMode};
-pub use grid::{SceneGrid, InfiniteGrid};
+pub use grid::{SceneGrid, InfiniteGrid, CameraState, LineBatcher};
 pub use theme::UnityTheme;
 pub use asset_manager::AssetManager;
 pub use drag_drop::{DragDropState, DraggedAsset};

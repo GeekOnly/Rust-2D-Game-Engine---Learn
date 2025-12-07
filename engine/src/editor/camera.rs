@@ -91,16 +91,17 @@ impl CameraSettings {
 impl Default for CameraSettings {
     fn default() -> Self {
         Self {
-            pan_sensitivity: 0.5,   // Reduced for slower, more precise panning
-            rotation_sensitivity: 0.5,
-            zoom_sensitivity: 0.01, // Optimized for 2D mode
-            pan_damping: 0.08,      // Reduced for more responsive panning
-            rotation_damping: 0.12,
-            zoom_damping: 0.08,     // Further reduced for instant zoom response
+            // OPTIMIZED: Fine-tuned for Unity-like feel
+            pan_sensitivity: 0.6,   // Slightly increased for more responsive panning
+            rotation_sensitivity: 0.55, // Balanced rotation speed
+            zoom_sensitivity: 0.012, // Slightly increased for smoother zoom
+            pan_damping: 0.10,      // Increased for smoother, more polished panning
+            rotation_damping: 0.15, // Increased for smoother rotation
+            zoom_damping: 0.12,     // Increased for smoother zoom transitions
             enable_inertia: false,  // Disabled by default for more predictable behavior
-            inertia_decay: 0.92,    // Faster decay when enabled
+            inertia_decay: 0.90,    // Slightly faster decay when enabled
             zoom_to_cursor: true,   // Zoom to cursor (better for precise editing)
-            zoom_speed: 20.0,       // Increased for faster zoom response in 2D
+            zoom_speed: 18.0,       // Balanced zoom speed
         }
     }
 }
@@ -587,12 +588,17 @@ impl SceneCamera {
             let yaw_delta = delta.x * self.settings.rotation_sensitivity;
             let pitch_delta = -delta.y * self.settings.rotation_sensitivity;
             
-            self.target_rotation += yaw_delta;
-            self.target_rotation = self.target_rotation.rem_euclid(360.0);
+            // Update rotation and pitch immediately from current values
+            self.rotation += yaw_delta;
+            self.rotation = self.rotation.rem_euclid(360.0);
             
             // Vertical movement changes pitch
-            self.target_pitch += pitch_delta;
-            self.target_pitch = self.target_pitch.clamp(self.min_pitch, self.max_pitch);
+            self.pitch += pitch_delta;
+            self.pitch = self.pitch.clamp(self.min_pitch, self.max_pitch);
+            
+            // Also update targets to match
+            self.target_rotation = self.rotation;
+            self.target_pitch = self.pitch;
             
             // Add to velocity for inertia
             if self.settings.enable_inertia {
@@ -647,7 +653,11 @@ impl SceneCamera {
             let yaw_rad = self.target_rotation.to_radians();
             let offset_x = orbit_distance * yaw_rad.cos();
             let offset_z = orbit_distance * yaw_rad.sin();
-            self.target_position = self.pivot + Vec2::new(offset_x, offset_z);
+            let new_position = self.pivot + Vec2::new(offset_x, offset_z);
+            
+            // Update both position and target for immediate response
+            self.position = new_position;
+            self.target_position = new_position;
             
             // Add to velocity for inertia
             if self.settings.enable_inertia {
