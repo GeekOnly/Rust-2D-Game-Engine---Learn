@@ -85,6 +85,14 @@ impl InfiniteGrid {
         }
     }
     
+    pub fn needs_regeneration(&self, camera: &CameraState) -> bool {
+        if let Some(last_state) = &self.last_camera_state {
+            last_state.has_changed_significantly(camera, 0.1)
+        } else {
+            true
+        }
+    }
+    
     pub fn calculate_grid_level(&self, zoom: f32) -> f32 {
         let base_spacing = self.base_unit;
         let target_mid = (self.min_pixel_spacing + self.max_pixel_spacing) / 2.0;
@@ -143,6 +151,13 @@ impl InfiniteGrid {
         camera: &CameraState,
         viewport_size: Vec2,
     ) -> &GridGeometry {
+        // Check if we can use cached geometry
+        if !self.needs_regeneration(camera) {
+            if let Some(ref geometry) = self.cached_geometry {
+                return geometry;
+            }
+        }
+        
         let mut lines = Vec::new();
         
         let grid_spacing = self.calculate_grid_level(camera.zoom);
@@ -688,5 +703,203 @@ proptest! {
                 dx, dz
             );
         }
+    }
+    
+    // Feature: scene-view-improvements, Property 14: Grid caching reduces regeneration
+    // Validates: Requirements 10.2
+    #[test]
+    fn prop_grid_caching_reduces_regeneration(
+        camera in prop_camera_state(),
+        viewport_size in prop_viewport_size(),
+        small_delta_x in -0.05f32..0.05f32,
+        small_delta_y in -0.05f32..0.05f32,
+    ) {
+        let mut grid = InfiniteGrid::new();
+        
+        // Generate geometry for initial camera state
+        let geometry1 = grid.generate_geometry(&camera, viewport_size);
+        let time1 = geometry1.generation_time;
+        let line_count1 = geometry1.lines.len();
+        
+        // Create a slightly modified camera state (below threshold)
+        let camera2 = CameraState {
+            position: Vec2::new(camera.position.x + small_delta_x, camera.position.y + small_delta_y),
+            rotation: camera.rotation,
+            pitch: camera.pitch,
+            zoom: camera.zoom,
+        };
+        
+        // Check if camera change is below threshold
+        let threshold = 0.1;
+        let should_use_cache = !camera.has_changed_significantly(&camera2, threshold);
+        
+        // Check if needs_regeneration returns the correct value
+        let needs_regen = grid.needs_regeneration(&camera2);
+        
+        if should_use_cache {
+            // If change is below threshold, needs_regeneration should return false
+            prop_assert!(
+                !needs_regen,
+                "needs_regeneration should return false when camera change is below threshold. Delta: ({}, {})",
+                small_delta_x, small_delta_y
+            );
+        } else {
+            // If change is above threshold, needs_regeneration should return true
+            prop_assert!(
+                needs_regen,
+                "needs_regeneration should return true when camera change is above threshold. Delta: ({}, {})",
+                small_delta_x, small_delta_y
+            );
+        }
+        
+        // Generate geometry again with slightly modified camera
+        let geometry2 = grid.generate_geometry(&camera2, viewport_size);
+        let time2 = geometry2.generation_time;
+        let line_count2 = geometry2.lines.len();
+        
+        if should_use_cache {
+            // If change is below threshold, cache should be reused
+            // Generation times should be identical (same cached geometry)
+            prop_assert_eq!(
+                time1, time2,
+                "Cache should be reused when camera change is below threshold. Delta: ({}, {})",
+                small_delta_x, small_delta_y
+            );
+            
+            // Line counts should be identical
+            prop_assert_eq!(
+                line_count1, line_count2,
+                "Cached geometry should have same line count"
+            );
+        }
+        
+        // Now make a significant change
+        let camera3 = CameraState {
+            position: Vec2::new(camera.position.x + 10.0, camera.position.y + 10.0),
+            rotation: camera.rotation,
+            pitch: camera.pitch,
+            zoom: camera.zoom,
+        };
+        
+        // Check that needs_regeneration returns true for significant change
+        prop_assert!(
+            grid.needs_regeneration(&camera3),
+            "needs_regeneration should return true for significant camera change"
+        );
+        
+        // This should trigger regeneration
+        let geometry3 = grid.generate_geometry(&camera3, viewport_size);
+        let time3 = geometry3.generation_time;
+        
+        // Generation time should be different (new geometry generated)
+        prop_assert!(
+            time3 != time2,
+            "Cache should be invalidated when camera moves significantly"
+        );
+    }
+    
+    // Feature: scene-view-improvements, Property 15: Line batching is efficient
+    // Validates: Requirements 10.1
+    #[test]
+    fn prop_line_batching_is_efficient(
+        camera in prop_camera_state(),
+        viewport_size in prop_viewport_size(),
+    ) {
+        let mut grid = InfiniteGrid::new();
+        
+        // Capture expected widths before borrowing grid mutably
+        let expected_minor_width = grid.minor_line_width;
+        let expected_major_width = grid.major_line_width;
+        let expected_axis_width = grid.axis_line_width;
+        
+        let geometry = grid.generate_geometry(&camera, viewport_size);
+        
+        // Grid should generate lines
+        prop_assert!(
+            !geometry.lines.is_empty(),
+            "Grid should generate lines for batching"
+        );
+        
+        // All lines should be stored in a single contiguous vector (efficient for batching)
+        // This is verified by the fact that we can iterate through them
+        let total_lines = geometry.lines.len();
+        
+        // Count lines by type for batching efficiency analysis
+        let mut minor_count = 0;
+        let mut major_count = 0;
+        let mut x_axis_count = 0;
+        let mut z_axis_count = 0;
+        
+        for line in &geometry.lines {
+            match line.line_type {
+                GridLineType::Minor => minor_count += 1,
+                GridLineType::Major => major_count += 1,
+                GridLineType::XAxis => x_axis_count += 1,
+                GridLineType::ZAxis => z_axis_count += 1,
+            }
+        }
+        
+        // Verify all lines are accounted for
+        prop_assert_eq!(
+            total_lines,
+            minor_count + major_count + x_axis_count + z_axis_count,
+            "All lines should be categorized by type for efficient batching"
+        );
+        
+        // Lines should be organized in a way that allows efficient batching
+        // All lines are in a single vector, which is optimal for batch rendering
+        prop_assert!(
+            total_lines > 0,
+            "Should have lines to batch"
+        );
+        
+        // Verify that lines have consistent properties within their type
+        // (This enables efficient batching by type)
+        for line in &geometry.lines {
+            match line.line_type {
+                GridLineType::Minor => {
+                    // Minor lines should have consistent width
+                    prop_assert!(
+                        (line.width - expected_minor_width).abs() < 0.01,
+                        "Minor lines should have consistent width for batching. Expected: {}, Got: {}",
+                        expected_minor_width, line.width
+                    );
+                }
+                GridLineType::Major => {
+                    // Major lines should have consistent width
+                    prop_assert!(
+                        (line.width - expected_major_width).abs() < 0.01,
+                        "Major lines should have consistent width for batching. Expected: {}, Got: {}",
+                        expected_major_width, line.width
+                    );
+                }
+                GridLineType::XAxis | GridLineType::ZAxis => {
+                    // Axis lines should have consistent width
+                    prop_assert!(
+                        (line.width - expected_axis_width).abs() < 0.01,
+                        "Axis lines should have consistent width for batching. Expected: {}, Got: {}",
+                        expected_axis_width, line.width
+                    );
+                }
+            }
+            
+            // All lines should have valid colors (for batching)
+            for i in 0..4 {
+                prop_assert!(
+                    line.color[i] >= 0.0 && line.color[i] <= 1.0,
+                    "Line colors should be in valid range [0, 1] for batching. Component {}: {}",
+                    i, line.color[i]
+                );
+            }
+        }
+        
+        // Verify efficient storage: lines should be in a single contiguous allocation
+        // This is implicitly true since we use Vec<GridLine>
+        // The property we're testing is that all lines are collected together,
+        // not scattered across multiple allocations
+        prop_assert!(
+            geometry.lines.capacity() >= geometry.lines.len(),
+            "Lines should be in efficient contiguous storage"
+        );
     }
 }

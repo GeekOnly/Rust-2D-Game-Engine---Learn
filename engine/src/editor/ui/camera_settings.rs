@@ -5,9 +5,93 @@
 //! - Pan sensitivity
 //! - Rotation sensitivity
 //! - Zoom mode (to cursor / to center)
+//! - Camera state display (distance, angles, grid size, FPS)
 
 use egui;
 use crate::editor::SceneCamera;
+use crate::editor::grid::InfiniteGrid;
+
+/// Camera state display configuration
+#[derive(Debug, Clone)]
+pub struct CameraStateDisplay {
+    pub show_distance: bool,
+    pub show_angles: bool,
+    pub show_grid_size: bool,
+    pub show_fps: bool,
+}
+
+impl Default for CameraStateDisplay {
+    fn default() -> Self {
+        Self {
+            show_distance: true,
+            show_angles: true,
+            show_grid_size: true,
+            show_fps: true,
+        }
+    }
+}
+
+impl CameraStateDisplay {
+    pub fn new() -> Self {
+        Self::default()
+    }
+    
+    /// Render camera state display overlay
+    pub fn render(
+        &self,
+        ui: &mut egui::Ui,
+        camera: &SceneCamera,
+        grid: Option<&InfiniteGrid>,
+        fps: f32,
+    ) {
+        ui.vertical(|ui| {
+            ui.style_mut().override_text_style = Some(egui::TextStyle::Monospace);
+            
+            if self.show_distance {
+                let distance = Self::calculate_distance_from_origin(camera);
+                ui.label(format!("Distance: {:.2}", distance));
+            }
+            
+            if self.show_angles {
+                ui.label(format!("Yaw: {:.1}°", camera.rotation));
+                ui.label(format!("Pitch: {:.1}°", camera.pitch));
+            }
+            
+            if self.show_grid_size {
+                if let Some(grid) = grid {
+                    let grid_size = grid.calculate_grid_level(camera.zoom);
+                    ui.label(format!("Grid: {:.2}", grid_size));
+                }
+            }
+            
+            if self.show_fps {
+                ui.label(format!("FPS: {:.0}", fps));
+            }
+        });
+    }
+    
+    /// Calculate camera distance from origin
+    pub fn calculate_distance_from_origin(camera: &SceneCamera) -> f32 {
+        camera.position.length()
+    }
+    
+    /// Format angle for display (normalized to 0-360 range)
+    pub fn format_angle(angle: f32) -> String {
+        let normalized = angle.rem_euclid(360.0);
+        format!("{:.1}°", normalized)
+    }
+    
+    /// Format grid size for display
+    pub fn format_grid_size(size: f32) -> String {
+        if size >= 1.0 {
+            format!("{:.1}", size)
+        } else if size >= 0.01 {
+            format!("{:.2}", size)
+        } else {
+            format!("{:.3}", size)
+        }
+    }
+}
 
 /// Render camera settings panel
 pub fn render_camera_settings(

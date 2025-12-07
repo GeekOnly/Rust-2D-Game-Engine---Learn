@@ -824,3 +824,84 @@ impl Default for SceneCamera {
         Self::new()
     }
 }
+
+// ============================================================================
+// CAMERA STATE DISPLAY
+// ============================================================================
+
+/// Camera state display for visual feedback
+#[derive(Debug, Clone)]
+pub struct CameraStateDisplay {
+    pub show_distance: bool,
+    pub show_angles: bool,
+    pub show_grid_size: bool,
+    pub show_fps: bool,
+}
+
+impl CameraStateDisplay {
+    pub fn new() -> Self {
+        Self {
+            show_distance: true,
+            show_angles: true,
+            show_grid_size: true,
+            show_fps: true,
+        }
+    }
+    
+    /// Calculate camera distance from origin
+    pub fn calculate_distance(&self, camera: &SceneCamera) -> f32 {
+        camera.position.length()
+    }
+    
+    /// Format camera rotation angles for display
+    pub fn format_angles(&self, camera: &SceneCamera) -> String {
+        format!("Yaw: {:.1}° Pitch: {:.1}°", camera.rotation, camera.pitch)
+    }
+    
+    /// Format grid size for display
+    pub fn format_grid_size(&self, grid_size: f32) -> String {
+        if grid_size >= 1.0 {
+            format!("Grid: {:.1}m", grid_size)
+        } else if grid_size >= 0.01 {
+            format!("Grid: {:.2}m", grid_size)
+        } else {
+            format!("Grid: {:.3}m", grid_size)
+        }
+    }
+    
+    /// Render camera state display
+    pub fn render(
+        &self,
+        ui: &mut egui::Ui,
+        camera: &SceneCamera,
+        grid_size: f32,
+        fps: f32,
+    ) {
+        ui.vertical(|ui| {
+            ui.style_mut().spacing.item_spacing = egui::vec2(4.0, 2.0);
+            
+            if self.show_distance {
+                let distance = self.calculate_distance(camera);
+                ui.label(format!("Distance: {:.1}m", distance));
+            }
+            
+            if self.show_angles {
+                ui.label(self.format_angles(camera));
+            }
+            
+            if self.show_grid_size {
+                ui.label(self.format_grid_size(grid_size));
+            }
+            
+            if self.show_fps {
+                ui.label(format!("FPS: {:.0}", fps));
+            }
+        });
+    }
+}
+
+impl Default for CameraStateDisplay {
+    fn default() -> Self {
+        Self::new()
+    }
+}
