@@ -62,9 +62,9 @@ pub struct TabContext<'a> {
     pub layer_ordering_panel: &'a mut super::layer_ordering_panel::LayerOrderingPanel,
     pub performance_panel: &'a mut super::performance_panel::PerformancePanel,
     pub collider_settings_panel: &'a mut super::collider_settings_panel::ColliderSettingsPanel,
-    pub hud_manager: &'a mut crate::hud::HudManager,
     pub game_view_settings: &'a mut crate::runtime::GameViewSettings,
     pub prefab_editor: &'a mut crate::editor::PrefabEditor,
+    pub ui_manager: &'a mut crate::ui_manager::UIManager,
     pub dt: f32,
 }
 
@@ -264,7 +264,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                     ui,
                     self.context.world,
                     self.context.texture_manager,
-                    Some(self.context.hud_manager),
+                    Some(self.context.ui_manager),
                     Some(self.context.game_view_settings),
                 );
             }

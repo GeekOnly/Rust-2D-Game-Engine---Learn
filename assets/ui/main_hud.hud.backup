@@ -1,0 +1,82 @@
+{
+  "name": "Main HUD",
+  "elements": [
+    {
+      "id": "player_health",
+      "element_type": {
+        "type": "HealthBar",
+        "binding": "player.health",
+        "color": [1.0, 0.2, 0.2, 1.0],
+        "background_color": [0.2, 0.2, 0.2, 0.8]
+      },
+      "anchor": "TopLeft",
+      "offset": [20.0, 20.0],
+      "size": [200.0, 30.0],
+      "visible": true
+    },
+    {
+      "id": "player_mana",
+      "element_type": {
+        "type": "ProgressBar",
+        "binding": "player.mana",
+        "color": [0.2, 0.5, 1.0, 1.0],
+        "background_color": [0.2, 0.2, 0.2, 0.8]
+      },
+      "anchor": "TopLeft",
+      "offset": [20.0, 60.0],
+      "size": [200.0, 20.0],
+      "visible": true
+    },
+    {
+      "id": "score",
+      "element_type": {
+        "type": "DynamicText",
+        "format": "Score: {score}",
+        "font_size": 24.0,
+        "color": [1.0, 1.0, 1.0, 1.0]
+      },
+      "anchor": "TopCenter",
+      "offset": [-50.0, 20.0],
+      "size": [100.0, 40.0],
+      "visible": true
+    },
+    {
+      "id": "fps",
+      "element_type": {
+        "type": "DynamicText",
+        "format": "FPS: {fps}",
+        "font_size": 16.0,
+        "color": [0.8, 0.8, 0.8, 1.0]
+      },
+      "anchor": "TopRight",
+      "offset": [-100.0, 10.0],
+      "size": [90.0, 30.0],
+      "visible": true
+    },
+    {
+      "id": "minimap",
+      "element_type": {
+        "type": "Minimap",
+        "zoom": 2.0,
+        "background_color": [0.1, 0.1, 0.1, 0.9]
+      },
+      "anchor": "BottomRight",
+      "offset": [-170.0, -170.0],
+      "size": [150.0, 150.0],
+      "visible": true
+    },
+    {
+      "id": "interaction_hint",
+      "element_type": {
+        "type": "Text",
+        "text": "Press E to interact",
+        "font_size": 18.0,
+        "color": [1.0, 1.0, 1.0, 0.9]
+      },
+      "anchor": "BottomCenter",
+      "offset": [-80.0, -100.0],
+      "size": [160.0, 30.0],
+      "visible": false
+    }
+  ]
+}

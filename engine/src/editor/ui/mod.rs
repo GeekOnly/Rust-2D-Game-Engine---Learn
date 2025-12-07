@@ -308,9 +308,9 @@ impl EditorUI {
         layer_ordering_panel: &mut layer_ordering_panel::LayerOrderingPanel,
         performance_panel: &mut performance_panel::PerformancePanel,
         collider_settings_panel: &mut collider_settings_panel::ColliderSettingsPanel,
-        hud_manager: &mut crate::hud::HudManager,
         game_view_settings: &mut crate::runtime::GameViewSettings,
         prefab_editor: &mut crate::editor::PrefabEditor,
+        ui_manager: &mut crate::ui_manager::UIManager,
         dt: f32,
     ) {
         // Handle layout change request (will be processed by caller)
@@ -383,9 +383,9 @@ impl EditorUI {
                 layer_ordering_panel,
                 performance_panel,
                 collider_settings_panel,
-                hud_manager,
                 game_view_settings,
                 prefab_editor,
+                ui_manager,
                 dt,
             };
 

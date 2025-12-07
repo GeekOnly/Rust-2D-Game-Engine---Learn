@@ -12,7 +12,7 @@ pub fn render_game_view(
     ui: &mut egui::Ui,
     world: &World,
     texture_manager: &mut TextureManager,
-    hud_manager: Option<&mut crate::hud::HudManager>,
+    ui_manager: Option<&mut crate::ui_manager::UIManager>,
     game_view_settings: Option<&crate::runtime::GameViewSettings>,
 ) {
     let available_rect = ui.available_rect_before_wrap();
@@ -59,26 +59,9 @@ pub fn render_game_view(
         // Render all entities
         render_entities(ui, world, camera, transform, rect, texture_manager);
         
-        // Render HUD on top (clipped to game view rect)
-        if let Some(hud_mgr) = hud_manager {
-            let screen_width = rect.width();
-            let screen_height = rect.height();
-            
-            // Debug: Check if HUD is loaded
-            if hud_mgr.get_hud().is_some() {
-                log::debug!("Rendering HUD: {}x{}", screen_width, screen_height);
-            } else {
-                log::warn!("HUD Manager has no HUD loaded!");
-            }
-            
-            hud_mgr.update(world);
-            
-            // Render HUD with clipping to game view rect
-            ui.allocate_ui_at_rect(rect, |ui| {
-                hud_mgr.render_egui_clipped(ui, world, screen_width, screen_height, rect);
-            });
-        } else {
-            log::warn!("No HUD Manager provided to render_game_view!");
+        // Render UI system on top
+        if let Some(ui_mgr) = ui_manager {
+            ui_mgr.render(ui, world, rect);
         }
         
         // Render game view overlays (resolution info, safe area)

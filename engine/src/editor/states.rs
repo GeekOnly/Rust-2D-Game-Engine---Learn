@@ -115,9 +115,9 @@ pub struct EditorState {
     pub layer_ordering_panel: super::ui::layer_ordering_panel::LayerOrderingPanel,  // Layer ordering panel for reordering tilemap layers
     pub performance_panel: super::ui::performance_panel::PerformancePanel,  // Performance monitoring panel for tilemap management
     pub collider_settings_panel: super::ui::collider_settings_panel::ColliderSettingsPanel,  // Collider configuration panel for tilemap colliders
-    pub hud_manager: crate::hud::HudManager,  // HUD system for game view
     pub game_view_settings: crate::runtime::GameViewSettings,  // Game view resolution and display settings
     pub prefab_editor: super::widget_editor::PrefabEditor,  // Visual UI prefab editor (Unity-style)
+    pub ui_manager: crate::ui_manager::UIManager,  // New UI system manager
 }
 
 #[allow(dead_code)]
@@ -197,9 +197,9 @@ impl EditorState {
             layer_ordering_panel: super::ui::layer_ordering_panel::LayerOrderingPanel::new(),
             performance_panel: super::ui::performance_panel::PerformancePanel::new(),
             collider_settings_panel: super::ui::collider_settings_panel::ColliderSettingsPanel::new(),
-            hud_manager: crate::hud::HudManager::new(),
             game_view_settings: crate::runtime::GameViewSettings::default(),
             prefab_editor: super::widget_editor::PrefabEditor::new(),
+            ui_manager: crate::ui_manager::UIManager::new(),
         }
     }
 
@@ -217,69 +217,6 @@ impl EditorState {
             }
         }
     }
-    
-    /// Setup HUD data bindings
-    pub fn setup_hud_bindings(&mut self) {
-        use ecs::EntityTag;
-        
-        // Player health (example - always 100% for now)
-        self.hud_manager.bind("player.health", |_world| 1.0);
-        
-        // Player stamina (example)
-        self.hud_manager.bind("player.stamina", |_world| 1.0);
-        
-        // Dash count (example)
-        self.hud_manager.bind("dash_count", |_world| 1.0);
-        
-        // Player position X
-        self.hud_manager.bind("pos_x", |world| {
-            world.tags.iter()
-                .find(|(_, tag)| **tag == EntityTag::Player)
-                .and_then(|(entity, _)| world.transforms.get(entity))
-                .map(|t| (t.position[0] * 10.0).round() / 10.0)
-                .unwrap_or(0.0)
-        });
-        
-        // Player position Y
-        self.hud_manager.bind("pos_y", |world| {
-            world.tags.iter()
-                .find(|(_, tag)| **tag == EntityTag::Player)
-                .and_then(|(entity, _)| world.transforms.get(entity))
-                .map(|t| (t.position[1] * 10.0).round() / 10.0)
-                .unwrap_or(0.0)
-        });
-        
-        // Player velocity X
-        self.hud_manager.bind("vel_x", |world| {
-            world.tags.iter()
-                .find(|(_, tag)| **tag == EntityTag::Player)
-                .and_then(|(entity, _)| world.velocities.get(entity))
-                .map(|v| (v.0 * 10.0).round() / 10.0)
-                .unwrap_or(0.0)
-        });
-        
-        // Player velocity Y
-        self.hud_manager.bind("vel_y", |world| {
-            world.tags.iter()
-                .find(|(_, tag)| **tag == EntityTag::Player)
-                .and_then(|(entity, _)| world.velocities.get(entity))
-                .map(|v| (v.1 * 10.0).round() / 10.0)
-                .unwrap_or(0.0)
-        });
-        
-        // FPS (will be updated from actual delta time)
-        self.hud_manager.bind("fps", |_world| 60.0);
-        
-        self.console.info("✅ HUD bindings configured");
-        
-        // Debug: Check if HUD is loaded
-        if self.hud_manager.get_hud().is_some() {
-            self.console.info("✅ HUD asset is loaded");
-        } else {
-            self.console.warning("⚠️ No HUD asset loaded yet");
-        }
-    }
-
     /// Save current layout as default
     pub fn save_default_layout(&self) {
         if let Some(ref project_path) = self.current_project_path {
