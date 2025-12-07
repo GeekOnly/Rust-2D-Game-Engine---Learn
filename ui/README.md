@@ -2,6 +2,9 @@
 
 A comprehensive in-game UI system for the XS 2D Game Engine, providing capabilities comparable to Unity's Canvas UI and Unreal Engine's UMG.
 
+> **🔄 Migrating from Legacy HUD System?**  
+> See the [Migration Guide](MIGRATION_GUIDE.md) for step-by-step instructions on converting your `.hud` files to the new `.uiprefab` format and updating your Lua scripts.
+
 ## Features
 
 - **Canvas-based Rendering**: Multiple render modes (Screen Space Overlay, Screen Space Camera, World Space)
@@ -454,7 +457,19 @@ cargo test --manifest-path ui/Cargo.toml
 
 ## Documentation
 
-Additional documentation:
+### Getting Started
+
+- [MIGRATION_GUIDE.md](MIGRATION_GUIDE.md) - **Complete migration guide from legacy HUD system**
+- [API_CHANGES.md](API_CHANGES.md) - **API changes and breaking changes reference**
+- [EXAMPLES_GUIDE.md](EXAMPLES_GUIDE.md) - Guide to all examples
+
+### Migration Resources
+
+- [MIGRATION_TOOL_GUIDE.md](MIGRATION_TOOL_GUIDE.md) - Using the HUD migration tool
+- [HUD_CONVERTER_GUIDE.md](HUD_CONVERTER_GUIDE.md) - HUD to UIPrefab converter details
+- [VIDEO_TUTORIAL_SCRIPTS.md](VIDEO_TUTORIAL_SCRIPTS.md) - Video tutorial scripts
+
+### System Documentation
 
 - [LUA_API.md](LUA_API.md) - Complete Lua API reference
 - [LAYOUT_SYSTEM.md](LAYOUT_SYSTEM.md) - Layout system details
