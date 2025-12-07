@@ -24,14 +24,14 @@ This upgrade will transform the scene view into a professional tool that develop
 │  └──────────────┘  └──────────────┘  └──────────────┘  │
 └─────────────────────────────────────────────────────────┘
                           │
-        ┌─────────────────┼─────────────────┐
-        │                 │                 │
-┌───────▼────────┐ ┌──────▼──────┐ ┌───────▼────────┐
-│ Camera System  │ │   Renderer  │ │  Grid System   │
-│  - Damping     │ │  - Batching │ │  - Infinite    │
-│  - Inertia     │ │  - Caching  │ │  - Adaptive    │
-│  - Sensitivity │ │  - Culling  │ │  - Smooth Fade │
-└────────────────┘ └─────────────┘ └────────────────┘
+        ┌─────────────────┼─────────────────┬─────────────┐
+        │                 │                 │             │
+┌───────▼────────┐ ┌──────▼──────┐ ┌───────▼────────┐ ┌──▼──────────┐
+│ Camera System  │ │  3D Renderer│ │  Grid System   │ │ Entity      │
+│  - Damping     │ │  - Sprites  │ │  - Infinite    │ │ Renderer    │
+│  - Inertia     │ │  - Tilemaps │ │  - Adaptive    │ │ - Depth Sort│
+│  - Sensitivity │ │  - Depth    │ │  - Smooth Fade │ │ - Billboard │
+└────────────────┘ └─────────────┘ └────────────────┘ └─────────────┘
 ```
 
 ### Component Responsibilities
@@ -48,10 +48,18 @@ This upgrade will transform the scene view into a professional tool that develop
    - Proper perspective projection
    - Efficient rendering with batching
 
-3. **Visual Feedback**
+3. **3D Entity Renderer**
+   - Render sprites in 3D space with proper depth
+   - Render tilemaps with multiple layers
+   - Depth sorting for correct rendering order
+   - Billboard mode for sprites
+   - Selection highlighting in 3D
+
+4. **Visual Feedback**
    - Real-time camera state display
    - Grid unit size indicator
    - Smooth transitions and animations
+   - Bounds visualization for sprites and tilemaps
 
 ## Components and Interfaces
 
@@ -239,6 +247,209 @@ impl CameraStateDisplay {
 }
 ```
 
+### 3D Sprite Renderer
+
+```rust
+pub struct Sprite3DRenderer {
+    // Billboard settings
+    pub enable_billboard: bool,
+    
+    // Depth sorting
+    depth_sorted_sprites: Vec<(Entity, f32)>,  // (entity, depth)
+    
+    // Selection
+    selected_entities: HashSet<Entity>,
+    hovered_entity: Option<Entity>,
+}
+
+pub struct SpriteRenderData {
+    pub entity: Entity,
+    pub position: Vec3,
+    pub rotation: f32,
+    pub scale: Vec2,
+    pub texture: TextureHandle,
+    pub sprite_rect: Rect,
+    pub color: Color32,
+    pub billboard: bool,
+}
+
+impl Sprite3DRenderer {
+    pub fn new() -> Self;
+    
+    /// Collect all sprites from the scene
+    pub fn collect_sprites(&mut self, world: &World) -> Vec<SpriteRenderData>;
+    
+    /// Sort sprites by depth (Z position)
+    pub fn depth_sort(&mut self, sprites: &mut Vec<SpriteRenderData>, camera: &SceneCamera);
+    
+    /// Calculate billboard rotation for a sprite
+    fn calculate_billboard_rotation(&self, sprite_pos: Vec3, camera: &SceneCamera) -> f32;
+    
+    /// Project sprite to screen space
+    fn project_sprite_to_screen(
+        &self,
+        sprite: &SpriteRenderData,
+        camera: &SceneCamera,
+        viewport_center: Vec2,
+    ) -> Option<ScreenSprite>;
+    
+    /// Render all sprites in 3D mode
+    pub fn render(
+        &self,
+        painter: &egui::Painter,
+        sprites: &[SpriteRenderData],
+        camera: &SceneCamera,
+        viewport_rect: egui::Rect,
+    );
+    
+    /// Render sprite bounds for selected/hovered sprites
+    pub fn render_bounds(
+        &self,
+        painter: &egui::Painter,
+        sprite: &SpriteRenderData,
+        camera: &SceneCamera,
+        color: Color32,
+    );
+}
+
+pub struct ScreenSprite {
+    pub screen_pos: Vec2,
+    pub screen_size: Vec2,
+    pub rotation: f32,
+    pub texture: TextureHandle,
+    pub sprite_rect: Rect,
+    pub color: Color32,
+    pub depth: f32,
+}
+```
+
+### 3D Tilemap Renderer
+
+```rust
+pub struct Tilemap3DRenderer {
+    // Layer management
+    layers: Vec<TilemapLayer>,
+    
+    // Selection
+    selected_tilemaps: HashSet<Entity>,
+    hovered_tilemap: Option<Entity>,
+}
+
+pub struct TilemapLayer {
+    pub entity: Entity,
+    pub z_depth: f32,
+    pub tiles: Vec<TileRenderData>,
+    pub bounds: Rect,
+}
+
+pub struct TileRenderData {
+    pub world_pos: Vec3,
+    pub texture: TextureHandle,
+    pub tile_rect: Rect,
+    pub color: Color32,
+}
+
+impl Tilemap3DRenderer {
+    pub fn new() -> Self;
+    
+    /// Collect all tilemaps from the scene
+    pub fn collect_tilemaps(&mut self, world: &World) -> Vec<TilemapLayer>;
+    
+    /// Sort tilemap layers by Z depth
+    pub fn depth_sort_layers(&mut self, layers: &mut Vec<TilemapLayer>);
+    
+    /// Project tilemap to screen space
+    fn project_tilemap_to_screen(
+        &self,
+        layer: &TilemapLayer,
+        camera: &SceneCamera,
+        viewport_center: Vec2,
+    ) -> Vec<ScreenTile>;
+    
+    /// Render all tilemaps in 3D mode
+    pub fn render(
+        &self,
+        painter: &egui::Painter,
+        layers: &[TilemapLayer],
+        camera: &SceneCamera,
+        viewport_rect: egui::Rect,
+    );
+    
+    /// Render tilemap bounds for selected/hovered tilemaps
+    pub fn render_bounds(
+        &self,
+        painter: &egui::Painter,
+        layer: &TilemapLayer,
+        camera: &SceneCamera,
+        color: Color32,
+    );
+}
+
+pub struct ScreenTile {
+    pub screen_pos: Vec2,
+    pub screen_size: Vec2,
+    pub texture: TextureHandle,
+    pub tile_rect: Rect,
+    pub color: Color32,
+    pub depth: f32,
+}
+```
+
+### Depth Testing System
+
+```rust
+pub struct DepthBuffer {
+    // Simple depth buffer for CPU-side depth testing
+    buffer: Vec<f32>,
+    width: usize,
+    height: usize,
+}
+
+impl DepthBuffer {
+    pub fn new(width: usize, height: usize) -> Self;
+    
+    /// Clear depth buffer
+    pub fn clear(&mut self);
+    
+    /// Test if a pixel should be drawn based on depth
+    pub fn test(&self, x: usize, y: usize, depth: f32) -> bool;
+    
+    /// Write depth value
+    pub fn write(&mut self, x: usize, y: usize, depth: f32);
+    
+    /// Resize buffer
+    pub fn resize(&mut self, width: usize, height: usize);
+}
+
+pub struct RenderQueue {
+    // Queue of all renderable objects sorted by depth
+    objects: Vec<RenderObject>,
+}
+
+pub enum RenderObject {
+    Grid,
+    Sprite(SpriteRenderData),
+    Tilemap(TilemapLayer),
+    Gizmo(GizmoData),
+}
+
+impl RenderQueue {
+    pub fn new() -> Self;
+    
+    /// Add object to render queue
+    pub fn push(&mut self, object: RenderObject);
+    
+    /// Sort all objects by depth (back to front for transparency)
+    pub fn sort_by_depth(&mut self, camera: &SceneCamera);
+    
+    /// Clear queue
+    pub fn clear(&mut self);
+    
+    /// Get sorted objects for rendering
+    pub fn get_sorted(&self) -> &[RenderObject];
+}
+```
+
 ## Data Models
 
 ### Grid Level System
@@ -279,6 +490,59 @@ pub struct CameraState {
 impl CameraState {
     /// Check if camera has moved significantly
     pub fn has_changed_significantly(&self, other: &CameraState, threshold: f32) -> bool;
+}
+```
+
+### 3D Rendering Data Models
+
+```rust
+/// Represents a 3D transform for rendering
+#[derive(Clone, Copy, Debug)]
+pub struct Transform3D {
+    pub position: Vec3,
+    pub rotation: f32,  // Rotation around Y axis (yaw)
+    pub scale: Vec2,
+}
+
+impl Transform3D {
+    /// Convert to 4x4 transformation matrix
+    pub fn to_matrix(&self) -> Mat4;
+    
+    /// Calculate depth from camera
+    pub fn depth_from_camera(&self, camera: &SceneCamera) -> f32;
+}
+
+/// Projection matrix for 3D rendering
+pub struct ProjectionMatrix {
+    pub fov: f32,
+    pub aspect: f32,
+    pub near: f32,
+    pub far: f32,
+}
+
+impl ProjectionMatrix {
+    /// Create perspective projection matrix
+    pub fn perspective(fov: f32, aspect: f32, near: f32, far: f32) -> Self;
+    
+    /// Project 3D point to screen space
+    pub fn project(&self, point: Vec3, view_matrix: &Mat4) -> Option<Vec2>;
+    
+    /// Unproject screen point to 3D ray
+    pub fn unproject(&self, screen_pos: Vec2, view_matrix: &Mat4) -> Ray3D;
+}
+
+/// 3D ray for picking
+pub struct Ray3D {
+    pub origin: Vec3,
+    pub direction: Vec3,
+}
+
+impl Ray3D {
+    /// Test intersection with sprite bounds
+    pub fn intersect_sprite(&self, sprite: &SpriteRenderData) -> Option<f32>;
+    
+    /// Test intersection with tilemap bounds
+    pub fn intersect_tilemap(&self, tilemap: &TilemapLayer) -> Option<f32>;
 }
 ```
 
@@ -352,6 +616,56 @@ Property 15: Line batching is efficient
 *For any* grid with N lines, all lines should be submitted in a single batched draw call or a small constant number of draw calls
 **Validates: Requirements 10.1**
 
+### Sprite Rendering Properties
+
+Property 16: Sprites render at correct 3D positions
+*For any* sprite with world position P, after projection to screen space, the screen position should match the expected projection of P through the camera's view and projection matrices (within 1 pixel tolerance)
+**Validates: Requirements 11.1, 11.2**
+
+Property 17: Sprite depth sorting is correct
+*For any* set of sprites with different Z positions, when sorted by depth, sprites with smaller Z values (closer to camera) should appear later in the render queue than sprites with larger Z values (farther from camera)
+**Validates: Requirements 11.3**
+
+Property 18: Sprites maintain position under camera rotation
+*For any* sprite at world position P and camera rotation R, the sprite's screen position should update correctly such that projecting P with the new camera rotation produces the new screen position
+**Validates: Requirements 11.4**
+
+Property 19: Billboard sprites face camera
+*For any* sprite with billboard mode enabled at position P, the sprite's rotation should be calculated such that its forward vector points toward the camera position (within 0.1 radian tolerance)
+**Validates: Requirements 12.1, 12.2**
+
+Property 20: Non-billboard sprites use world rotation
+*For any* sprite with billboard mode disabled and world rotation R, the sprite should be rendered with rotation R regardless of camera position or orientation
+**Validates: Requirements 12.3**
+
+### Tilemap Rendering Properties
+
+Property 21: Tilemap layers render at correct Z depths
+*For any* tilemap layer with Z depth D, all tiles in that layer should be rendered at depth D in 3D space
+**Validates: Requirements 13.1, 13.2**
+
+Property 22: Tilemap layer depth sorting is correct
+*For any* set of tilemap layers with different Z depths, when sorted, layers with smaller Z values should appear later in the render queue than layers with larger Z values
+**Validates: Requirements 13.2, 13.4**
+
+Property 23: Tilemap perspective updates with camera
+*For any* tilemap and camera rotation change, the projected screen positions of all tiles should update to reflect the new perspective projection
+**Validates: Requirements 13.3**
+
+### Depth Testing Properties
+
+Property 24: Closer objects occlude farther objects
+*For any* two renderable objects A and B where A has smaller Z depth than B (A is closer), when their screen projections overlap, A should be rendered in front of B
+**Validates: Requirements 14.2, 14.3, 14.4**
+
+Property 25: Depth sorting is consistent across object types
+*For any* mix of sprites, tilemaps, and grid elements, all objects should be sorted by their Z depth values using the same comparison function, ensuring consistent depth ordering
+**Validates: Requirements 14.1, 14.4**
+
+Property 26: Bounds respect depth testing
+*For any* sprite or tilemap bounds being rendered, if another object is closer to the camera and overlaps the bounds in screen space, the bounds should be occluded by the closer object
+**Validates: Requirements 15.4**
+
 ## Error Handling
 
 ### Camera Control Errors
@@ -388,6 +702,38 @@ Property 15: Line batching is efficient
    - Implement aggressive culling for distant lines
    - Fall back to simpler rendering if FPS drops below threshold
 
+### Sprite and Tilemap Rendering Errors
+
+1. **Invalid Sprite Data**
+   - Handle missing textures gracefully (render placeholder)
+   - Validate sprite rectangles are within texture bounds
+   - Clamp sprite scales to reasonable range [0.001, 1000.0]
+   - Handle zero or negative sprite dimensions
+
+2. **Projection Errors**
+   - Skip sprites/tiles that project behind camera (negative Z)
+   - Clamp projected positions to prevent overflow
+   - Handle sprites at extreme distances gracefully
+   - Validate projection matrix is not singular
+
+3. **Depth Sorting Errors**
+   - Handle NaN/Inf depth values (treat as far plane)
+   - Ensure stable sort for objects at same depth
+   - Limit maximum number of renderable objects per frame
+   - Handle empty sprite/tilemap lists
+
+4. **Billboard Calculation Errors**
+   - Handle camera at same position as sprite (no rotation)
+   - Validate rotation angles are finite
+   - Clamp rotation to [-π, π] range
+   - Handle degenerate camera orientations
+
+5. **Bounds Rendering Errors**
+   - Handle zero-size bounds (render point)
+   - Validate bounds coordinates are finite
+   - Skip bounds rendering if object is off-screen
+   - Handle overlapping bounds efficiently
+
 ## Testing Strategy
 
 ### Unit Testing
@@ -410,6 +756,24 @@ Unit tests will cover:
    - Save/load camera settings
    - Default value restoration
    - Invalid value handling
+
+4. **3D Projection**
+   - World-to-screen projection
+   - Screen-to-world unprojection
+   - Perspective matrix calculations
+   - View matrix calculations
+
+5. **Sprite Rendering**
+   - Billboard rotation calculations
+   - Sprite bounds calculations
+   - Depth value calculations
+   - Screen sprite generation
+
+6. **Tilemap Rendering**
+   - Layer depth sorting
+   - Tile projection
+   - Bounds calculations
+   - Multi-layer rendering
 
 ### Property-Based Testing
 
@@ -478,8 +842,16 @@ Integration tests will verify:
    - Level transitions during zoom
    - Cache invalidation and regeneration
 
-3. **Performance Benchmarks**
+3. **3D Rendering Pipeline**
+   - Sprite collection → Depth sort → Projection → Rendering
+   - Tilemap collection → Layer sort → Projection → Rendering
+   - Mixed sprite/tilemap/grid rendering
+   - Selection and bounds rendering
+
+4. **Performance Benchmarks**
    - Grid rendering time for various camera positions
+   - Sprite rendering time with varying sprite counts
+   - Tilemap rendering time with multiple layers
    - Cache hit rate
    - Frame time consistency
 
@@ -499,10 +871,24 @@ Manual visual testing will verify:
    - Natural deceleration
    - Zoom feels precise
 
-3. **Overall Polish**
+3. **Sprite Rendering**
+   - Sprites appear at correct positions in 3D space
+   - Billboard sprites always face camera
+   - Depth sorting looks correct
+   - Selection highlighting is visible
+   - Bounds rendering is accurate
+
+4. **Tilemap Rendering**
+   - Tilemaps render with correct perspective
+   - Multiple layers render in correct order
+   - Tilemap bounds are accurate
+   - No visual artifacts or gaps
+
+5. **Overall Polish**
    - No stuttering or lag
    - Consistent frame rate
    - Clean visual presentation
+   - Smooth transitions between 2D and 3D modes
 
 ## Implementation Notes
 

@@ -308,7 +308,170 @@
 -
 
 - [x] 13. Final checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 14. Implement 3D projection system
 
 
 
+
+
+  - Create Transform3D struct for 3D transforms
+  - Create ProjectionMatrix struct for perspective projection
+  - Implement world-to-screen projection method
+  - Implement screen-to-world unprojection method (ray casting)
+  - Add Ray3D struct for 3D picking
+  - Implement view matrix calculation from camera
+  - _Requirements: 11.1, 11.2, 13.1, 13.3_
+
+- [ ]* 14.1 Write unit tests for 3D projection
+  - Test perspective projection calculations
+  - Test view matrix generation
+  - Test world-to-screen projection
+  - Test screen-to-world unprojection
+  - _Requirements: 11.1, 11.2_
+
+- [ ] 15. Implement sprite 3D renderer
+  - Create Sprite3DRenderer struct
+  - Create SpriteRenderData struct to hold sprite info
+  - Implement collect_sprites() to gather sprites from world
+  - Implement depth_sort() to sort sprites by Z position
+  - Implement project_sprite_to_screen() for 3D projection
+  - Implement render() to draw sprites in 3D mode
+  - _Requirements: 11.1, 11.2, 11.3, 11.4_
+
+- [ ] 15.1 Write property test for sprite position projection
+  - **Property 16: Sprites render at correct 3D positions**
+  - **Validates: Requirements 11.1, 11.2**
+
+- [ ] 15.2 Write property test for sprite depth sorting
+  - **Property 17: Sprite depth sorting is correct**
+  - **Validates: Requirements 11.3**
+
+- [ ] 15.3 Write property test for sprite camera rotation
+  - **Property 18: Sprites maintain position under camera rotation**
+  - **Validates: Requirements 11.4**
+
+- [ ] 16. Implement billboard mode for sprites
+  - Add billboard flag to sprite rendering
+  - Implement calculate_billboard_rotation() method
+  - Calculate rotation to face camera for billboarded sprites
+  - Apply billboard rotation during rendering
+  - Ensure non-billboarded sprites use world rotation
+  - _Requirements: 12.1, 12.2, 12.3_
+
+- [ ] 16.1 Write property test for billboard rotation
+  - **Property 19: Billboard sprites face camera**
+  - **Validates: Requirements 12.1, 12.2**
+
+- [ ] 16.2 Write property test for non-billboard rotation
+  - **Property 20: Non-billboard sprites use world rotation**
+  - **Validates: Requirements 12.3**
+
+- [ ] 17. Implement tilemap 3D renderer
+  - Create Tilemap3DRenderer struct
+  - Create TilemapLayer and TileRenderData structs
+  - Implement collect_tilemaps() to gather tilemaps from world
+  - Implement depth_sort_layers() to sort layers by Z depth
+  - Implement project_tilemap_to_screen() for tile projection
+  - Implement render() to draw tilemaps in 3D mode
+  - _Requirements: 13.1, 13.2, 13.3, 13.4_
+
+- [ ] 17.1 Write property test for tilemap layer depth
+  - **Property 21: Tilemap layers render at correct Z depths**
+  - **Validates: Requirements 13.1, 13.2**
+
+- [ ] 17.2 Write property test for tilemap layer sorting
+  - **Property 22: Tilemap layer depth sorting is correct**
+  - **Validates: Requirements 13.2, 13.4**
+
+- [ ] 17.3 Write property test for tilemap perspective
+  - **Property 23: Tilemap perspective updates with camera**
+  - **Validates: Requirements 13.3**
+
+- [ ] 18. Implement depth testing and render queue
+  - Create RenderQueue struct to manage render order
+  - Create RenderObject enum for different object types
+  - Implement depth-based sorting for all objects
+  - Ensure sprites, tilemaps, and grid render in correct order
+  - Implement proper occlusion based on depth
+  - _Requirements: 14.1, 14.2, 14.3, 14.4, 14.5_
+
+- [ ] 18.1 Write property test for depth occlusion
+  - **Property 24: Closer objects occlude farther objects**
+  - **Validates: Requirements 14.2, 14.3, 14.4**
+
+- [ ] 18.2 Write property test for consistent depth sorting
+  - **Property 25: Depth sorting is consistent across object types**
+  - **Validates: Requirements 14.1, 14.4**
+
+- [ ] 19. Implement bounds rendering for sprites and tilemaps
+  - Add render_bounds() method to Sprite3DRenderer
+  - Add render_bounds() method to Tilemap3DRenderer
+  - Render wireframe boxes for selected objects
+  - Render highlight for hovered objects
+  - Apply depth testing to bounds rendering
+  - _Requirements: 15.1, 15.2, 15.3, 15.4, 15.5_
+
+- [ ] 19.1 Write property test for bounds depth testing
+  - **Property 26: Bounds respect depth testing**
+  - **Validates: Requirements 15.4**
+
+- [ ]* 19.2 Write unit tests for bounds rendering
+  - Test sprite bounds calculation
+  - Test tilemap bounds calculation
+  - Test bounds rendering for selected objects
+  - Test bounds rendering for hovered objects
+  - _Requirements: 15.1, 15.2, 15.3, 15.5_
+
+- [ ] 20. Integrate 3D rendering into scene view
+  - Update scene_view.rs to use Sprite3DRenderer
+  - Update scene_view.rs to use Tilemap3DRenderer
+  - Wire up RenderQueue for proper render order
+  - Ensure 3D mode renders sprites, tilemaps, and grid
+  - Test switching between 2D and 3D modes
+  - _Requirements: All new requirements_
+
+- [ ]* 20.1 Write integration tests for 3D rendering
+  - Test sprite collection and rendering
+  - Test tilemap collection and rendering
+  - Test mixed sprite/tilemap/grid rendering
+  - Test selection and bounds rendering
+  - _Requirements: All new requirements_
+
+- [ ] 21. Add error handling for 3D rendering
+  - Add validation for sprite data (textures, rectangles, scales)
+  - Add projection error handling (behind camera, overflow)
+  - Add depth sorting error handling (NaN/Inf depths)
+  - Add billboard calculation error handling
+  - Add bounds rendering error handling
+  - _Requirements: All new requirements_
+
+- [ ]* 21.1 Write unit tests for 3D rendering error handling
+  - Test invalid sprite data handling
+  - Test projection error handling
+  - Test depth sorting edge cases
+  - Test billboard calculation edge cases
+  - Test bounds rendering edge cases
+  - _Requirements: All new requirements_
+
+- [ ] 22. Checkpoint - Ensure all 3D rendering tests pass
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [ ] 23. Performance optimization for 3D rendering
+  - Optimize sprite collection and sorting
+  - Optimize tilemap rendering for multiple layers
+  - Implement culling for off-screen sprites/tiles
+  - Optimize depth sorting algorithm
+  - Profile and optimize render queue
+  - _Requirements: All new requirements_
+
+- [ ]* 23.1 Write performance benchmarks for 3D rendering
+  - Benchmark sprite rendering with varying counts
+  - Benchmark tilemap rendering with multiple layers
+  - Benchmark depth sorting performance
+  - Benchmark overall 3D rendering frame time
+  - _Requirements: All new requirements_
+
+- [ ] 24. Final checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
