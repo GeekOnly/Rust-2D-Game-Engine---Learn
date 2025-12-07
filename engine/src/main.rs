@@ -1141,7 +1141,7 @@ fn main() -> Result<()> {
                                         &mut editor_state.collider_settings_panel,
                                         &mut editor_state.hud_manager,
                                         &mut editor_state.game_view_settings,
-                                        &mut editor_state.widget_editor,
+                                        &mut editor_state.prefab_editor,
                                         dt,
                                     );
                                 } else {

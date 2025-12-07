@@ -12,6 +12,7 @@ render = { path = "../render" }
 editor = { path = "../editor" }
 input = { path = "../input" }
 sprite_editor = { path = "../sprite_editor" }
+ui = { path = "../ui" }
 anyhow = "1.0"
 log = "0.4"
 env_logger = "0.11"

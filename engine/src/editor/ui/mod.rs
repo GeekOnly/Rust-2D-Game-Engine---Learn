@@ -310,7 +310,7 @@ impl EditorUI {
         collider_settings_panel: &mut collider_settings_panel::ColliderSettingsPanel,
         hud_manager: &mut crate::hud::HudManager,
         game_view_settings: &mut crate::runtime::GameViewSettings,
-        widget_editor: &mut crate::editor::WidgetEditor,
+        prefab_editor: &mut crate::editor::PrefabEditor,
         dt: f32,
     ) {
         // Handle layout change request (will be processed by caller)
@@ -385,7 +385,7 @@ impl EditorUI {
                 collider_settings_panel,
                 hud_manager,
                 game_view_settings,
-                widget_editor,
+                prefab_editor,
                 dt,
             };
 

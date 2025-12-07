@@ -41,7 +41,7 @@ pub use debug_draw::DebugDrawManager;
 pub use map_manager::MapManager;
 pub use tilemap_error::TilemapError;
 pub use tilemap_settings::TilemapSettings;
-pub use widget_editor::WidgetEditor;
+pub use widget_editor::PrefabEditor;
 
 // Re-export from sprite_editor crate
 pub use sprite_editor::{SpriteMetadata, SpriteDefinition, ExportFormat};
