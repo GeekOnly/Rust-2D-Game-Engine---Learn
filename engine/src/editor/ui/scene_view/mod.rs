@@ -41,6 +41,8 @@ pub fn render_scene_view(
     current_tool: &mut TransformTool,
     scene_camera: &mut SceneCamera,
     scene_grid: &SceneGrid,
+    infinite_grid: &mut crate::editor::grid::InfiniteGrid,
+    camera_state_display: &crate::editor::camera::CameraStateDisplay,
     play_request: &mut bool,
     stop_request: &mut bool,
     dragging_entity: &mut Option<Entity>,
@@ -50,9 +52,13 @@ pub fn render_scene_view(
     transform_space: &mut TransformSpace,
     texture_manager: &mut crate::texture_manager::TextureManager,
     drag_drop: &mut DragDropState,
+    delta_time: f32,
 ) {
     // Track previous mode to detect changes
     let previous_mode = *scene_view_mode;
+    
+    // Update camera (for smooth interpolation and damping)
+    scene_camera.update(delta_time);
     
     // Render toolbar
     toolbar::render_scene_toolbar(
@@ -106,7 +112,15 @@ pub fn render_scene_view(
     if scene_grid.enabled {
         match scene_view_mode {
             SceneViewMode::Mode2D => rendering::grid::render_grid_2d(&painter, rect, scene_camera, scene_grid),
-            SceneViewMode::Mode3D => rendering::grid::render_grid_3d(&painter, rect, scene_camera, scene_grid),
+            SceneViewMode::Mode3D => {
+                // Use enhanced infinite grid for 3D mode
+                if infinite_grid.enabled {
+                    rendering::grid::render_infinite_grid_3d(&painter, rect, scene_camera, infinite_grid);
+                } else {
+                    // Fallback to legacy grid
+                    rendering::grid::render_grid_3d(&painter, rect, scene_camera, scene_grid);
+                }
+            }
         }
     }
     
@@ -398,4 +412,34 @@ pub fn render_scene_view(
                 });
         }
     );
+    
+    // Camera state display overlay (top-left corner, only in 3D mode)
+    if *scene_view_mode == SceneViewMode::Mode3D {
+        let state_overlay_pos = egui::pos2(rect.min.x + overlay_margin, rect.min.y + overlay_margin);
+        
+        ui.allocate_ui_at_rect(
+            egui::Rect::from_min_size(state_overlay_pos, egui::vec2(200.0, 100.0)),
+            |ui| {
+                egui::Frame::none()
+                    .fill(egui::Color32::from_rgba_premultiplied(30, 30, 35, 200))
+                    .stroke(egui::Stroke::new(1.0, egui::Color32::from_rgba_premultiplied(80, 80, 90, 200)))
+                    .rounding(4.0)
+                    .inner_margin(8.0)
+                    .show(ui, |ui| {
+                        // Calculate FPS from delta_time
+                        let fps = if delta_time > 0.0 { 1.0 / delta_time } else { 0.0 };
+                        
+                        // Get grid size for display
+                        let grid_size = if infinite_grid.enabled {
+                            infinite_grid.calculate_grid_level(scene_camera.zoom)
+                        } else {
+                            scene_grid.size
+                        };
+                        
+                        // Render camera state display
+                        camera_state_display.render(ui, scene_camera, grid_size, fps);
+                    });
+            }
+        );
+    }
 }

@@ -3,7 +3,9 @@
 //! 2D and 3D grid rendering functions for the scene view.
 
 use egui;
+use glam::Mat4;
 use crate::editor::{SceneCamera, SceneGrid};
+use crate::editor::grid::{InfiniteGrid, CameraState};
 
 /// Render 2D grid
 pub fn render_grid_2d(
@@ -56,8 +58,112 @@ pub fn render_grid_2d(
     }
 }
 
-/// Render 3D grid
+/// Render 3D grid using InfiniteGrid system
 pub fn render_grid_3d(
+    painter: &egui::Painter,
+    rect: egui::Rect,
+    scene_camera: &SceneCamera,
+    scene_grid: &SceneGrid,
+) {
+    // Use the old grid rendering for now (will be replaced with InfiniteGrid)
+    render_grid_3d_legacy(painter, rect, scene_camera, scene_grid);
+}
+
+/// Render 3D grid using enhanced InfiniteGrid system
+pub fn render_infinite_grid_3d(
+    painter: &egui::Painter,
+    rect: egui::Rect,
+    scene_camera: &SceneCamera,
+    infinite_grid: &mut InfiniteGrid,
+) {
+    let center = rect.center();
+    let viewport_size = glam::Vec2::new(rect.width(), rect.height());
+    
+    // Create camera state for grid generation
+    let camera_state = CameraState {
+        position: scene_camera.position,
+        rotation: scene_camera.rotation,
+        pitch: scene_camera.pitch,
+        zoom: scene_camera.zoom,
+    };
+    
+    // Generate grid geometry
+    let geometry = infinite_grid.generate_geometry(&camera_state, viewport_size);
+    
+    // Get view and projection matrices
+    let view_matrix = scene_camera.get_view_matrix();
+    let aspect = rect.width() / rect.height();
+    let projection_matrix = scene_camera.get_projection_matrix(aspect, crate::editor::camera::ProjectionMode::Perspective);
+    let view_proj = projection_matrix * view_matrix;
+    
+    // Project and render each line
+    for line in &geometry.lines {
+        // Project start and end points
+        let start_screen = project_point_to_screen(line.start, &view_proj, center, viewport_size);
+        let end_screen = project_point_to_screen(line.end, &view_proj, center, viewport_size);
+        
+        // Skip lines that are behind the camera or off-screen
+        if let (Some(start), Some(end)) = (start_screen, end_screen) {
+            // Check if line is within viewport bounds (with margin)
+            let margin = 100.0;
+            let in_bounds = (start.x >= rect.min.x - margin && start.x <= rect.max.x + margin &&
+                            start.y >= rect.min.y - margin && start.y <= rect.max.y + margin) ||
+                           (end.x >= rect.min.x - margin && end.x <= rect.max.x + margin &&
+                            end.y >= rect.min.y - margin && end.y <= rect.max.y + margin);
+            
+            if in_bounds {
+                let color = egui::Color32::from_rgba_premultiplied(
+                    (line.color[0] * 255.0) as u8,
+                    (line.color[1] * 255.0) as u8,
+                    (line.color[2] * 255.0) as u8,
+                    (line.color[3] * 255.0) as u8,
+                );
+                
+                painter.line_segment(
+                    [start, end],
+                    egui::Stroke::new(line.width, color),
+                );
+            }
+        }
+    }
+}
+
+/// Project a 3D point to screen space
+fn project_point_to_screen(
+    point: glam::Vec3,
+    view_proj: &Mat4,
+    center: egui::Pos2,
+    viewport_size: glam::Vec2,
+) -> Option<egui::Pos2> {
+    // Transform point to clip space
+    let clip_space = *view_proj * glam::Vec4::new(point.x, point.y, point.z, 1.0);
+    
+    // Check if point is behind camera
+    if clip_space.w <= 0.0 {
+        return None;
+    }
+    
+    // Perspective divide
+    let ndc = glam::Vec3::new(
+        clip_space.x / clip_space.w,
+        clip_space.y / clip_space.w,
+        clip_space.z / clip_space.w,
+    );
+    
+    // Check if point is within NDC bounds (with some tolerance)
+    if ndc.x < -2.0 || ndc.x > 2.0 || ndc.y < -2.0 || ndc.y > 2.0 {
+        return None;
+    }
+    
+    // Convert NDC to screen space
+    let screen_x = center.x + (ndc.x * viewport_size.x * 0.5);
+    let screen_y = center.y - (ndc.y * viewport_size.y * 0.5); // Flip Y
+    
+    Some(egui::pos2(screen_x, screen_y))
+}
+
+/// Legacy 3D grid rendering (fallback)
+fn render_grid_3d_legacy(
     painter: &egui::Painter,
     rect: egui::Rect,
     scene_camera: &SceneCamera,

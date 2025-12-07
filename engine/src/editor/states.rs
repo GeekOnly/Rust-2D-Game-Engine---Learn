@@ -80,6 +80,8 @@ pub struct EditorState {
     pub shortcut_manager: super::shortcuts::ShortcutManager,
     pub scene_camera: super::camera::SceneCamera,
     pub scene_grid: super::grid::SceneGrid,
+    pub infinite_grid: super::grid::InfiniteGrid,  // Enhanced infinite grid for 3D mode
+    pub camera_state_display: super::camera::CameraStateDisplay,  // Camera state display
     pub selected_entities: Vec<Entity>,  // Multi-selection support
     pub hierarchy_search: String,        // Search filter
     pub autosave: super::autosave::AutoSave,  // Auto-save system
@@ -159,6 +161,8 @@ impl EditorState {
             shortcut_manager: super::shortcuts::ShortcutManager::new(),
             scene_camera: super::camera::SceneCamera::new(),
             scene_grid: super::grid::SceneGrid::new(),
+            infinite_grid: super::grid::InfiniteGrid::new(),
+            camera_state_display: super::camera::CameraStateDisplay::new(),
             selected_entities: Vec::new(),
             hierarchy_search: String::new(),
             autosave: super::autosave::AutoSave::new(300), // 5 minutes

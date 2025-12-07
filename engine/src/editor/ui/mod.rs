@@ -67,6 +67,8 @@ impl EditorUI {
         show_project_settings: &mut bool,
         scene_camera: &mut SceneCamera,
         scene_grid: &SceneGrid,
+        infinite_grid: &mut crate::editor::grid::InfiniteGrid,
+        camera_state_display: &crate::editor::camera::CameraStateDisplay,
         show_exit_dialog: &mut bool,
         asset_manager: &mut Option<crate::editor::AssetManager>,
         drag_drop: &mut crate::editor::DragDropState,
@@ -140,7 +142,6 @@ impl EditorUI {
         egui::CentralPanel::default().show(ctx, |ui| {
             // Update camera with delta time for smooth interpolation
             let delta_time = ui.input(|i| i.stable_dt);
-            scene_camera.update(delta_time);
             
             // Dummy drag state for old layout (not used)
             let mut dummy_dragging_entity = None;
@@ -164,6 +165,8 @@ impl EditorUI {
                 current_tool,
                 scene_camera,
                 scene_grid,
+                infinite_grid,
+                camera_state_display,
                 play_request,
                 stop_request,
                 &mut dummy_dragging_entity,
@@ -173,6 +176,7 @@ impl EditorUI {
                 &mut dummy_transform_space,
                 texture_manager,
                 drag_drop,
+                delta_time,
             );
         });
 
@@ -285,6 +289,8 @@ impl EditorUI {
         show_project_settings: &mut bool,
         scene_camera: &mut SceneCamera,
         scene_grid: &SceneGrid,
+        infinite_grid: &mut crate::editor::grid::InfiniteGrid,
+        camera_state_display: &crate::editor::camera::CameraStateDisplay,
         show_exit_dialog: &mut bool,
         asset_manager: &mut Option<crate::editor::AssetManager>,
         drag_drop: &mut crate::editor::DragDropState,
@@ -359,6 +365,9 @@ impl EditorUI {
                 current_tool,
                 scene_camera,
                 scene_grid,
+                infinite_grid,
+                camera_state_display,
+                delta_time: dt,
                 play_request,
                 stop_request,
                 asset_manager,

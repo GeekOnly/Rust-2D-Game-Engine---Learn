@@ -228,7 +228,12 @@
   - Test grid size display
   - _Requirements: 9.1, 9.2, 9.4_
 
-- [ ] 9. Integrate enhanced camera and grid into scene view
+- [x] 9. Integrate enhanced camera and grid into scene view
+
+
+
+
+
   - Update scene_view.rs to use new camera system
   - Replace old grid rendering with infinite grid
   - Wire up camera state display
