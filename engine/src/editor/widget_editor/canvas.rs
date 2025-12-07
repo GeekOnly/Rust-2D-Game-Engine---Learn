@@ -249,22 +249,32 @@ impl PrefabCanvas {
         let parent = parent_rect.unwrap_or(canvas_rect);
         let rt = &element.rect_transform;
         
-        // Calculate anchor points in parent space
+        // IMPORTANT: Flip Y-axis to match Unity coordinate system
+        // Unity: Y=0 is bottom, Y=1 is top
+        // egui: Y=0 is top, Y=1 is bottom
+        let flipped_anchor_min_y = 1.0 - rt.anchor_max.y;
+        let flipped_anchor_max_y = 1.0 - rt.anchor_min.y;
+        
+        // Calculate anchor points in parent space (with flipped Y)
         let anchor_min = egui::pos2(
             parent.min.x + parent.width() * rt.anchor_min.x,
-            parent.min.y + parent.height() * rt.anchor_min.y,
+            parent.min.y + parent.height() * flipped_anchor_min_y,
         );
         let anchor_max = egui::pos2(
             parent.min.x + parent.width() * rt.anchor_max.x,
-            parent.min.y + parent.height() * rt.anchor_max.y,
+            parent.min.y + parent.height() * flipped_anchor_max_y,
         );
         
-        // Calculate element rect
-        let min = egui::pos2(
-            anchor_min.x + rt.anchored_position.x - rt.pivot.x * rt.get_size().x,
-            anchor_min.y + rt.anchored_position.y - rt.pivot.y * rt.get_size().y,
+        // Calculate anchor center
+        let anchor_center = egui::pos2(
+            (anchor_min.x + anchor_max.x) / 2.0,
+            (anchor_min.y + anchor_max.y) / 2.0,
         );
         
+        // Flip pivot Y
+        let flipped_pivot_y = 1.0 - rt.pivot.y;
+        
+        // Calculate size
         let size = if rt.anchor_min == rt.anchor_max {
             // Fixed size
             egui::vec2(rt.get_size().x, rt.get_size().y)
@@ -276,6 +286,12 @@ impl PrefabCanvas {
             )
         };
         
+        // Calculate final position (flip anchored_position Y by subtracting instead of adding)
+        let min = egui::pos2(
+            anchor_center.x + rt.anchored_position.x - rt.pivot.x * size.x,
+            anchor_center.y - rt.anchored_position.y - flipped_pivot_y * size.y,
+        );
+        
         egui::Rect::from_min_size(min, size)
     }
     
@@ -283,14 +299,18 @@ impl PrefabCanvas {
         let parent = parent_rect.unwrap_or(canvas_rect);
         let rt = &element.rect_transform;
         
-        // Draw anchor points
+        // Flip Y-axis for anchor visualization
+        let flipped_anchor_min_y = 1.0 - rt.anchor_max.y;
+        let flipped_anchor_max_y = 1.0 - rt.anchor_min.y;
+        
+        // Draw anchor points (with flipped Y)
         let anchor_min_pos = egui::pos2(
             parent.min.x + parent.width() * rt.anchor_min.x,
-            parent.min.y + parent.height() * rt.anchor_min.y,
+            parent.min.y + parent.height() * flipped_anchor_min_y,
         );
         let anchor_max_pos = egui::pos2(
             parent.min.x + parent.width() * rt.anchor_max.x,
-            parent.min.y + parent.height() * rt.anchor_max.y,
+            parent.min.y + parent.height() * flipped_anchor_max_y,
         );
         
         // Draw anchor visualization
@@ -305,11 +325,13 @@ impl PrefabCanvas {
     }
     
     fn render_pivot(&self, painter: &egui::Painter, element_rect: egui::Rect, rt: &ui::RectTransform) {
+        // Flip pivot Y for visualization
+        let flipped_pivot_y = 1.0 - rt.pivot.y;
         
-        // Calculate pivot position in element space
+        // Calculate pivot position in element space (with flipped Y)
         let pivot_pos = egui::pos2(
             element_rect.min.x + element_rect.width() * rt.pivot.x,
-            element_rect.min.y + element_rect.height() * rt.pivot.y,
+            element_rect.min.y + element_rect.height() * flipped_pivot_y,
         );
         
         // Draw pivot point (crosshair)
@@ -508,26 +530,29 @@ impl PrefabCanvas {
     
     fn is_near_anchor_min(&self, pos: egui::Pos2, element: &UIPrefabElement, canvas_rect: egui::Rect, parent_rect: Option<egui::Rect>) -> bool {
         let parent = parent_rect.unwrap_or(canvas_rect);
+        let flipped_anchor_min_y = 1.0 - element.rect_transform.anchor_max.y;
         let anchor_pos = egui::pos2(
             parent.min.x + parent.width() * element.rect_transform.anchor_min.x,
-            parent.min.y + parent.height() * element.rect_transform.anchor_min.y,
+            parent.min.y + parent.height() * flipped_anchor_min_y,
         );
         pos.distance(anchor_pos) < 8.0
     }
     
     fn is_near_anchor_max(&self, pos: egui::Pos2, element: &UIPrefabElement, canvas_rect: egui::Rect, parent_rect: Option<egui::Rect>) -> bool {
         let parent = parent_rect.unwrap_or(canvas_rect);
+        let flipped_anchor_max_y = 1.0 - element.rect_transform.anchor_min.y;
         let anchor_pos = egui::pos2(
             parent.min.x + parent.width() * element.rect_transform.anchor_max.x,
-            parent.min.y + parent.height() * element.rect_transform.anchor_max.y,
+            parent.min.y + parent.height() * flipped_anchor_max_y,
         );
         pos.distance(anchor_pos) < 8.0
     }
     
     fn is_near_pivot(&self, pos: egui::Pos2, element_rect: egui::Rect, rt: &ui::RectTransform) -> bool {
+        let flipped_pivot_y = 1.0 - rt.pivot.y;
         let pivot_pos = egui::pos2(
             element_rect.min.x + element_rect.width() * rt.pivot.x,
-            element_rect.min.y + element_rect.height() * rt.pivot.y,
+            element_rect.min.y + element_rect.height() * flipped_pivot_y,
         );
         pos.distance(pivot_pos) < 8.0
     }
