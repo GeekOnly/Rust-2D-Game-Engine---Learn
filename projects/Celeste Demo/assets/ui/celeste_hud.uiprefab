@@ -74,7 +74,7 @@
           ],
           "anchored_position": [
             20.0,
-            20.0
+            -20.0
           ],
           "size_delta": [
             180.0,
@@ -275,7 +275,7 @@
           ],
           "anchored_position": [
             20.0,
-            50.0
+            -50.0
           ],
           "size_delta": [
             180.0,
@@ -476,7 +476,7 @@
           ],
           "anchored_position": [
             20.0,
-            75.0
+            -75.0
           ],
           "size_delta": [
             120.0,
@@ -551,8 +551,8 @@
             1.0
           ],
           "anchored_position": [
-            -180.0,
-            10.0
+            -10.0,
+            -10.0
           ],
           "size_delta": [
             170.0,
@@ -627,8 +627,8 @@
             1.0
           ],
           "anchored_position": [
-            -180.0,
-            35.0
+            -10.0,
+            -35.0
           ],
           "size_delta": [
             170.0,
@@ -703,8 +703,8 @@
             1.0
           ],
           "anchored_position": [
-            -100.0,
-            60.0
+            -10.0,
+            -60.0
           ],
           "size_delta": [
             90.0,
@@ -780,7 +780,7 @@
           ],
           "anchored_position": [
             20.0,
-            -30.0
+            30.0
           ],
           "size_delta": [
             100.0,
@@ -856,7 +856,7 @@
           ],
           "anchored_position": [
             20.0,
-            -55.0
+            55.0
           ],
           "size_delta": [
             100.0,
@@ -931,8 +931,8 @@
             0.5
           ],
           "anchored_position": [
-            -50.0,
-            -100.0
+            0.0,
+            0.0
           ],
           "size_delta": [
             100.0,
@@ -1007,8 +1007,8 @@
             0.0
           ],
           "anchored_position": [
-            -180.0,
-            -15.0
+            0.0,
+            15.0
           ],
           "size_delta": [
             360.0,
