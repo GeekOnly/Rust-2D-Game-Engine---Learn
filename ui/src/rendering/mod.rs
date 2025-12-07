@@ -6,6 +6,7 @@ pub mod clipping;
 pub mod mask_system;
 pub mod nine_slice;
 pub mod batch_builder;
+pub mod text_renderer;
 
 #[cfg(feature = "rendering")]
 pub mod ui_renderer;
@@ -15,6 +16,9 @@ pub use mask_system::{MaskingSystem, MaskState};
 pub use nine_slice::{UIVertex, UIMesh, generate_nine_slice_mesh, generate_simple_mesh};
 pub use batch_builder::{
     UIBatch, BatchableElement, UIBatchBuilder, BatchStats, UIRenderSystem,
+};
+pub use text_renderer::{
+    TextRenderer, TextLayout, PositionedGlyph, Font, FontCache, Glyph,
 };
 
 #[cfg(feature = "rendering")]

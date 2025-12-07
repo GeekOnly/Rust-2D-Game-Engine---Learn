@@ -7,7 +7,7 @@ use std::collections::HashMap;
 use glam::Vec2;
 use crate::{
     Canvas, RectTransform, UIElement, UIImage, UIText, ImageType,
-    rendering::{UIMesh, UIVertex, generate_nine_slice_mesh, generate_simple_mesh},
+    rendering::{UIMesh, UIVertex, generate_nine_slice_mesh, generate_simple_mesh, TextRenderer},
     Rect,
 };
 
@@ -120,6 +120,9 @@ pub struct UIBatchBuilder {
     
     /// Dirty flag - set when elements need re-batching
     dirty: bool,
+    
+    /// Text renderer for generating text meshes
+    text_renderer: TextRenderer,
 }
 
 impl UIBatchBuilder {
@@ -129,7 +132,18 @@ impl UIBatchBuilder {
             elements: Vec::new(),
             batches: Vec::new(),
             dirty: true,
+            text_renderer: TextRenderer::new(),
         }
+    }
+    
+    /// Get a reference to the text renderer
+    pub fn text_renderer(&self) -> &TextRenderer {
+        &self.text_renderer
+    }
+    
+    /// Get a mutable reference to the text renderer
+    pub fn text_renderer_mut(&mut self) -> &mut TextRenderer {
+        &mut self.text_renderer
     }
 
     /// Mark the builder as dirty (needs rebuild)
@@ -160,7 +174,7 @@ impl UIBatchBuilder {
     /// * `rect_transform` - The element's rect transform
     /// * `ui_element` - The UI element component
     /// * `image` - Optional image component
-    /// * `_text` - Optional text component (for future text rendering)
+    /// * `text` - Optional text component
     /// * `viewport` - Optional viewport rect for culling (elements outside are culled)
     pub fn collect_element(
         &mut self,
@@ -169,11 +183,11 @@ impl UIBatchBuilder {
         rect_transform: &RectTransform,
         ui_element: &UIElement,
         image: Option<&UIImage>,
-        _text: Option<&UIText>,
+        text: Option<&UIText>,
         viewport: Option<Rect>,
     ) {
-        // Skip if not visible or not a raycast target
-        if !ui_element.raycast_target && image.is_none() {
+        // Skip if not visible
+        if !ui_element.raycast_target && image.is_none() && text.is_none() {
             return;
         }
 
@@ -189,7 +203,10 @@ impl UIBatchBuilder {
         color[3] *= ui_element.alpha;
 
         // Generate mesh based on component type
-        let (texture_id, mesh) = if let Some(img) = image {
+        let (texture_id, mesh) = if let Some(txt) = text {
+            // Generate text mesh
+            self.generate_text_mesh(txt, rect_transform.rect, color)
+        } else if let Some(img) = image {
             let texture_id = img.sprite.clone();
             
             let mesh = match img.image_type {
@@ -219,7 +236,7 @@ impl UIBatchBuilder {
             
             (texture_id, mesh)
         } else {
-            // No image component, create a simple colored quad
+            // No image or text component, create a simple colored quad
             (None, generate_simple_mesh(rect_transform.rect, color))
         };
 
@@ -234,6 +251,70 @@ impl UIBatchBuilder {
         });
 
         self.dirty = true;
+    }
+    
+    /// Generate a mesh for text rendering
+    fn generate_text_mesh(&self, text: &UIText, bounds: Rect, tint_color: [f32; 4]) -> (Option<String>, UIMesh) {
+        // Layout the text
+        let layout = self.text_renderer.layout_text(text, bounds);
+        
+        // Generate mesh from positioned glyphs
+        let mut vertices = Vec::new();
+        let mut indices = Vec::new();
+        
+        // Use text color, but apply tint alpha
+        let mut final_color = text.color;
+        final_color[3] *= tint_color[3];
+        
+        for glyph in &layout.glyphs {
+            let base_index = vertices.len() as u32;
+            
+            // Calculate glyph quad corners
+            let x0 = glyph.position.x;
+            let y0 = glyph.position.y;
+            let x1 = x0 + glyph.glyph.size.x * glyph.scale;
+            let y1 = y0 + glyph.glyph.size.y * glyph.scale;
+            
+            // Get UV coordinates from glyph
+            let uv = &glyph.glyph.uv_rect;
+            let u0 = uv.x;
+            let v0 = uv.y;
+            let u1 = uv.x + uv.width;
+            let v1 = uv.y + uv.height;
+            
+            // Add vertices (quad)
+            vertices.push(UIVertex {
+                position: Vec2::new(x0, y0),
+                uv: Vec2::new(u0, v0),
+                color: final_color,
+            });
+            vertices.push(UIVertex {
+                position: Vec2::new(x0, y1),
+                uv: Vec2::new(u0, v1),
+                color: final_color,
+            });
+            vertices.push(UIVertex {
+                position: Vec2::new(x1, y1),
+                uv: Vec2::new(u1, v1),
+                color: final_color,
+            });
+            vertices.push(UIVertex {
+                position: Vec2::new(x1, y0),
+                uv: Vec2::new(u1, v0),
+                color: final_color,
+            });
+            
+            // Add indices (two triangles)
+            indices.extend_from_slice(&[
+                base_index, base_index + 1, base_index + 2,
+                base_index, base_index + 2, base_index + 3,
+            ]);
+        }
+        
+        let mesh = UIMesh { vertices, indices };
+        let texture_id = Some(layout.texture_id);
+        
+        (texture_id, mesh)
     }
 
     /// Build batches from collected elements

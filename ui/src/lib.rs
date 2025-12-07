@@ -99,6 +99,7 @@ pub use rendering::{
     UIMask,
     ClipRegion, ViewportClippingSystem,
     MaskingSystem, MaskState,
+    TextRenderer, TextLayout, PositionedGlyph, Font, FontCache, Glyph,
 };
 
 // Re-export prefab types

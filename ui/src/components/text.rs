@@ -61,7 +61,7 @@ impl Default for UIText {
 }
 
 /// Text alignment options
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub enum TextAlignment {
     TopLeft, TopCenter, TopRight,
     MiddleLeft, MiddleCenter, MiddleRight,
@@ -69,7 +69,7 @@ pub enum TextAlignment {
 }
 
 /// Text overflow handling mode
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub enum OverflowMode {
     /// Wrap text to next line
     Wrap,
