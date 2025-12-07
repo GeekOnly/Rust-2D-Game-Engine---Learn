@@ -331,7 +331,12 @@
   - Test screen-to-world unprojection
   - _Requirements: 11.1, 11.2_
 
-- [ ] 15. Implement sprite 3D renderer
+- [x] 15. Implement sprite 3D renderer
+
+
+
+
+
   - Create Sprite3DRenderer struct
   - Create SpriteRenderData struct to hold sprite info
   - Implement collect_sprites() to gather sprites from world
@@ -340,12 +345,18 @@
   - Implement render() to draw sprites in 3D mode
   - _Requirements: 11.1, 11.2, 11.3, 11.4_
 
-- [ ] 15.1 Write property test for sprite position projection
+- [x] 15.1 Write property test for sprite position projection
+
+
   - **Property 16: Sprites render at correct 3D positions**
   - **Validates: Requirements 11.1, 11.2**
 
+
+
 - [ ] 15.2 Write property test for sprite depth sorting
   - **Property 17: Sprite depth sorting is correct**
+
+
   - **Validates: Requirements 11.3**
 
 - [ ] 15.3 Write property test for sprite camera rotation

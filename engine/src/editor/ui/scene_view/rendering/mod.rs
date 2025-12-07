@@ -7,3 +7,4 @@ pub mod gizmos;
 pub mod view_2d;
 pub mod view_3d;
 pub mod projection_3d;
+pub mod sprite_3d;
