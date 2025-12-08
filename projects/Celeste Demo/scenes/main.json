@@ -2937,7 +2937,11 @@
         ],
         "z_order": 0,
         "visible": true,
-        "opacity": 1.0
+        "opacity": 1.0,
+        "parallax_factor": [
+          1.0,
+          1.0
+        ]
       }
     ],
     [
