@@ -96,6 +96,12 @@ impl Tilemap3DRenderer {
             };
             
             // Collect tiles
+            // Unity standard: 100 pixels = 1 world unit (1 meter)
+            // This ensures consistent scale between sprites and tilemaps
+            let pixels_per_unit = 100.0_f32;
+            let tile_world_width = tileset.tile_width as f32 / pixels_per_unit;
+            let tile_world_height = tileset.tile_height as f32 / pixels_per_unit;
+            
             let mut tiles = Vec::new();
             let mut min_x = f32::MAX;
             let mut min_y = f32::MAX;
@@ -116,18 +122,18 @@ impl Tilemap3DRenderer {
                             None => continue,
                         };
                         
-                        // Calculate world position
-                        let tile_world_x = transform.position[0] + (x as f32 * tileset.tile_width as f32);
-                        let tile_world_y = transform.position[1] + (y as f32 * tileset.tile_height as f32);
+                        // Calculate world position in world units (not pixels)
+                        let tile_world_x = transform.position[0] + (x as f32 * tile_world_width);
+                        let tile_world_y = transform.position[1] + (y as f32 * tile_world_height);
                         let tile_world_z = transform.position[2];
                         
                         // Update bounds
                         min_x = min_x.min(tile_world_x);
                         min_y = min_y.min(tile_world_y);
-                        max_x = max_x.max(tile_world_x + tileset.tile_width as f32);
-                        max_y = max_y.max(tile_world_y + tileset.tile_height as f32);
+                        max_x = max_x.max(tile_world_x + tile_world_width);
+                        max_y = max_y.max(tile_world_y + tile_world_height);
                         
-                        // Create tile render data
+                        // Create tile render data (width/height in world units)
                         tiles.push(TileRenderData {
                             world_pos: Vec3::new(tile_world_x, tile_world_y, tile_world_z),
                             texture_id: tileset.texture_id.clone(),
@@ -140,8 +146,8 @@ impl Tilemap3DRenderer {
                             color: [1.0, 1.0, 1.0, tilemap.opacity],
                             flip_h: tile.flip_h,
                             flip_v: tile.flip_v,
-                            width: tileset.tile_width as f32,
-                            height: tileset.tile_height as f32,
+                            width: tile_world_width,
+                            height: tile_world_height,
                         });
                     }
                 }

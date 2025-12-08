@@ -291,23 +291,26 @@ impl Sprite3DRenderer {
         viewport_rect: egui::Rect,
     ) -> Option<ScreenSprite> {
         let viewport_size = Vec2::new(viewport_rect.width(), viewport_rect.height());
-        // Project center position
-        let mut screen_pos = projection_3d::world_to_screen(sprite.position, camera, viewport_size)?;
         
-        // Apply viewport offset
-        screen_pos.x += viewport_rect.min.x;
-        screen_pos.y += viewport_rect.min.y;
+        // Project center position (without viewport offset for size calculation)
+        let center_screen = projection_3d::world_to_screen(sprite.position, camera, viewport_size)?;
         
-        // Calculate size in screen space
-        // We project a point offset by width/height to determine scale
+        // Calculate size in screen space by projecting corner points
+        // Use world-space offsets based on sprite dimensions
         let right_world = sprite.position + Vec3::new(sprite.width * sprite.scale.x, 0.0, 0.0);
         let up_world = sprite.position + Vec3::new(0.0, sprite.height * sprite.scale.y, 0.0);
         
         let right_screen = projection_3d::world_to_screen(right_world, camera, viewport_size)?;
         let up_screen = projection_3d::world_to_screen(up_world, camera, viewport_size)?;
         
-        let width_vec = right_screen - screen_pos;
-        let height_vec = up_screen - screen_pos;
+        // Calculate screen size from projected vectors (before viewport offset)
+        let width_vec = right_screen - center_screen;
+        let height_vec = up_screen - center_screen;
+        
+        // Apply viewport offset to final screen position
+        let mut screen_pos = center_screen;
+        screen_pos.x += viewport_rect.min.x;
+        screen_pos.y += viewport_rect.min.y;
         
         let screen_width = width_vec.length();
         let screen_height = height_vec.length();
