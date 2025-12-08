@@ -2935,6 +2935,7 @@
             "flip_d": false
           }
         ],
+        "z_order": 0,
         "visible": true,
         "opacity": 1.0
       }
