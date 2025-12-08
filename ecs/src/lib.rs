@@ -707,6 +707,7 @@ impl World {
             animated_sprites: Vec<(Entity, AnimatedSprite)>,
             tilemaps: Vec<(Entity, Tilemap)>,
             tilesets: Vec<(Entity, TileSet)>,
+            tilemap_renderers: Vec<(Entity, TilemapRenderer)>,
             grids: Vec<(Entity, Grid)>,
             maps: Vec<(Entity, Map)>,
         }
@@ -730,6 +731,7 @@ impl World {
             animated_sprites: self.animated_sprites.iter().map(|(k, v)| (*k, v.clone())).collect(),
             tilemaps: self.tilemaps.iter().map(|(k, v)| (*k, v.clone())).collect(),
             tilesets: self.tilesets.iter().map(|(k, v)| (*k, v.clone())).collect(),
+            tilemap_renderers: self.tilemap_renderers.iter().map(|(k, v)| (*k, v.clone())).collect(),
             grids: self.grids.iter().map(|(k, v)| (*k, v.clone())).collect(),
             maps: self.maps.iter().map(|(k, v)| (*k, v.clone())).collect(),
         };
@@ -776,6 +778,8 @@ impl World {
             tilemaps: Vec<(Entity, Tilemap)>,
             #[serde(default)]
             tilesets: Vec<(Entity, TileSet)>,
+            #[serde(default)]
+            tilemap_renderers: Vec<(Entity, TilemapRenderer)>,
             #[serde(default)]
             grids: Vec<(Entity, Grid)>,
             #[serde(default)]
@@ -845,6 +849,9 @@ impl World {
         }
         for (entity, tileset) in data.tilesets {
             self.tilesets.insert(entity, tileset);
+        }
+        for (entity, tilemap_renderer) in data.tilemap_renderers {
+            self.tilemap_renderers.insert(entity, tilemap_renderer);
         }
         for (entity, grid) in data.grids {
             self.grids.insert(entity, grid);
