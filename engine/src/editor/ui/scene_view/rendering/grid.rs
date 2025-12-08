@@ -3,9 +3,10 @@
 //! 2D and 3D grid rendering functions for the scene view.
 
 use egui;
-use glam::Mat4;
+use glam::{Vec2, Vec3, Mat4};
 use crate::editor::{SceneCamera, SceneGrid};
 use crate::editor::grid::{InfiniteGrid, CameraState};
+use super::projection_3d;
 
 /// Render 2D grid
 pub fn render_grid_2d(
@@ -177,48 +178,21 @@ fn render_grid_3d_legacy(
     scene_camera: &SceneCamera,
     scene_grid: &SceneGrid,
 ) {
-    let center = rect.center();
     let grid_world_size = scene_grid.size;
+    let viewport_size = Vec2::new(rect.width(), rect.height());
 
     // Unity-like subtle grid colors
     let grid_color = egui::Color32::from_rgba_premultiplied(64, 64, 64, 76);  // Subtle gray
     let x_axis_color = egui::Color32::from_rgba_premultiplied(217, 64, 64, 230);  // Bright red
     let z_axis_color = egui::Color32::from_rgba_premultiplied(64, 115, 217, 230);  // Bright blue
 
-    let yaw = scene_camera.rotation.to_radians();
-    let pitch = scene_camera.pitch.to_radians();
-    let zoom = scene_camera.zoom;
-
     let grid_range = 50;  // Wider grid like Unity
     let fade_distance = 40.0 * grid_world_size;  // Longer fade distance
 
-    let project_3d = |x: f32, z: f32| -> egui::Pos2 {
-        let world_x = x - scene_camera.position.x;
-        let world_z = z - scene_camera.position.y;
-        let y = 0.0;
-
-        let cos_yaw = yaw.cos();
-        let sin_yaw = yaw.sin();
-        let rotated_x = world_x * cos_yaw - world_z * sin_yaw;
-        let rotated_z = world_x * sin_yaw + world_z * cos_yaw;
-
-        let cos_pitch = pitch.cos();
-        let sin_pitch = pitch.sin();
-        let rotated_y = y * cos_pitch - rotated_z * sin_pitch;
-        let final_z = y * sin_pitch + rotated_z * cos_pitch;
-
-        let distance = 500.0;
-        let perspective_z = final_z + distance;
-        let scale = if perspective_z > 10.0 {
-            (distance / perspective_z) * zoom
-        } else {
-            zoom
-        };
-
-        egui::pos2(
-            center.x + rotated_x * scale,
-            center.y + rotated_y * scale,
-        )
+    let project_3d = |x: f32, z: f32| -> Option<egui::Pos2> {
+        let world_pos = Vec3::new(x, 0.0, z);
+        projection_3d::world_to_screen(world_pos, scene_camera, viewport_size)
+            .map(|v| egui::pos2(v.x + rect.min.x, v.y + rect.min.y))
     };
     
     let calc_alpha = |x: f32, z: f32| -> u8 {
@@ -243,31 +217,33 @@ fn render_grid_3d_legacy(
         }
 
         for j in 0..points.len() - 1 {
-            let z1 = ((j as i32) - grid_range) as f32 * grid_world_size;
-            let alpha = calc_alpha(x, z1);
+            if let (Some(p1), Some(p2)) = (points[j], points[j+1]) {
+                let z1 = ((j as i32) - grid_range) as f32 * grid_world_size;
+                let alpha = calc_alpha(x, z1);
 
-            if alpha > 5 {
-                let color = if is_x_axis {
-                    egui::Color32::from_rgba_premultiplied(
-                        x_axis_color.r(),
-                        x_axis_color.g(),
-                        x_axis_color.b(),
-                        alpha.max(150),
-                    )
-                } else {
-                    egui::Color32::from_rgba_premultiplied(
-                        grid_color.r(),
-                        grid_color.g(),
-                        grid_color.b(),
-                        alpha,
-                    )
-                };
+                if alpha > 5 {
+                    let color = if is_x_axis {
+                        egui::Color32::from_rgba_premultiplied(
+                            x_axis_color.r(),
+                            x_axis_color.g(),
+                            x_axis_color.b(),
+                            alpha.max(150),
+                        )
+                    } else {
+                        egui::Color32::from_rgba_premultiplied(
+                            grid_color.r(),
+                            grid_color.g(),
+                            grid_color.b(),
+                            alpha,
+                        )
+                    };
 
-                let width = if is_x_axis { 2.0 } else { 0.8 };  // Thinner lines like Unity
-                painter.line_segment(
-                    [points[j], points[j + 1]],
-                    egui::Stroke::new(width, color),
-                );
+                    let width = if is_x_axis { 2.0 } else { 0.8 };  // Thinner lines like Unity
+                    painter.line_segment(
+                        [p1, p2],
+                        egui::Stroke::new(width, color),
+                    );
+                }
             }
         }
     }
@@ -284,31 +260,33 @@ fn render_grid_3d_legacy(
         }
 
         for j in 0..points.len() - 1 {
-            let x1 = ((j as i32) - grid_range) as f32 * grid_world_size;
-            let alpha = calc_alpha(x1, z);
+            if let (Some(p1), Some(p2)) = (points[j], points[j+1]) {
+                let x1 = ((j as i32) - grid_range) as f32 * grid_world_size;
+                let alpha = calc_alpha(x1, z);
 
-            if alpha > 5 {
-                let color = if is_z_axis {
-                    egui::Color32::from_rgba_premultiplied(
-                        z_axis_color.r(),
-                        z_axis_color.g(),
-                        z_axis_color.b(),
-                        alpha.max(150),
-                    )
-                } else {
-                    egui::Color32::from_rgba_premultiplied(
-                        grid_color.r(),
-                        grid_color.g(),
-                        grid_color.b(),
-                        alpha,
-                    )
-                };
+                if alpha > 5 {
+                    let color = if is_z_axis {
+                        egui::Color32::from_rgba_premultiplied(
+                            z_axis_color.r(),
+                            z_axis_color.g(),
+                            z_axis_color.b(),
+                            alpha.max(150),
+                        )
+                    } else {
+                        egui::Color32::from_rgba_premultiplied(
+                            grid_color.r(),
+                            grid_color.g(),
+                            grid_color.b(),
+                            alpha,
+                        )
+                    };
 
-                let width = if is_z_axis { 2.0 } else { 0.8 };  // Thinner lines like Unity
-                painter.line_segment(
-                    [points[j], points[j + 1]],
-                    egui::Stroke::new(width, color),
-                );
+                    let width = if is_z_axis { 2.0 } else { 0.8 };  // Thinner lines like Unity
+                    painter.line_segment(
+                        [p1, p2],
+                        egui::Stroke::new(width, color),
+                    );
+                }
             }
         }
     }

@@ -529,7 +529,11 @@ fn render_perspective(
         } else if let Some(sprite) = world.sprites.get(entity) {
             // Render regular sprite
             let transform_scale = glam::Vec2::new(transform.scale[0], transform.scale[1]);
-            let size = egui::vec2(transform_scale.x * screen_scale, transform_scale.y * screen_scale);
+            // Calculate size based on sprite dimensions and transform scale
+            let size = egui::vec2(
+                sprite.width * transform_scale.x * screen_scale,
+                sprite.height * transform_scale.y * screen_scale
+            );
             let color = egui::Color32::from_rgba_unmultiplied(
                 (sprite.color[0] * 255.0) as u8,
                 (sprite.color[1] * 255.0) as u8,

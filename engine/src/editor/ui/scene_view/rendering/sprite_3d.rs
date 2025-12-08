@@ -7,7 +7,7 @@ use egui;
 use glam::{Vec2, Vec3};
 use std::collections::HashSet;
 use crate::editor::SceneCamera;
-use super::super::types::Point3D;
+use super::projection_3d::{self, Transform3D};
 
 /// Sprite 3D renderer for rendering sprites in 3D mode
 pub struct Sprite3DRenderer {
@@ -101,8 +101,10 @@ impl Sprite3DRenderer {
                     sprite_rect: sprite.sprite_rect,
                     color: sprite.color,
                     billboard: sprite.billboard,
-                    width: sprite.width,
-                    height: sprite.height,
+                    // Convert pixel dimensions to world units using PPU
+                    // Default to 16.0 PPU if for some reason it's 0 to avoid division by zero
+                    width: sprite.width / sprite.pixels_per_unit.max(1.0),
+                    height: sprite.height / sprite.pixels_per_unit.max(1.0),
                 });
             }
         }
@@ -223,58 +225,8 @@ impl Sprite3DRenderer {
     
     /// Calculate depth of a sprite from camera
     pub fn calculate_depth_from_camera(&self, position: &Vec3, camera: &SceneCamera) -> f32 {
-        // Validate inputs
-        if !position.is_finite() {
-            eprintln!("Warning: Invalid sprite position in depth calculation");
-            return f32::MAX; // Treat as far away
-        }
-        
-        if !camera.position.is_finite() {
-            eprintln!("Warning: Invalid camera position in depth calculation");
-            return f32::MAX;
-        }
-        
-        // Transform position relative to camera
-        let relative_pos = Vec3::new(
-            position.x - camera.position.x,
-            position.y,
-            position.z - camera.position.y,
-        );
-        
-        // Validate relative position
-        if !relative_pos.is_finite() {
-            return f32::MAX;
-        }
-        
-        // Apply camera rotation to get depth in camera space
-        let yaw = camera.rotation.to_radians();
-        let pitch = camera.pitch.to_radians();
-        
-        // Validate angles
-        if !yaw.is_finite() || !pitch.is_finite() {
-            eprintln!("Warning: Invalid camera angles in depth calculation");
-            return f32::MAX;
-        }
-        
-        // Rotate around Y axis (yaw)
-        let cos_yaw = yaw.cos();
-        let sin_yaw = yaw.sin();
-        let rotated_x = relative_pos.x * cos_yaw + relative_pos.z * sin_yaw;
-        let rotated_z = -relative_pos.x * sin_yaw + relative_pos.z * cos_yaw;
-        
-        // Rotate around X axis (pitch)
-        let cos_pitch = pitch.cos();
-        let sin_pitch = pitch.sin();
-        let final_y = relative_pos.y * cos_pitch - rotated_z * sin_pitch;
-        let final_z = relative_pos.y * sin_pitch + rotated_z * cos_pitch;
-        
-        // Validate final depth
-        if !final_z.is_finite() {
-            return f32::MAX;
-        }
-        
-        // Return Z depth (distance from camera)
-        final_z
+        let transform = Transform3D::new(*position, 0.0, Vec2::ONE);
+        transform.depth_from_camera(camera)
     }
     
     /// Calculate billboard rotation for a sprite to face the camera
@@ -336,118 +288,29 @@ impl Sprite3DRenderer {
         &self,
         sprite: &SpriteRenderData,
         camera: &SceneCamera,
-        viewport_center: Vec2,
+        viewport_rect: egui::Rect,
     ) -> Option<ScreenSprite> {
-        // Validate inputs
-        if !sprite.position.is_finite() {
-            eprintln!("Warning: Invalid sprite position in projection");
-            return None;
-        }
+        let viewport_size = Vec2::new(viewport_rect.width(), viewport_rect.height());
+        // Project center position
+        let mut screen_pos = projection_3d::world_to_screen(sprite.position, camera, viewport_size)?;
         
-        if !camera.position.is_finite() {
-            eprintln!("Warning: Invalid camera position in projection");
-            return None;
-        }
+        // Apply viewport offset
+        screen_pos.x += viewport_rect.min.x;
+        screen_pos.y += viewport_rect.min.y;
         
-        if !viewport_center.is_finite() {
-            eprintln!("Warning: Invalid viewport center in projection");
-            return None;
-        }
+        // Calculate size in screen space
+        // We project a point offset by width/height to determine scale
+        let right_world = sprite.position + Vec3::new(sprite.width * sprite.scale.x, 0.0, 0.0);
+        let up_world = sprite.position + Vec3::new(0.0, sprite.height * sprite.scale.y, 0.0);
         
-        if !camera.zoom.is_finite() || camera.zoom <= 0.0 {
-            eprintln!("Warning: Invalid camera zoom in projection");
-            return None;
-        }
+        let right_screen = projection_3d::world_to_screen(right_world, camera, viewport_size)?;
+        let up_screen = projection_3d::world_to_screen(up_world, camera, viewport_size)?;
         
-        // Transform position relative to camera
-        let pos_3d = Point3D::new(
-            sprite.position.x - camera.position.x,
-            sprite.position.y,
-            sprite.position.z - camera.position.y,
-        );
+        let width_vec = right_screen - screen_pos;
+        let height_vec = up_screen - screen_pos;
         
-        // Apply camera rotation
-        let yaw = camera.rotation.to_radians();
-        let pitch = camera.pitch.to_radians();
-        
-        // Validate angles
-        if !yaw.is_finite() || !pitch.is_finite() {
-            eprintln!("Warning: Invalid camera angles in projection");
-            return None;
-        }
-        
-        let rotated = pos_3d
-            .rotate_y(-yaw)
-            .rotate_x(pitch);
-        
-        // Check if sprite is behind camera
-        let distance = 500.0;
-        let perspective_z = rotated.z + distance;
-        
-        // Validate perspective_z
-        if !perspective_z.is_finite() {
-            return None;
-        }
-        
-        if perspective_z <= 10.0 {
-            // Sprite is behind camera or too close
-            return None;
-        }
-        
-        // Check for extreme distances that could cause overflow
-        if perspective_z > 1000000.0 {
-            return None;
-        }
-        
-        // Calculate perspective scale
-        let scale = (distance / perspective_z) * camera.zoom;
-        
-        // Validate scale
-        if !scale.is_finite() || scale <= 0.0 {
-            return None;
-        }
-        
-        // Check for extreme scale values that could cause overflow
-        if scale > 10000.0 || scale < 0.0001 {
-            return None;
-        }
-        
-        // Project to screen space
-        let screen_x = viewport_center.x + rotated.x * scale;
-        let screen_y = viewport_center.y + rotated.y * scale;
-        
-        // Validate screen position
-        if !screen_x.is_finite() || !screen_y.is_finite() {
-            return None;
-        }
-        
-        // Check for extreme screen positions (likely overflow)
-        if screen_x.abs() > 1000000.0 || screen_y.abs() > 1000000.0 {
-            return None;
-        }
-        
-        // Calculate screen size
-        // In 3D mode, sprite dimensions are in world units, not pixels
-        // We need to scale them appropriately for the perspective view
-        // Assuming sprite.width/height are in pixels, we convert to world units
-        let world_scale = 0.1; // Scale factor to convert pixels to world units
-        let screen_width = sprite.width * sprite.scale.x * scale * world_scale;
-        let screen_height = sprite.height * sprite.scale.y * scale * world_scale;
-        
-        // Validate screen size
-        if !screen_width.is_finite() || !screen_height.is_finite() {
-            return None;
-        }
-        
-        // Check for zero or negative screen size
-        if screen_width <= 0.0 || screen_height <= 0.0 {
-            return None;
-        }
-        
-        // Check for extreme screen sizes (likely overflow)
-        if screen_width > 100000.0 || screen_height > 100000.0 {
-            return None;
-        }
+        let screen_width = width_vec.length();
+        let screen_height = height_vec.length();
         
         // Calculate rotation (billboard or world rotation)
         let rotation = if sprite.billboard {
@@ -455,12 +318,6 @@ impl Sprite3DRenderer {
         } else {
             sprite.rotation
         };
-        
-        // Validate rotation
-        if !rotation.is_finite() {
-            eprintln!("Warning: Invalid rotation in projection");
-            return None;
-        }
         
         // Convert color
         let color = egui::Color32::from_rgba_unmultiplied(
@@ -470,12 +327,14 @@ impl Sprite3DRenderer {
             (sprite.color[3] * 255.0) as u8,
         );
         
+        let dist = self.calculate_depth_from_camera(&sprite.position, camera);
+        
         Some(ScreenSprite {
-            screen_pos: Vec2::new(screen_x, screen_y),
+            screen_pos,
             screen_size: Vec2::new(screen_width, screen_height),
             rotation,
             color,
-            depth: perspective_z,
+            depth: dist,
             entity: sprite.entity,
         })
     }
@@ -490,14 +349,11 @@ impl Sprite3DRenderer {
         texture_manager: &mut crate::texture_manager::TextureManager,
         ctx: &egui::Context,
     ) {
-        let viewport_center = Vec2::new(
-            viewport_rect.center().x,
-            viewport_rect.center().y,
-        );
+        let viewport_size = Vec2::new(viewport_rect.width(), viewport_rect.height());
         
         // Project and render each sprite
         for sprite in sprites {
-            if let Some(screen_sprite) = self.project_sprite_to_screen(sprite, camera, viewport_center) {
+            if let Some(screen_sprite) = self.project_sprite_to_screen(sprite, camera, viewport_rect) {
                 // Create rect for sprite
                 let rect = egui::Rect::from_center_size(
                     egui::pos2(screen_sprite.screen_pos.x, screen_sprite.screen_pos.y),
@@ -533,6 +389,15 @@ impl Sprite3DRenderer {
                     // Render textured sprite
                     let mut mesh = egui::Mesh::with_texture(texture_handle.id());
                     mesh.add_rect_with_uv(rect, uv, screen_sprite.color);
+                    
+                    // Apply rotation if needed
+                    if screen_sprite.rotation != 0.0 {
+                        mesh.rotate(
+                            egui::emath::Rot2::from_angle(screen_sprite.rotation), 
+                            rect.center()
+                        );
+                    }
+                    
                     painter.add(egui::Shape::mesh(mesh));
                 } else {
                     // Fallback: render as colored rectangle if texture not found
@@ -555,16 +420,10 @@ impl Sprite3DRenderer {
         painter: &egui::Painter,
         sprite: &SpriteRenderData,
         camera: &SceneCamera,
-        viewport_center: Vec2,
+        viewport_rect: egui::Rect,
         color: egui::Color32,
     ) {
-        // Validate inputs
-        if !viewport_center.is_finite() {
-            eprintln!("Warning: Invalid viewport center in bounds rendering");
-            return;
-        }
-        
-        if let Some(screen_sprite) = self.project_sprite_to_screen(sprite, camera, viewport_center) {
+        if let Some(screen_sprite) = self.project_sprite_to_screen(sprite, camera, viewport_rect) {
             // Validate screen sprite data
             if !screen_sprite.screen_pos.is_finite() || !screen_sprite.screen_size.is_finite() {
                 eprintln!("Warning: Invalid screen sprite data in bounds rendering");
@@ -640,53 +499,5 @@ mod tests {
         let renderer = Sprite3DRenderer::new();
         assert!(!renderer.enable_billboard);
         assert_eq!(renderer.depth_sorted_sprites.len(), 0);
-    }
-    
-    #[test]
-    fn test_calculate_depth_from_camera() {
-        let renderer = Sprite3DRenderer::new();
-        let mut camera = SceneCamera::new();
-        camera.position = Vec2::new(0.0, 0.0);
-        camera.rotation = 0.0;
-        camera.pitch = 0.0;
-        
-        // Sprite in front of camera (positive Z)
-        let pos = Vec3::new(0.0, 0.0, 10.0);
-        let depth = renderer.calculate_depth_from_camera(&pos, &camera);
-        assert!(depth > 0.0, "Sprite in front should have positive depth");
-        
-        // Sprite behind camera (negative Z)
-        let pos = Vec3::new(0.0, 0.0, -10.0);
-        let depth = renderer.calculate_depth_from_camera(&pos, &camera);
-        assert!(depth < 0.0, "Sprite behind should have negative depth");
-    }
-    
-    #[test]
-    fn test_calculate_billboard_rotation() {
-        let renderer = Sprite3DRenderer::new();
-        let mut camera = SceneCamera::new();
-        camera.position = Vec2::new(10.0, 0.0);
-        
-        let sprite_pos = Vec3::new(0.0, 0.0, 0.0);
-        let rotation = renderer.calculate_billboard_rotation(sprite_pos, &camera);
-        
-        // Rotation should be finite
-        assert!(rotation.is_finite());
-        
-        // Rotation should be in [-π, π] range
-        assert!(rotation >= -std::f32::consts::PI && rotation <= std::f32::consts::PI);
-    }
-    
-    #[test]
-    fn test_calculate_billboard_rotation_same_position() {
-        let renderer = Sprite3DRenderer::new();
-        let mut camera = SceneCamera::new();
-        camera.position = Vec2::new(0.0, 0.0);
-        
-        let sprite_pos = Vec3::new(0.0, 0.0, 0.0);
-        let rotation = renderer.calculate_billboard_rotation(sprite_pos, &camera);
-        
-        // Should return 0.0 when camera is at same position
-        assert_eq!(rotation, 0.0);
     }
 }

@@ -48,12 +48,15 @@ pub fn render_scene_view(
     dragging_entity: &mut Option<Entity>,
     drag_axis: &mut Option<u8>,
     scene_view_mode: &mut SceneViewMode,
-    projection_mode: &mut ProjectionMode,
+    projection_mode: &mut SceneProjectionMode,
     transform_space: &mut TransformSpace,
     texture_manager: &mut crate::texture_manager::TextureManager,
     drag_drop: &mut DragDropState,
     delta_time: f32,
 ) {
+    // Sync camera projection mode with editor state
+    scene_camera.projection_mode = *projection_mode;
+    
     // Track previous mode to detect changes
     let previous_mode = *scene_view_mode;
     
@@ -89,7 +92,9 @@ pub fn render_scene_view(
     // Handle keyboard shortcuts
     shortcuts::handle_keyboard_shortcuts(ui, current_tool, scene_camera, scene_view_mode);
     
-    let focus_pressed = ui.input(|i| i.key_pressed(egui::Key::F));
+    // Check for F key press (focus on selected entity)
+    // Use ctx.input instead of ui.input to ensure we catch the key press even if UI doesn't have focus
+    let focus_pressed = ui.ctx().input(|i| i.key_pressed(egui::Key::F) && !i.modifiers.ctrl && !i.modifiers.shift && !i.modifiers.alt);
     
     // Handle camera controls
     interaction::camera::handle_camera_controls(
@@ -146,14 +151,14 @@ pub fn render_scene_view(
                 ui.style_mut().visuals.widgets.active.weak_bg_fill = egui::Color32::from_rgba_premultiplied(70, 70, 75, 240);
 
                 let button_text = match projection_mode {
-                    ProjectionMode::Perspective => "⬜ Persp",
-                    ProjectionMode::Isometric => "◇ Iso",
+                    SceneProjectionMode::Perspective => "⬜ Persp",
+                    SceneProjectionMode::Isometric => "◇ Iso",
                 };
 
                 if ui.button(button_text).clicked() {
                     *projection_mode = match projection_mode {
-                        ProjectionMode::Perspective => ProjectionMode::Isometric,
-                        ProjectionMode::Isometric => ProjectionMode::Perspective,
+                        SceneProjectionMode::Perspective => SceneProjectionMode::Isometric,
+                        SceneProjectionMode::Isometric => SceneProjectionMode::Perspective,
                     };
                 }
             }
@@ -224,6 +229,13 @@ pub fn render_scene_view(
                 let pos = glam::Vec2::new(transform.x(), transform.y());
                 let size = if let Some(sprite) = world.sprites.get(&entity) {
                     sprite.width.max(sprite.height)
+                } else if let Some(tilemap) = world.tilemaps.get(&entity) {
+                    // For tilemaps, estimate size based on tile count
+                    // Assume average tile size of 16 pixels
+                    let estimated_tile_size = 16.0;
+                    let width = tilemap.width as f32 * estimated_tile_size;
+                    let height = tilemap.height as f32 * estimated_tile_size;
+                    width.max(height)
                 } else if world.meshes.contains_key(&entity) {
                     50.0
                 } else {
@@ -251,10 +263,30 @@ pub fn render_scene_view(
     // Handle transform gizmo interaction
     if let Some(sel_entity) = *selected_entity {
         if let Some(transform) = world.transforms.get(&sel_entity) {
-            let world_pos = glam::Vec2::new(transform.x(), transform.y());
-            let screen_pos = scene_camera.world_to_screen(world_pos);
-            let screen_x = center.x + screen_pos.x;
-            let screen_y = center.y + screen_pos.y;
+            // Calculate screen position based on view mode
+            let (screen_x, screen_y) = match scene_view_mode {
+                SceneViewMode::Mode2D => {
+                    // 2D mode: use simple world_to_screen
+                    let world_pos = glam::Vec2::new(transform.x(), transform.y());
+                    let screen_pos = scene_camera.world_to_screen(world_pos);
+                    (center.x + screen_pos.x, center.y + screen_pos.y)
+                }
+                SceneViewMode::Mode3D => {
+                    // 3D mode: use 3D projection
+                    // Use same viewport calculation as view_3d.rs for consistency
+                    let viewport_size = glam::Vec2::new(rect.width(), rect.height());
+                    let world_pos = glam::Vec3::from(transform.position);
+                    
+                    match rendering::projection_3d::world_to_screen(world_pos, scene_camera, viewport_size) {
+                        Some(pos) => {
+                            // pos is relative to viewport (0,0 is top-left of viewport)
+                            // Convert to screen coordinates by adding rect.min
+                            (rect.min.x + pos.x, rect.min.y + pos.y)
+                        },
+                        None => (-10000.0, -10000.0), // Off-screen
+                    }
+                }
+            };
 
             let transform_copy = transform.clone();
             

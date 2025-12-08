@@ -92,12 +92,12 @@ impl Default for CameraSettings {
     fn default() -> Self {
         Self {
             // OPTIMIZED: Fine-tuned for Unity-like feel
-            pan_sensitivity: 0.6,   // Slightly increased for more responsive panning
-            rotation_sensitivity: 0.55, // Balanced rotation speed
-            zoom_sensitivity: 0.012, // Slightly increased for smoother zoom
-            pan_damping: 0.10,      // Increased for smoother, more polished panning
-            rotation_damping: 0.15, // Increased for smoother rotation
-            zoom_damping: 0.12,     // Increased for smoother zoom transitions
+            pan_sensitivity: 1.0,   // Unity-like pan speed
+            rotation_sensitivity: 0.3, // Slower, more controlled rotation
+            zoom_sensitivity: 0.1, // Smoother zoom
+            pan_damping: 0.0,      // No damping for immediate response
+            rotation_damping: 0.0, // No damping for immediate response
+            zoom_damping: 0.0,     // No damping for immediate response
             enable_inertia: false,  // Disabled by default for more predictable behavior
             inertia_decay: 0.90,    // Slightly faster decay when enabled
             zoom_to_cursor: true,   // Zoom to cursor (better for precise editing)
@@ -133,6 +133,13 @@ pub struct CameraState {
     pub pitch: f32,
 }
 
+/// Projection mode for 3D view
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum SceneProjectionMode {
+    Isometric,
+    Perspective,
+}
+
 #[derive(Debug, Clone)]
 pub struct SceneCamera {
     pub position: Vec2,
@@ -141,6 +148,7 @@ pub struct SceneCamera {
     pub pitch: f32,       // Vertical rotation in degrees
     pub distance: f32,    // Distance from pivot point (for orbit)
     pub pivot: Vec2,      // Pivot point for orbit mode
+    pub projection_mode: SceneProjectionMode, // Current projection mode
     
     // Camera bounds
     pub min_zoom: f32,
@@ -188,10 +196,11 @@ impl SceneCamera {
         Self {
             position: Vec2::ZERO,
             zoom: initial_zoom,       // Editor zoom (2x for comfortable editing)
-            rotation: 45.0,   // Default 45° angle
-            pitch: 30.0,      // Default 30° pitch
-            distance: 500.0,  // Default distance
+            rotation: 0.0,    // Start in 2D mode (0° rotation)
+            pitch: 0.0,       // Start in 2D mode (0° pitch)
+            distance: 500.0,  // Default distance for 3D mode
             pivot: Vec2::ZERO,
+            projection_mode: SceneProjectionMode::Perspective,
             min_zoom: 0.01,   // Min zoom (1% - very zoomed out, see entire level)
             max_zoom: 100.0,  // Max zoom (100x - very zoomed in, pixel-level editing)
             min_pitch: -89.0,
@@ -206,8 +215,8 @@ impl SceneCamera {
             settings,
             velocity: CameraVelocity::default(),
             target_position: Vec2::ZERO,
-            target_rotation: 45.0,
-            target_pitch: 30.0,
+            target_rotation: 0.0,  // Start in 2D mode
+            target_pitch: 0.0,     // Start in 2D mode
             target_zoom: initial_zoom,  // Match initial_zoom
             zoom_interpolation_speed: 10.0,
             saved_3d_state: None,
@@ -230,19 +239,47 @@ impl SceneCamera {
         if self.is_panning {
             let delta = mouse_pos - self.last_mouse_pos;
 
-            // Simple pan calculation for 2D mode
-            // Convert screen space delta to world space delta
-            let pan_speed = self.settings.pan_sensitivity / self.zoom;
-            
-            // Direct X/Y movement (inverted to match Unity: drag right = world moves left)
-            let world_delta = Vec2::new(-delta.x, delta.y) * pan_speed;
+            // Check if we're in 3D mode (pitch != 0)
+            if self.pitch.abs() > 0.1 {
+                // 3D mode: pan in camera space
+                // Calculate pan speed based on distance from pivot
+                let pan_speed = self.settings.pan_sensitivity * (self.distance / 100.0);
+                
+                let yaw_rad = self.rotation.to_radians();
+                
+                // Right vector (perpendicular to view direction on XZ plane)
+                let right_x = -yaw_rad.sin();
+                let right_z = yaw_rad.cos();
+                
+                // Forward vector (for up/down panning in 3D)
+                let forward_x = yaw_rad.cos();
+                let forward_z = yaw_rad.sin();
+                
+                // Apply delta in camera space (inverted to match Unity: drag right = world moves left)
+                let world_delta_x = (-delta.x * right_x - delta.y * forward_x) * pan_speed;
+                let world_delta_z = (-delta.x * right_z - delta.y * forward_z) * pan_speed;
+                
+                let world_delta = Vec2::new(world_delta_x, world_delta_z);
 
-            // Update position immediately for responsive panning
-            self.position += world_delta;
-            self.target_position = self.position;
+                // Update both position and pivot
+                self.position += world_delta;
+                self.pivot += world_delta;
+                self.target_position = self.position;
+            } else {
+                // 2D mode: simple pan
+                let pan_speed = self.settings.pan_sensitivity / self.zoom;
+                
+                // Direct X/Y movement (inverted to match Unity: drag right = world moves left)
+                let world_delta = Vec2::new(-delta.x, delta.y) * pan_speed;
+
+                // Update position immediately for responsive panning
+                self.position += world_delta;
+                self.target_position = self.position;
+            }
             
             // Add to velocity for inertia (if enabled)
             if self.settings.enable_inertia {
+                let world_delta = self.position - self.target_position;
                 self.velocity.pan_velocity += world_delta * 0.3;
             }
 
@@ -257,12 +294,35 @@ impl SceneCamera {
     }
     
     /// Zoom in/out (scroll wheel) - improved version with cursor-based zooming
+    /// For 3D mode, this adjusts the distance from the pivot point
     pub fn zoom(&mut self, delta: f32, mouse_pos: Vec2) {
         // Validate inputs
         if !delta.is_finite() || !mouse_pos.is_finite() {
             return;
         }
         
+        // In 3D Perspective mode (when pitch != 0), adjust distance (Dolly).
+        // In 3D Isometric or 2D mode, adjust zoom (Scale).
+        if self.pitch.abs() > 0.1 && self.projection_mode == SceneProjectionMode::Perspective {
+            // 3D Perspective: adjust distance
+            let zoom_factor = if delta > 0.0 {
+                0.9  // Zoom in = decrease distance by 10%
+            } else {
+                1.1  // Zoom out = increase distance by 10%
+            };
+            
+            self.distance *= zoom_factor;
+            self.distance = self.distance.clamp(1.0, 10000.0);  // Reasonable distance limits
+            
+            // In 3D mode, we simply move closer/further from the target (self.position)
+            // relative to the current viewing angle.
+            // We do NOT update self.position here, as that would shift the look-at target.
+            
+            self.target_zoom = self.zoom; // Sync target for 2D if we switch back
+            return;
+        }
+        
+        // 2D mode: use zoom
         // Check for extreme zoom levels - graceful degradation
         if self.zoom <= self.min_zoom * 1.01 && delta < 0.0 {
             // Already at minimum zoom, don't zoom out further
@@ -619,16 +679,25 @@ impl SceneCamera {
         self.is_orbiting = true;
         self.pivot = pivot_point;
         self.last_mouse_pos = mouse_pos;
-        // Ensure target position matches current position to avoid damping drift
-        self.target_position = self.position;
-        // Calculate and store the distance and rotation based on current position
+        
+        // Calculate current distance from pivot
         let offset = self.position - self.pivot;
-        self.distance = offset.length();
-        // Calculate the rotation angle from the offset to maintain current orientation
-        if self.distance > 0.001 {
-            self.target_rotation = offset.y.atan2(offset.x).to_degrees();
-            self.rotation = self.target_rotation;
+        let horizontal_distance = offset.length();
+        
+        // Store distance (considering pitch for 3D orbiting)
+        if self.pitch.abs() > 0.1 {
+            // In 3D mode, calculate actual 3D distance
+            let pitch_rad = self.pitch.to_radians();
+            self.distance = horizontal_distance / pitch_rad.cos().max(0.01);
+        } else {
+            // In 2D mode, use horizontal distance
+            self.distance = horizontal_distance.max(10.0);  // Minimum distance
         }
+        
+        // Ensure target values match current values to avoid damping drift
+        self.target_position = self.position;
+        self.target_rotation = self.rotation;
+        self.target_pitch = self.pitch;
     }
     
     /// Update orbit (Alt + Left mouse button held)
@@ -636,28 +705,35 @@ impl SceneCamera {
         if self.is_orbiting {
             let delta = mouse_pos - self.last_mouse_pos;
             
-            // Use the stored distance field to maintain consistent distance
-            let orbit_distance = self.distance;
-            
             // Rotate around pivot
             let yaw_delta = delta.x * self.settings.rotation_sensitivity;
             let pitch_delta = -delta.y * self.settings.rotation_sensitivity;
             
-            self.target_rotation += yaw_delta;
-            self.target_rotation = self.target_rotation.rem_euclid(360.0);
+            // Update rotation angles
+            self.rotation += yaw_delta;
+            self.rotation = self.rotation.rem_euclid(360.0);
+            self.target_rotation = self.rotation;
             
-            self.target_pitch += pitch_delta;
-            self.target_pitch = self.target_pitch.clamp(self.min_pitch, self.max_pitch);
+            self.pitch += pitch_delta;
+            self.pitch = self.pitch.clamp(self.min_pitch, self.max_pitch);
+            self.target_pitch = self.pitch;
             
-            // Update camera position to maintain the stored distance from pivot
-            let yaw_rad = self.target_rotation.to_radians();
-            let offset_x = orbit_distance * yaw_rad.cos();
-            let offset_z = orbit_distance * yaw_rad.sin();
+            // Calculate new camera position maintaining constant distance from pivot
+            let yaw_rad = self.rotation.to_radians();
+            let pitch_rad = self.pitch.to_radians();
+            
+            // Calculate position in spherical coordinates
+            let horizontal_distance = self.distance * pitch_rad.cos();
+            let offset_x = horizontal_distance * yaw_rad.cos();
+            let offset_z = horizontal_distance * yaw_rad.sin();
+            
             let new_position = self.pivot + Vec2::new(offset_x, offset_z);
             
-            // Update both position and target for immediate response
-            self.position = new_position;
-            self.target_position = new_position;
+            // Validate and update position
+            if new_position.is_finite() {
+                self.position = new_position;
+                self.target_position = new_position;
+            }
             
             // Add to velocity for inertia
             if self.settings.enable_inertia {
@@ -675,20 +751,53 @@ impl SceneCamera {
     
     /// Focus on object (F key) - frames entity appropriately in viewport
     pub fn focus_on(&mut self, target_pos: Vec2, object_size: f32, viewport_size: Vec2) {
+        // Set pivot to target position
         self.pivot = target_pos;
-        self.position = target_pos;
         
-        // Calculate zoom to frame object with some padding (1.5x the object size)
-        let target_screen_size = object_size * 1.5;
-        let viewport_min = viewport_size.x.min(viewport_size.y);
-        
-        // Zoom should make the object take up a reasonable portion of the viewport
-        self.target_zoom = viewport_min / target_screen_size;
-        self.target_zoom = self.target_zoom.clamp(self.min_zoom, self.max_zoom);
-        self.zoom = self.target_zoom;
-        
-        // Set appropriate distance based on object size for 3D mode
-        self.distance = object_size * 3.0;
+        // Check if we're in 3D mode (pitch != 0)
+        if self.pitch.abs() > 0.1 {
+            // 3D mode: maintain current rotation/pitch, adjust distance
+            // Calculate appropriate distance to frame the object
+            let fov = 60.0_f32.to_radians();
+            let viewport_min = viewport_size.x.min(viewport_size.y);
+            
+            // Calculate distance needed to frame object with padding
+            let padding_factor = 2.5; // Show object with some padding
+            let target_screen_size = object_size * padding_factor;
+            
+            // Use FOV to calculate distance
+            let half_fov = fov / 2.0;
+            self.distance = (target_screen_size / 2.0) / half_fov.tan();
+            self.distance = self.distance.clamp(10.0, 10000.0);
+            
+            // Update camera position based on new distance and current rotation/pitch
+            let yaw_rad = self.rotation.to_radians();
+            let pitch_rad = self.pitch.to_radians();
+            
+            let horizontal_distance = self.distance * pitch_rad.cos();
+            let offset_x = horizontal_distance * yaw_rad.cos();
+            let offset_z = horizontal_distance * yaw_rad.sin();
+            
+            self.position = self.pivot + Vec2::new(offset_x, offset_z);
+            self.target_position = self.position;
+        } else {
+            // 2D mode: adjust position and zoom
+            self.position = target_pos;
+            self.target_position = target_pos;
+            
+            // Calculate zoom to frame object with padding
+            let padding_factor = 1.5;
+            let target_screen_size = object_size * padding_factor;
+            let viewport_min = viewport_size.x.min(viewport_size.y);
+            
+            // Zoom calculation: we want object_size * zoom * padding = viewport_min
+            // So: zoom = viewport_min / (object_size * padding)
+            if target_screen_size > 0.0 {
+                self.zoom = viewport_min / target_screen_size;
+                self.zoom = self.zoom.clamp(self.min_zoom, self.max_zoom);
+                self.target_zoom = self.zoom;
+            }
+        }
     }
     
     /// Frame selected object (F key) - alternative with explicit size
@@ -746,18 +855,19 @@ impl SceneCamera {
     pub fn reset(&mut self) {
         self.position = Vec2::ZERO;
         self.zoom = 2.0;  // 2x zoom for editor
-        self.rotation = 45.0;
-        self.pitch = 30.0;
+        self.rotation = 0.0;  // Reset to 2D mode
+        self.pitch = 0.0;     // Reset to 2D mode
         self.distance = 500.0;
         self.pivot = Vec2::ZERO;
         self.target_position = Vec2::ZERO;
         self.target_zoom = 2.0;  // 2x zoom for editor
-        self.target_rotation = 45.0;
-        self.target_pitch = 30.0;
+        self.target_rotation = 0.0;  // Reset to 2D mode
+        self.target_pitch = 0.0;     // Reset to 2D mode
         self.velocity = CameraVelocity::default();
         self.is_panning = false;
         self.is_rotating = false;
         self.is_orbiting = false;
+        self.saved_3d_state = None;  // Clear saved 3D state
     }
     
     /// Check if camera is being controlled
@@ -793,15 +903,15 @@ impl SceneCamera {
     }
     
     /// Get projection matrix for 3D rendering
-    pub fn get_projection_matrix(&self, aspect: f32, mode: ProjectionMode) -> Mat4 {
+    pub fn get_projection_matrix(&self, aspect: f32, mode: SceneProjectionMode) -> Mat4 {
         match mode {
-            ProjectionMode::Perspective => {
+            SceneProjectionMode::Perspective => {
                 let fov = 60.0_f32.to_radians();
                 let near = 0.1;
                 let far = 10000.0;
                 Mat4::perspective_rh(fov, aspect, near, far)
             }
-            ProjectionMode::Isometric => {
+            SceneProjectionMode::Isometric => {
                 let height = 1000.0 / self.zoom;
                 let width = height * aspect;
                 let near = -1000.0;
@@ -864,6 +974,25 @@ impl SceneCamera {
             self.pitch = 30.0;
             self.target_rotation = 45.0;
             self.target_pitch = 30.0;
+            
+            // Set pivot to current position (where we're looking at)
+            self.pivot = self.position;
+            
+            // Use a reasonable distance based on zoom level
+            // In 2D, zoom represents how much we see
+            // In 3D, distance should give similar view
+            self.distance = 20.0 / self.zoom;  // Closer view for better editing
+            
+            // Calculate camera position based on distance and angles
+            let yaw_rad = self.rotation.to_radians();
+            let pitch_rad = self.pitch.to_radians();
+            
+            let horizontal_distance = self.distance * pitch_rad.cos();
+            let offset_x = horizontal_distance * yaw_rad.cos();
+            let offset_z = horizontal_distance * yaw_rad.sin();
+            
+            self.position = self.pivot + Vec2::new(offset_x, offset_z);
+            self.target_position = self.position;
         }
     }
     
@@ -1010,12 +1139,7 @@ impl SceneCamera {
     }
 }
 
-/// Projection mode for 3D rendering
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum ProjectionMode {
-    Perspective,
-    Isometric,
-}
+
 
 impl Default for SceneCamera {
     fn default() -> Self {

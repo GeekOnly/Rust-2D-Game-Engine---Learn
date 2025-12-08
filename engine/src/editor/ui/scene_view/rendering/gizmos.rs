@@ -7,6 +7,7 @@ use egui;
 use crate::editor::ui::TransformTool;
 use crate::editor::SceneCamera;
 use super::super::types::*;
+use super::projection_3d;
 
 /// Render scene gizmo (XYZ axes in top-right corner)
 pub fn render_scene_gizmo_visual(
@@ -178,6 +179,29 @@ pub fn render_transform_gizmo(
                 egui::Color32::from_rgb(0, 255, 0),
             );
 
+            // Z Axis (Blue) - Only in 3D mode
+            if *scene_view_mode == SceneViewMode::Mode3D {
+                // Z axis points perpendicular to X (opposite direction from Y)
+                let z_angle = rotation_rad + std::f32::consts::PI / 2.0;
+                let z_dir = (z_angle.cos(), z_angle.sin());
+                let z_end = egui::pos2(
+                    screen_x + z_dir.0 * gizmo_size,
+                    screen_y + z_dir.1 * gizmo_size,
+                );
+                painter.line_segment(
+                    [egui::pos2(screen_x, screen_y), z_end],
+                    egui::Stroke::new(4.0, egui::Color32::from_rgb(0, 100, 255)),
+                );
+                painter.circle_filled(z_end, handle_size, egui::Color32::from_rgb(0, 100, 255));
+                painter.text(
+                    egui::pos2(z_end.x - 12.0, z_end.y),
+                    egui::Align2::RIGHT_CENTER,
+                    "Z",
+                    egui::FontId::proportional(14.0),
+                    egui::Color32::from_rgb(0, 100, 255),
+                );
+            }
+
             // Center handle (Yellow)
             painter.circle_filled(egui::pos2(screen_x, screen_y), handle_size * 1.2, egui::Color32::from_rgb(255, 255, 0));
         }
@@ -243,6 +267,25 @@ pub fn render_transform_gizmo(
                 0.0,
                 egui::Color32::from_rgb(0, 255, 0)
             );
+
+            // Z Axis (Blue) - Only in 3D mode
+            if *scene_view_mode == SceneViewMode::Mode3D {
+                let z_angle = rotation_rad + std::f32::consts::PI / 2.0;
+                let z_dir = (z_angle.cos(), z_angle.sin());
+                let z_end = egui::pos2(
+                    screen_x + z_dir.0 * gizmo_size,
+                    screen_y + z_dir.1 * gizmo_size,
+                );
+                painter.line_segment(
+                    [egui::pos2(screen_x, screen_y), z_end],
+                    egui::Stroke::new(4.0, egui::Color32::from_rgb(0, 100, 255)),
+                );
+                painter.rect_filled(
+                    egui::Rect::from_center_size(z_end, egui::vec2(handle_size * 1.8, handle_size * 1.8)),
+                    0.0,
+                    egui::Color32::from_rgb(0, 100, 255)
+                );
+            }
             
             // Center handle for uniform scale (White)
             painter.rect_filled(
@@ -460,6 +503,126 @@ pub fn render_camera_gizmo(
             ],
             egui::Stroke::new(1.0, egui::Color32::from_rgb(150, 150, 150)),
         );
+    }
+}
+
+/// Render camera frustum in 3D (pyramid shape showing FOV)
+pub fn render_camera_frustum_3d(
+    painter: &egui::Painter,
+    camera_entity: Entity,
+    world: &World,
+    scene_camera: &SceneCamera,
+    viewport_size: glam::Vec2,
+) {
+    // Get camera component and transform
+    if let (Some(camera), Some(transform)) = (world.cameras.get(&camera_entity), world.transforms.get(&camera_entity)) {
+        // Camera position in world space
+        let cam_pos = glam::Vec3::new(transform.position[0], transform.position[1], transform.position[2]);
+        
+        // Calculate frustum based on FOV and aspect ratio
+        let fov_rad = camera.fov.to_radians();
+        let aspect = 16.0 / 9.0; // Default aspect ratio
+        let near = camera.near_clip;
+        let far = camera.far_clip.min(1000.0); // Limit far plane for visibility
+        
+        // Calculate frustum dimensions at near and far planes
+        let near_height = 2.0 * near * (fov_rad / 2.0).tan();
+        let near_width = near_height * aspect;
+        let far_height = 2.0 * far * (fov_rad / 2.0).tan();
+        let far_width = far_height * aspect;
+        
+        // Camera forward direction based on camera rotation
+        // In Unity/game engines, camera typically looks along -Z in local space
+        // Apply camera rotation to get world-space directions
+        let rotation_y = transform.rotation[1].to_radians(); // Yaw
+        let rotation_x = transform.rotation[0].to_radians(); // Pitch
+        
+        // Calculate forward vector (camera looks along -Z by default)
+        let forward = glam::Vec3::new(
+            rotation_y.sin() * rotation_x.cos(),
+            -rotation_x.sin(),
+            -rotation_y.cos() * rotation_x.cos(),
+        );
+        
+        // Calculate right vector
+        let right = glam::Vec3::new(
+            rotation_y.cos(),
+            0.0,
+            rotation_y.sin(),
+        );
+        
+        // Calculate up vector (cross product of right and forward)
+        let up = right.cross(forward).normalize();
+        
+        // Calculate 8 frustum corners in world space
+        // Near plane corners
+        let near_center = cam_pos + forward * near;
+        let near_tl = near_center + up * (near_height / 2.0) - right * (near_width / 2.0);
+        let near_tr = near_center + up * (near_height / 2.0) + right * (near_width / 2.0);
+        let near_bl = near_center - up * (near_height / 2.0) - right * (near_width / 2.0);
+        let near_br = near_center - up * (near_height / 2.0) + right * (near_width / 2.0);
+        
+        // Far plane corners
+        let far_center = cam_pos + forward * far;
+        let far_tl = far_center + up * (far_height / 2.0) - right * (far_width / 2.0);
+        let far_tr = far_center + up * (far_height / 2.0) + right * (far_width / 2.0);
+        let far_bl = far_center - up * (far_height / 2.0) - right * (far_width / 2.0);
+        let far_br = far_center - up * (far_height / 2.0) + right * (far_width / 2.0);
+        
+        // Helper function to project 3D point to screen
+        let project = |point: glam::Vec3| -> Option<egui::Pos2> {
+            projection_3d::world_to_screen(point, scene_camera, viewport_size)
+                .map(|v| egui::pos2(v.x, v.y))
+        };
+        
+        let frustum_color = egui::Color32::from_rgb(255, 220, 0); // Yellow
+        let stroke = egui::Stroke::new(2.0, frustum_color);
+        
+        // Draw near plane rectangle
+        if let (Some(p1), Some(p2), Some(p3), Some(p4)) = (
+            project(near_tl), project(near_tr), project(near_br), project(near_bl)
+        ) {
+            painter.line_segment([p1, p2], stroke);
+            painter.line_segment([p2, p3], stroke);
+            painter.line_segment([p3, p4], stroke);
+            painter.line_segment([p4, p1], stroke);
+        }
+        
+        // Draw far plane rectangle with thicker stroke (viewport bounds)
+        let far_stroke = egui::Stroke::new(4.0, frustum_color);
+        if let (Some(p1), Some(p2), Some(p3), Some(p4)) = (
+            project(far_tl), project(far_tr), project(far_br), project(far_bl)
+        ) {
+            // Draw the rectangle outline
+            painter.line_segment([p1, p2], far_stroke);
+            painter.line_segment([p2, p3], far_stroke);
+            painter.line_segment([p3, p4], far_stroke);
+            painter.line_segment([p4, p1], far_stroke);
+            
+            // Fill the far plane with semi-transparent yellow (viewport bounds)
+            // Increased alpha for better visibility
+            let fill_color = egui::Color32::from_rgba_premultiplied(255, 220, 0, 60);
+            painter.add(egui::Shape::convex_polygon(
+                vec![p1, p2, p3, p4],
+                fill_color,
+                egui::Stroke::NONE,
+            ));
+            
+            // Draw corner markers for better visibility
+            let corner_size = 8.0;
+            painter.circle_filled(p1, corner_size, frustum_color);
+            painter.circle_filled(p2, corner_size, frustum_color);
+            painter.circle_filled(p3, corner_size, frustum_color);
+            painter.circle_filled(p4, corner_size, frustum_color);
+        }
+        
+        // Draw connecting lines from camera to far corners
+        if let Some(cam_screen) = project(cam_pos) {
+            if let Some(p) = project(far_tl) { painter.line_segment([cam_screen, p], stroke); }
+            if let Some(p) = project(far_tr) { painter.line_segment([cam_screen, p], stroke); }
+            if let Some(p) = project(far_bl) { painter.line_segment([cam_screen, p], stroke); }
+            if let Some(p) = project(far_br) { painter.line_segment([cam_screen, p], stroke); }
+        }
     }
 }
 

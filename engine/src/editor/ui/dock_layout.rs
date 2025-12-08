@@ -50,7 +50,7 @@ pub struct TabContext<'a> {
     pub dragging_entity: &'a mut Option<Entity>,
     pub drag_axis: &'a mut Option<u8>,
     pub scene_view_mode: &'a mut scene_view::SceneViewMode,
-    pub projection_mode: &'a mut scene_view::ProjectionMode,
+    pub projection_mode: &'a mut scene_view::SceneProjectionMode,
     pub transform_space: &'a mut scene_view::TransformSpace,
     pub texture_manager: &'a mut crate::texture_manager::TextureManager,
     pub open_sprite_editor_request: &'a mut Option<std::path::PathBuf>,

@@ -509,9 +509,9 @@ pub fn calculate_projection_matrix(
     let aspect = viewport_size.x / viewport_size.y;
     
     if perspective {
-        camera.get_projection_matrix(aspect, crate::editor::camera::ProjectionMode::Perspective)
+        camera.get_projection_matrix(aspect, crate::editor::camera::SceneProjectionMode::Perspective)
     } else {
-        camera.get_projection_matrix(aspect, crate::editor::camera::ProjectionMode::Isometric)
+        camera.get_projection_matrix(aspect, crate::editor::camera::SceneProjectionMode::Isometric)
     }
 }
 

@@ -147,7 +147,7 @@ impl EditorUI {
             let mut dummy_dragging_entity = None;
             let mut dummy_drag_axis = None;
             let mut dummy_scene_view_mode = scene_view::SceneViewMode::Mode2D;
-            let mut dummy_projection_mode = scene_view::ProjectionMode::Perspective;
+            let mut dummy_projection_mode = scene_view::SceneProjectionMode::Perspective;
             let mut dummy_transform_space = scene_view::TransformSpace::Local;
             
             let mut dummy_debug_draw = crate::editor::debug_draw::DebugDrawManager::new();
@@ -299,7 +299,7 @@ impl EditorUI {
         dragging_entity: &mut Option<Entity>,
         drag_axis: &mut Option<u8>,
         scene_view_mode: &mut scene_view::SceneViewMode,
-        projection_mode: &mut scene_view::ProjectionMode,
+        projection_mode: &mut scene_view::SceneProjectionMode,
         transform_space: &mut scene_view::TransformSpace,
         texture_manager: &mut crate::texture_manager::TextureManager,
         open_sprite_editor_request: &mut Option<std::path::PathBuf>,
