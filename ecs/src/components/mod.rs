@@ -11,4 +11,4 @@ pub mod grid;
 pub use sprite_sheet::{SpriteSheet, SpriteFrame, AnimatedSprite, AnimationMode};
 pub use tilemap::{TileSet, Tilemap, Tile, TileData, TilemapChunk};
 pub use map::{Map, MapType};
-pub use grid::{Grid, GridLayout, HexagonOrientation, CellSwizzle};
+pub use grid::{Grid, GridLayout, HexagonOrientation, CellSwizzle, GridPlane};

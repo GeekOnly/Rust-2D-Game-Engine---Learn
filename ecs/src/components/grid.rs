@@ -6,8 +6,9 @@ use serde::{Deserialize, Serialize};
 /// and coordinate system for tilemaps.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Grid {
-    /// Cell size (width, height) in world units
-    pub cell_size: (f32, f32),
+    /// Cell size (width, height, depth) in world units
+    /// For 2D grids, depth (Z) is typically 0
+    pub cell_size: (f32, f32, f32),
     
     /// Gap between cells (spacing)
     pub cell_gap: (f32, f32),
@@ -17,15 +18,21 @@ pub struct Grid {
     
     /// Axis swizzle for 3D grids
     pub swizzle: CellSwizzle,
+    
+    /// Grid plane orientation (Unity-style)
+    /// Determines which plane the grid lies on (XY, XZ, or YZ)
+    #[serde(default)]
+    pub plane: GridPlane,
 }
 
 impl Default for Grid {
     fn default() -> Self {
         Self {
-            cell_size: (1.0, 1.0),
+            cell_size: (1.0, 1.0, 0.0),  // Default 2D grid (no depth)
             cell_gap: (0.0, 0.0),
             layout: GridLayout::Rectangle,
             swizzle: CellSwizzle::XYZ,
+            plane: GridPlane::XY,  // Default to XY plane (2D horizontal)
         }
     }
 }
@@ -36,11 +43,41 @@ impl Grid {
         Self::default()
     }
     
-    /// Create a grid with custom cell size
+    /// Create a grid with custom cell size (2D)
     pub fn with_cell_size(width: f32, height: f32) -> Self {
         Self {
-            cell_size: (width, height),
+            cell_size: (width, height, 0.0),
             ..Default::default()
+        }
+    }
+    
+    /// Create a grid with custom cell size (3D)
+    pub fn with_cell_size_3d(width: f32, height: f32, depth: f32) -> Self {
+        Self {
+            cell_size: (width, height, depth),
+            ..Default::default()
+        }
+    }
+    
+    /// Create a vertical grid (XZ plane) - Unity style
+    pub fn vertical() -> Self {
+        Self {
+            cell_size: (1.0, 1.0, 0.0),
+            cell_gap: (0.0, 0.0),
+            layout: GridLayout::Rectangle,
+            swizzle: CellSwizzle::XZY,  // X=right, Z=up, Y=forward
+            plane: GridPlane::XZ,
+        }
+    }
+    
+    /// Create a side grid (YZ plane) - Unity style
+    pub fn side() -> Self {
+        Self {
+            cell_size: (1.0, 1.0, 0.0),
+            cell_gap: (0.0, 0.0),
+            layout: GridLayout::Rectangle,
+            swizzle: CellSwizzle::YZX,  // Y=right, Z=up, X=forward
+            plane: GridPlane::YZ,
         }
     }
     
@@ -62,13 +99,39 @@ impl Grid {
         }
     }
     
-    /// Get cell center in world coordinates
+    /// Get cell center in world coordinates (2D)
     pub fn get_cell_center(&self, cell_x: i32, cell_y: i32) -> (f32, f32) {
         let (x, y) = self.cell_to_world(cell_x, cell_y);
         (
             x + self.cell_size.0 / 2.0,
             y + self.cell_size.1 / 2.0,
         )
+    }
+    
+    /// Get cell center in 3D world coordinates
+    /// Takes grid plane into account
+    pub fn get_cell_center_3d(&self, cell_x: i32, cell_y: i32, cell_z: i32) -> (f32, f32, f32) {
+        let (x, y) = self.cell_to_world(cell_x, cell_y);
+        let z = cell_z as f32 * (self.cell_size.2 + self.cell_gap.0);
+        
+        // Apply plane transformation
+        match self.plane {
+            GridPlane::XY => (
+                x + self.cell_size.0 / 2.0,
+                y + self.cell_size.1 / 2.0,
+                z + self.cell_size.2 / 2.0,
+            ),
+            GridPlane::XZ => (
+                x + self.cell_size.0 / 2.0,
+                z + self.cell_size.2 / 2.0,
+                y + self.cell_size.1 / 2.0,
+            ),
+            GridPlane::YZ => (
+                z + self.cell_size.2 / 2.0,
+                x + self.cell_size.0 / 2.0,
+                y + self.cell_size.1 / 2.0,
+            ),
+        }
     }
     
     // Rectangle layout conversions
@@ -157,6 +220,59 @@ pub enum HexagonOrientation {
     PointyTop,
 }
 
+/// Grid plane orientation (Unity-style)
+/// 
+/// Determines which 2D plane the grid lies on in 3D space
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub enum GridPlane {
+    /// XY plane (horizontal, default for 2D games)
+    /// X = right, Y = up, Z = forward/depth
+    XY,
+    
+    /// XZ plane (vertical, like walls)
+    /// X = right, Z = up, Y = forward/depth
+    XZ,
+    
+    /// YZ plane (side view)
+    /// Y = right, Z = up, X = forward/depth
+    YZ,
+}
+
+impl Default for GridPlane {
+    fn default() -> Self {
+        GridPlane::XY
+    }
+}
+
+impl GridPlane {
+    /// Get the "right" axis for this plane
+    pub fn right_axis(&self) -> (f32, f32, f32) {
+        match self {
+            GridPlane::XY => (1.0, 0.0, 0.0),  // X
+            GridPlane::XZ => (1.0, 0.0, 0.0),  // X
+            GridPlane::YZ => (0.0, 1.0, 0.0),  // Y
+        }
+    }
+    
+    /// Get the "up" axis for this plane
+    pub fn up_axis(&self) -> (f32, f32, f32) {
+        match self {
+            GridPlane::XY => (0.0, 1.0, 0.0),  // Y
+            GridPlane::XZ => (0.0, 0.0, 1.0),  // Z
+            GridPlane::YZ => (0.0, 0.0, 1.0),  // Z
+        }
+    }
+    
+    /// Get the "forward" axis (depth) for this plane
+    pub fn forward_axis(&self) -> (f32, f32, f32) {
+        match self {
+            GridPlane::XY => (0.0, 0.0, 1.0),  // Z
+            GridPlane::XZ => (0.0, 1.0, 0.0),  // Y
+            GridPlane::YZ => (1.0, 0.0, 0.0),  // X
+        }
+    }
+}
+
 /// Cell swizzle for 3D grids
 /// 
 /// Defines which axis maps to which direction in 3D space
@@ -165,13 +281,13 @@ pub enum CellSwizzle {
     /// X=right, Y=up, Z=forward (default)
     XYZ,
     
-    /// X=right, Z=up, Y=forward
+    /// X=right, Z=up, Y=forward (vertical grid)
     XZY,
     
     /// Y=right, X=up, Z=forward
     YXZ,
     
-    /// Y=right, Z=up, X=forward
+    /// Y=right, Z=up, X=forward (side grid)
     YZX,
     
     /// Z=right, X=up, Y=forward
@@ -254,5 +370,38 @@ mod tests {
         assert_eq!(CellSwizzle::XYZ.apply(1.0, 2.0, 3.0), (1.0, 2.0, 3.0));
         assert_eq!(CellSwizzle::XZY.apply(1.0, 2.0, 3.0), (1.0, 3.0, 2.0));
         assert_eq!(CellSwizzle::YXZ.apply(1.0, 2.0, 3.0), (2.0, 1.0, 3.0));
+    }
+    
+    #[test]
+    fn test_vertical_grid() {
+        let grid = Grid::vertical();
+        
+        // Vertical grid should use XZ plane
+        assert_eq!(grid.plane, GridPlane::XZ);
+        assert_eq!(grid.swizzle, CellSwizzle::XZY);
+        
+        // Test 3D cell center
+        let (x, y, z) = grid.get_cell_center_3d(0, 0, 0);
+        assert_eq!(x, 0.5);  // X center
+        assert_eq!(y, 0.0);  // Y (depth) = 0
+        assert_eq!(z, 0.5);  // Z center (up)
+    }
+    
+    #[test]
+    fn test_grid_planes() {
+        // XY plane (horizontal)
+        assert_eq!(GridPlane::XY.right_axis(), (1.0, 0.0, 0.0));
+        assert_eq!(GridPlane::XY.up_axis(), (0.0, 1.0, 0.0));
+        assert_eq!(GridPlane::XY.forward_axis(), (0.0, 0.0, 1.0));
+        
+        // XZ plane (vertical)
+        assert_eq!(GridPlane::XZ.right_axis(), (1.0, 0.0, 0.0));
+        assert_eq!(GridPlane::XZ.up_axis(), (0.0, 0.0, 1.0));
+        assert_eq!(GridPlane::XZ.forward_axis(), (0.0, 1.0, 0.0));
+        
+        // YZ plane (side)
+        assert_eq!(GridPlane::YZ.right_axis(), (0.0, 1.0, 0.0));
+        assert_eq!(GridPlane::YZ.up_axis(), (0.0, 0.0, 1.0));
+        assert_eq!(GridPlane::YZ.forward_axis(), (1.0, 0.0, 0.0));
     }
 }

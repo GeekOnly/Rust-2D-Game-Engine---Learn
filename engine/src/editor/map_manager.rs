@@ -337,10 +337,11 @@ impl MapManager {
         
         let pixels_per_unit = 100.0; // Unity standard PPU for consistent scale
         let grid = ecs::Grid {
-            cell_size: (grid_size / pixels_per_unit, grid_size / pixels_per_unit),
+            cell_size: (grid_size / pixels_per_unit, grid_size / pixels_per_unit, 0.0),  // 2D grid (no depth)
             cell_gap: (0.0, 0.0),
             layout: ecs::GridLayout::Rectangle,
             swizzle: ecs::CellSwizzle::XYZ,
+            plane: ecs::GridPlane::XY,  // Default horizontal plane
         };
         world.grids.insert(grid_entity, grid);
         

@@ -1,131 +1,11 @@
 {
-  "next_entity": 313,
+  "next_entity": 314,
   "transforms": [
     [
-      0,
+      288,
       {
         "position": [
-          9.462332,
-          -16.480227,
-          -10.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          10.48,
-          1.0421437,
-          1.0
-        ]
-      }
-    ],
-    [
-      311,
-      {
-        "position": [
-          32.375,
-          -22.375,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      295,
-      {
-        "position": [
-          9.375,
-          -11.875,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      286,
-      {
-        "position": [
-          5.375,
-          -13.375,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      300,
-      {
-        "position": [
-          25.875,
-          -15.375,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      305,
-      {
-        "position": [
-          15.375,
-          -21.375,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      287,
-      {
-        "position": [
-          11.375,
+          34.875,
           -1.375,
           0.0
         ],
@@ -142,11 +22,71 @@
       }
     ],
     [
-      309,
+      301,
       {
         "position": [
-          30.875,
-          -21.875,
+          12.375,
+          -20.875,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      297,
+      {
+        "position": [
+          7.375,
+          -13.375,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      307,
+      {
+        "position": [
+          29.375,
+          -20.375,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      302,
+      {
+        "position": [
+          17.875,
+          -20.875,
           0.0
         ],
         "rotation": [
@@ -182,11 +122,11 @@
       }
     ],
     [
-      292,
+      303,
       {
         "position": [
-          4.375,
-          -10.875,
+          39.375,
+          -20.875,
           0.0
         ],
         "rotation": [
@@ -202,11 +142,11 @@
       }
     ],
     [
-      296,
+      312,
       {
         "position": [
-          36.375,
-          -13.375,
+          27.875,
+          -23.375,
           0.0
         ],
         "rotation": [
@@ -217,6 +157,46 @@
         "scale": [
           1.0,
           1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      11,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          5.0,
+          5.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      0,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          10.48,
+          1.0421437,
           1.0
         ]
       }
@@ -242,70 +222,10 @@
       }
     ],
     [
-      294,
+      305,
       {
         "position": [
-          28.875,
-          -9.375,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      310,
-      {
-        "position": [
-          29.375,
-          -22.875,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      285,
-      {
-        "position": [
-          23.375,
-          -0.375,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      308,
-      {
-        "position": [
-          33.375,
+          15.375,
           -21.375,
           0.0
         ],
@@ -342,131 +262,11 @@
       }
     ],
     [
-      288,
-      {
-        "position": [
-          34.875,
-          -1.375,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
       299,
       {
         "position": [
           21.875,
           -20.375,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      301,
-      {
-        "position": [
-          12.375,
-          -20.875,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      303,
-      {
-        "position": [
-          39.375,
-          -20.875,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      302,
-      {
-        "position": [
-          17.875,
-          -20.875,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      307,
-      {
-        "position": [
-          29.375,
-          -20.375,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      312,
-      {
-        "position": [
-          27.875,
-          -23.375,
           0.0
         ],
         "rotation": [
@@ -502,11 +302,71 @@
       }
     ],
     [
-      297,
+      308,
       {
         "position": [
-          7.375,
-          -13.375,
+          33.375,
+          -21.375,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      295,
+      {
+        "position": [
+          9.375,
+          -11.875,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      309,
+      {
+        "position": [
+          30.875,
+          -21.875,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      291,
+      {
+        "position": [
+          8.375,
+          -3.375,
           0.0
         ],
         "rotation": [
@@ -542,26 +402,6 @@
       }
     ],
     [
-      304,
-      {
-        "position": [
-          8.375,
-          -21.375,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
       293,
       {
         "position": [
@@ -582,11 +422,11 @@
       }
     ],
     [
-      11,
+      310,
       {
         "position": [
-          0.0,
-          0.0,
+          29.375,
+          -22.875,
           0.0
         ],
         "rotation": [
@@ -595,18 +435,178 @@
           0.0
         ],
         "scale": [
-          5.0,
-          5.0,
+          1.0,
+          1.0,
           1.0
         ]
       }
     ],
     [
-      291,
+      296,
+      {
+        "position": [
+          36.375,
+          -13.375,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      286,
+      {
+        "position": [
+          5.375,
+          -13.375,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      292,
+      {
+        "position": [
+          4.375,
+          -10.875,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      294,
+      {
+        "position": [
+          28.875,
+          -9.375,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      285,
+      {
+        "position": [
+          23.375,
+          -0.375,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      300,
+      {
+        "position": [
+          25.875,
+          -15.375,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      287,
+      {
+        "position": [
+          11.375,
+          -1.375,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      311,
+      {
+        "position": [
+          32.375,
+          -22.375,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      304,
       {
         "position": [
           8.375,
-          -3.375,
+          -21.375,
           0.0
         ],
         "rotation": [
@@ -624,112 +624,7 @@
   ],
   "velocities": [
     [
-      67,
-      [
-        0.0,
-        -0.0
-      ]
-    ],
-    [
-      58,
-      [
-        0.0,
-        -0.0
-      ]
-    ],
-    [
-      64,
-      [
-        0.0,
-        -0.0
-      ]
-    ],
-    [
-      55,
-      [
-        0.0,
-        -0.0
-      ]
-    ],
-    [
-      71,
-      [
-        0.0,
-        -0.0
-      ]
-    ],
-    [
-      66,
-      [
-        0.0,
-        -0.0
-      ]
-    ],
-    [
-      56,
-      [
-        0.0,
-        -0.0
-      ]
-    ],
-    [
-      63,
-      [
-        0.0,
-        -0.0
-      ]
-    ],
-    [
-      68,
-      [
-        0.0,
-        -0.0
-      ]
-    ],
-    [
-      60,
-      [
-        0.0,
-        -0.0
-      ]
-    ],
-    [
-      62,
-      [
-        0.0,
-        -0.0
-      ]
-    ],
-    [
-      57,
-      [
-        0.0,
-        -0.0
-      ]
-    ],
-    [
-      61,
-      [
-        0.0,
-        -0.0
-      ]
-    ],
-    [
-      59,
-      [
-        0.0,
-        -0.0
-      ]
-    ],
-    [
-      69,
-      [
-        0.0,
-        -0.0
-      ]
-    ],
-    [
-      70,
+      11,
       [
         0.0,
         -0.0
@@ -750,7 +645,112 @@
       ]
     ],
     [
-      11,
+      66,
+      [
+        0.0,
+        -0.0
+      ]
+    ],
+    [
+      60,
+      [
+        0.0,
+        -0.0
+      ]
+    ],
+    [
+      63,
+      [
+        0.0,
+        -0.0
+      ]
+    ],
+    [
+      67,
+      [
+        0.0,
+        -0.0
+      ]
+    ],
+    [
+      57,
+      [
+        0.0,
+        -0.0
+      ]
+    ],
+    [
+      59,
+      [
+        0.0,
+        -0.0
+      ]
+    ],
+    [
+      71,
+      [
+        0.0,
+        -0.0
+      ]
+    ],
+    [
+      64,
+      [
+        0.0,
+        -0.0
+      ]
+    ],
+    [
+      55,
+      [
+        0.0,
+        -0.0
+      ]
+    ],
+    [
+      69,
+      [
+        0.0,
+        -0.0
+      ]
+    ],
+    [
+      56,
+      [
+        0.0,
+        -0.0
+      ]
+    ],
+    [
+      61,
+      [
+        0.0,
+        -0.0
+      ]
+    ],
+    [
+      62,
+      [
+        0.0,
+        -0.0
+      ]
+    ],
+    [
+      68,
+      [
+        0.0,
+        -0.0
+      ]
+    ],
+    [
+      70,
+      [
+        0.0,
+        -0.0
+      ]
+    ],
+    [
+      58,
       [
         0.0,
         -0.0
@@ -785,141 +785,6 @@
   ],
   "colliders": [
     [
-      295,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          7.0,
-          2.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      311,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          1.0,
-          1.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      307,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          1.0,
-          1.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      305,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          3.0,
-          9.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      299,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          6.0,
-          11.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      297,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          3.0,
-          1.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      310,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          1.0,
-          2.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      287,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          11.0,
-          1.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      289,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          7.0,
-          1.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
       285,
       {
         "offset": [
@@ -928,66 +793,6 @@
         ],
         "size": [
           37.0,
-          1.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      303,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          5.0,
-          10.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      301,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          3.0,
-          10.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      304,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          5.0,
-          9.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      293,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          2.0,
           1.0
         ],
         "width": 0.0,
@@ -1010,96 +815,6 @@
       }
     ],
     [
-      292,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          1.0,
-          14.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      309,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          2.0,
-          2.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      308,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          1.0,
-          3.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      290,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          2.0,
-          1.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      294,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          26.0,
-          3.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      11,
-      {
-        "offset": [
-          0.0,
-          -0.02
-        ],
-        "size": [
-          0.16,
-          0.18
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
       288,
       {
         "offset": [
@@ -1108,6 +823,51 @@
         ],
         "size": [
           14.0,
+          1.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      307,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          1.0,
+          1.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      304,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          5.0,
+          9.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      311,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          1.0,
           1.0
         ],
         "width": 0.0,
@@ -1130,7 +890,7 @@
       }
     ],
     [
-      302,
+      293,
       {
         "offset": [
           0.0,
@@ -1138,22 +898,22 @@
         ],
         "size": [
           2.0,
-          10.0
+          1.0
         ],
         "width": 0.0,
         "height": 0.0
       }
     ],
     [
-      306,
+      11,
       {
         "offset": [
           0.0,
-          0.0
+          -0.02
         ],
         "size": [
-          4.0,
-          1.0
+          0.16,
+          0.18
         ],
         "width": 0.0,
         "height": 0.0
@@ -1175,6 +935,201 @@
       }
     ],
     [
+      289,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          7.0,
+          1.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      308,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          1.0,
+          3.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      291,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          5.0,
+          1.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      295,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          7.0,
+          2.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      297,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          3.0,
+          1.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      303,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          5.0,
+          10.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      290,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          2.0,
+          1.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      310,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          1.0,
+          2.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      301,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          3.0,
+          10.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      309,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          2.0,
+          2.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      305,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          3.0,
+          9.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      294,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          26.0,
+          3.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      287,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          11.0,
+          1.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
       296,
       {
         "offset": [
@@ -1184,6 +1139,36 @@
         "size": [
           11.0,
           5.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      299,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          6.0,
+          11.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      292,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          1.0,
+          14.0
         ],
         "width": 0.0,
         "height": 0.0
@@ -1205,15 +1190,30 @@
       }
     ],
     [
-      291,
+      306,
       {
         "offset": [
           0.0,
           0.0
         ],
         "size": [
-          5.0,
+          4.0,
           1.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      302,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          2.0,
+          10.0
         ],
         "width": 0.0,
         "height": 0.0
@@ -1222,7 +1222,7 @@
   ],
   "rigidbodies": [
     [
-      309,
+      294,
       {
         "velocity": [
           0.0,
@@ -1236,7 +1236,7 @@
       }
     ],
     [
-      295,
+      290,
       {
         "velocity": [
           0.0,
@@ -1250,21 +1250,7 @@
       }
     ],
     [
-      286,
-      {
-        "velocity": [
-          0.0,
-          0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true,
-        "enable_ccd": false
-      }
-    ],
-    [
-      303,
+      310,
       {
         "velocity": [
           0.0,
@@ -1292,49 +1278,7 @@
       }
     ],
     [
-      307,
-      {
-        "velocity": [
-          0.0,
-          0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true,
-        "enable_ccd": false
-      }
-    ],
-    [
-      294,
-      {
-        "velocity": [
-          0.0,
-          0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true,
-        "enable_ccd": false
-      }
-    ],
-    [
-      293,
-      {
-        "velocity": [
-          0.0,
-          0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true,
-        "enable_ccd": false
-      }
-    ],
-    [
-      304,
+      296,
       {
         "velocity": [
           0.0,
@@ -1362,6 +1306,118 @@
       }
     ],
     [
+      286,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      60,
+      {
+        "velocity": [
+          0.0,
+          -0.0
+        ],
+        "gravity_scale": 1.0,
+        "mass": 1.0,
+        "is_kinematic": false,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      307,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      298,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      293,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      292,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      299,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      295,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
       287,
       {
         "velocity": [
@@ -1376,7 +1432,119 @@
       }
     ],
     [
+      312,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
       301,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      300,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      308,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      285,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      302,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      306,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      303,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      309,
       {
         "velocity": [
           0.0,
@@ -1418,175 +1586,7 @@
       }
     ],
     [
-      300,
-      {
-        "velocity": [
-          0.0,
-          0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true,
-        "enable_ccd": false
-      }
-    ],
-    [
-      298,
-      {
-        "velocity": [
-          0.0,
-          0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true,
-        "enable_ccd": false
-      }
-    ],
-    [
-      312,
-      {
-        "velocity": [
-          0.0,
-          0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true,
-        "enable_ccd": false
-      }
-    ],
-    [
-      302,
-      {
-        "velocity": [
-          0.0,
-          0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true,
-        "enable_ccd": false
-      }
-    ],
-    [
-      285,
-      {
-        "velocity": [
-          0.0,
-          0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true,
-        "enable_ccd": false
-      }
-    ],
-    [
-      60,
-      {
-        "velocity": [
-          0.0,
-          -0.0
-        ],
-        "gravity_scale": 1.0,
-        "mass": 1.0,
-        "is_kinematic": false,
-        "freeze_rotation": true,
-        "enable_ccd": false
-      }
-    ],
-    [
       305,
-      {
-        "velocity": [
-          0.0,
-          0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true,
-        "enable_ccd": false
-      }
-    ],
-    [
-      290,
-      {
-        "velocity": [
-          0.0,
-          0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true,
-        "enable_ccd": false
-      }
-    ],
-    [
-      288,
-      {
-        "velocity": [
-          0.0,
-          0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true,
-        "enable_ccd": false
-      }
-    ],
-    [
-      292,
-      {
-        "velocity": [
-          0.0,
-          0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true,
-        "enable_ccd": false
-      }
-    ],
-    [
-      310,
-      {
-        "velocity": [
-          0.0,
-          0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true,
-        "enable_ccd": false
-      }
-    ],
-    [
-      306,
-      {
-        "velocity": [
-          0.0,
-          0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true,
-        "enable_ccd": false
-      }
-    ],
-    [
-      308,
       {
         "velocity": [
           0.0,
@@ -1614,7 +1614,7 @@
       }
     ],
     [
-      296,
+      304,
       {
         "velocity": [
           0.0,
@@ -1628,7 +1628,7 @@
       }
     ],
     [
-      299,
+      288,
       {
         "velocity": [
           0.0,
@@ -1647,8 +1647,8 @@
       0,
       {
         "projection": "Orthographic",
-        "fov": 60.0,
-        "orthographic_size": 4.0,
+        "fov": 90.0,
+        "orthographic_size": 2.1,
         "near_clip": 0.1,
         "far_clip": 1000.0,
         "viewport_rect": [
@@ -1678,70 +1678,70 @@
   ],
   "scripts": [
     [
-      0,
-      {
-        "script_name": "camera_follow_simple",
-        "enabled": true,
-        "parameters": {
-          "target_entity": {
-            "Entity": 11
-          },
-          "offset_y": {
-            "Float": 0.0
-          }
-        }
-      }
-    ],
-    [
       11,
       {
         "script_name": "player_controller",
         "enabled": true,
         "parameters": {
-          "can_dash": {
-            "Bool": false
+          "dash_timer": {
+            "Float": 0.0
           },
           "velocity_y": {
             "Float": 0.0
           },
-          "dash_x": {
-            "Float": 1.0
-          },
           "dash_y": {
             "Float": 1.0
           },
-          "is_grounded": {
-            "Bool": false
-          },
-          "wall_direction": {
-            "Int": 0
-          },
-          "dash_direction_y": {
-            "Float": 0.0
+          "dash_x": {
+            "Float": 1.0
           },
           "is_touching_wall": {
             "Bool": false
           },
-          "wall_slide_speed": {
-            "Float": 1.0
-          },
-          "is_dashing": {
-            "Bool": true
-          },
-          "dash_timer": {
-            "Float": 0.0
+          "is_grounded": {
+            "Bool": false
           },
           "dash_duration": {
             "Float": 0.2
           },
+          "dash_direction_x": {
+            "Float": 0.0
+          },
           "new_vel_x": {
+            "Float": 0.0
+          },
+          "wall_direction": {
+            "Int": 0
+          },
+          "can_dash": {
+            "Bool": false
+          },
+          "dash_direction_y": {
             "Float": 0.0
           },
           "velocity_x": {
             "Float": 0.0
           },
-          "dash_direction_x": {
+          "is_dashing": {
+            "Bool": true
+          },
+          "wall_slide_speed": {
+            "Float": 1.0
+          }
+        }
+      }
+    ],
+    [
+      0,
+      {
+        "script_name": "camera_follow_simple",
+        "enabled": true,
+        "parameters": {
+          "offset_y": {
             "Float": 0.0
+          },
+          "target_entity": {
+            "Entity": 11
           }
         }
       }
@@ -1749,31 +1749,7 @@
   ],
   "active": [
     [
-      288,
-      true
-    ],
-    [
-      298,
-      true
-    ],
-    [
-      291,
-      true
-    ],
-    [
-      308,
-      true
-    ],
-    [
-      305,
-      true
-    ],
-    [
-      312,
-      true
-    ],
-    [
-      287,
+      297,
       true
     ],
     [
@@ -1781,39 +1757,11 @@
       true
     ],
     [
-      295,
-      true
-    ],
-    [
-      0,
-      true
-    ],
-    [
-      302,
-      true
-    ],
-    [
       300,
       true
     ],
     [
-      290,
-      true
-    ],
-    [
-      306,
-      true
-    ],
-    [
-      301,
-      true
-    ],
-    [
-      311,
-      true
-    ],
-    [
-      289,
+      292,
       true
     ],
     [
@@ -1821,11 +1769,19 @@
       true
     ],
     [
-      294,
+      306,
       true
     ],
     [
-      284,
+      308,
+      true
+    ],
+    [
+      301,
+      true
+    ],
+    [
+      312,
       true
     ],
     [
@@ -1833,27 +1789,7 @@
       true
     ],
     [
-      309,
-      true
-    ],
-    [
-      296,
-      true
-    ],
-    [
-      299,
-      true
-    ],
-    [
-      286,
-      true
-    ],
-    [
-      310,
-      true
-    ],
-    [
-      285,
+      298,
       true
     ],
     [
@@ -1861,7 +1797,67 @@
       true
     ],
     [
-      297,
+      289,
+      true
+    ],
+    [
+      287,
+      true
+    ],
+    [
+      296,
+      true
+    ],
+    [
+      0,
+      true
+    ],
+    [
+      291,
+      true
+    ],
+    [
+      305,
+      true
+    ],
+    [
+      285,
+      true
+    ],
+    [
+      309,
+      true
+    ],
+    [
+      286,
+      true
+    ],
+    [
+      311,
+      true
+    ],
+    [
+      284,
+      true
+    ],
+    [
+      294,
+      true
+    ],
+    [
+      290,
+      true
+    ],
+    [
+      299,
+      true
+    ],
+    [
+      302,
+      true
+    ],
+    [
+      295,
       true
     ],
     [
@@ -1869,77 +1865,17 @@
       true
     ],
     [
-      292,
+      288,
+      true
+    ],
+    [
+      310,
       true
     ]
   ],
   "layers": [
     [
-      289,
-      0
-    ],
-    [
-      310,
-      0
-    ],
-    [
-      308,
-      0
-    ],
-    [
-      290,
-      0
-    ],
-    [
-      299,
-      0
-    ],
-    [
-      285,
-      0
-    ],
-    [
-      298,
-      0
-    ],
-    [
-      302,
-      0
-    ],
-    [
-      0,
-      0
-    ],
-    [
-      286,
-      0
-    ],
-    [
-      293,
-      0
-    ],
-    [
-      296,
-      0
-    ],
-    [
       305,
-      0
-    ],
-    [
-      303,
-      0
-    ],
-    [
-      312,
-      0
-    ],
-    [
-      306,
-      0
-    ],
-    [
-      294,
       0
     ],
     [
@@ -1947,27 +1883,39 @@
       0
     ],
     [
-      11,
+      300,
       0
     ],
     [
-      307,
+      299,
       0
     ],
     [
-      297,
+      312,
       0
     ],
     [
-      304,
+      303,
       0
     ],
     [
-      292,
+      289,
       0
     ],
     [
-      295,
+      302,
+      0
+    ],
+    [
+      310,
+      0
+    ],
+    [
+      286,
+      0
+    ],
+    [
+      308,
       0
     ],
     [
@@ -1975,15 +1923,35 @@
       0
     ],
     [
-      284,
+      298,
       0
     ],
     [
-      311,
+      297,
+      0
+    ],
+    [
+      306,
+      0
+    ],
+    [
+      304,
       0
     ],
     [
       287,
+      0
+    ],
+    [
+      295,
+      0
+    ],
+    [
+      285,
+      0
+    ],
+    [
+      292,
       0
     ],
     [
@@ -1995,55 +1963,171 @@
       0
     ],
     [
-      300,
+      311,
+      0
+    ],
+    [
+      307,
+      0
+    ],
+    [
+      293,
+      0
+    ],
+    [
+      0,
+      0
+    ],
+    [
+      294,
+      0
+    ],
+    [
+      284,
+      0
+    ],
+    [
+      290,
+      0
+    ],
+    [
+      296,
+      0
+    ],
+    [
+      11,
       0
     ]
   ],
   "parents": [],
   "names": [
     [
-      69,
+      300,
+      "CompositeCollider_2x1"
+    ],
+    [
+      286,
+      "CompositeCollider_1x25"
+    ],
+    [
+      76,
+      "CompositeCollider_3x3"
+    ],
+    [
+      88,
+      "CompositeCollider_5x10"
+    ],
+    [
+      87,
       "CompositeCollider_2x10"
-    ],
-    [
-      287,
-      "CompositeCollider_11x1"
-    ],
-    [
-      295,
-      "CompositeCollider_7x2"
-    ],
-    [
-      81,
-      "CompositeCollider_8x2"
-    ],
-    [
-      298,
-      "CompositeCollider_1x1"
-    ],
-    [
-      309,
-      "CompositeCollider_2x2"
     ],
     [
       293,
       "CompositeCollider_2x1"
     ],
     [
-      66,
-      "CompositeCollider_6x11"
+      295,
+      "CompositeCollider_7x2"
     ],
     [
-      74,
+      56,
       "CompositeCollider_12x1"
-    ],
-    [
-      55,
-      "CompositeCollider_37x1"
     ],
     [
       59,
       "CompositeCollider_3x2"
+    ],
+    [
+      11,
+      "Player"
+    ],
+    [
+      57,
+      "CompositeCollider_14x1"
+    ],
+    [
+      310,
+      "CompositeCollider_1x2"
+    ],
+    [
+      294,
+      "CompositeCollider_26x3"
+    ],
+    [
+      62,
+      "CompositeCollider_26x3"
+    ],
+    [
+      284,
+      "LDTK Layer: IntGrid_layer"
+    ],
+    [
+      301,
+      "CompositeCollider_3x10"
+    ],
+    [
+      83,
+      "CompositeCollider_4x1"
+    ],
+    [
+      65,
+      "CompositeCollider_4x1"
+    ],
+    [
+      307,
+      "CompositeCollider_1x1"
+    ],
+    [
+      296,
+      "CompositeCollider_11x5"
+    ],
+    [
+      67,
+      "CompositeCollider_2x1"
+    ],
+    [
+      77,
+      "CompositeCollider_3x2"
+    ],
+    [
+      289,
+      "CompositeCollider_7x1"
+    ],
+    [
+      80,
+      "CompositeCollider_26x3"
+    ],
+    [
+      86,
+      "CompositeCollider_3x10"
+    ],
+    [
+      287,
+      "CompositeCollider_11x1"
+    ],
+    [
+      306,
+      "CompositeCollider_4x1"
+    ],
+    [
+      292,
+      "CompositeCollider_1x14"
+    ],
+    [
+      290,
+      "CompositeCollider_2x1"
+    ],
+    [
+      63,
+      "CompositeCollider_8x2"
+    ],
+    [
+      304,
+      "CompositeCollider_5x9"
+    ],
+    [
+      302,
+      "CompositeCollider_2x10"
     ],
     [
       68,
@@ -2054,220 +2138,136 @@
       "CompositeCollider_2x1"
     ],
     [
-      306,
-      "CompositeCollider_4x1"
-    ],
-    [
-      86,
-      "CompositeCollider_3x10"
-    ],
-    [
-      311,
-      "CompositeCollider_1x1"
-    ],
-    [
-      300,
-      "CompositeCollider_2x1"
-    ],
-    [
-      285,
-      "CompositeCollider_37x1"
-    ],
-    [
-      296,
-      "CompositeCollider_11x5"
-    ],
-    [
-      11,
-      "Player"
-    ],
-    [
-      70,
-      "CompositeCollider_5x10"
-    ],
-    [
-      310,
-      "CompositeCollider_1x2"
-    ],
-    [
-      56,
-      "CompositeCollider_12x1"
-    ],
-    [
-      307,
-      "CompositeCollider_1x1"
-    ],
-    [
-      90,
-      "CompositeCollider_3x9"
-    ],
-    [
-      77,
-      "CompositeCollider_3x2"
-    ],
-    [
-      75,
-      "CompositeCollider_14x1"
-    ],
-    [
-      62,
-      "CompositeCollider_26x3"
-    ],
-    [
-      72,
-      "CompositeCollider_3x9"
-    ],
-    [
-      305,
-      "CompositeCollider_3x9"
-    ],
-    [
-      304,
-      "CompositeCollider_5x9"
-    ],
-    [
-      291,
-      "CompositeCollider_5x1"
-    ],
-    [
-      79,
-      "CompositeCollider_2x1"
-    ],
-    [
-      65,
-      "CompositeCollider_4x1"
-    ],
-    [
-      294,
-      "CompositeCollider_26x3"
-    ],
-    [
-      302,
-      "CompositeCollider_2x10"
-    ],
-    [
-      85,
-      "CompositeCollider_2x1"
-    ],
-    [
-      82,
-      "CompositeCollider_11x5"
+      71,
+      "CompositeCollider_6x9"
     ],
     [
       61,
       "CompositeCollider_2x1"
     ],
     [
-      289,
-      "CompositeCollider_7x1"
+      309,
+      "CompositeCollider_2x2"
     ],
     [
-      58,
-      "CompositeCollider_3x3"
-    ],
-    [
-      88,
-      "CompositeCollider_5x10"
-    ],
-    [
-      312,
-      "CompositeCollider_2x1"
-    ],
-    [
-      80,
-      "CompositeCollider_26x3"
-    ],
-    [
-      87,
-      "CompositeCollider_2x10"
-    ],
-    [
-      73,
-      "CompositeCollider_37x1"
-    ],
-    [
-      303,
-      "CompositeCollider_5x10"
-    ],
-    [
-      286,
-      "CompositeCollider_1x25"
-    ],
-    [
-      57,
-      "CompositeCollider_14x1"
-    ],
-    [
-      64,
+      82,
       "CompositeCollider_11x5"
     ],
     [
-      301,
-      "CompositeCollider_3x10"
-    ],
-    [
-      67,
-      "CompositeCollider_2x1"
-    ],
-    [
-      292,
-      "CompositeCollider_1x14"
-    ],
-    [
-      89,
-      "CompositeCollider_6x9"
-    ],
-    [
-      290,
-      "CompositeCollider_2x1"
-    ],
-    [
-      78,
-      "CompositeCollider_2x1"
-    ],
-    [
-      284,
-      "LDTK Layer: IntGrid_layer"
-    ],
-    [
-      0,
-      "Main Camera"
-    ],
-    [
-      84,
-      "CompositeCollider_6x11"
+      69,
+      "CompositeCollider_2x10"
     ],
     [
       288,
       "CompositeCollider_14x1"
     ],
     [
-      83,
-      "CompositeCollider_4x1"
+      303,
+      "CompositeCollider_5x10"
     ],
     [
-      71,
+      89,
       "CompositeCollider_6x9"
+    ],
+    [
+      79,
+      "CompositeCollider_2x1"
+    ],
+    [
+      70,
+      "CompositeCollider_5x10"
+    ],
+    [
+      311,
+      "CompositeCollider_1x1"
+    ],
+    [
+      285,
+      "CompositeCollider_37x1"
+    ],
+    [
+      90,
+      "CompositeCollider_3x9"
+    ],
+    [
+      75,
+      "CompositeCollider_14x1"
+    ],
+    [
+      74,
+      "CompositeCollider_12x1"
+    ],
+    [
+      298,
+      "CompositeCollider_1x1"
+    ],
+    [
+      85,
+      "CompositeCollider_2x1"
+    ],
+    [
+      58,
+      "CompositeCollider_3x3"
+    ],
+    [
+      81,
+      "CompositeCollider_8x2"
     ],
     [
       308,
       "CompositeCollider_1x3"
     ],
     [
-      299,
+      66,
       "CompositeCollider_6x11"
     ],
     [
-      63,
-      "CompositeCollider_8x2"
-    ],
-    [
-      76,
-      "CompositeCollider_3x3"
+      312,
+      "CompositeCollider_2x1"
     ],
     [
       297,
       "CompositeCollider_3x1"
+    ],
+    [
+      55,
+      "CompositeCollider_37x1"
+    ],
+    [
+      72,
+      "CompositeCollider_3x9"
+    ],
+    [
+      291,
+      "CompositeCollider_5x1"
+    ],
+    [
+      73,
+      "CompositeCollider_37x1"
+    ],
+    [
+      305,
+      "CompositeCollider_3x9"
+    ],
+    [
+      78,
+      "CompositeCollider_2x1"
+    ],
+    [
+      0,
+      "Main Camera"
+    ],
+    [
+      64,
+      "CompositeCollider_11x5"
+    ],
+    [
+      84,
+      "CompositeCollider_6x11"
+    ],
+    [
+      299,
+      "CompositeCollider_6x11"
     ]
   ],
   "sprite_sheets": [],
