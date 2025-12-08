@@ -56,6 +56,7 @@ pub struct ScreenTile {
     pub flip_h: bool,
     pub flip_v: bool,
     pub texture_id: String,
+    pub texture_path: String,  // Full path to texture file
     pub tile_rect: [u32; 4],
 }
 
@@ -136,7 +137,7 @@ impl Tilemap3DRenderer {
                         // Create tile render data (width/height in world units)
                         tiles.push(TileRenderData {
                             world_pos: Vec3::new(tile_world_x, tile_world_y, tile_world_z),
-                            texture_id: tileset.texture_id.clone(),
+                            texture_id: tileset.texture_path.clone(),  // Use texture_path instead of texture_id
                             tile_rect: [
                                 tile_coords.0,
                                 tile_coords.1,
@@ -295,6 +296,7 @@ impl Tilemap3DRenderer {
             flip_h: tile.flip_h,
             flip_v: tile.flip_v,
             texture_id: tile.texture_id.clone(),
+            texture_path: tile.texture_id.clone(),  // texture_id already contains the path
             tile_rect: tile.tile_rect,
         })
     }
@@ -333,7 +335,7 @@ impl Tilemap3DRenderer {
                 );
                 
                 // Try to load and render the actual texture
-                let texture_path = std::path::Path::new(&screen_tile.texture_id);
+                let texture_path = std::path::Path::new(&screen_tile.texture_path);
                 if let Some(texture_handle) = texture_manager.load_texture(ctx, &screen_tile.texture_id, texture_path) {
                     // Get texture size
                     let tex_size = texture_handle.size_vec2();
