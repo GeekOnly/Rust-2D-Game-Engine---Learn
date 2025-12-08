@@ -16,7 +16,6 @@ pub mod selection;
 pub mod clipboard;
 pub mod snapping;
 pub mod shortcuts_handler;
-pub mod sprite_editor;
 pub mod texture_import_settings;
 pub mod debug_draw;
 pub mod map_manager;
@@ -38,9 +37,15 @@ pub use drag_drop::{DragDropState, DraggedAsset};
 pub use undo::{UndoStack, CreateEntityCommand, DeleteEntityCommand, BatchCommand};
 pub use selection::{SelectionManager, SelectionMode};
 pub use clipboard::{Clipboard, copy_selected, paste_from_clipboard, duplicate_selected};
-pub use sprite_editor::{SpriteEditorWindow, SpriteMetadata};
 pub use debug_draw::DebugDrawManager;
 pub use map_manager::MapManager;
 pub use tilemap_error::TilemapError;
 pub use tilemap_settings::TilemapSettings;
-pub use widget_editor::WidgetEditor;
+pub use widget_editor::PrefabEditor;
+
+// Re-export from sprite_editor crate
+pub use sprite_editor::{SpriteMetadata, SpriteDefinition, ExportFormat};
+
+// Sprite editor window (still in engine for now - TODO: move to sprite_editor crate)
+pub mod sprite_editor_window;
+pub use sprite_editor_window::SpriteEditorWindow;

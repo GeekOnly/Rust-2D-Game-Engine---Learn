@@ -239,6 +239,341 @@ impl CameraStateDisplay {
 }
 ```
 
+### Snapping System
+
+```rust
+pub struct SnapSettings {
+    pub enabled: bool,
+    pub mode: SnapMode,
+    
+    // Snap increments
+    pub position_snap: f32,    // Grid size for position (e.g., 1.0)
+    pub rotation_snap: f32,    // Degrees for rotation (e.g., 15.0)
+    pub scale_snap: f32,       // Increment for scale (e.g., 0.1)
+    
+    // Visual feedback
+    pub show_snap_indicators: bool,
+    pub snap_indicator_color: [f32; 4],
+}
+
+pub enum SnapMode {
+    Relative,  // Snap relative to drag start position
+    Absolute,  // Snap to absolute grid positions
+}
+
+impl SnapSettings {
+    pub fn snap_position(&self, value: Vec3, original: Vec3) -> Vec3;
+    pub fn snap_rotation(&self, value: f32, original: f32) -> f32;
+    pub fn snap_scale(&self, value: Vec3, original: Vec3) -> Vec3;
+    
+    /// Check if snap key (Ctrl) is pressed
+    pub fn is_snap_active(&self, modifiers: &egui::Modifiers) -> bool;
+}
+```
+
+### Selection System
+
+```rust
+pub struct Selection {
+    pub entities: Vec<Entity>,
+    pub active_entity: Option<Entity>,  // The last selected entity
+    
+    // Box selection state
+    box_selection_start: Option<Vec2>,
+    box_selection_current: Option<Vec2>,
+}
+
+impl Selection {
+    pub fn new() -> Self;
+    
+    // Single selection
+    pub fn select(&mut self, entity: Entity);
+    pub fn deselect(&mut self, entity: Entity);
+    pub fn toggle(&mut self, entity: Entity);
+    pub fn clear(&mut self);
+    
+    // Multi-selection
+    pub fn add_to_selection(&mut self, entity: Entity);
+    pub fn remove_from_selection(&mut self, entity: Entity);
+    pub fn select_all(&mut self, world: &World);
+    
+    // Box selection
+    pub fn start_box_selection(&mut self, screen_pos: Vec2);
+    pub fn update_box_selection(&mut self, screen_pos: Vec2);
+    pub fn finish_box_selection(&mut self, world: &World, camera: &SceneCamera) -> Vec<Entity>;
+    pub fn cancel_box_selection(&mut self);
+    
+    // Queries
+    pub fn is_selected(&self, entity: Entity) -> bool;
+    pub fn count(&self) -> usize;
+    pub fn is_empty(&self) -> bool;
+    pub fn get_bounds(&self, world: &World) -> Option<Bounds>;
+    pub fn get_center(&self, world: &World) -> Option<Vec3>;
+    
+    // Rendering
+    pub fn render_box_selection(&self, painter: &egui::Painter);
+}
+```
+
+### Enhanced Gizmo System
+
+```rust
+pub struct GizmoSettings {
+    pub size: f32,              // Base size in pixels
+    pub hover_scale: f32,       // Scale multiplier on hover (e.g., 1.2)
+    pub selected_color: [f32; 4],
+    pub hover_color: [f32; 4],
+    
+    // Visibility toggles
+    pub show_move_gizmo: bool,
+    pub show_rotate_gizmo: bool,
+    pub show_scale_gizmo: bool,
+    pub show_planar_handles: bool,
+}
+
+pub enum GizmoHandle {
+    // Move handles
+    MoveX,
+    MoveY,
+    MoveZ,
+    MovePlaneXY,
+    MovePlaneXZ,
+    MovePlaneYZ,
+    MoveCenter,
+    
+    // Rotate handles
+    RotateX,
+    RotateY,
+    RotateZ,
+    RotateScreen,
+    
+    // Scale handles
+    ScaleX,
+    ScaleY,
+    ScaleZ,
+    ScaleUniform,
+}
+
+pub struct EnhancedGizmo {
+    pub settings: GizmoSettings,
+    pub hovered_handle: Option<GizmoHandle>,
+    pub active_handle: Option<GizmoHandle>,
+    
+    // Interaction state
+    drag_start_pos: Option<Vec3>,
+    drag_start_value: Option<Vec3>,
+}
+
+impl EnhancedGizmo {
+    pub fn render(
+        &mut self,
+        painter: &egui::Painter,
+        entity: Entity,
+        world: &World,
+        camera: &SceneCamera,
+        tool: TransformTool,
+        space: TransformSpace,
+    );
+    
+    pub fn handle_input(
+        &mut self,
+        response: &egui::Response,
+        entity: Entity,
+        world: &mut World,
+        camera: &SceneCamera,
+        snap_settings: &SnapSettings,
+    ) -> bool;  // Returns true if transform was modified
+    
+    /// Calculate screen-constant size for gizmo
+    fn calculate_gizmo_scale(&self, camera: &SceneCamera, world_pos: Vec3) -> f32;
+    
+    /// Check if mouse is hovering over a handle
+    fn check_hover(&mut self, mouse_pos: Vec2, gizmo_pos: Vec2, camera: &SceneCamera);
+    
+    /// Render planar movement handles (colored squares)
+    fn render_planar_handles(&self, painter: &egui::Painter, center: Vec2, scale: f32);
+}
+```
+
+### 2.5D Support
+
+```rust
+pub struct Scene25DSettings {
+    pub enabled: bool,
+    pub orthographic_size: f32,
+    pub show_z_depth_indicators: bool,
+    pub z_depth_indicator_color: [f32; 4],
+}
+
+pub struct SpriteDepthInfo {
+    pub entity: Entity,
+    pub z_position: f32,
+    pub render_order: i32,
+}
+
+impl Scene25DSettings {
+    /// Sort sprites by Z-depth for rendering
+    pub fn sort_sprites_by_depth(&self, sprites: &mut Vec<SpriteDepthInfo>);
+    
+    /// Render Z-depth indicator for selected entity
+    pub fn render_z_depth_indicator(
+        &self,
+        painter: &egui::Painter,
+        entity: Entity,
+        world: &World,
+        camera: &SceneCamera,
+    );
+}
+```
+
+### Flythrough Camera Mode
+
+```rust
+pub struct FlythroughMode {
+    pub active: bool,
+    pub move_speed: f32,
+    pub look_sensitivity: f32,
+    pub smooth_movement: bool,
+    
+    // Movement state
+    forward_pressed: bool,
+    backward_pressed: bool,
+    left_pressed: bool,
+    right_pressed: bool,
+    up_pressed: bool,
+    down_pressed: bool,
+    
+    // Look state
+    last_mouse_pos: Option<Vec2>,
+}
+
+impl FlythroughMode {
+    pub fn new() -> Self;
+    
+    pub fn activate(&mut self);
+    pub fn deactivate(&mut self);
+    
+    pub fn update(
+        &mut self,
+        camera: &mut SceneCamera,
+        ui: &egui::Ui,
+        delta_time: f32,
+    );
+    
+    /// Handle WASD movement
+    fn handle_movement(&mut self, camera: &mut SceneCamera, delta_time: f32);
+    
+    /// Handle mouse look
+    fn handle_look(&mut self, camera: &mut SceneCamera, mouse_delta: Vec2);
+}
+```
+
+### Viewport Statistics
+
+```rust
+pub struct ViewportStats {
+    pub show_stats: bool,
+    pub detailed_view: bool,
+    
+    // Performance metrics
+    pub fps: f32,
+    pub frame_time_ms: f32,
+    pub entity_count: usize,
+    pub visible_entity_count: usize,
+    pub draw_call_count: usize,
+    
+    // Update tracking
+    last_update_time: std::time::Instant,
+    frame_times: Vec<f32>,  // Rolling window for smoothing
+}
+
+impl ViewportStats {
+    pub fn new() -> Self;
+    
+    pub fn update(&mut self, world: &World, camera: &SceneCamera);
+    
+    pub fn render(&self, ui: &mut egui::Ui, position: egui::Pos2);
+    
+    pub fn toggle_detailed_view(&mut self);
+}
+```
+
+### Enhanced Scene Gizmo
+
+```rust
+pub struct EnhancedSceneGizmo {
+    pub size: f32,
+    pub position: SceneGizmoPosition,
+    
+    // Interaction state
+    pub hovered_axis: Option<Axis3D>,
+    pub hovered_center: bool,
+    
+    // Animation state
+    transition_progress: f32,
+    target_view: Option<CameraView>,
+}
+
+pub enum SceneGizmoPosition {
+    TopRight,
+    TopLeft,
+    BottomRight,
+    BottomLeft,
+}
+
+pub enum Axis3D {
+    PosX,
+    NegX,
+    PosY,
+    NegY,
+    PosZ,
+    NegZ,
+}
+
+pub enum CameraView {
+    Front,
+    Back,
+    Top,
+    Bottom,
+    Left,
+    Right,
+    Perspective,
+}
+
+impl EnhancedSceneGizmo {
+    pub fn render(
+        &mut self,
+        painter: &egui::Painter,
+        viewport_rect: egui::Rect,
+        camera: &SceneCamera,
+    );
+    
+    pub fn handle_input(
+        &mut self,
+        ui: &egui::Ui,
+        viewport_rect: egui::Rect,
+        camera: &mut SceneCamera,
+    ) -> bool;  // Returns true if view changed
+    
+    pub fn update(&mut self, camera: &mut SceneCamera, delta_time: f32);
+    
+    /// Animate camera to target view
+    fn animate_to_view(&mut self, camera: &mut SceneCamera, delta_time: f32);
+    
+    /// Check if mouse is over an axis
+    fn check_axis_hover(&mut self, mouse_pos: Vec2, gizmo_center: Vec2) -> Option<Axis3D>;
+    
+    /// Render axis with label and tooltip
+    fn render_axis(
+        &self,
+        painter: &egui::Painter,
+        center: Vec2,
+        axis: Axis3D,
+        camera: &SceneCamera,
+    );
+}
+```
+
 ## Data Models
 
 ### Grid Level System
@@ -351,6 +686,72 @@ Property 14: Grid caching reduces regeneration
 Property 15: Line batching is efficient
 *For any* grid with N lines, all lines should be submitted in a single batched draw call or a small constant number of draw calls
 **Validates: Requirements 10.1**
+
+### Snapping Properties
+
+Property 16: Grid snapping is consistent
+*For any* position value P and grid size G, snapping P to grid should produce a value that is an exact multiple of G (within floating point precision)
+**Validates: Requirements 11.1**
+
+Property 17: Snap increments are configurable
+*For any* configured snap increment I and transform operation, the resulting value should be quantized to multiples of I
+**Validates: Requirements 11.4**
+
+### Selection Properties
+
+Property 18: Box selection is inclusive
+*For any* box selection rectangle R and entity with bounds B, if B intersects R, then the entity should be included in the selection
+**Validates: Requirements 12.1**
+
+Property 19: Multi-selection preserves order
+*For any* sequence of selection operations, the order of selected entities should match the order they were selected
+**Validates: Requirements 12.2, 12.3**
+
+Property 20: Select all includes all entities
+*For any* scene with N entities, selecting all should result in exactly N entities being selected
+**Validates: Requirements 12.5**
+
+### Gizmo Properties
+
+Property 21: Gizmo size is screen-constant
+*For any* camera zoom level Z, the screen-space size of gizmo handles should remain constant (within 5% tolerance)
+**Validates: Requirements 13.3**
+
+Property 22: Planar handles move in plane
+*For any* planar handle drag operation, the resulting position change should have zero component perpendicular to the plane
+**Validates: Requirements 13.1**
+
+### 2.5D Properties
+
+Property 23: Z-depth sorting is correct
+*For any* two sprites with Z-positions Z1 and Z2 where Z1 < Z2, sprite 1 should be rendered before sprite 2
+**Validates: Requirements 14.2**
+
+Property 24: Orthographic projection preserves parallels
+*For any* two parallel lines in world space under orthographic projection, their screen-space projections should also be parallel
+**Validates: Requirements 14.1**
+
+### Camera Speed Properties
+
+Property 25: Speed modifiers multiply correctly
+*For any* base camera speed S and modifier M (Shift=3x, Ctrl=0.3x), the resulting speed should equal S × M
+**Validates: Requirements 17.1, 17.2, 17.3**
+
+Property 26: Flythrough movement is view-relative
+*For any* flythrough movement in direction D, the camera should move in world space along the direction obtained by rotating D by the camera's current yaw and pitch
+**Validates: Requirements 18.2, 18.3, 18.4, 18.5**
+
+### Frame All Properties
+
+Property 27: Frame all includes all entities
+*For any* scene with entities at positions P1, P2, ..., Pn, framing all should result in a camera position and zoom where all positions are visible in the viewport
+**Validates: Requirements 19.1, 19.2**
+
+### Scene Gizmo Properties
+
+Property 28: Axis click aligns view
+*For any* axis click on the scene gizmo, the resulting camera orientation should align the view direction with that axis (within 1 degree)
+**Validates: Requirements 20.1**
 
 ## Error Handling
 

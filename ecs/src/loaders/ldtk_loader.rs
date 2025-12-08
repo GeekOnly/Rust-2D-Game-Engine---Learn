@@ -2,6 +2,24 @@ use crate::{World, Entity, Tilemap, Transform, Collider, Rigidbody2D};
 use serde_json::Value;
 use std::path::Path;
 
+/// Normalize texture path - extract filename from absolute paths
+fn normalize_texture_path(path: &str) -> String {
+    // Check if it's an absolute path (Windows or Unix style)
+    if path.contains(":\\") || path.starts_with('/') {
+        // Extract just the filename
+        if let Some(filename) = Path::new(path).file_name() {
+            if let Some(name) = filename.to_str() {
+                // Return as assets/filename
+                log::info!("LdtkLoader: Normalized absolute path '{}' to 'assets/{}'", path, name);
+                return format!("assets/{}", name);
+            }
+        }
+    }
+
+    // Already relative, return as-is
+    path.to_string()
+}
+
 /// LDTK file loader
 /// 
 /// Loads LDtk JSON files directly using serde_json
@@ -264,9 +282,10 @@ impl LdtkLoader {
                                         // LDtk uses "../" relative to the .ldtk file
                                         let ldtk_dir = path.as_ref().parent().unwrap_or(std::path::Path::new("."));
                                         let tileset_path = ldtk_dir.join(tileset_rel_path);
-                                        let tileset_path_str = tileset_path.to_string_lossy().to_string();
-                                        
-                                        log::info!("  Tileset: {} -> {}", tileset_rel_path, tileset_path_str);
+                                        let tileset_path_abs = tileset_path.to_string_lossy().to_string();
+                                        let tileset_path_str = normalize_texture_path(&tileset_path_abs);
+
+                                        log::info!("  Tileset: {} -> {} (normalized to: {})", tileset_rel_path, tileset_path_abs, tileset_path_str);
                                         
                                         // Get tileset dimensions
                                         let tileset_width = tileset_def["pxWid"].as_i64().unwrap_or(256) as u32;
@@ -593,9 +612,10 @@ impl LdtkLoader {
                                     // Convert relative path to absolute path
                                     let ldtk_dir = ldtk_path.parent().unwrap_or(std::path::Path::new("."));
                                     let tileset_path = ldtk_dir.join(tileset_rel_path);
-                                    let tileset_path_str = tileset_path.to_string_lossy().to_string();
-                                    
-                                    log::info!("  Tileset: {} -> {}", tileset_rel_path, tileset_path_str);
+                                    let tileset_path_abs = tileset_path.to_string_lossy().to_string();
+                                    let tileset_path_str = normalize_texture_path(&tileset_path_abs);
+
+                                    log::info!("  Tileset: {} -> {} (normalized to: {})", tileset_rel_path, tileset_path_abs, tileset_path_str);
                                     
                                     // Get tileset dimensions
                                     let tileset_width = tileset_def["pxWid"].as_i64().unwrap_or(256) as u32;

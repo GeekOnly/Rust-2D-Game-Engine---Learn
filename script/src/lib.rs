@@ -1,7 +1,9 @@
+// Force rebuild - UI commands fix v2
 use mlua::{Lua, Function, Table};
 use anyhow::Result;
 use ecs::{World, Entity, EntityTag};
 use input::{InputSystem, Key, MouseButton, GamepadButton};
+use std::rc::Rc;
 use std::cell::RefCell;
 use std::collections::HashMap;
 
@@ -17,6 +19,19 @@ pub struct DebugLine {
     pub duration: f32,
 }
 
+// UI command types for Lua -> Engine communication
+#[derive(Clone, Debug)]
+pub enum UICommand {
+    LoadPrefab { path: String },
+    ActivatePrefab { path: String, instance_name: String },
+    DeactivatePrefab { instance_name: String },
+    SetText { element_path: String, text: String },
+    SetImageFill { element_path: String, fill_amount: f32 },
+    SetColor { element_path: String, r: f32, g: f32, b: f32, a: f32 },
+    ShowElement { element_path: String },
+    HideElement { element_path: String },
+}
+
 pub struct ScriptEngine {
     lua: Lua,
     // Per-entity Lua states for proper lifecycle management
@@ -24,7 +39,9 @@ pub struct ScriptEngine {
     // Store ground state for Rapier (temporary solution)
     pub ground_states: HashMap<Entity, bool>,
     // Debug draw queue (accessible from Lua scripts)
-    pub debug_lines: RefCell<Vec<DebugLine>>,
+    pub debug_lines: Rc<RefCell<Vec<DebugLine>>>,
+    // UI command queue (Lua -> Engine)
+    pub ui_commands: Rc<RefCell<Vec<UICommand>>>,
 }
 
 impl ScriptEngine {
@@ -34,13 +51,19 @@ impl ScriptEngine {
             lua,
             entity_states: HashMap::new(),
             ground_states: HashMap::new(),
-            debug_lines: RefCell::new(Vec::new()),
+            debug_lines: Rc::new(RefCell::new(Vec::new())),
+            ui_commands: Rc::new(RefCell::new(Vec::new())),
         })
     }
     
     /// Get and clear debug lines (called by engine after rendering)
     pub fn take_debug_lines(&self) -> Vec<DebugLine> {
         self.debug_lines.borrow_mut().drain(..).collect()
+    }
+    
+    /// Get and clear UI commands (called by engine to process UI updates)
+    pub fn take_ui_commands(&self) -> Vec<UICommand> {
+        self.ui_commands.borrow_mut().drain(..).collect()
     }
     
     /// Set ground state for entity (called by engine with Rapier result)
@@ -146,6 +169,13 @@ impl ScriptEngine {
                 })?;
                 globals.set("set_position", set_position)?;
                 
+                // log function for Awake()
+                let log_func = scope.create_function(|_, msg: String| {
+                    log::info!("[Lua] {}", msg);
+                    Ok(())
+                })?;
+                globals.set("log", log_func)?;
+                
                 // Call Awake() or on_start() within the scope while functions are still valid
                 if let Ok(awake) = globals.get::<_, Function>("Awake") {
                     awake.call::<_, ()>(())?;
@@ -157,6 +187,96 @@ impl ScriptEngine {
             })?;
         }
 
+        // ================================================================
+        // UI SYSTEM API - Create once and persist
+        // ================================================================
+        
+        // Create UI functions that persist for the lifetime of the Lua state
+        // These don't need World access, so we can use lua.create_function()
+        
+        let ui_commands_clone = Rc::clone(&self.ui_commands);
+        let ui_load_prefab = lua.create_function(move |_, path: String| {
+            log::info!("🔧 [Lua UI] load_prefab called: {}", path);
+            ui_commands_clone.borrow_mut().push(UICommand::LoadPrefab { path });
+            log::info!("🔧 [Lua UI] Queue size after push: {}", ui_commands_clone.borrow().len());
+            Ok(true)
+        })?;
+        
+        let ui_commands_clone = Rc::clone(&self.ui_commands);
+        let ui_activate_prefab = lua.create_function(move |_, (path, instance_name): (String, String)| {
+            log::info!("🔧 [Lua UI] activate_prefab called: {} as {}", path, instance_name);
+            ui_commands_clone.borrow_mut().push(UICommand::ActivatePrefab { path, instance_name });
+            log::info!("🔧 [Lua UI] Queue size after push: {}", ui_commands_clone.borrow().len());
+            Ok(true)
+        })?;
+        
+        let ui_commands_clone = Rc::clone(&self.ui_commands);
+        let ui_deactivate_prefab = lua.create_function(move |_, instance_name: String| {
+            log::info!("🔧 [Lua UI] deactivate_prefab called: {}", instance_name);
+            ui_commands_clone.borrow_mut().push(UICommand::DeactivatePrefab { instance_name });
+            log::info!("🔧 [Lua UI] Queue size after push: {}", ui_commands_clone.borrow().len());
+            Ok(())
+        })?;
+        
+        let ui_commands_clone = Rc::clone(&self.ui_commands);
+        let ui_set_text = lua.create_function(move |_, (element_path, text): (String, String)| {
+            log::info!("🔧 [Lua UI] set_text called: {} = '{}'", element_path, text);
+            ui_commands_clone.borrow_mut().push(UICommand::SetText { element_path: element_path.clone(), text: text.clone() });
+            log::info!("🔧 [Lua UI] Queue size after push: {}", ui_commands_clone.borrow().len());
+            Ok(())
+        })?;
+        
+        let ui_commands_clone = Rc::clone(&self.ui_commands);
+        let ui_set_image_fill = lua.create_function(move |_, (element_path, fill_amount): (String, f32)| {
+            log::info!("🔧 [Lua UI] set_image_fill called: {} = {}", element_path, fill_amount);
+            ui_commands_clone.borrow_mut().push(UICommand::SetImageFill { element_path, fill_amount });
+            log::info!("🔧 [Lua UI] Queue size after push: {}", ui_commands_clone.borrow().len());
+            Ok(())
+        })?;
+        
+        let ui_commands_clone = Rc::clone(&self.ui_commands);
+        let ui_set_color = lua.create_function(move |_, (element_path, color): (String, Table)| {
+            let r = color.get::<_, f32>("r").unwrap_or(1.0);
+            let g = color.get::<_, f32>("g").unwrap_or(1.0);
+            let b = color.get::<_, f32>("b").unwrap_or(1.0);
+            let a = color.get::<_, f32>("a").unwrap_or(1.0);
+            log::info!("🔧 [Lua UI] set_color called: {} = ({}, {}, {}, {})", element_path, r, g, b, a);
+            ui_commands_clone.borrow_mut().push(UICommand::SetColor { element_path, r, g, b, a });
+            log::info!("🔧 [Lua UI] Queue size after push: {}", ui_commands_clone.borrow().len());
+            Ok(())
+        })?;
+        
+        let ui_commands_clone = Rc::clone(&self.ui_commands);
+        let ui_show_element = lua.create_function(move |_, element_path: String| {
+            log::info!("🔧 [Lua UI] show_element called: {}", element_path);
+            ui_commands_clone.borrow_mut().push(UICommand::ShowElement { element_path });
+            log::info!("🔧 [Lua UI] Queue size after push: {}", ui_commands_clone.borrow().len());
+            Ok(())
+        })?;
+        
+        let ui_commands_clone = Rc::clone(&self.ui_commands);
+        let ui_hide_element = lua.create_function(move |_, element_path: String| {
+            log::info!("🔧 [Lua UI] hide_element called: {}", element_path);
+            ui_commands_clone.borrow_mut().push(UICommand::HideElement { element_path });
+            log::info!("🔧 [Lua UI] Queue size after push: {}", ui_commands_clone.borrow().len());
+            Ok(())
+        })?;
+        
+        // Create UI table and set it in globals (permanently)
+        {
+            let globals = lua.globals();
+            let ui_table = lua.create_table()?;
+            ui_table.set("load_prefab", ui_load_prefab)?;
+            ui_table.set("activate_prefab", ui_activate_prefab)?;
+            ui_table.set("deactivate_prefab", ui_deactivate_prefab)?;
+            ui_table.set("set_text", ui_set_text)?;
+            ui_table.set("set_image_fill", ui_set_image_fill)?;
+            ui_table.set("set_color", ui_set_color)?;
+            ui_table.set("show_element", ui_show_element)?;
+            ui_table.set("hide_element", ui_hide_element)?;
+            globals.set("UI", ui_table)?;
+        }
+
         // Store the Lua state for this entity
         self.entity_states.insert(entity, lua);
 
@@ -166,11 +286,15 @@ impl ScriptEngine {
     /// Call Start() for an entity (should be called after all Awake() calls)
     /// This needs world access to inject API functions
     pub fn call_start_for_entity(&self, entity: Entity, world: &mut World) -> Result<()> {
+        log::info!("🔍 call_start_for_entity() called for entity {}", entity);
+        
         if let Some(lua) = self.entity_states.get(&entity) {
+            log::info!("✅ Found Lua state for entity {}", entity);
             // Use RefCell to work around borrow checker
             let world_cell = RefCell::new(&mut *world);
             
-            lua.scope(|scope| {
+            log::info!("🔍 Entering lua.scope() for entity {}", entity);
+            let result = lua.scope(|scope| {
                 let globals = lua.globals();
                 
                 // Inject essential API functions for Start()
@@ -268,15 +392,102 @@ impl ScriptEngine {
                 })?;
                 globals.set("get_velocity_of", get_velocity_of)?;
                 
+                // Unity-style helper functions (PascalCase)
+                let get_transform = scope.create_function(|lua, query_entity: Entity| {
+                    if let Some(transform) = world_cell.borrow().transforms.get(&query_entity) {
+                        let table = lua.create_table()?;
+                        table.set("x", transform.position[0])?;
+                        table.set("y", transform.position[1])?;
+                        table.set("z", transform.position[2])?;
+                        Ok(Some(table))
+                    } else {
+                        Ok(None)
+                    }
+                })?;
+                globals.set("GetTransform", get_transform)?;
+                
+                let get_velocity_unity = scope.create_function(|lua, query_entity: Entity| {
+                    let velocity = if let Some(rigidbody) = world_cell.borrow().rigidbodies.get(&query_entity) {
+                        Some((rigidbody.velocity.0, rigidbody.velocity.1))
+                    } else {
+                        world_cell.borrow().velocities.get(&query_entity).copied()
+                    };
+                    
+                    if let Some((vx, vy)) = velocity {
+                        let table = lua.create_table()?;
+                        table.set("x", vx)?;
+                        table.set("y", vy)?;
+                        Ok(Some(table))
+                    } else {
+                        Ok(None)
+                    }
+                })?;
+                globals.set("GetVelocity", get_velocity_unity)?;
+                
+                let get_script_parameter = scope.create_function(|lua, (query_entity, param_name): (Entity, String)| {
+                    if let Some(script) = world_cell.borrow().scripts.get(&query_entity) {
+                        if let Some(param_value) = script.parameters.get(&param_name) {
+                            let table = lua.create_table()?;
+                            match param_value {
+                                ecs::ScriptParameter::Float(v) => table.set("Float", *v)?,
+                                ecs::ScriptParameter::Int(v) => table.set("Int", *v)?,
+                                ecs::ScriptParameter::Bool(v) => table.set("Bool", *v)?,
+                                ecs::ScriptParameter::String(v) => table.set("String", v.clone())?,
+                                ecs::ScriptParameter::Entity(Some(e)) => table.set("Entity", *e)?,
+                                ecs::ScriptParameter::Entity(None) => table.set("Entity", mlua::Nil)?,
+                            }
+                            Ok(Some(table))
+                        } else {
+                            Ok(None)
+                        }
+                    } else {
+                        Ok(None)
+                    }
+                })?;
+                globals.set("GetScriptParameter", get_script_parameter)?;
+
+                // Note: UI API is already set in load_script_for_entity() and persists
+                
+                // log function
+                let log_func = scope.create_function(|_, msg: String| {
+                    log::info!("[Lua] {}", msg);
+                    Ok(())
+                })?;
+                globals.set("log", log_func)?;
+                
                 // Call Start() or on_start() if it exists (Unity-style with backward compatibility)
                 if let Ok(start) = globals.get::<_, Function>("Start") {
-                    start.call::<_, ()>(())?;
+                    log::info!("🔍 Calling Start() for entity {}", entity);
+                    if let Err(e) = start.call::<_, ()>(()) {
+                        log::error!("❌ Error calling Start() for entity {}: {}", entity, e);
+                        return Err(e.into());
+                    }
+                    log::info!("✅ Start() completed for entity {}", entity);
                 } else if let Ok(on_start) = globals.get::<_, Function>("on_start") {
-                    on_start.call::<_, ()>(())?;
+                    log::info!("🔍 Calling on_start() for entity {}", entity);
+                    if let Err(e) = on_start.call::<_, ()>(()) {
+                        log::error!("❌ Error calling on_start() for entity {}: {}", entity, e);
+                        return Err(e.into());
+                    }
+                    log::info!("✅ on_start() completed for entity {}", entity);
+                } else {
+                    log::warn!("⚠️ No Start() or on_start() function found for entity {}", entity);
                 }
                 
                 Ok(())
-            })?;
+            });
+            
+            match result {
+                Ok(_) => {
+                    log::info!("✅ lua.scope() completed successfully for entity {}", entity);
+                }
+                Err(e) => {
+                    log::error!("❌ lua.scope() failed for entity {}: {}", entity, e);
+                    return Err(e.into());
+                }
+            }
+        } else {
+            log::warn!("⚠️ No Lua state found for entity {}", entity);
         }
         Ok(())
     }
@@ -813,6 +1024,74 @@ impl ScriptEngine {
             // Get ground state from script engine (set by engine with Rapier result)
             let is_grounded = self.ground_states.get(&entity).copied().unwrap_or(false);
             globals.set("is_grounded_rapier", is_grounded)?;
+
+            // ================================================================
+            // UI SYSTEM API
+            // ================================================================
+            
+            // Note: UI API is already set in load_script_for_entity() and persists
+            // No need to recreate it every frame
+
+            // ================================================================
+            // UNITY-STYLE HELPER FUNCTIONS (PascalCase)
+            // ================================================================
+            
+            // GetTransform(entity) -> {x, y, z} or nil
+            let get_transform = scope.create_function(|lua, query_entity: Entity| {
+                if let Some(transform) = world_cell.borrow().transforms.get(&query_entity) {
+                    let table = lua.create_table()?;
+                    table.set("x", transform.position[0])?;
+                    table.set("y", transform.position[1])?;
+                    table.set("z", transform.position[2])?;
+                    Ok(Some(table))
+                } else {
+                    Ok(None)
+                }
+            })?;
+            globals.set("GetTransform", get_transform)?;
+            
+            // GetVelocity(entity) -> {x, y} or nil
+            let get_velocity_unity = scope.create_function(|lua, query_entity: Entity| {
+                // Try rigidbody first, then fall back to legacy velocity
+                let velocity = if let Some(rigidbody) = world_cell.borrow().rigidbodies.get(&query_entity) {
+                    Some((rigidbody.velocity.0, rigidbody.velocity.1))
+                } else {
+                    world_cell.borrow().velocities.get(&query_entity).copied()
+                };
+                
+                if let Some((vx, vy)) = velocity {
+                    let table = lua.create_table()?;
+                    table.set("x", vx)?;
+                    table.set("y", vy)?;
+                    Ok(Some(table))
+                } else {
+                    Ok(None)
+                }
+            })?;
+            globals.set("GetVelocity", get_velocity_unity)?;
+            
+            // GetScriptParameter(entity, parameter_name) -> {Float: value} or {Int: value} or {Bool: value} or {String: value} or {Entity: value} or nil
+            let get_script_parameter = scope.create_function(|lua, (query_entity, param_name): (Entity, String)| {
+                if let Some(script) = world_cell.borrow().scripts.get(&query_entity) {
+                    if let Some(param_value) = script.parameters.get(&param_name) {
+                        let table = lua.create_table()?;
+                        match param_value {
+                            ecs::ScriptParameter::Float(v) => table.set("Float", *v)?,
+                            ecs::ScriptParameter::Int(v) => table.set("Int", *v)?,
+                            ecs::ScriptParameter::Bool(v) => table.set("Bool", *v)?,
+                            ecs::ScriptParameter::String(v) => table.set("String", v.clone())?,
+                            ecs::ScriptParameter::Entity(Some(e)) => table.set("Entity", *e)?,
+                            ecs::ScriptParameter::Entity(None) => table.set("Entity", mlua::Nil)?,
+                        }
+                        Ok(Some(table))
+                    } else {
+                        Ok(None)
+                    }
+                } else {
+                    Ok(None)
+                }
+            })?;
+            globals.set("GetScriptParameter", get_script_parameter)?;
 
             // ================================================================
             // INJECT SCRIPT PARAMETERS AS GLOBALS

@@ -1,7 +1,7 @@
 mod editor;
 mod runtime;
 mod texture_manager;
-pub mod hud;
+mod ui_manager;
 
 use anyhow::Result;
 use engine_core::{EngineContext, EngineModule, project::ProjectManager};
@@ -548,34 +548,6 @@ fn main() -> Result<()> {
 
                                                         // Load editor layout
                                                         editor_state.load_editor_layout();
-                                                        
-                                                        // Setup HUD bindings
-                                                        editor_state.setup_hud_bindings();
-                                                        
-                                                        // Try to load HUD asset if exists
-                                                        // Try test HUD first, then celeste HUD
-                                                        let test_hud_path = folder.join("assets/ui/test_hud.hud");
-                                                        let celeste_hud_path = folder.join("assets/ui/celeste_hud.hud");
-                                                        
-                                                        let hud_path = if test_hud_path.exists() {
-                                                            test_hud_path
-                                                        } else {
-                                                            celeste_hud_path
-                                                        };
-                                                        
-                                                        if hud_path.exists() {
-                                                            editor_state.console.info(format!("Loading HUD from: {:?}", hud_path));
-                                                            if let Err(e) = editor_state.hud_manager.load(hud_path.to_str().unwrap()) {
-                                                                editor_state.console.error(format!("❌ Failed to load HUD: {}", e));
-                                                            } else {
-                                                                editor_state.console.info("✅ HUD loaded successfully");
-                                                                if let Some(hud) = editor_state.hud_manager.get_hud() {
-                                                                    editor_state.console.info(format!("HUD has {} elements", hud.elements.len()));
-                                                                }
-                                                            }
-                                                        } else {
-                                                            editor_state.console.warning(format!("⚠️ HUD file not found: {:?}", hud_path));
-                                                        }
 
                                                         // Try to load last opened scene first, then startup scene
                                                         let mut scene_loaded = false;
@@ -653,33 +625,6 @@ fn main() -> Result<()> {
                                                                         editor_state = EditorState::new();
                                                                         editor_state.current_project_path = Some(celeste_path.clone());
                                                                         
-                                                                        // Load HUD asset BEFORE setup bindings
-                                                                        let test_hud_path = celeste_path.join("assets/ui/test_hud.hud");
-                                                                        let celeste_hud_path = celeste_path.join("assets/ui/celeste_hud.hud");
-                                                                        
-                                                                        let hud_path = if test_hud_path.exists() {
-                                                                            test_hud_path
-                                                                        } else {
-                                                                            celeste_hud_path
-                                                                        };
-                                                                        
-                                                                        if hud_path.exists() {
-                                                                            log::info!("Loading HUD from: {:?}", hud_path);
-                                                                            if let Err(e) = editor_state.hud_manager.load(hud_path.to_str().unwrap()) {
-                                                                                log::error!("❌ Failed to load HUD: {}", e);
-                                                                            } else {
-                                                                                log::info!("✅ HUD loaded successfully");
-                                                                                if let Some(hud) = editor_state.hud_manager.get_hud() {
-                                                                                    log::info!("HUD has {} elements", hud.elements.len());
-                                                                                }
-                                                                            }
-                                                                        } else {
-                                                                            log::warn!("⚠️ HUD file not found: {:?}", hud_path);
-                                                                        }
-                                                                        
-                                                                        // Setup HUD bindings AFTER loading HUD
-                                                                        editor_state.setup_hud_bindings();
-                                                                        
                                                                         // Load the main scene
                                                                         let scene_path = celeste_path.join("scenes/main.json");
                                                                         log::info!("Attempting to load scene: {:?}", scene_path);
@@ -689,6 +634,32 @@ fn main() -> Result<()> {
                                                                                     log::info!("Scene loaded successfully!");
                                                                                     log::info!("Animated sprites count: {}", editor_state.world.animated_sprites.len());
                                                                                     log::info!("Sprite sheets count: {}", editor_state.world.sprite_sheets.len());
+                                                                                    
+                                                                                    // Load and activate HUD prefab
+                                                                                    let hud_path = celeste_path.join("assets/ui/celeste_hud.uiprefab");
+                                                                                    log::info!("Attempting to load HUD: {:?}", hud_path);
+                                                                                    if hud_path.exists() {
+                                                                                        let hud_path_str = hud_path.to_string_lossy().to_string();
+                                                                                        match editor_state.ui_manager.load_prefab(&hud_path_str) {
+                                                                                            Ok(_) => {
+                                                                                                log::info!("✓ HUD prefab loaded successfully!");
+                                                                                                match editor_state.ui_manager.activate_prefab(&hud_path_str, "celeste_hud") {
+                                                                                                    Ok(_) => {
+                                                                                                        log::info!("✓ HUD activated successfully!");
+                                                                                                        editor_state.console.info("🎮 Celeste HUD loaded and active".to_string());
+                                                                                                    }
+                                                                                                    Err(e) => {
+                                                                                                        log::error!("✗ Failed to activate HUD: {}", e);
+                                                                                                    }
+                                                                                                }
+                                                                                            }
+                                                                                            Err(e) => {
+                                                                                                log::error!("✗ Failed to load HUD prefab: {}", e);
+                                                                                            }
+                                                                                        }
+                                                                                    } else {
+                                                                                        log::warn!("HUD prefab not found: {:?}", hud_path);
+                                                                                    }
                                                                                 }
                                                                                 Err(e) => {
                                                                                     launcher_state.error_message = Some(format!("Error loading scene: {}", e));
@@ -1128,6 +1099,7 @@ fn main() -> Result<()> {
                                         &mut editor_state.transform_space,
                                         &mut editor_state.texture_manager,
                                         &mut editor_state.open_sprite_editor_request,
+                                        &mut editor_state.open_prefab_editor_request,
                                         &mut editor_state.sprite_editor_windows,
                                         &mut editor_state.sprite_picker_state,
                                         &mut editor_state.texture_inspector,
@@ -1139,9 +1111,9 @@ fn main() -> Result<()> {
                                         &mut editor_state.layer_ordering_panel,
                                         &mut editor_state.performance_panel,
                                         &mut editor_state.collider_settings_panel,
-                                        &mut editor_state.hud_manager,
                                         &mut editor_state.game_view_settings,
-                                        &mut editor_state.widget_editor,
+                                        &mut editor_state.prefab_editor,
+                                        &mut editor_state.ui_manager,
                                         dt,
                                     );
                                 } else {
@@ -1210,7 +1182,7 @@ fn main() -> Result<()> {
                                         
                                         if is_sprite_sheet {
                                             // Load sprite metadata to get sprite rect
-                                            match crate::editor::sprite_editor::SpriteMetadata::load(&result.sprite_file_path) {
+                                            match sprite_editor::SpriteMetadata::load(&result.sprite_file_path) {
                                                 Ok(metadata) => {
                                                     // Find the selected sprite definition
                                                     if let Some(sprite_def) = metadata.find_sprite(&result.sprite_name) {
@@ -1608,7 +1580,7 @@ fn main() -> Result<()> {
                                     } else {
                                         // In non-docking mode, use floating windows (old behavior)
                                         let already_open = editor_state.sprite_editor_windows.iter()
-                                            .any(|w| w.state.texture_path == texture_path);
+                                            .any(|w| w.state().texture_path == texture_path);
 
                                         if !already_open {
                                             let window = crate::editor::SpriteEditorWindow::new(texture_path.clone());
@@ -1618,14 +1590,51 @@ fn main() -> Result<()> {
                                     }
                                 }
 
+                                // Handle prefab editor open request
+                                if let Some(prefab_path) = editor_state.open_prefab_editor_request.take() {
+                                    if editor_state.use_docking {
+                                        // In docking mode, ensure PrefabEditor tab exists and is focused
+                                        use crate::editor::ui::EditorTab;
+
+                                        // Load the prefab
+                                        match editor_state.prefab_editor.load_prefab(&prefab_path) {
+                                            Ok(_) => {
+                                                // Check if PrefabEditor tab already exists
+                                                let mut tab_exists = false;
+                                                editor_state.dock_state.main_surface().iter().for_each(|node| {
+                                                    if let egui_dock::Node::Leaf { tabs, .. } = node {
+                                                        for tab in tabs {
+                                                            if matches!(tab, EditorTab::PrefabEditor) {
+                                                                tab_exists = true;
+                                                                break;
+                                                            }
+                                                        }
+                                                    }
+                                                });
+
+                                                if !tab_exists {
+                                                    // Add PrefabEditor tab to the dock
+                                                    editor_state.dock_state.main_surface_mut()
+                                                        .push_to_focused_leaf(EditorTab::PrefabEditor);
+                                                }
+                                                
+                                                editor_state.console.info(format!("Opened UI Prefab Editor for: {}", prefab_path.display()));
+                                            }
+                                            Err(e) => {
+                                                editor_state.console.error(format!("Failed to load prefab: {}", e));
+                                            }
+                                        }
+                                    }
+                                }
+
                                 // Render floating sprite editor windows (only in non-docking mode)
                                 if !editor_state.use_docking {
                                     let mut reloaded_sprite_files = Vec::new();
                                     editor_state.sprite_editor_windows.retain_mut(|window| {
                                         // Check if file was reloaded during render
-                                        let was_reloaded = window.state.check_and_reload(dt);
+                                        let was_reloaded = window.state_mut().check_and_reload(dt);
                                         if was_reloaded {
-                                            reloaded_sprite_files.push(window.state.metadata_path.clone());
+                                            reloaded_sprite_files.push(window.state().metadata_path.clone());
                                         }
 
                                         window.render(&egui_ctx, &mut editor_state.texture_manager, dt);
@@ -1857,6 +1866,62 @@ fn main() -> Result<()> {
                                             (line.color[3] * 255.0) as u8,
                                         );
                                         editor_state.debug_draw.draw_line(line.start, line.end, color, line.duration);
+                                    }
+                                    
+                                    // Process UI commands from Lua scripts
+                                    let ui_commands = script_engine.take_ui_commands();
+                                    for command in ui_commands {
+                                        use script::UICommand;
+                                        match command {
+                                            UICommand::LoadPrefab { path } => {
+                                                if let Err(e) = editor_state.ui_manager.load_prefab(&path) {
+                                                    editor_state.console.error(format!("Failed to load prefab '{}': {}", path, e));
+                                                }
+                                            }
+                                            UICommand::ActivatePrefab { path, instance_name } => {
+                                                if let Err(e) = editor_state.ui_manager.activate_prefab(&path, &instance_name) {
+                                                    editor_state.console.error(format!("Failed to activate prefab '{}': {}", path, e));
+                                                }
+                                            }
+                                            UICommand::DeactivatePrefab { instance_name } => {
+                                                editor_state.ui_manager.deactivate_prefab(&instance_name);
+                                            }
+                                            UICommand::SetText { element_path, text } => {
+                                                editor_state.ui_manager.set_ui_data(&element_path, text);
+                                            }
+                                            UICommand::SetImageFill { element_path, fill_amount } => {
+                                                // Parse element_path: "instance_name/element_name"
+                                                if let Some((instance, element)) = element_path.split_once('/') {
+                                                    if let Err(e) = editor_state.ui_manager.set_element_fill(instance, element, fill_amount) {
+                                                        editor_state.console.error(format!("Failed to set fill: {}", e));
+                                                    }
+                                                }
+                                            }
+                                            UICommand::SetColor { element_path, r, g, b, a } => {
+                                                // Parse element_path: "instance_name/element_name"
+                                                if let Some((instance, element)) = element_path.split_once('/') {
+                                                    if let Err(e) = editor_state.ui_manager.set_element_color(instance, element, r, g, b, a) {
+                                                        editor_state.console.error(format!("Failed to set color: {}", e));
+                                                    }
+                                                }
+                                            }
+                                            UICommand::ShowElement { element_path } => {
+                                                // Parse element_path: "instance_name/element_name"
+                                                if let Some((instance, element)) = element_path.split_once('/') {
+                                                    if let Err(e) = editor_state.ui_manager.show_element(instance, element) {
+                                                        editor_state.console.error(format!("Failed to show element: {}", e));
+                                                    }
+                                                }
+                                            }
+                                            UICommand::HideElement { element_path } => {
+                                                // Parse element_path: "instance_name/element_name"
+                                                if let Some((instance, element)) = element_path.split_once('/') {
+                                                    if let Err(e) = editor_state.ui_manager.hide_element(instance, element) {
+                                                        editor_state.console.error(format!("Failed to hide element: {}", e));
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
 
                                     // Accumulate frame time for fixed timestep physics

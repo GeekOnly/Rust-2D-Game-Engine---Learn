@@ -104,8 +104,9 @@ pub struct EditorState {
     pub selection: super::selection::SelectionManager,  // Multi-selection system
     pub clipboard: super::clipboard::Clipboard,  // Copy/Paste/Duplicate system
     pub snap_settings: super::snapping::SnapSettings,  // Snap to Grid system
-    pub sprite_editor_windows: Vec<super::sprite_editor::SpriteEditorWindow>,  // Open sprite editor windows
+    pub sprite_editor_windows: Vec<super::SpriteEditorWindow>,  // Open sprite editor windows
     pub open_sprite_editor_request: Option<PathBuf>,  // Request to open sprite editor for a texture
+    pub open_prefab_editor_request: Option<PathBuf>,  // Request to open prefab editor for a UI prefab
     pub sprite_picker_state: super::ui::sprite_picker::SpritePickerState,  // Sprite picker popup state
     pub texture_inspector: super::ui::texture_inspector::TextureInspector,  // Texture import settings inspector
     pub map_view_state: super::ui::map_view::MapViewState,  // Map view panel state
@@ -115,9 +116,9 @@ pub struct EditorState {
     pub layer_ordering_panel: super::ui::layer_ordering_panel::LayerOrderingPanel,  // Layer ordering panel for reordering tilemap layers
     pub performance_panel: super::ui::performance_panel::PerformancePanel,  // Performance monitoring panel for tilemap management
     pub collider_settings_panel: super::ui::collider_settings_panel::ColliderSettingsPanel,  // Collider configuration panel for tilemap colliders
-    pub hud_manager: crate::hud::HudManager,  // HUD system for game view
     pub game_view_settings: crate::runtime::GameViewSettings,  // Game view resolution and display settings
-    pub widget_editor: super::widget_editor::WidgetEditor,  // Visual HUD/UI widget editor (UMG-style)
+    pub prefab_editor: super::widget_editor::PrefabEditor,  // Visual UI prefab editor (Unity-style)
+    pub ui_manager: crate::ui_manager::UIManager,  // New UI system manager
 }
 
 #[allow(dead_code)]
@@ -188,6 +189,7 @@ impl EditorState {
             texture_manager: crate::texture_manager::TextureManager::new(),
             sprite_editor_windows: Vec::new(),
             open_sprite_editor_request: None,
+            open_prefab_editor_request: None,
             sprite_picker_state: super::ui::sprite_picker::SpritePickerState::new(),
             texture_inspector: super::ui::texture_inspector::TextureInspector::default(),
             map_view_state: super::ui::map_view::MapViewState::default(),
@@ -197,9 +199,9 @@ impl EditorState {
             layer_ordering_panel: super::ui::layer_ordering_panel::LayerOrderingPanel::new(),
             performance_panel: super::ui::performance_panel::PerformancePanel::new(),
             collider_settings_panel: super::ui::collider_settings_panel::ColliderSettingsPanel::new(),
-            hud_manager: crate::hud::HudManager::new(),
             game_view_settings: crate::runtime::GameViewSettings::default(),
-            widget_editor: super::widget_editor::WidgetEditor::new(),
+            prefab_editor: super::widget_editor::PrefabEditor::new(),
+            ui_manager: crate::ui_manager::UIManager::new(),
         }
     }
 
@@ -217,69 +219,6 @@ impl EditorState {
             }
         }
     }
-    
-    /// Setup HUD data bindings
-    pub fn setup_hud_bindings(&mut self) {
-        use ecs::EntityTag;
-        
-        // Player health (example - always 100% for now)
-        self.hud_manager.bind("player.health", |_world| 1.0);
-        
-        // Player stamina (example)
-        self.hud_manager.bind("player.stamina", |_world| 1.0);
-        
-        // Dash count (example)
-        self.hud_manager.bind("dash_count", |_world| 1.0);
-        
-        // Player position X
-        self.hud_manager.bind("pos_x", |world| {
-            world.tags.iter()
-                .find(|(_, tag)| **tag == EntityTag::Player)
-                .and_then(|(entity, _)| world.transforms.get(entity))
-                .map(|t| (t.position[0] * 10.0).round() / 10.0)
-                .unwrap_or(0.0)
-        });
-        
-        // Player position Y
-        self.hud_manager.bind("pos_y", |world| {
-            world.tags.iter()
-                .find(|(_, tag)| **tag == EntityTag::Player)
-                .and_then(|(entity, _)| world.transforms.get(entity))
-                .map(|t| (t.position[1] * 10.0).round() / 10.0)
-                .unwrap_or(0.0)
-        });
-        
-        // Player velocity X
-        self.hud_manager.bind("vel_x", |world| {
-            world.tags.iter()
-                .find(|(_, tag)| **tag == EntityTag::Player)
-                .and_then(|(entity, _)| world.velocities.get(entity))
-                .map(|v| (v.0 * 10.0).round() / 10.0)
-                .unwrap_or(0.0)
-        });
-        
-        // Player velocity Y
-        self.hud_manager.bind("vel_y", |world| {
-            world.tags.iter()
-                .find(|(_, tag)| **tag == EntityTag::Player)
-                .and_then(|(entity, _)| world.velocities.get(entity))
-                .map(|v| (v.1 * 10.0).round() / 10.0)
-                .unwrap_or(0.0)
-        });
-        
-        // FPS (will be updated from actual delta time)
-        self.hud_manager.bind("fps", |_world| 60.0);
-        
-        self.console.info("✅ HUD bindings configured");
-        
-        // Debug: Check if HUD is loaded
-        if self.hud_manager.get_hud().is_some() {
-            self.console.info("✅ HUD asset is loaded");
-        } else {
-            self.console.warning("⚠️ No HUD asset loaded yet");
-        }
-    }
-
     /// Save current layout as default
     pub fn save_default_layout(&self) {
         if let Some(ref project_path) = self.current_project_path {
@@ -473,7 +412,7 @@ end
     /// Update all entities that use a specific sprite file when it changes
     pub fn update_entities_using_sprite_file(&mut self, sprite_file_path: &PathBuf) {
         // Load the updated sprite metadata
-        let metadata = match super::sprite_editor::SpriteMetadata::load(sprite_file_path) {
+        let metadata = match sprite_editor::SpriteMetadata::load(sprite_file_path) {
             Ok(m) => m,
             Err(e) => {
                 log::warn!("Failed to load sprite metadata for hot-reload: {}", e);
@@ -606,19 +545,19 @@ mod tests {
         let texture_path = "assets/test_texture.png";
         
         // Create initial sprite metadata
-        let metadata = crate::editor::sprite_editor::SpriteMetadata {
+        let metadata = sprite_editor::SpriteMetadata {
             texture_path: texture_path.to_string(),
             texture_width: 256,
             texture_height: 256,
             sprites: vec![
-                crate::editor::sprite_editor::SpriteDefinition {
+                sprite_editor::SpriteDefinition {
                     name: "sprite_0".to_string(),
                     x: 0,
                     y: 0,
                     width: 32,
                     height: 32,
                 },
-                crate::editor::sprite_editor::SpriteDefinition {
+                sprite_editor::SpriteDefinition {
                     name: "sprite_1".to_string(),
                     x: 32,
                     y: 0,
@@ -681,12 +620,12 @@ mod tests {
         let sprite_file_path = temp_dir.join("test_sprite2.sprite");
         
         // Create sprite metadata with a different texture path
-        let metadata = crate::editor::sprite_editor::SpriteMetadata {
+        let metadata = sprite_editor::SpriteMetadata {
             texture_path: "assets/different_texture.png".to_string(),
             texture_width: 256,
             texture_height: 256,
             sprites: vec![
-                crate::editor::sprite_editor::SpriteDefinition {
+                sprite_editor::SpriteDefinition {
                     name: "sprite_0".to_string(),
                     x: 0,
                     y: 0,

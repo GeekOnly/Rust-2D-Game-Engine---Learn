@@ -20,7 +20,7 @@ pub enum EditorTab {
     Performance,  // Performance monitoring panel for tilemap management
     ColliderSettings,  // Collider configuration panel for tilemap colliders
     SpriteEditor(std::path::PathBuf),  // Sprite editor for a specific texture file
-    WidgetEditor,  // Visual HUD/UI widget editor (UMG-style)
+    PrefabEditor,  // Visual UI prefab editor (Unity-style)
 }
 
 /// Context for tab rendering
@@ -52,6 +52,7 @@ pub struct TabContext<'a> {
     pub transform_space: &'a mut scene_view::TransformSpace,
     pub texture_manager: &'a mut crate::texture_manager::TextureManager,
     pub open_sprite_editor_request: &'a mut Option<std::path::PathBuf>,
+    pub open_prefab_editor_request: &'a mut Option<std::path::PathBuf>,
     pub sprite_editor_windows: &'a mut Vec<crate::editor::SpriteEditorWindow>,
     pub sprite_picker_state: &'a mut super::sprite_picker::SpritePickerState,
     pub texture_inspector: &'a mut texture_inspector::TextureInspector,
@@ -62,9 +63,9 @@ pub struct TabContext<'a> {
     pub layer_ordering_panel: &'a mut super::layer_ordering_panel::LayerOrderingPanel,
     pub performance_panel: &'a mut super::performance_panel::PerformancePanel,
     pub collider_settings_panel: &'a mut super::collider_settings_panel::ColliderSettingsPanel,
-    pub hud_manager: &'a mut crate::hud::HudManager,
     pub game_view_settings: &'a mut crate::runtime::GameViewSettings,
-    pub widget_editor: &'a mut crate::editor::WidgetEditor,
+    pub prefab_editor: &'a mut crate::editor::PrefabEditor,
+    pub ui_manager: &'a mut crate::ui_manager::UIManager,
     pub dt: f32,
 }
 
@@ -153,7 +154,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
             EditorTab::LayerOrdering => "📑 Layer Ordering".into(),
             EditorTab::Performance => "📊 Performance".into(),
             EditorTab::ColliderSettings => "⚙️ Collider Settings".into(),
-            EditorTab::WidgetEditor => "🎨 Widget Editor".into(),
+            EditorTab::PrefabEditor => "🎨 Prefab Editor".into(),
             EditorTab::SpriteEditor(path) => {
                 let file_name = path.file_stem()
                     .and_then(|s| s.to_str())
@@ -264,7 +265,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                     ui,
                     self.context.world,
                     self.context.texture_manager,
-                    Some(self.context.hud_manager),
+                    Some(self.context.ui_manager),
                     Some(self.context.game_view_settings),
                 );
             }
@@ -327,20 +328,24 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                             asset_browser::AssetBrowserAction::SelectTexture(path) => {
                                 self.context.texture_inspector.set_texture(path);
                             }
+                            asset_browser::AssetBrowserAction::OpenUIPrefabEditor(path) => {
+                                // Set request to open prefab editor (handled in main.rs)
+                                *self.context.open_prefab_editor_request = Some(path);
+                            }
                         }
                     }
                 } else {
                     ui.label("No project open");
                 }
             }
-            EditorTab::WidgetEditor => {
-                // Render widget editor
-                self.context.widget_editor.render(ui);
+            EditorTab::PrefabEditor => {
+                // Render prefab editor
+                self.context.prefab_editor.render(ui);
             }
             EditorTab::SpriteEditor(texture_path) => {
                 // Find or create sprite editor window for this texture
                 let window_idx = self.context.sprite_editor_windows.iter()
-                    .position(|w| w.state.texture_path == *texture_path);
+                    .position(|w| w.state().texture_path == *texture_path);
 
                 if let Some(idx) = window_idx {
                     // Render inline without window frame

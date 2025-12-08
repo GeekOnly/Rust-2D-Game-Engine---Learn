@@ -297,6 +297,7 @@ impl EditorUI {
         transform_space: &mut scene_view::TransformSpace,
         texture_manager: &mut crate::texture_manager::TextureManager,
         open_sprite_editor_request: &mut Option<std::path::PathBuf>,
+        open_prefab_editor_request: &mut Option<std::path::PathBuf>,
         sprite_editor_windows: &mut Vec<crate::editor::SpriteEditorWindow>,
         sprite_picker_state: &mut sprite_picker::SpritePickerState,
         texture_inspector: &mut texture_inspector::TextureInspector,
@@ -308,9 +309,9 @@ impl EditorUI {
         layer_ordering_panel: &mut layer_ordering_panel::LayerOrderingPanel,
         performance_panel: &mut performance_panel::PerformancePanel,
         collider_settings_panel: &mut collider_settings_panel::ColliderSettingsPanel,
-        hud_manager: &mut crate::hud::HudManager,
         game_view_settings: &mut crate::runtime::GameViewSettings,
-        widget_editor: &mut crate::editor::WidgetEditor,
+        prefab_editor: &mut crate::editor::PrefabEditor,
+        ui_manager: &mut crate::ui_manager::UIManager,
         dt: f32,
     ) {
         // Handle layout change request (will be processed by caller)
@@ -373,6 +374,7 @@ impl EditorUI {
                 transform_space,
                 texture_manager,
                 open_sprite_editor_request,
+                open_prefab_editor_request,
                 sprite_editor_windows,
                 sprite_picker_state,
                 texture_inspector,
@@ -383,9 +385,9 @@ impl EditorUI {
                 layer_ordering_panel,
                 performance_panel,
                 collider_settings_panel,
-                hud_manager,
                 game_view_settings,
-                widget_editor,
+                prefab_editor,
+                ui_manager,
                 dt,
             };
 

@@ -1,0 +1,91 @@
+{
+  "texture_path": "assets/brackeys_platformer_assets/sprites/coin.png",
+  "texture_width": 192,
+  "texture_height": 16,
+  "sprites": [
+    {
+      "name": "sprite_0",
+      "x": 0,
+      "y": 0,
+      "width": 16,
+      "height": 16
+    },
+    {
+      "name": "sprite_1",
+      "x": 16,
+      "y": 0,
+      "width": 16,
+      "height": 16
+    },
+    {
+      "name": "sprite_2",
+      "x": 32,
+      "y": 0,
+      "width": 16,
+      "height": 16
+    },
+    {
+      "name": "sprite_3",
+      "x": 48,
+      "y": 0,
+      "width": 16,
+      "height": 16
+    },
+    {
+      "name": "sprite_4",
+      "x": 64,
+      "y": 0,
+      "width": 16,
+      "height": 16
+    },
+    {
+      "name": "sprite_5",
+      "x": 80,
+      "y": 0,
+      "width": 16,
+      "height": 16
+    },
+    {
+      "name": "sprite_6",
+      "x": 96,
+      "y": 0,
+      "width": 16,
+      "height": 16
+    },
+    {
+      "name": "sprite_7",
+      "x": 112,
+      "y": 0,
+      "width": 16,
+      "height": 16
+    },
+    {
+      "name": "sprite_8",
+      "x": 128,
+      "y": 0,
+      "width": 16,
+      "height": 16
+    },
+    {
+      "name": "sprite_9",
+      "x": 144,
+      "y": 0,
+      "width": 16,
+      "height": 16
+    },
+    {
+      "name": "sprite_10",
+      "x": 160,
+      "y": 0,
+      "width": 16,
+      "height": 16
+    },
+    {
+      "name": "sprite_11",
+      "x": 176,
+      "y": 0,
+      "width": 16,
+      "height": 16
+    }
+  ]
+}
