@@ -420,3 +420,130 @@ mod tests {
         assert_eq!(tileset.get_tile_coords(4), Some((1, 19))); // 1 + 16 + 2
     }
 }
+
+/// Tilemap Renderer component (Unity-style)
+/// 
+/// Controls how the tilemap is rendered, similar to Unity's Tilemap Renderer.
+/// This component should be attached to the same entity as the Tilemap component.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct TilemapRenderer {
+    /// Rendering mode
+    pub mode: TilemapRenderMode,
+    
+    /// Sorting layer (for 2D rendering order)
+    pub sorting_layer: String,
+    
+    /// Order in layer (higher = rendered on top)
+    pub order_in_layer: i32,
+    
+    /// Material/shader to use (optional)
+    pub material: Option<String>,
+    
+    /// Tint color (RGBA, 0.0-1.0)
+    pub color: [f32; 4],
+    
+    /// Chunk size for rendering optimization (0 = no chunking)
+    pub chunk_size: u32,
+    
+    /// Detect chunk culling (don't render off-screen chunks)
+    pub detect_chunk_culling: bool,
+    
+    /// Mask interaction (for sprite masking)
+    pub mask_interaction: MaskInteraction,
+}
+
+impl Default for TilemapRenderer {
+    fn default() -> Self {
+        Self {
+            mode: TilemapRenderMode::Chunk,
+            sorting_layer: "Default".to_string(),
+            order_in_layer: 0,
+            material: None,
+            color: [1.0, 1.0, 1.0, 1.0],  // White (no tint)
+            chunk_size: 16,  // 16x16 tiles per chunk
+            detect_chunk_culling: true,
+            mask_interaction: MaskInteraction::None,
+        }
+    }
+}
+
+impl TilemapRenderer {
+    /// Create a new tilemap renderer with default settings
+    pub fn new() -> Self {
+        Self::default()
+    }
+    
+    /// Create a tilemap renderer with custom sorting
+    pub fn with_sorting(sorting_layer: impl Into<String>, order_in_layer: i32) -> Self {
+        Self {
+            sorting_layer: sorting_layer.into(),
+            order_in_layer,
+            ..Default::default()
+        }
+    }
+    
+    /// Set the tint color
+    pub fn with_color(mut self, r: f32, g: f32, b: f32, a: f32) -> Self {
+        self.color = [r, g, b, a];
+        self
+    }
+    
+    /// Enable/disable chunk culling
+    pub fn with_chunk_culling(mut self, enabled: bool) -> Self {
+        self.detect_chunk_culling = enabled;
+        self
+    }
+}
+
+/// Tilemap rendering mode
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub enum TilemapRenderMode {
+    /// Render each tile individually (simple, but slower for large tilemaps)
+    Individual,
+    
+    /// Render in chunks for better performance (Unity default)
+    Chunk,
+}
+
+/// Mask interaction mode (Unity-style)
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub enum MaskInteraction {
+    /// No mask interaction
+    None,
+    
+    /// Visible inside mask
+    VisibleInsideMask,
+    
+    /// Visible outside mask
+    VisibleOutsideMask,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_tilemap_renderer_default() {
+        let renderer = TilemapRenderer::default();
+        assert_eq!(renderer.mode, TilemapRenderMode::Chunk);
+        assert_eq!(renderer.sorting_layer, "Default");
+        assert_eq!(renderer.order_in_layer, 0);
+        assert_eq!(renderer.color, [1.0, 1.0, 1.0, 1.0]);
+        assert_eq!(renderer.chunk_size, 16);
+        assert!(renderer.detect_chunk_culling);
+    }
+
+    #[test]
+    fn test_tilemap_renderer_with_sorting() {
+        let renderer = TilemapRenderer::with_sorting("Background", -10);
+        assert_eq!(renderer.sorting_layer, "Background");
+        assert_eq!(renderer.order_in_layer, -10);
+    }
+
+    #[test]
+    fn test_tilemap_renderer_with_color() {
+        let renderer = TilemapRenderer::new()
+            .with_color(1.0, 0.5, 0.0, 0.8);
+        assert_eq!(renderer.color, [1.0, 0.5, 0.0, 0.8]);
+    }
+}

@@ -582,6 +582,7 @@ pub struct World {
     pub animated_sprites: HashMap<Entity, AnimatedSprite>,
     pub tilemaps: HashMap<Entity, Tilemap>,
     pub tilesets: HashMap<Entity, TileSet>,
+    pub tilemap_renderers: HashMap<Entity, TilemapRenderer>,  // Tilemap renderer component
     // Map component (LDtk/Tiled integration)
     pub maps: HashMap<Entity, Map>,
     // Grid component (Unity-like)
@@ -632,6 +633,7 @@ impl World {
         self.animated_sprites.remove(&e);
         self.tilemaps.remove(&e);
         self.tilesets.remove(&e);
+        self.tilemap_renderers.remove(&e);
         self.maps.remove(&e);
         self.grids.remove(&e);
     }
@@ -655,6 +657,7 @@ impl World {
         self.animated_sprites.clear();
         self.tilemaps.clear();
         self.tilesets.clear();
+        self.tilemap_renderers.clear();
         self.maps.clear();
         self.grids.clear();
         self.next_entity = 0;
