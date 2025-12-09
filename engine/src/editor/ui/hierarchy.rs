@@ -284,21 +284,18 @@ pub fn render_hierarchy_with_filter(
 
 }
 
-/// Check if entity is a map-related entity
+/// Check if entity is a map-related entity that should be hidden from hierarchy
 fn is_map_entity(
     entity: Entity,
     world: &World,
     map_manager: &crate::editor::map_manager::MapManager,
 ) -> bool {
-    // Check if it's a Grid entity
-    if world.grids.contains_key(&entity) {
-        return true;
-    }
+    // DON'T hide Grid entities - they should be visible in hierarchy
+    // Only hide layer entities and collider entities
     
-    // Check if name starts with map-related prefixes
+    // Check if name starts with layer/collider prefixes (hide these)
     if let Some(name) = world.names.get(&entity) {
-        if name.starts_with("LDtk Grid") 
-            || name.starts_with("LDTK Layer:") 
+        if name.starts_with("LDTK Layer:") 
             || name.starts_with("CompositeCollider")
             || name.starts_with("Collider_") 
         {
@@ -306,8 +303,12 @@ fn is_map_entity(
         }
     }
     
-    // Check if it's tracked by map_manager
-    map_manager.is_map_entity(entity)
+    // Check if it's a layer entity tracked by map_manager (but not Grid)
+    if map_manager.is_map_entity(entity) && !world.grids.contains_key(&entity) {
+        return true;
+    }
+    
+    false
 }
 
 /// Recursively draw entity node in hierarchy with children (Unity style)
