@@ -838,17 +838,43 @@ impl SceneCamera {
     }
     
     /// Convert screen coordinates to world coordinates
+    /// In Unity-like system: screen is in pixels, world is in units (1 unit = 100 pixels by default)
     pub fn screen_to_world(&self, screen_pos: Vec2) -> Vec2 {
-        // In 2D mode (rotation = 0), Y axis points up (standard convention)
+        // Unity-style: 2D camera is orthographic looking down -Z axis
+        // X: right, Y: up, Z: forward (out of screen)
         // Screen Y increases downward, so we need to invert it
+        // Zoom affects the orthographic size (how many world units fit in view)
         self.position + Vec2::new(screen_pos.x, -screen_pos.y) / self.zoom
     }
-    
+
     /// Convert world coordinates to screen coordinates
+    /// In Unity-like system: world is in units, screen is in pixels
     pub fn world_to_screen(&self, world_pos: Vec2) -> Vec2 {
-        // Convert world to screen, inverting Y axis
+        // Unity-style: convert world units to screen pixels
+        // World coordinates: X = right, Y = up
+        // Screen coordinates: X = right, Y = down
         let world_delta = world_pos - self.position;
         Vec2::new(world_delta.x, -world_delta.y) * self.zoom
+    }
+
+    /// Get orthographic projection matrix for 2D rendering (Unity-style)
+    /// This allows 2D and 3D to share the same world space
+    pub fn get_orthographic_matrix_2d(&self, viewport_size: Vec2) -> Mat4 {
+        // Calculate orthographic bounds based on zoom
+        // zoom = pixels per world unit (higher zoom = more zoomed in)
+        // viewport_size = size in pixels
+        let half_width = (viewport_size.x / 2.0) / self.zoom;
+        let half_height = (viewport_size.y / 2.0) / self.zoom;
+
+        // Unity-style 2D: looking down -Z axis, X = right, Y = up
+        Mat4::orthographic_rh(
+            self.position.x - half_width,   // left
+            self.position.x + half_width,   // right
+            self.position.y - half_height,  // bottom
+            self.position.y + half_height,  // top
+            -1000.0,                        // near (see objects from Z=-1000 to Z=1000)
+            1000.0,                         // far
+        )
     }
     
     /// Reset camera to default

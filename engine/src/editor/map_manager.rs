@@ -602,7 +602,8 @@ impl MapManager {
                 world.names.insert(entity, format!("LDTK Layer: {}", identifier));
 
                 // Add transform at layer offset (relative to Grid parent)
-                let pixels_per_unit = 8.0;
+                // Unity standard: 100 pixels per unit for consistent 2D/3D world space
+                let pixels_per_unit = 100.0;
                 let total_px_x = level_world_x + px_offset_x;
                 let total_px_y = level_world_y + px_offset_y;
                 let world_x = total_px_x / pixels_per_unit;
