@@ -121,9 +121,13 @@ pub fn handle_camera_controls(
         }
     }
 
-    // WASD / QE Fly Controls (3D mode, when Right Mouse Button is held)
-    // Unity-style: Right click + WASD to fly
-    if *scene_view_mode == SceneViewMode::Mode3D && response.dragged_by(egui::PointerButton::Secondary) {
+    // WASD / QE Fly Controls (3D mode)
+    // Works when:
+    // 1. Right mouse button is held (Unity-style fly mode)
+    // 2. OR when hovering over scene view (easier to use)
+    let is_right_mouse_down = response.ctx.input(|i| i.pointer.button_down(egui::PointerButton::Secondary));
+    
+    if *scene_view_mode == SceneViewMode::Mode3D && (is_right_mouse_down || response.hovered()) {
         let fly_speed = response.ctx.input(|i| {
             let base_speed = 2.0; // Base movement speed
 
@@ -151,11 +155,12 @@ pub fn handle_camera_controls(
             let mut movement = glam::Vec2::ZERO;
 
             // Forward/Backward (W/S)
+            // W = forward (away from camera), S = backward (toward camera)
             if i.key_down(egui::Key::W) {
-                movement += forward;
+                movement -= forward;  // Move away from camera
             }
             if i.key_down(egui::Key::S) {
-                movement -= forward;
+                movement += forward;  // Move toward camera
             }
 
             // Left/Right (A/D)
