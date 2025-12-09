@@ -95,16 +95,84 @@ pub fn handle_camera_controls(
 
         if scroll_delta.abs() > 0.1 {
             let mouse_pos = response.hover_pos().unwrap_or(rect.center());
+
+            // Speed modifiers: Shift = faster, Ctrl = slower
+            let speed_multiplier = response.ctx.input(|i| {
+                if i.modifiers.shift {
+                    3.0  // 3x faster with Shift
+                } else if i.modifiers.ctrl {
+                    0.3  // 3x slower with Ctrl
+                } else {
+                    1.0  // Normal speed
+                }
+            });
+
             let zoom_direction = if scroll_delta > 0.0 { 1.0 } else { -1.0 };
-            
+            let adjusted_zoom = zoom_direction * speed_multiplier;
+
             // Convert absolute screen position to relative position from rect center
             let center = rect.center();
             let relative_pos = glam::Vec2::new(
                 mouse_pos.x - center.x,
                 mouse_pos.y - center.y
             );
-            
-            scene_camera.zoom(zoom_direction, relative_pos);
+
+            scene_camera.zoom(adjusted_zoom, relative_pos);
+        }
+    }
+
+    // WASD / QE Fly Controls (3D mode, when Right Mouse Button is held)
+    // Unity-style: Right click + WASD to fly
+    if *scene_view_mode == SceneViewMode::Mode3D && response.dragged_by(egui::PointerButton::Secondary) {
+        let fly_speed = response.ctx.input(|i| {
+            let base_speed = 2.0; // Base movement speed
+
+            // Speed modifiers
+            let speed_multiplier = if i.modifiers.shift {
+                3.0  // Fast mode (Shift)
+            } else if i.modifiers.ctrl {
+                0.3  // Slow mode (Ctrl)
+            } else {
+                1.0  // Normal speed
+            };
+
+            let final_speed = base_speed * speed_multiplier * (scene_camera.distance / 100.0).max(0.5);
+
+            let yaw_rad = scene_camera.rotation.to_radians();
+            let pitch_rad = scene_camera.pitch.to_radians();
+
+            // Calculate movement vectors
+            let forward = glam::Vec2::new(
+                yaw_rad.cos() * pitch_rad.cos(),
+                yaw_rad.sin() * pitch_rad.cos()
+            );
+            let right = glam::Vec2::new(yaw_rad.sin(), -yaw_rad.cos());
+
+            let mut movement = glam::Vec2::ZERO;
+
+            // Forward/Backward (W/S)
+            if i.key_down(egui::Key::W) {
+                movement += forward;
+            }
+            if i.key_down(egui::Key::S) {
+                movement -= forward;
+            }
+
+            // Left/Right (A/D)
+            if i.key_down(egui::Key::A) {
+                movement -= right;
+            }
+            if i.key_down(egui::Key::D) {
+                movement += right;
+            }
+
+            movement * final_speed
+        });
+
+        if fly_speed.length() > 0.01 {
+            scene_camera.position += fly_speed;
+            scene_camera.pivot += fly_speed;
+            // No need to update target_position - it's managed internally
         }
     }
 }

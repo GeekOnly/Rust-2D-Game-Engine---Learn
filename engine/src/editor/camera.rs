@@ -91,17 +91,17 @@ impl CameraSettings {
 impl Default for CameraSettings {
     fn default() -> Self {
         Self {
-            // OPTIMIZED: Fine-tuned for Unity-like feel
+            // OPTIMIZED: Unity-like feel (improved for better control)
             pan_sensitivity: 1.0,   // Unity-like pan speed
-            rotation_sensitivity: 0.3, // Slower, more controlled rotation
-            zoom_sensitivity: 0.1, // Smoother zoom
+            rotation_sensitivity: 0.15, // Slower for precise control
+            zoom_sensitivity: 0.08, // Smoother, more gradual zoom
             pan_damping: 0.0,      // No damping for immediate response
             rotation_damping: 0.0, // No damping for immediate response
             zoom_damping: 0.0,     // No damping for immediate response
             enable_inertia: false,  // Disabled by default for more predictable behavior
             inertia_decay: 0.90,    // Slightly faster decay when enabled
             zoom_to_cursor: true,   // Zoom to cursor (better for precise editing)
-            zoom_speed: 18.0,       // Balanced zoom speed
+            zoom_speed: 15.0,       // Smoother zoom speed
         }
     }
 }
@@ -242,23 +242,27 @@ impl SceneCamera {
             // Check if we're in 3D mode (pitch != 0)
             if self.pitch.abs() > 0.1 {
                 // 3D mode: pan in camera space
-                // Calculate pan speed based on distance from pivot
-                let pan_speed = self.settings.pan_sensitivity * (self.distance / 100.0);
-                
+                // Better pan speed calculation: based on distance and zoom-like feel
+                let base_speed = 0.5; // Reduced base speed for better control
+                let distance_factor = (self.distance / 100.0).max(0.1); // Clamp minimum
+                let pan_speed = self.settings.pan_sensitivity * base_speed * distance_factor;
+
                 let yaw_rad = self.rotation.to_radians();
-                
+
                 // Right vector (perpendicular to view direction on XZ plane)
-                let right_x = -yaw_rad.sin();
-                let right_z = yaw_rad.cos();
-                
+                let right_x = yaw_rad.sin();
+                let right_z = -yaw_rad.cos();
+
                 // Forward vector (for up/down panning in 3D)
-                let forward_x = yaw_rad.cos();
-                let forward_z = yaw_rad.sin();
-                
-                // Apply delta in camera space (inverted to match Unity: drag right = world moves left)
-                let world_delta_x = (-delta.x * right_x - delta.y * forward_x) * pan_speed;
-                let world_delta_z = (-delta.x * right_z - delta.y * forward_z) * pan_speed;
-                
+                // Use pitch to determine vertical movement
+                let pitch_rad = self.pitch.to_radians();
+                let forward_x = yaw_rad.cos() * pitch_rad.cos();
+                let forward_z = yaw_rad.sin() * pitch_rad.cos();
+
+                // Apply delta in camera space (Unity-style: drag right = camera moves right)
+                let world_delta_x = (delta.x * right_x + delta.y * forward_x) * pan_speed;
+                let world_delta_z = (delta.x * right_z + delta.y * forward_z) * pan_speed;
+
                 let world_delta = Vec2::new(world_delta_x, world_delta_z);
 
                 // Update both position and pivot
@@ -268,7 +272,7 @@ impl SceneCamera {
             } else {
                 // 2D mode: simple pan
                 let pan_speed = self.settings.pan_sensitivity / self.zoom;
-                
+
                 // Direct X/Y movement (inverted to match Unity: drag right = world moves left)
                 let world_delta = Vec2::new(-delta.x, delta.y) * pan_speed;
 
@@ -276,7 +280,7 @@ impl SceneCamera {
                 self.position += world_delta;
                 self.target_position = self.position;
             }
-            
+
             // Add to velocity for inertia (if enabled)
             if self.settings.enable_inertia {
                 let world_delta = self.position - self.target_position;
@@ -300,24 +304,24 @@ impl SceneCamera {
         if !delta.is_finite() || !mouse_pos.is_finite() {
             return;
         }
-        
+
         // In 3D Perspective mode (when pitch != 0), adjust distance (Dolly).
         // In 3D Isometric or 2D mode, adjust zoom (Scale).
         if self.pitch.abs() > 0.1 && self.projection_mode == SceneProjectionMode::Perspective {
-            // 3D Perspective: adjust distance
+            // 3D Perspective: adjust distance (smoother scaling)
             let zoom_factor = if delta > 0.0 {
-                0.9  // Zoom in = decrease distance by 10%
+                0.92  // Zoom in = decrease distance by 8% (smoother)
             } else {
-                1.1  // Zoom out = increase distance by 10%
+                1.08  // Zoom out = increase distance by 8% (smoother)
             };
-            
-            self.distance *= zoom_factor;
-            self.distance = self.distance.clamp(1.0, 10000.0);  // Reasonable distance limits
-            
+
+            let new_distance = self.distance * zoom_factor;
+            self.distance = new_distance.clamp(0.5, 10000.0);  // Allow closer zoom
+
             // In 3D mode, we simply move closer/further from the target (self.position)
             // relative to the current viewing angle.
             // We do NOT update self.position here, as that would shift the look-at target.
-            
+
             self.target_zoom = self.zoom; // Sync target for 2D if we switch back
             return;
         }
