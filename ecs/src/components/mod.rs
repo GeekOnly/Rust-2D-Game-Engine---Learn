@@ -10,7 +10,8 @@ pub mod world_ui;
 
 // Re-export all components
 pub use sprite_sheet::{SpriteSheet, SpriteFrame, AnimatedSprite, AnimationMode};
-pub use tilemap::{TileSet, Tilemap, Tile, TileData, TilemapChunk};
+pub use tilemap::{TileSet, Tilemap, Tile, TileData, TilemapChunk, TilemapRenderer, TilemapRenderMode, MaskInteraction};
 pub use map::{Map, MapType};
 pub use grid::{Grid, GridLayout, HexagonOrientation, CellSwizzle};
 pub use world_ui::{WorldUI, WorldUIType, QuestMarkerType};
+pub use grid::{Grid, GridLayout, HexagonOrientation, CellSwizzle, GridPlane};

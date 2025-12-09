@@ -264,8 +264,9 @@ fn render_tilemap_2d(
 
                 // Calculate world position (tile position in world space)
                 // Tiles are positioned in world units (pixels / pixels_per_unit)
-                // Use 8.0 to match LDtk cell size (8x8 pixels = 1x1 world units)
-                let pixels_per_unit = 8.0;
+                // Unity standard: 100 pixels = 1 world unit (1 meter)
+                // This ensures consistent scale between sprites and tilemaps
+                let pixels_per_unit = 100.0; // Unity standard PPU
                 let tile_world_x = tilemap_x + (x as f32 * tile_width / pixels_per_unit);
                 // Flip Y: LDtk uses top-left origin (Y down), engine uses bottom-left (Y up)
                 let tile_world_y = tilemap_y - (y as f32 * tile_height / pixels_per_unit);
@@ -652,7 +653,11 @@ fn render_perspective(
         } else if let Some(sprite) = world.sprites.get(entity) {
             // Render regular sprite
             let transform_scale = glam::Vec2::new(transform.scale[0], transform.scale[1]);
-            let size = egui::vec2(transform_scale.x * screen_scale, transform_scale.y * screen_scale);
+            // Calculate size based on sprite dimensions and transform scale
+            let size = egui::vec2(
+                sprite.width * transform_scale.x * screen_scale,
+                sprite.height * transform_scale.y * screen_scale
+            );
             let color = egui::Color32::from_rgba_unmultiplied(
                 (sprite.color[0] * 255.0) as u8,
                 (sprite.color[1] * 255.0) as u8,

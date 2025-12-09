@@ -41,6 +41,9 @@ pub struct TabContext<'a> {
     pub current_tool: &'a mut TransformTool,
     pub scene_camera: &'a mut SceneCamera,
     pub scene_grid: &'a SceneGrid,
+    pub infinite_grid: &'a mut crate::editor::grid::InfiniteGrid,
+    pub camera_state_display: &'a crate::editor::camera::CameraStateDisplay,
+    pub delta_time: f32,
     pub play_request: &'a mut bool,
     pub stop_request: &'a mut bool,
     pub asset_manager: &'a mut Option<AssetManager>,
@@ -48,7 +51,7 @@ pub struct TabContext<'a> {
     pub dragging_entity: &'a mut Option<Entity>,
     pub drag_axis: &'a mut Option<u8>,
     pub scene_view_mode: &'a mut scene_view::SceneViewMode,
-    pub projection_mode: &'a mut scene_view::ProjectionMode,
+    pub projection_mode: &'a mut scene_view::SceneProjectionMode,
     pub transform_space: &'a mut scene_view::TransformSpace,
     pub texture_manager: &'a mut crate::texture_manager::TextureManager,
     pub open_sprite_editor_request: &'a mut Option<std::path::PathBuf>,
@@ -239,6 +242,8 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                     self.context.current_tool,
                     self.context.scene_camera,
                     self.context.scene_grid,
+                    self.context.infinite_grid,
+                    self.context.camera_state_display,
                     self.context.play_request,
                     self.context.stop_request,
                     self.context.dragging_entity,
@@ -248,6 +253,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                     self.context.transform_space,
                     self.context.texture_manager,
                     self.context.drag_drop,
+                    self.context.delta_time,
                 );
             }
             EditorTab::Game => {

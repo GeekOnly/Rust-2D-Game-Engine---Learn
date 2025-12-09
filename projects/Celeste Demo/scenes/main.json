@@ -1,4 +1,607 @@
 {
+  "next_entity": 318,
+  "transforms": [
+    [
+      311,
+      {
+        "position": [
+          32.375,
+          -22.375,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      290,
+      {
+        "position": [
+          40.875,
+          -2.375,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      304,
+      {
+        "position": [
+          8.375,
+          -21.375,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      312,
+      {
+        "position": [
+          27.875,
+          -23.375,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      291,
+      {
+        "position": [
+          8.375,
+          -3.375,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      307,
+      {
+        "position": [
+          29.375,
+          -20.375,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      298,
+      {
+        "position": [
+          6.375,
+          -14.375,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      292,
+      {
+        "position": [
+          4.375,
+          -10.875,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      284,
+      {
+        "position": [
+          -0.125,
+          0.125,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      0,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          10.48,
+          1.0421437,
+          1.0
+        ]
+      }
+    ],
+    [
+      293,
+      {
+        "position": [
+          6.875,
+          -4.375,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      315,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      296,
+      {
+        "position": [
+          36.375,
+          -13.375,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      302,
+      {
+        "position": [
+          17.875,
+          -20.875,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      301,
+      {
+        "position": [
+          12.375,
+          -20.875,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      295,
+      {
+        "position": [
+          9.375,
+          -11.875,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      11,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          5.0,
+          5.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      294,
+      {
+        "position": [
+          28.875,
+          -9.375,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      286,
+      {
+        "position": [
+          5.375,
+          -13.375,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      297,
+      {
+        "position": [
+          7.375,
+          -13.375,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      310,
+      {
+        "position": [
+          29.375,
+          -22.875,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      287,
+      {
+        "position": [
+          11.375,
+          -1.375,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      314,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      303,
+      {
+        "position": [
+          39.375,
+          -20.875,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      300,
+      {
+        "position": [
+          25.875,
+          -15.375,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      289,
+      {
+        "position": [
+          9.375,
+          -2.375,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      306,
+      {
+        "position": [
+          30.875,
+          -19.375,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      288,
+      {
+        "position": [
+          34.875,
+          -1.375,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      285,
+      {
+        "position": [
+          23.375,
+          -0.375,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      299,
+      {
+        "position": [
+          21.875,
+          -20.375,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
   "next_entity": 491,
   "transforms": [
     [
@@ -22,6 +625,11 @@
       }
     ],
     [
+      309,
+      {
+        "position": [
+          30.875,
+          -21.875,
       490,
       {
         "position": [
@@ -42,6 +650,10 @@
       }
     ],
     [
+      305,
+      {
+        "position": [
+          15.375,
       307,
       {
         "position": [
@@ -644,6 +1256,7 @@
   ],
   "velocities": [
     [
+      55,
       56,
       [
         0.0,
@@ -651,6 +1264,21 @@
       ]
     ],
     [
+      58,
+      [
+        0.0,
+        -0.0
+      ]
+    ],
+    [
+      71,
+      [
+        0.0,
+        -0.0
+      ]
+    ],
+    [
+      69,
       57,
       [
         0.0,
@@ -665,7 +1293,7 @@
       ]
     ],
     [
-      64,
+      57,
       [
         0.0,
         -0.0
@@ -679,6 +1307,7 @@
       ]
     ],
     [
+      64,
       55,
       [
         0.0,
@@ -728,6 +1357,20 @@
       ]
     ],
     [
+      63,
+      [
+        0.0,
+        -0.0
+      ]
+    ],
+    [
+      70,
+      [
+        0.0,
+        -0.0
+      ]
+    ],
+    [
       68,
       [
         0.0,
@@ -749,6 +1392,7 @@
       ]
     ],
     [
+      66,
       70,
       [
         0.0,
@@ -756,6 +1400,7 @@
       ]
     ],
     [
+      72,
       71,
       [
         0.0,
@@ -763,6 +1408,14 @@
       ]
     ],
     [
+      65,
+      [
+        0.0,
+        -0.0
+      ]
+    ],
+    [
+      56,
       69,
       [
         0.0,
@@ -804,7 +1457,7 @@
           1.0,
           1.0
         ],
-        "billboard": false,
+        "billboard": true,
         "flip_x": false,
         "flip_y": false,
         "sprite_rect": [
@@ -954,6 +1607,66 @@
       }
     ],
     [
+      304,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          5.0,
+          9.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      306,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          4.0,
+          1.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      295,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          7.0,
+          2.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      301,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          3.0,
+          10.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
       289,
       {
         "offset": [
@@ -1044,6 +1757,7 @@
       }
     ],
     [
+      287,
       285,
       {
         "offset": [
@@ -1051,6 +1765,7 @@
           0.0
         ],
         "size": [
+          11.0,
           37.0,
           1.0
         ],
@@ -1089,6 +1804,7 @@
       }
     ],
     [
+      312,
       302,
       {
         "offset": [
@@ -1149,6 +1865,7 @@
       }
     ],
     [
+      311,
       287,
       {
         "offset": [
@@ -1209,7 +1926,51 @@
       }
     ],
     [
-      305,
+      285,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          37.0,
+          1.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      302,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          2.0,
+          10.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      11,
+      {
+        "offset": [
+          0.0,
+          -0.02
+        ],
+        "size": [
+          0.16,
+          0.18
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
       {
         "offset": [
           0.0,
@@ -1217,7 +1978,174 @@
         ],
         "size": [
           3.0,
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+      305,
           9.0
+    ],
+    [
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+      308,
+          1.0,
+          3.0
+    ],
+    [
+      293,
+      303,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          2.0,
+          1.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      310,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          1.0,
+          2.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      294,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          26.0,
+          3.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      292,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          1.0,
+          14.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      303,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          5.0,
+          10.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      297,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          3.0,
+          1.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      309,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          2.0,
+          2.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      296,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          11.0,
+          5.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      298,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          1.0,
+          1.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      286,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          1.0,
+          25.0
         ],
         "width": 0.0,
         "height": 0.0
@@ -1239,13 +2167,15 @@
       }
     ],
     [
-      303,
+      291,
       {
         "offset": [
           0.0,
           0.0
         ],
         "size": [
+          5.0,
+          1.0
           5.0,
           10.0
         ],
@@ -1256,6 +2186,7 @@
   ],
   "rigidbodies": [
     [
+      287,
       290,
       {
         "velocity": [
@@ -1270,26 +2201,139 @@
       }
     ],
     [
+      299,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      297,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      291,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      295,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      302,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      292,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      307,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      300,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      290,
       304,
+        ],
+      }
       {
         "velocity": [
           0.0,
           0.0
-        ],
         "gravity_scale": 0.0,
         "mass": 1.0,
         "is_kinematic": true,
         "freeze_rotation": true,
         "enable_ccd": false
-      }
     ],
     [
+      {
+          0.0,
+          0.0
+        ],
       289,
-      {
         "velocity": [
-          0.0,
-          0.0
-        ],
         "gravity_scale": 0.0,
         "mass": 1.0,
         "is_kinematic": true,
@@ -1298,6 +2342,7 @@
       }
     ],
     [
+      308,
       307,
       {
         "velocity": [
@@ -1466,7 +2511,21 @@
       }
     ],
     [
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
       301,
+    ],
+    [
+      288,
       {
         "velocity": [
           0.0,
@@ -1480,7 +2539,35 @@
       }
     ],
     [
-      302,
+      310,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      298,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      294,
       {
         "velocity": [
           0.0,
@@ -1508,7 +2595,7 @@
       }
     ],
     [
-      295,
+      285,
       {
         "velocity": [
           0.0,
@@ -1522,6 +2609,135 @@
       }
     ],
     [
+      312,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      309,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      306,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      296,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      311,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      60,
+      302,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      293,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      286,
+      305,
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      {
+        "velocity": [
+          0.0,
+          0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+      304,
+    ],
+    [
+      303,
       287,
       {
         "velocity": [
@@ -1564,7 +2780,6 @@
       }
     ],
     [
-      11,
       {
         "velocity": [
           0.0,
@@ -1574,8 +2789,9 @@
         "mass": 1.0,
         "is_kinematic": false,
         "freeze_rotation": true,
-        "enable_ccd": true
       }
+      11,
+        "enable_ccd": true
     ],
     [
       300,
@@ -1681,8 +2897,8 @@
       0,
       {
         "projection": "Orthographic",
-        "fov": 60.0,
-        "orthographic_size": 4.0,
+        "fov": 90.0,
+        "orthographic_size": 2.1,
         "near_clip": 0.1,
         "far_clip": 1000.0,
         "viewport_rect": [
@@ -1712,10 +2928,70 @@
   ],
   "scripts": [
     [
+      0,
+      {
+        "script_name": "camera_follow_simple",
+        "enabled": true,
+        "parameters": {
+          "offset_y": {
+            "Float": 0.0
+          },
+          "target_entity": {
+            "Entity": 11
+          }
+        }
+      }
+    ],
+    [
+      11,
       284,
       {
         "script_name": "hud_simple_update",
         "enabled": true,
+        "parameters": {
+          "can_dash": {
+            "Bool": false
+          },
+          "wall_direction": {
+            "Int": 0
+          },
+          "dash_duration": {
+            "Float": 0.2
+          },
+          "is_touching_wall": {
+            "Bool": false
+          },
+          "velocity_x": {
+            "Float": 0.0
+          },
+          "dash_y": {
+            "Float": 1.0
+          },
+          "dash_x": {
+            "Float": 1.0
+          },
+          "dash_direction_x": {
+            "Float": 0.0
+          },
+          "is_dashing": {
+            "Bool": true
+          },
+          "dash_direction_y": {
+            "Float": 0.0
+          },
+          "velocity_y": {
+            "Float": 0.0
+          },
+          "dash_timer": {
+            "Float": 0.0
+          },
+          "is_grounded": {
+            "Bool": false
+          },
+          "wall_slide_speed": {
+            "Float": 1.0
+          },
+          "new_vel_x": {
         "parameters": {}
       }
     ],
@@ -1726,6 +3002,27 @@
         "enabled": true,
         "parameters": {
           "offset_y": {
+          },
+          "dash_y": {
+            "Float": 1.0
+          },
+            "Float": 1.0
+          },
+          },
+            "Bool": true
+          },
+          },
+          },
+          },
+          },
+          },
+          }
+        }
+      }
+    ]
+  ],
+  "active": [
+    [
             "Float": 0.0
           },
           "target_entity": {
@@ -1778,12 +3075,7 @@
           },
           "can_dash": {
             "Bool": false
-          },
-          "dash_y": {
-            "Float": 1.0
-          },
           "wall_slide_speed": {
-            "Float": 1.0
           }
         }
       }
@@ -1796,40 +3088,29 @@
         "parameters": {
           "player_entity": {
             "Int": 11
-          },
           "hud_prefab_path": {
             "String": "projects/Celeste Demo/assets/ui/celeste_hud.uiprefab"
-          },
           "hud_instance_name": {
             "String": "celeste_hud"
           },
           "hud_loaded": {
-            "Bool": true
-          },
           "MAX_DASHES": {
             "Int": 1
-          },
           "direction_text": {
             "String": "Wall: "
-          },
           "elapsed_time": {
             "Int": 0
-          },
           "MAX_HEALTH": {
             "Int": 100
-          },
           "frame_count": {
             "Int": 0
-          },
           "MAX_STAMINA": {
             "Int": 100
-          }
-        }
-      }
-    ]
-  ],
-  "active": [
+      289,
+      true
+    ],
     [
+      296,
       290,
       true
     ],
@@ -1874,6 +3155,7 @@
       true
     ],
     [
+      true
       304,
       true
     ],
@@ -1891,14 +3173,53 @@
     ],
     [
       308,
+    ],
+    [
+      311,
       true
     ],
     [
-      286,
+      11,
+      true
+    ],
+    [
+      300,
       true
     ],
     [
       307,
+      true
+    ],
+    [
+      297,
+      307,
+      true
+    ],
+    [
+      true
+    ],
+    [
+      292,
+      true
+    ],
+    [
+      305,
+      true
+    ],
+    [
+      284,
+      true
+    ],
+    [
+      285,
+      true
+    ],
+    [
+      293,
+      true
+    ],
+    [
+      291,
       true
     ],
     [
@@ -1911,13 +3232,15 @@
     ],
     [
       289,
+      314,
       true
     ],
     [
-      291,
+      308,
       true
     ],
     [
+      290,
       292,
       true
     ],
@@ -1942,6 +3265,51 @@
       true
     ],
     [
+      294,
+      true
+    ],
+    [
+      309,
+      true
+    ],
+    [
+      312,
+      true
+    ],
+    [
+      301,
+      true
+    ],
+    [
+      298,
+      true
+    ],
+    [
+      315,
+      true
+    ],
+    [
+      0,
+      true
+    ],
+    [
+      302,
+      true
+    ],
+    [
+      306,
+      true
+    ],
+    [
+      286,
+      true
+    ],
+    [
+      287,
+      true
+    ],
+    [
+      288,
       11,
       true
     ],
@@ -1960,6 +3328,19 @@
   ],
   "layers": [
     [
+      306,
+      0
+    ],
+    [
+      303,
+      0
+    ],
+    [
+      305,
+      0
+    ],
+    [
+      301,
       285,
       0
     ],
@@ -2076,15 +3457,68 @@
       0
     ],
     [
-      11,
       0
     ],
     [
+      11,
+      312,
+      0
+    ],
+    [
+      315,
+      0
+    ],
+    [
+      292,
+      0
+    ],
+    [
+      295,
+      0
+    ],
+    [
+      285,
+      0
+    ],
+    [
+      310,
+      0
+    ],
+    [
+      307,
+      0
+    ],
+    [
+      286,
+      0
+    ],
+    [
+      0,
+      0
+    ],
+    [
+      290,
       311,
       0
     ],
     [
       299,
+      0
+    ],
+    [
+      297,
+      0
+    ],
+    [
+      309,
+      0
+    ],
+    [
+      288,
+      0
+    ],
+    [
+      293,
       0
     ]
   ],
@@ -2108,9 +3542,79 @@
     ],
     [
       287,
-      "CompositeCollider_11x1"
+      0
     ],
     [
+      314,
+      0
+    ],
+    [
+      291,
+      0
+    ],
+    [
+      300,
+      0
+    ],
+    [
+      284,
+      0
+    ],
+    [
+      302,
+      0
+    ],
+    [
+      304,
+      0
+    ],
+    [
+      311,
+      0
+    ],
+    [
+      298,
+      0
+    ],
+    [
+      289,
+      0
+    ],
+    [
+      308,
+      0
+    ],
+    [
+      11,
+      0
+    ],
+    [
+      296,
+      0
+    ]
+  ],
+  "parents": [
+    [
+      315,
+      314
+    ]
+  ],
+  "names": [
+    [
+      302,
+      "CompositeCollider_2x10"
+    ],
+    [
+      77,
+      "CompositeCollider_3x2"
+    ],
+    [
+      82,
+      "CompositeCollider_11x5"
+    ],
+    [
+      285,
+      "CompositeCollider_37x1"
       63,
       "CompositeCollider_8x2"
     ],
@@ -2155,6 +3659,20 @@
       "CompositeCollider_26x3"
     ],
     [
+      288,
+      "CompositeCollider_14x1"
+    ],
+    [
+      297,
+      "CompositeCollider_3x1"
+    ],
+    [
+      60,
+      "CompositeCollider_2x1"
+    ],
+    [
+      290,
+      "CompositeCollider_2x1"
       76,
       "CompositeCollider_3x3"
     ],
@@ -2187,10 +3705,36 @@
       "CompositeCollider_6x11"
     ],
     [
-      86,
+      87,
+      "CompositeCollider_2x10"
+    ],
+    [
+      304,
+      "CompositeCollider_5x9"
+    ],
+    [
+      307,
+      "CompositeCollider_1x1"
+    ],
+    [
+      75,
+      "CompositeCollider_14x1"
+    ],
+    [
+      68,
       "CompositeCollider_3x10"
     ],
     [
+      79,
+      "CompositeCollider_2x1"
+    ],
+    [
+      58,
+      "CompositeCollider_3x3"
+    ],
+    [
+      90,
+      "CompositeCollider_3x9"
       74,
       "CompositeCollider_12x1"
     ],
@@ -2211,12 +3755,24 @@
       "CompositeCollider_2x1"
     ],
     [
-      65,
-      "CompositeCollider_4x1"
     ],
     [
+      65,
+      "CompositeCollider_4x1"
+      311,
+      "CompositeCollider_1x1"
+    ],
+    [
+      57,
+      "CompositeCollider_14x1"
       67,
       "CompositeCollider_2x1"
+    ],
+    [
+      296,
+      "CompositeCollider_11x5"
+    ],
+    [
     ],
     [
       57,
@@ -2229,12 +3785,60 @@
     [
       73,
       "CompositeCollider_37x1"
+      76,
+      "CompositeCollider_3x3"
     ],
     [
-      296,
-      "CompositeCollider_11x5"
+      85,
+      "CompositeCollider_2x1"
     ],
     [
+      84,
+      "CompositeCollider_6x11"
+    ],
+    [
+      11,
+      "Player"
+    ],
+    [
+      292,
+      "CompositeCollider_1x14"
+    ],
+    [
+      306,
+      "CompositeCollider_4x1"
+    ],
+    [
+      66,
+      "CompositeCollider_6x11"
+    ],
+    [
+      286,
+      "CompositeCollider_1x25"
+    ],
+    [
+      88,
+      "CompositeCollider_5x10"
+    ],
+    [
+      86,
+      "CompositeCollider_3x10"
+    ],
+    [
+      300,
+      "CompositeCollider_2x1"
+    ],
+    [
+      298,
+      "CompositeCollider_1x1"
+    ],
+    [
+      0,
+      "Main Camera"
+    ],
+    [
+      80,
+      "CompositeCollider_26x3"
       11,
       "Player"
     ],
@@ -2287,6 +3891,135 @@
       "CompositeCollider_3x2"
     ],
     [
+      310,
+      "CompositeCollider_1x2"
+    ],
+    [
+      64,
+      "CompositeCollider_11x5"
+    ],
+    [
+      294,
+      "CompositeCollider_26x3"
+    ],
+    [
+      69,
+      "CompositeCollider_2x10"
+    ],
+    [
+      301,
+      "CompositeCollider_3x10"
+    ],
+    [
+      71,
+      "CompositeCollider_6x9"
+    ],
+    [
+      312,
+      "CompositeCollider_2x1"
+    ],
+    [
+      63,
+      "CompositeCollider_8x2"
+    ],
+    [
+      289,
+      "CompositeCollider_7x1"
+    ],
+    [
+      315,
+      "Tilemap"
+    ],
+    [
+      291,
+      "CompositeCollider_5x1"
+    ],
+    [
+      303,
+      "CompositeCollider_5x10"
+    ],
+    [
+      89,
+      "CompositeCollider_6x9"
+    ],
+    [
+      78,
+      "CompositeCollider_2x1"
+    ],
+    [
+      72,
+      "CompositeCollider_3x9"
+    ],
+    [
+      284,
+      "LDTK Layer: IntGrid_layer"
+    ],
+    [
+      314,
+      "Grid"
+    ],
+    [
+      73,
+      "CompositeCollider_37x1"
+    ],
+    [
+      287,
+      "CompositeCollider_11x1"
+    ],
+    [
+      55,
+      "CompositeCollider_37x1"
+    ],
+    [
+      62,
+      "CompositeCollider_26x3"
+    ],
+    [
+      65,
+      "CompositeCollider_4x1"
+    ],
+    [
+      74,
+      "CompositeCollider_12x1"
+    ],
+    [
+      295,
+      "CompositeCollider_7x2"
+    ],
+    [
+      83,
+      "CompositeCollider_4x1"
+    ],
+    [
+      81,
+      "CompositeCollider_8x2"
+    ],
+    [
+      67,
+      "CompositeCollider_2x1"
+    ],
+    [
+      70,
+      "CompositeCollider_5x10"
+    ],
+    [
+      309,
+      "CompositeCollider_2x2"
+    ],
+    [
+      299,
+      "CompositeCollider_6x11"
+    ],
+    [
+      293,
+      "CompositeCollider_2x1"
+    ],
+    [
+      56,
+      "CompositeCollider_12x1"
+    ],
+    [
+      61,
       60,
       "CompositeCollider_2x1"
     ],
@@ -2366,6 +4099,624 @@
   "sprite_sheets": [],
   "animated_sprites": [],
   "tilemaps": [
+    [
+      315,
+      {
+        "name": "New Tilemap",
+        "tileset_id": "tileset_72",
+        "width": 10,
+        "height": 10,
+        "tiles": [
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          }
+        ],
+        "z_order": 0,
+        "visible": true,
+        "opacity": 1.0,
+        "parallax_factor": [
+          1.0,
+          1.0
+        ]
+      }
+    ],
     [
       284,
       {
@@ -8942,6 +11293,7 @@
       284,
       {
         "name": "tileset_9",
+        "texture_path": "levels/atlas/Cavernas_by_Adam_Saltsman.png",
         "texture_path": "assets/Cavernas_by_Adam_Saltsman.png",
         "texture_id": "tileset_9",
         "tile_width": 8,
@@ -8951,6 +11303,60 @@
         "spacing": 0,
         "margin": 0,
         "tiles": {}
+      }
+    ],
+    [
+      315,
+      {
+        "name": "tileset_72",
+        "texture_path": "levels/atlas/Cavernas_by_Adam_Saltsman.png",
+        "texture_id": "tileset_72",
+        "tile_width": 8,
+        "tile_height": 8,
+        "columns": 12,
+        "tile_count": 384,
+        "spacing": 0,
+        "margin": 0,
+        "tiles": {}
+      }
+    ]
+  ],
+  "tilemap_renderers": [
+    [
+      315,
+      {
+        "mode": "Chunk",
+        "sorting_layer": "Default",
+        "order_in_layer": 0,
+        "material": null,
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "chunk_size": 16,
+        "detect_chunk_culling": true,
+        "mask_interaction": "None"
+      }
+    ]
+  ],
+  "grids": [
+    [
+      314,
+      {
+        "cell_size": [
+          0.08,
+          0.08,
+          0.0
+        ],
+        "cell_gap": [
+          0.0,
+          0.0
+        ],
+        "layout": "Rectangle",
+        "swizzle": "XYZ",
+        "plane": "XY"
       }
     ]
   ],

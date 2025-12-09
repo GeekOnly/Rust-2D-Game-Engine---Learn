@@ -582,6 +582,7 @@ pub struct World {
     pub animated_sprites: HashMap<Entity, AnimatedSprite>,
     pub tilemaps: HashMap<Entity, Tilemap>,
     pub tilesets: HashMap<Entity, TileSet>,
+    pub tilemap_renderers: HashMap<Entity, TilemapRenderer>,  // Tilemap renderer component
     // Map component (LDtk/Tiled integration)
     pub maps: HashMap<Entity, Map>,
     // Grid component (Unity-like)
@@ -634,6 +635,7 @@ impl World {
         self.animated_sprites.remove(&e);
         self.tilemaps.remove(&e);
         self.tilesets.remove(&e);
+        self.tilemap_renderers.remove(&e);
         self.maps.remove(&e);
         self.grids.remove(&e);
         self.world_uis.remove(&e);
@@ -658,6 +660,7 @@ impl World {
         self.animated_sprites.clear();
         self.tilemaps.clear();
         self.tilesets.clear();
+        self.tilemap_renderers.clear();
         self.maps.clear();
         self.grids.clear();
         self.world_uis.clear();
@@ -708,6 +711,7 @@ impl World {
             animated_sprites: Vec<(Entity, AnimatedSprite)>,
             tilemaps: Vec<(Entity, Tilemap)>,
             tilesets: Vec<(Entity, TileSet)>,
+            tilemap_renderers: Vec<(Entity, TilemapRenderer)>,
             grids: Vec<(Entity, Grid)>,
             maps: Vec<(Entity, Map)>,
             world_uis: Vec<(Entity, WorldUI)>,
@@ -732,6 +736,7 @@ impl World {
             animated_sprites: self.animated_sprites.iter().map(|(k, v)| (*k, v.clone())).collect(),
             tilemaps: self.tilemaps.iter().map(|(k, v)| (*k, v.clone())).collect(),
             tilesets: self.tilesets.iter().map(|(k, v)| (*k, v.clone())).collect(),
+            tilemap_renderers: self.tilemap_renderers.iter().map(|(k, v)| (*k, v.clone())).collect(),
             grids: self.grids.iter().map(|(k, v)| (*k, v.clone())).collect(),
             maps: self.maps.iter().map(|(k, v)| (*k, v.clone())).collect(),
             world_uis: self.world_uis.iter().map(|(k, v)| (*k, v.clone())).collect(),
@@ -779,6 +784,8 @@ impl World {
             tilemaps: Vec<(Entity, Tilemap)>,
             #[serde(default)]
             tilesets: Vec<(Entity, TileSet)>,
+            #[serde(default)]
+            tilemap_renderers: Vec<(Entity, TilemapRenderer)>,
             #[serde(default)]
             grids: Vec<(Entity, Grid)>,
             #[serde(default)]
@@ -850,6 +857,9 @@ impl World {
         }
         for (entity, tileset) in data.tilesets {
             self.tilesets.insert(entity, tileset);
+        }
+        for (entity, tilemap_renderer) in data.tilemap_renderers {
+            self.tilemap_renderers.insert(entity, tilemap_renderer);
         }
         for (entity, grid) in data.grids {
             self.grids.insert(entity, grid);

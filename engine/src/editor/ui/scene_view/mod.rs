@@ -41,18 +41,27 @@ pub fn render_scene_view(
     current_tool: &mut TransformTool,
     scene_camera: &mut SceneCamera,
     scene_grid: &SceneGrid,
+    infinite_grid: &mut crate::editor::grid::InfiniteGrid,
+    camera_state_display: &crate::editor::camera::CameraStateDisplay,
     play_request: &mut bool,
     stop_request: &mut bool,
     dragging_entity: &mut Option<Entity>,
     drag_axis: &mut Option<u8>,
     scene_view_mode: &mut SceneViewMode,
-    projection_mode: &mut ProjectionMode,
+    projection_mode: &mut SceneProjectionMode,
     transform_space: &mut TransformSpace,
     texture_manager: &mut crate::texture_manager::TextureManager,
     drag_drop: &mut DragDropState,
+    delta_time: f32,
 ) {
+    // Sync camera projection mode with editor state
+    scene_camera.projection_mode = *projection_mode;
+    
     // Track previous mode to detect changes
     let previous_mode = *scene_view_mode;
+    
+    // Update camera (for smooth interpolation and damping)
+    scene_camera.update(delta_time);
     
     // Render toolbar
     toolbar::render_scene_toolbar(
@@ -83,7 +92,9 @@ pub fn render_scene_view(
     // Handle keyboard shortcuts
     shortcuts::handle_keyboard_shortcuts(ui, current_tool, scene_camera, scene_view_mode);
     
-    let focus_pressed = ui.input(|i| i.key_pressed(egui::Key::F));
+    // Check for F key press (focus on selected entity)
+    // Use ctx.input instead of ui.input to ensure we catch the key press even if UI doesn't have focus
+    let focus_pressed = ui.ctx().input(|i| i.key_pressed(egui::Key::F) && !i.modifiers.ctrl && !i.modifiers.shift && !i.modifiers.alt);
     
     // Handle camera controls
     interaction::camera::handle_camera_controls(
@@ -95,10 +106,10 @@ pub fn render_scene_view(
         world,
     );
 
-    // Background
+    // Background - Unity-like colors
     let bg_color = match scene_view_mode {
         SceneViewMode::Mode2D => egui::Color32::from_rgb(40, 40, 50),
-        SceneViewMode::Mode3D => egui::Color32::from_rgb(50, 55, 65),
+        SceneViewMode::Mode3D => egui::Color32::from_rgb(48, 48, 48),  // Unity-like dark gray
     };
     painter.rect_filled(rect, 0.0, bg_color);
 
@@ -106,7 +117,11 @@ pub fn render_scene_view(
     if scene_grid.enabled {
         match scene_view_mode {
             SceneViewMode::Mode2D => rendering::grid::render_grid_2d(&painter, rect, scene_camera, scene_grid),
-            SceneViewMode::Mode3D => rendering::grid::render_grid_3d(&painter, rect, scene_camera, scene_grid),
+            SceneViewMode::Mode3D => {
+                // ALWAYS render grid with Grid component support (Unity-style)
+                // This renders both the 3D space grid AND Grid component grid when selected
+                rendering::grid::render_grid_3d_with_component(&painter, rect, scene_camera, scene_grid, world, *selected_entity);
+            }
         }
     }
     
@@ -132,14 +147,14 @@ pub fn render_scene_view(
                 ui.style_mut().visuals.widgets.active.weak_bg_fill = egui::Color32::from_rgba_premultiplied(70, 70, 75, 240);
 
                 let button_text = match projection_mode {
-                    ProjectionMode::Perspective => "⬜ Persp",
-                    ProjectionMode::Isometric => "◇ Iso",
+                    SceneProjectionMode::Perspective => "⬜ Persp",
+                    SceneProjectionMode::Isometric => "◇ Iso",
                 };
 
                 if ui.button(button_text).clicked() {
                     *projection_mode = match projection_mode {
-                        ProjectionMode::Perspective => ProjectionMode::Isometric,
-                        ProjectionMode::Isometric => ProjectionMode::Perspective,
+                        SceneProjectionMode::Perspective => SceneProjectionMode::Isometric,
+                        SceneProjectionMode::Isometric => SceneProjectionMode::Perspective,
                     };
                 }
             }
@@ -197,6 +212,8 @@ pub fn render_scene_view(
                 show_debug_lines,
                 &mut hovered_entity,
                 &response,
+                texture_manager,
+                &ctx,
             );
         }
     }
@@ -208,6 +225,13 @@ pub fn render_scene_view(
                 let pos = glam::Vec2::new(transform.x(), transform.y());
                 let size = if let Some(sprite) = world.sprites.get(&entity) {
                     sprite.width.max(sprite.height)
+                } else if let Some(tilemap) = world.tilemaps.get(&entity) {
+                    // For tilemaps, estimate size based on tile count
+                    // Assume average tile size of 16 pixels
+                    let estimated_tile_size = 16.0;
+                    let width = tilemap.width as f32 * estimated_tile_size;
+                    let height = tilemap.height as f32 * estimated_tile_size;
+                    width.max(height)
                 } else if world.meshes.contains_key(&entity) {
                     50.0
                 } else {
@@ -235,10 +259,30 @@ pub fn render_scene_view(
     // Handle transform gizmo interaction
     if let Some(sel_entity) = *selected_entity {
         if let Some(transform) = world.transforms.get(&sel_entity) {
-            let world_pos = glam::Vec2::new(transform.x(), transform.y());
-            let screen_pos = scene_camera.world_to_screen(world_pos);
-            let screen_x = center.x + screen_pos.x;
-            let screen_y = center.y + screen_pos.y;
+            // Calculate screen position based on view mode
+            let (screen_x, screen_y) = match scene_view_mode {
+                SceneViewMode::Mode2D => {
+                    // 2D mode: use simple world_to_screen
+                    let world_pos = glam::Vec2::new(transform.x(), transform.y());
+                    let screen_pos = scene_camera.world_to_screen(world_pos);
+                    (center.x + screen_pos.x, center.y + screen_pos.y)
+                }
+                SceneViewMode::Mode3D => {
+                    // 3D mode: use 3D projection
+                    // Use same viewport calculation as view_3d.rs for consistency
+                    let viewport_size = glam::Vec2::new(rect.width(), rect.height());
+                    let world_pos = glam::Vec3::from(transform.position);
+                    
+                    match rendering::projection_3d::world_to_screen(world_pos, scene_camera, viewport_size) {
+                        Some(pos) => {
+                            // pos is relative to viewport (0,0 is top-left of viewport)
+                            // Convert to screen coordinates by adding rect.min
+                            (rect.min.x + pos.x, rect.min.y + pos.y)
+                        },
+                        None => (-10000.0, -10000.0), // Off-screen
+                    }
+                }
+            };
 
             let transform_copy = transform.clone();
             
@@ -398,4 +442,34 @@ pub fn render_scene_view(
                 });
         }
     );
+    
+    // Camera state display overlay (top-left corner, only in 3D mode)
+    if *scene_view_mode == SceneViewMode::Mode3D {
+        let state_overlay_pos = egui::pos2(rect.min.x + overlay_margin, rect.min.y + overlay_margin);
+        
+        ui.allocate_ui_at_rect(
+            egui::Rect::from_min_size(state_overlay_pos, egui::vec2(200.0, 100.0)),
+            |ui| {
+                egui::Frame::none()
+                    .fill(egui::Color32::from_rgba_premultiplied(30, 30, 35, 200))
+                    .stroke(egui::Stroke::new(1.0, egui::Color32::from_rgba_premultiplied(80, 80, 90, 200)))
+                    .rounding(4.0)
+                    .inner_margin(8.0)
+                    .show(ui, |ui| {
+                        // Calculate FPS from delta_time
+                        let fps = if delta_time > 0.0 { 1.0 / delta_time } else { 0.0 };
+                        
+                        // Get grid size for display
+                        let grid_size = if infinite_grid.enabled {
+                            infinite_grid.calculate_grid_level(scene_camera.zoom)
+                        } else {
+                            scene_grid.size
+                        };
+                        
+                        // Render camera state display
+                        camera_state_display.render(ui, scene_camera, grid_size, fps);
+                    });
+            }
+        );
+    }
 }

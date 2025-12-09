@@ -80,6 +80,8 @@ pub struct EditorState {
     pub shortcut_manager: super::shortcuts::ShortcutManager,
     pub scene_camera: super::camera::SceneCamera,
     pub scene_grid: super::grid::SceneGrid,
+    pub infinite_grid: super::grid::InfiniteGrid,  // Enhanced infinite grid for 3D mode
+    pub camera_state_display: super::camera::CameraStateDisplay,  // Camera state display
     pub selected_entities: Vec<Entity>,  // Multi-selection support
     pub hierarchy_search: String,        // Search filter
     pub autosave: super::autosave::AutoSave,  // Auto-save system
@@ -97,7 +99,7 @@ pub struct EditorState {
     pub dragging_entity: Option<Entity>, // Entity being dragged
     pub drag_axis: Option<u8>,           // Drag axis: 0=X, 1=Y, 2=Both
     pub scene_view_mode: super::ui::scene_view::SceneViewMode, // 2D or 3D mode
-    pub projection_mode: super::ui::scene_view::ProjectionMode, // Isometric or Perspective
+    pub projection_mode: super::ui::scene_view::SceneProjectionMode, // Isometric or Perspective
     pub transform_space: super::ui::scene_view::TransformSpace, // Local or World space
     pub texture_manager: crate::texture_manager::TextureManager, // Texture manager for sprites
     pub undo_stack: super::undo::UndoStack,  // Undo/Redo system
@@ -163,6 +165,8 @@ impl EditorState {
             shortcut_manager: super::shortcuts::ShortcutManager::new(),
             scene_camera: super::camera::SceneCamera::new(),
             scene_grid: super::grid::SceneGrid::new(),
+            infinite_grid: super::grid::InfiniteGrid::new(),
+            camera_state_display: super::camera::CameraStateDisplay::new(),
             selected_entities: Vec::new(),
             hierarchy_search: String::new(),
             autosave: super::autosave::AutoSave::new(300), // 5 minutes
@@ -180,7 +184,7 @@ impl EditorState {
             dragging_entity: None,
             drag_axis: None,
             scene_view_mode: super::ui::scene_view::SceneViewMode::Mode2D,
-            projection_mode: super::ui::scene_view::ProjectionMode::Perspective,
+            projection_mode: super::ui::scene_view::SceneProjectionMode::Perspective,
             transform_space: super::ui::scene_view::TransformSpace::Local,
             undo_stack: super::undo::UndoStack::new(),
             selection: super::selection::SelectionManager::new(),

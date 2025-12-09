@@ -80,7 +80,13 @@ impl LdtkLoader {
 
         // Create Grid entity (parent)
         let grid_entity = world.spawn();
-        world.names.insert(grid_entity, "LDtk Grid".to_string());
+        
+        // Set name with file name for clarity
+        let file_name = path.as_ref()
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .unwrap_or("Unknown");
+        world.names.insert(grid_entity, format!("LDtk Grid - {}", file_name));
         
         // Get grid size from LDtk
         let grid_size = project["defaultGridSize"]
@@ -88,13 +94,14 @@ impl LdtkLoader {
             .unwrap_or(8) as f32;
         
         // Create Grid component
-        // Convert LDtk pixel size to world units (8 pixels = 1 world unit)
-        let pixels_per_unit = 8.0;
+        // Unity standard: 100 pixels = 1 world unit (1 meter)
+        let pixels_per_unit = 100.0;
         let grid = crate::Grid {
-            cell_size: (grid_size / pixels_per_unit, grid_size / pixels_per_unit),
+            cell_size: (grid_size / pixels_per_unit, grid_size / pixels_per_unit, 0.0),  // 2D grid (no depth)
             cell_gap: (0.0, 0.0),
             layout: crate::GridLayout::Rectangle,
             swizzle: crate::CellSwizzle::XYZ,
+            plane: crate::GridPlane::XY,  // Default horizontal plane
         };
         world.grids.insert(grid_entity, grid);
         

@@ -1,0 +1,7 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc 7c6917d0a4f09567c3f6650e8f023f444e04171f422bc5f7d434f2f0ad2031e1 # shrinks to camera = CameraState { position: Vec2(0.0, 0.0), rotation: 0.0, pitch: 0.0, zoom: 5.0 }, viewport_size = Vec2(800.0, 600.0)

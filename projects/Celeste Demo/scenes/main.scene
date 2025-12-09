@@ -7404,6 +7404,7 @@
       {
         "name": "tileset_9",
         "texture_path": "assets/Cavernas_by_Adam_Saltsman.png",
+        "texture_path": "levels/atlas/Cavernas_by_Adam_Saltsman.png",
         "texture_id": "tileset_9",
         "tile_width": 8,
         "tile_height": 8,
@@ -7412,6 +7413,25 @@
         "spacing": 0,
         "margin": 0,
         "tiles": {}
+      }
+    ]
+  ],
+  "grids": [
+    [
+      314,
+      {
+        "cell_size": [
+          0.08,
+          0.08,
+          0.0
+        ],
+        "cell_gap": [
+          0.0,
+          0.0
+        ],
+        "layout": "Rectangle",
+        "swizzle": "XYZ",
+        "plane": "XY"
       }
     ]
   ],

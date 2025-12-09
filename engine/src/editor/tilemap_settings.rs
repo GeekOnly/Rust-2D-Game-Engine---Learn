@@ -1,3 +1,5 @@
+
+
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use std::fs;
@@ -21,7 +23,8 @@ pub struct TilemapSettings {
     #[serde(default = "default_hot_reload")]
     pub hot_reload_enabled: bool,
     
-    /// Pixels per unit conversion (default: 8.0)
+    /// Pixels per unit conversion (default: 100.0 - Unity standard)
+    /// This should match Sprite.pixels_per_unit for consistent scale
     #[serde(default = "default_pixels_per_unit")]
     pub pixels_per_unit: f32,
 }
@@ -42,8 +45,10 @@ fn default_hot_reload() -> bool {
     true
 }
 
+/// Unity standard: 100 pixels = 1 world unit (1 meter)
+/// This ensures consistent scale between sprites and tilemaps
 fn default_pixels_per_unit() -> f32 {
-    8.0
+    100.0
 }
 
 impl Default for TilemapSettings {
@@ -128,7 +133,7 @@ mod tests {
         assert_eq!(settings.collision_value, 1);
         assert_eq!(settings.collider_type, "Composite");
         assert_eq!(settings.hot_reload_enabled, true);
-        assert_eq!(settings.pixels_per_unit, 8.0);
+        assert_eq!(settings.pixels_per_unit, 100.0); // Unity standard
     }
     
     #[test]
