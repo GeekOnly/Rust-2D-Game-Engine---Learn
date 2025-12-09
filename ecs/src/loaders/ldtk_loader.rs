@@ -62,7 +62,13 @@ impl LdtkLoader {
 
         // Create Grid entity (parent)
         let grid_entity = world.spawn();
-        world.names.insert(grid_entity, "LDtk Grid".to_string());
+        
+        // Set name with file name for clarity
+        let file_name = path.as_ref()
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .unwrap_or("Unknown");
+        world.names.insert(grid_entity, format!("LDtk Grid - {}", file_name));
         
         // Get grid size from LDtk
         let grid_size = project["defaultGridSize"]

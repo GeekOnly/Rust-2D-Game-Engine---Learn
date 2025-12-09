@@ -988,6 +988,170 @@ pub fn render_inspector(
                     let _ = world.remove_component(entity, ComponentType::Script);
                 }
 
+                // Grid Component (Unity-style)
+                let has_grid = world.grids.contains_key(&entity);
+                let mut remove_grid = false;
+                
+                if has_grid {
+                    let grid_id = ui.make_persistent_id("grid_component");
+                    let is_open = egui::collapsing_header::CollapsingState::load_with_default_open(
+                        ui.ctx(), grid_id, true
+                    );
+                    
+                    render_component_header(ui, "Grid", "🗺️", false);
+                    
+                    if is_open.is_open() {
+                        if let Some(grid) = world.grids.get_mut(&entity) {
+                            ui.indent("grid_indent", |ui| {
+                                egui::Grid::new("grid_component_grid")
+                                    .num_columns(2)
+                                    .spacing([10.0, 8.0])
+                                    .show(ui, |ui| {
+                                        // Cell Size
+                                        ui.label("Cell Size");
+                                        ui.horizontal(|ui| {
+                                            ui.label("X");
+                                            ui.add(egui::DragValue::new(&mut grid.cell_size.0).speed(0.01).max_decimals(3));
+                                            ui.label("Y");
+                                            ui.add(egui::DragValue::new(&mut grid.cell_size.1).speed(0.01).max_decimals(3));
+                                            ui.label("Z");
+                                            ui.add(egui::DragValue::new(&mut grid.cell_size.2).speed(0.01).max_decimals(3));
+                                        });
+                                        ui.end_row();
+                                        
+                                        // Cell Gap (with Unity-style validation)
+                                        ui.label("Cell Gap");
+                                        ui.horizontal(|ui| {
+                                            ui.label("X");
+                                            let mut gap_x = grid.cell_gap.0;
+                                            if ui.add(egui::DragValue::new(&mut gap_x).speed(0.01).max_decimals(3)).changed() {
+                                                // Unity validation: clamp negative gap to -cell_size
+                                                if gap_x < 0.0 && gap_x.abs() > grid.cell_size.0 {
+                                                    gap_x = -grid.cell_size.0;
+                                                }
+                                                grid.cell_gap.0 = gap_x;
+                                            }
+                                            ui.label("Y");
+                                            let mut gap_y = grid.cell_gap.1;
+                                            if ui.add(egui::DragValue::new(&mut gap_y).speed(0.01).max_decimals(3)).changed() {
+                                                // Unity validation: clamp negative gap to -cell_size
+                                                if gap_y < 0.0 && gap_y.abs() > grid.cell_size.1 {
+                                                    gap_y = -grid.cell_size.1;
+                                                }
+                                                grid.cell_gap.1 = gap_y;
+                                            }
+                                        });
+                                        ui.end_row();
+                                        
+                                        // Cell Layout (Unity naming)
+                                        ui.label("Cell Layout");
+                                        let layout_text = match grid.layout {
+                                            ecs::GridLayout::Rectangle => "Rectangle",
+                                            ecs::GridLayout::Hexagon(ecs::HexagonOrientation::FlatTop) => "Hexagon (Flat Top)",
+                                            ecs::GridLayout::Hexagon(ecs::HexagonOrientation::PointyTop) => "Hexagon (Pointy Top)",
+                                            ecs::GridLayout::Isometric => "Isometric",
+                                        };
+                                        egui::ComboBox::from_id_source("grid_layout")
+                                            .selected_text(layout_text)
+                                            .show_ui(ui, |ui| {
+                                                if ui.selectable_label(matches!(grid.layout, ecs::GridLayout::Rectangle), "Rectangle").clicked() {
+                                                    grid.layout = ecs::GridLayout::Rectangle;
+                                                }
+                                                if ui.selectable_label(matches!(grid.layout, ecs::GridLayout::Hexagon(ecs::HexagonOrientation::FlatTop)), "Hexagon (Flat Top)").clicked() {
+                                                    grid.layout = ecs::GridLayout::Hexagon(ecs::HexagonOrientation::FlatTop);
+                                                }
+                                                if ui.selectable_label(matches!(grid.layout, ecs::GridLayout::Hexagon(ecs::HexagonOrientation::PointyTop)), "Hexagon (Pointy Top)").clicked() {
+                                                    grid.layout = ecs::GridLayout::Hexagon(ecs::HexagonOrientation::PointyTop);
+                                                }
+                                                if ui.selectable_label(matches!(grid.layout, ecs::GridLayout::Isometric), "Isometric").clicked() {
+                                                    grid.layout = ecs::GridLayout::Isometric;
+                                                }
+                                            });
+                                        ui.end_row();
+                                        
+                                        // Cell Swizzle (Unity naming)
+                                        ui.label("Cell Swizzle");
+                                        let swizzle_text = match grid.swizzle {
+                                            ecs::CellSwizzle::XYZ => "XYZ",
+                                            ecs::CellSwizzle::XZY => "XZY",
+                                            ecs::CellSwizzle::YXZ => "YXZ",
+                                            ecs::CellSwizzle::YZX => "YZX",
+                                            ecs::CellSwizzle::ZXY => "ZXY",
+                                            ecs::CellSwizzle::ZYX => "ZYX",
+                                        };
+                                        egui::ComboBox::from_id_source("grid_swizzle")
+                                            .selected_text(swizzle_text)
+                                            .show_ui(ui, |ui| {
+                                                if ui.selectable_label(matches!(grid.swizzle, ecs::CellSwizzle::XYZ), "XYZ").clicked() {
+                                                    grid.swizzle = ecs::CellSwizzle::XYZ;
+                                                }
+                                                if ui.selectable_label(matches!(grid.swizzle, ecs::CellSwizzle::XZY), "XZY").clicked() {
+                                                    grid.swizzle = ecs::CellSwizzle::XZY;
+                                                }
+                                                if ui.selectable_label(matches!(grid.swizzle, ecs::CellSwizzle::YXZ), "YXZ").clicked() {
+                                                    grid.swizzle = ecs::CellSwizzle::YXZ;
+                                                }
+                                                if ui.selectable_label(matches!(grid.swizzle, ecs::CellSwizzle::YZX), "YZX").clicked() {
+                                                    grid.swizzle = ecs::CellSwizzle::YZX;
+                                                }
+                                                if ui.selectable_label(matches!(grid.swizzle, ecs::CellSwizzle::ZXY), "ZXY").clicked() {
+                                                    grid.swizzle = ecs::CellSwizzle::ZXY;
+                                                }
+                                                if ui.selectable_label(matches!(grid.swizzle, ecs::CellSwizzle::ZYX), "ZYX").clicked() {
+                                                    grid.swizzle = ecs::CellSwizzle::ZYX;
+                                                }
+                                            });
+                                        ui.end_row();
+                                        
+                                        // Plane (Custom property - not in Unity)
+                                        ui.label("Plane");
+                                        let plane_text = match grid.plane {
+                                            ecs::GridPlane::XY => "XY (Horizontal)",
+                                            ecs::GridPlane::XZ => "XZ (Vertical)",
+                                            ecs::GridPlane::YZ => "YZ (Side)",
+                                        };
+                                        egui::ComboBox::from_id_source("grid_plane")
+                                            .selected_text(plane_text)
+                                            .show_ui(ui, |ui| {
+                                                if ui.selectable_label(matches!(grid.plane, ecs::GridPlane::XY), "XY (Horizontal)").clicked() {
+                                                    grid.plane = ecs::GridPlane::XY;
+                                                }
+                                                if ui.selectable_label(matches!(grid.plane, ecs::GridPlane::XZ), "XZ (Vertical)").clicked() {
+                                                    grid.plane = ecs::GridPlane::XZ;
+                                                }
+                                                if ui.selectable_label(matches!(grid.plane, ecs::GridPlane::YZ), "YZ (Side)").clicked() {
+                                                    grid.plane = ecs::GridPlane::YZ;
+                                                }
+                                            });
+                                        ui.end_row();
+                                    });
+                                
+                                ui.add_space(5.0);
+                                
+                                // Info message
+                                ui.label(egui::RichText::new("💡 Grid defines the cell layout for tilemaps")
+                                    .small()
+                                    .color(egui::Color32::from_rgb(150, 150, 150)));
+                                
+                                ui.add_space(5.0);
+                                ui.horizontal(|ui| {
+                                    if ui.button("⚙️").on_hover_text("Component Settings").clicked() {
+                                        // Component menu
+                                    }
+                                    if ui.button("❌ Remove Component").clicked() {
+                                        remove_grid = true;
+                                    }
+                                });
+                            });
+                        }
+                        ui.add_space(10.0);
+                    }
+                }
+                
+                if remove_grid {
+                    world.grids.remove(&entity);
+                }
+
                 // Map Component
                 if world.has_component(entity, ComponentType::Map) {
                     egui::Frame::none()
