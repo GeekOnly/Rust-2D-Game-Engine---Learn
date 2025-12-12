@@ -2349,6 +2349,13 @@
         "tileset_id": "tileset_72",
         "width": 10,
         "height": 10,
+        "animation_frame_rate": 1,
+        "color": [1.0, 1.0, 1.0, 1.0],
+        "tile_anchor": [0.5, 0.5],
+        "orientation": "XY",
+        "offset": [0.0, 0.0, 0.0],
+        "rotation": [0.0, 0.0, 0.0],
+        "scale": [1.0, 1.0, 1.0],
         "tiles": [
           {
             "tile_id": 0,

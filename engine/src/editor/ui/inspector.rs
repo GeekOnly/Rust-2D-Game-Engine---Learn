@@ -1152,6 +1152,275 @@ pub fn render_inspector(
                     world.grids.remove(&entity);
                 }
 
+                // Tilemap Component (Unity-style)
+                let has_tilemap = world.tilemaps.contains_key(&entity);
+                let mut remove_tilemap = false;
+                
+                if has_tilemap {
+                    let tilemap_id = ui.make_persistent_id("tilemap_component");
+                    let is_open = egui::collapsing_header::CollapsingState::load_with_default_open(
+                        ui.ctx(), tilemap_id, true
+                    );
+                    
+                    render_component_header(ui, "Tilemap", "🗺️", false);
+                    
+                    if is_open.is_open() {
+                        if let Some(tilemap) = world.tilemaps.get_mut(&entity) {
+                            ui.indent("tilemap_indent", |ui| {
+                                egui::Grid::new("tilemap_component_grid")
+                                    .num_columns(2)
+                                    .spacing([10.0, 8.0])
+                                    .show(ui, |ui| {
+                                        // Animation Frame Rate
+                                        ui.label("Animation Frame Rate");
+                                        ui.add(egui::DragValue::new(&mut tilemap.animation_frame_rate).speed(1).clamp_range(1..=60));
+                                        ui.end_row();
+                                        
+                                        // Color
+                                        ui.label("Color");
+                                        ui.horizontal(|ui| {
+                                            let mut color = egui::Color32::from_rgba_premultiplied(
+                                                (tilemap.color[0] * 255.0) as u8,
+                                                (tilemap.color[1] * 255.0) as u8,
+                                                (tilemap.color[2] * 255.0) as u8,
+                                                (tilemap.color[3] * 255.0) as u8,
+                                            );
+                                            if ui.color_edit_button_srgba(&mut color).changed() {
+                                                tilemap.color[0] = color.r() as f32 / 255.0;
+                                                tilemap.color[1] = color.g() as f32 / 255.0;
+                                                tilemap.color[2] = color.b() as f32 / 255.0;
+                                                tilemap.color[3] = color.a() as f32 / 255.0;
+                                            }
+                                        });
+                                        ui.end_row();
+                                        
+                                        // Tile Anchor
+                                        ui.label("Tile Anchor");
+                                        ui.horizontal(|ui| {
+                                            ui.label("X");
+                                            ui.add(egui::DragValue::new(&mut tilemap.tile_anchor[0]).speed(0.01).clamp_range(0.0..=1.0));
+                                            ui.label("Y");
+                                            ui.add(egui::DragValue::new(&mut tilemap.tile_anchor[1]).speed(0.01).clamp_range(0.0..=1.0));
+                                        });
+                                        ui.end_row();
+                                        
+                                        // Orientation
+                                        ui.label("Orientation");
+                                        egui::ComboBox::from_id_source("tilemap_orientation")
+                                            .selected_text(&tilemap.orientation)
+                                            .show_ui(ui, |ui| {
+                                                if ui.selectable_label(tilemap.orientation == "XY", "XY").clicked() {
+                                                    tilemap.orientation = "XY".to_string();
+                                                }
+                                                if ui.selectable_label(tilemap.orientation == "XZ", "XZ").clicked() {
+                                                    tilemap.orientation = "XZ".to_string();
+                                                }
+                                                if ui.selectable_label(tilemap.orientation == "YZ", "YZ").clicked() {
+                                                    tilemap.orientation = "YZ".to_string();
+                                                }
+                                            });
+                                        ui.end_row();
+                                        
+                                        // Offset
+                                        ui.label("Offset");
+                                        ui.horizontal(|ui| {
+                                            ui.label("X");
+                                            ui.add(egui::DragValue::new(&mut tilemap.offset[0]).speed(0.01));
+                                            ui.label("Y");
+                                            ui.add(egui::DragValue::new(&mut tilemap.offset[1]).speed(0.01));
+                                            ui.label("Z");
+                                            ui.add(egui::DragValue::new(&mut tilemap.offset[2]).speed(0.01));
+                                        });
+                                        ui.end_row();
+                                        
+                                        // Rotation
+                                        ui.label("Rotation");
+                                        ui.horizontal(|ui| {
+                                            ui.label("X");
+                                            ui.add(egui::DragValue::new(&mut tilemap.rotation[0]).speed(0.1));
+                                            ui.label("Y");
+                                            ui.add(egui::DragValue::new(&mut tilemap.rotation[1]).speed(0.1));
+                                            ui.label("Z");
+                                            ui.add(egui::DragValue::new(&mut tilemap.rotation[2]).speed(0.1));
+                                        });
+                                        ui.end_row();
+                                        
+                                        // Scale
+                                        ui.label("Scale");
+                                        ui.horizontal(|ui| {
+                                            ui.label("X");
+                                            ui.add(egui::DragValue::new(&mut tilemap.scale[0]).speed(0.01));
+                                            ui.label("Y");
+                                            ui.add(egui::DragValue::new(&mut tilemap.scale[1]).speed(0.01));
+                                            ui.label("Z");
+                                            ui.add(egui::DragValue::new(&mut tilemap.scale[2]).speed(0.01));
+                                        });
+                                        ui.end_row();
+                                    });
+                                
+                                ui.add_space(5.0);
+                                
+                                // Info section
+                                ui.collapsing("Info", |ui| {
+                                    ui.label(format!("Tiles: {} ({}x{})", tilemap.tiles.len(), tilemap.width, tilemap.height));
+                                    ui.label("Sprites: None");
+                                });
+                                
+                                ui.add_space(5.0);
+                                ui.horizontal(|ui| {
+                                    if ui.button("⚙️").on_hover_text("Component Settings").clicked() {
+                                        // Component menu
+                                    }
+                                    if ui.button("❌ Remove Component").clicked() {
+                                        remove_tilemap = true;
+                                    }
+                                });
+                            });
+                        }
+                        ui.add_space(10.0);
+                    }
+                }
+                
+                if remove_tilemap {
+                    world.tilemaps.remove(&entity);
+                }
+
+                // TilemapRenderer Component (Unity-style)
+                let has_tilemap_renderer = world.tilemap_renderers.contains_key(&entity);
+                let mut remove_tilemap_renderer = false;
+                
+                if has_tilemap_renderer {
+                    let renderer_id = ui.make_persistent_id("tilemap_renderer_component");
+                    let is_open = egui::collapsing_header::CollapsingState::load_with_default_open(
+                        ui.ctx(), renderer_id, true
+                    );
+                    
+                    render_component_header(ui, "Tilemap Renderer", "🎨", false);
+                    
+                    if is_open.is_open() {
+                        if let Some(renderer) = world.tilemap_renderers.get_mut(&entity) {
+                            ui.indent("tilemap_renderer_indent", |ui| {
+                                egui::Grid::new("tilemap_renderer_grid")
+                                    .num_columns(2)
+                                    .spacing([10.0, 8.0])
+                                    .show(ui, |ui| {
+                                        // Sort Order
+                                        ui.label("Sort Order");
+                                        ui.label("Bottom Left");
+                                        ui.end_row();
+                                        
+                                        // Mode
+                                        ui.label("Mode");
+                                        let mode_text = match renderer.mode {
+                                            ecs::TilemapRenderMode::Individual => "Individual",
+                                            ecs::TilemapRenderMode::Chunk => "Chunk",
+                                        };
+                                        egui::ComboBox::from_id_source("tilemap_render_mode")
+                                            .selected_text(mode_text)
+                                            .show_ui(ui, |ui| {
+                                                if ui.selectable_label(matches!(renderer.mode, ecs::TilemapRenderMode::Individual), "Individual").clicked() {
+                                                    renderer.mode = ecs::TilemapRenderMode::Individual;
+                                                }
+                                                if ui.selectable_label(matches!(renderer.mode, ecs::TilemapRenderMode::Chunk), "Chunk").clicked() {
+                                                    renderer.mode = ecs::TilemapRenderMode::Chunk;
+                                                }
+                                            });
+                                        ui.end_row();
+                                        
+                                        // Detect Chunk Culling Bounds
+                                        ui.label("Detect Chunk Culling Bounds");
+                                        let detect_text = if renderer.detect_chunk_culling { "Auto" } else { "Manual" };
+                                        egui::ComboBox::from_id_source("chunk_culling")
+                                            .selected_text(detect_text)
+                                            .show_ui(ui, |ui| {
+                                                if ui.selectable_label(renderer.detect_chunk_culling, "Auto").clicked() {
+                                                    renderer.detect_chunk_culling = true;
+                                                }
+                                                if ui.selectable_label(!renderer.detect_chunk_culling, "Manual").clicked() {
+                                                    renderer.detect_chunk_culling = false;
+                                                }
+                                            });
+                                        ui.end_row();
+                                        
+                                        // Chunk Culling Bounds (if manual)
+                                        if !renderer.detect_chunk_culling {
+                                            ui.label("Chunk Culling Bounds");
+                                            ui.horizontal(|ui| {
+                                                ui.label("X: 0  Y: 0  Z: 0");
+                                            });
+                                            ui.end_row();
+                                        }
+                                        
+                                        // Mask Interaction
+                                        ui.label("Mask Interaction");
+                                        let mask_text = match renderer.mask_interaction {
+                                            ecs::MaskInteraction::None => "None",
+                                            ecs::MaskInteraction::VisibleInsideMask => "Visible Inside Mask",
+                                            ecs::MaskInteraction::VisibleOutsideMask => "Visible Outside Mask",
+                                        };
+                                        egui::ComboBox::from_id_source("mask_interaction")
+                                            .selected_text(mask_text)
+                                            .show_ui(ui, |ui| {
+                                                if ui.selectable_label(matches!(renderer.mask_interaction, ecs::MaskInteraction::None), "None").clicked() {
+                                                    renderer.mask_interaction = ecs::MaskInteraction::None;
+                                                }
+                                                if ui.selectable_label(matches!(renderer.mask_interaction, ecs::MaskInteraction::VisibleInsideMask), "Visible Inside Mask").clicked() {
+                                                    renderer.mask_interaction = ecs::MaskInteraction::VisibleInsideMask;
+                                                }
+                                                if ui.selectable_label(matches!(renderer.mask_interaction, ecs::MaskInteraction::VisibleOutsideMask), "Visible Outside Mask").clicked() {
+                                                    renderer.mask_interaction = ecs::MaskInteraction::VisibleOutsideMask;
+                                                }
+                                            });
+                                        ui.end_row();
+                                        
+                                        // Material
+                                        ui.label("Material");
+                                        ui.horizontal(|ui| {
+                                            ui.label("⚪ Sprite-Lit-Default");
+                                            if ui.button("Edit...").clicked() {
+                                                // Open material editor
+                                            }
+                                        });
+                                        ui.end_row();
+                                    });
+                                
+                                ui.add_space(5.0);
+                                
+                                // Additional Settings
+                                ui.collapsing("Additional Settings", |ui| {
+                                    egui::Grid::new("additional_settings_grid")
+                                        .num_columns(2)
+                                        .spacing([10.0, 8.0])
+                                        .show(ui, |ui| {
+                                            ui.label("Sorting Layer");
+                                            ui.add(egui::TextEdit::singleline(&mut renderer.sorting_layer).desired_width(100.0));
+                                            ui.end_row();
+                                            
+                                            ui.label("Order in Layer");
+                                            ui.add(egui::DragValue::new(&mut renderer.order_in_layer).speed(1));
+                                            ui.end_row();
+                                        });
+                                });
+                                
+                                ui.add_space(5.0);
+                                ui.horizontal(|ui| {
+                                    if ui.button("⚙️").on_hover_text("Component Settings").clicked() {
+                                        // Component menu
+                                    }
+                                    if ui.button("❌ Remove Component").clicked() {
+                                        remove_tilemap_renderer = true;
+                                    }
+                                });
+                            });
+                        }
+                        ui.add_space(10.0);
+                    }
+                }
+                
+                if remove_tilemap_renderer {
+                    world.tilemap_renderers.remove(&entity);
+                }
+
                 // Map Component
                 if world.has_component(entity, ComponentType::Map) {
                     egui::Frame::none()

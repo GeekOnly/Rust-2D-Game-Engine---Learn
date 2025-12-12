@@ -206,17 +206,53 @@ pub struct Tilemap {
     pub width: u32,
     /// Height of the tilemap (in tiles)
     pub height: u32,
+    /// Animation frame rate
+    #[serde(default = "default_animation_frame_rate")]
+    pub animation_frame_rate: u32,
+    /// Tint color (RGBA, 0.0-1.0)
+    #[serde(default = "default_color")]
+    pub color: [f32; 4],
+    /// Tile anchor point (0.0-1.0, where 0.5,0.5 is center)
+    #[serde(default = "default_tile_anchor")]
+    pub tile_anchor: [f32; 2],
+    /// Orientation (XY, XZ, YZ)
+    #[serde(default = "default_orientation")]
+    pub orientation: String,
+    /// Position offset
+    #[serde(default = "default_offset")]
+    pub offset: [f32; 3],
+    /// Rotation (euler angles)
+    #[serde(default = "default_rotation")]
+    pub rotation: [f32; 3],
+    /// Scale
+    #[serde(default = "default_scale")]
+    pub scale: [f32; 3],
     /// Tile data (row-major order: tiles[y * width + x])
     pub tiles: Vec<Tile>,
     /// Z-order for rendering (higher = rendered on top)
+    #[serde(default)]
     pub z_order: i32,
     /// Is this layer visible?
+    #[serde(default = "default_visible")]
     pub visible: bool,
     /// Layer opacity (0.0 - 1.0)
+    #[serde(default = "default_opacity")]
     pub opacity: f32,
     /// Parallax scroll factor (for background layers)
+    #[serde(default = "default_parallax_factor")]
     pub parallax_factor: (f32, f32),
 }
+
+fn default_animation_frame_rate() -> u32 { 1 }
+fn default_color() -> [f32; 4] { [1.0, 1.0, 1.0, 1.0] }
+fn default_tile_anchor() -> [f32; 2] { [0.5, 0.5] }
+fn default_orientation() -> String { "XY".to_string() }
+fn default_offset() -> [f32; 3] { [0.0, 0.0, 0.0] }
+fn default_rotation() -> [f32; 3] { [0.0, 0.0, 0.0] }
+fn default_scale() -> [f32; 3] { [1.0, 1.0, 1.0] }
+fn default_visible() -> bool { true }
+fn default_opacity() -> f32 { 1.0 }
+fn default_parallax_factor() -> (f32, f32) { (1.0, 1.0) }
 
 impl Tilemap {
     /// Create a new empty tilemap
@@ -232,6 +268,13 @@ impl Tilemap {
             tileset_id: tileset_id.into(),
             width,
             height,
+            animation_frame_rate: 1,
+            color: [1.0, 1.0, 1.0, 1.0],
+            tile_anchor: [0.5, 0.5],
+            orientation: "XY".to_string(),
+            offset: [0.0, 0.0, 0.0],
+            rotation: [0.0, 0.0, 0.0],
+            scale: [1.0, 1.0, 1.0],
             tiles: vec![Tile::default(); tile_count],
             z_order: 0,
             visible: true,
