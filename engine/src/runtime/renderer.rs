@@ -263,13 +263,12 @@ fn render_tilemap_2d(
                 }
 
                 // Calculate world position (tile position in world space)
-                // Tiles are positioned in world units (pixels / pixels_per_unit)
-                // Unity standard: 100 pixels = 1 world unit (1 meter)
-                // This ensures consistent scale between sprites and tilemaps
-                let pixels_per_unit = 100.0; // Unity standard PPU
-                let tile_world_x = tilemap_x + (x as f32 * tile_width / pixels_per_unit);
+                // Make tiles match grid cell size (1 world unit per tile)
+                // This ensures tilemap aligns perfectly with grid for consistent sizing
+                let tile_world_size = 1.0;  // 1 tile = 1 grid cell = 1 world unit
+                let tile_world_x = tilemap_x + (x as f32 * tile_world_size);
                 // Flip Y: LDtk uses top-left origin (Y down), engine uses bottom-left (Y up)
-                let tile_world_y = tilemap_y - (y as f32 * tile_height / pixels_per_unit);
+                let tile_world_y = tilemap_y - (y as f32 * tile_world_size);
                 
                 // Convert to screen space
                 let world_x = tile_world_x - cam_pos[0];
@@ -278,9 +277,9 @@ fn render_tilemap_2d(
                 let screen_x = center.x + world_x * zoom;
                 let screen_y = center.y - world_y * zoom;
 
-                // Calculate size in world units then convert to screen pixels
-                let tile_world_width = tile_width / pixels_per_unit;
-                let tile_world_height = tile_height / pixels_per_unit;
+                // Calculate size in world units (match grid cell size)
+                let tile_world_width = tile_world_size;
+                let tile_world_height = tile_world_size;
                 let size = egui::vec2(tile_world_width * zoom, tile_world_height * zoom);
                 let rect = egui::Rect::from_min_size(
                     egui::pos2(screen_x, screen_y),

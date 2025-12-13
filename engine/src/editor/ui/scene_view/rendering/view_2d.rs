@@ -49,21 +49,20 @@ fn render_tilemap_in_scene(
                 }
 
                 // Calculate world position
-                // Convert pixel coordinates to world units (pixels / pixels_per_unit)
-                // Unity standard: 100 pixels = 1 world unit (keep 2D/3D world-space consistent)
-                // Note: 3D sprite/tilemap rendering already uses 100 PPU by default.
-                let pixels_per_unit = 100.0;
-                let tile_world_x = tilemap_x + (x as f32 * tile_width / pixels_per_unit);
-                let tile_world_y = tilemap_y - (y as f32 * tile_height / pixels_per_unit); // Flip Y
+                // Make tiles match grid cell size (1 world unit per tile)
+                // This ensures tilemap aligns perfectly with grid for consistent sizing
+                let tile_world_size = 1.0;  // 1 tile = 1 grid cell = 1 world unit
+                let tile_world_x = tilemap_x + (x as f32 * tile_world_size);
+                let tile_world_y = tilemap_y - (y as f32 * tile_world_size); // Flip Y
                 
                 let world_pos = glam::Vec2::new(tile_world_x, tile_world_y);
                 let screen_pos = scene_camera.world_to_screen(world_pos);
                 let screen_x = center.x + screen_pos.x;
                 let screen_y = center.y + screen_pos.y;
 
-                // Calculate size in world units
-                let tile_world_width = tile_width / pixels_per_unit;
-                let tile_world_height = tile_height / pixels_per_unit;
+                // Calculate size in world units (match grid cell size)
+                let tile_world_width = tile_world_size;
+                let tile_world_height = tile_world_size;
                 let size = egui::vec2(tile_world_width * scene_camera.zoom, tile_world_height * scene_camera.zoom);
                 let rect = egui::Rect::from_min_size(
                     egui::pos2(screen_x, screen_y),

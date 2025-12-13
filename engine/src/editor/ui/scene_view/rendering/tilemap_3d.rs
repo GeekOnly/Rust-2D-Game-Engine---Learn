@@ -97,16 +97,10 @@ impl Tilemap3DRenderer {
             };
             
             // Collect tiles
-            // Unity standard: 100 pixels = 1 world unit (1 meter)
-            // This ensures consistent scale between sprites and tilemaps
-            let pixels_per_unit = 100.0_f32;
-            
-            // Scale factor to make tilemap more visible in 3D mode
-            // Small tiles (8px = 0.08 world units) are hard to see, so scale them up
-            let scale_factor_3d = 2.0; // Make tiles 2x larger in 3D mode
-            
-            let tile_world_width = (tileset.tile_width as f32 / pixels_per_unit) * scale_factor_3d;
-            let tile_world_height = (tileset.tile_height as f32 / pixels_per_unit) * scale_factor_3d;
+            // Make tiles match grid cell size (1 world unit per tile)
+            // This ensures tilemap aligns perfectly with grid for consistent sizing
+            let tile_world_width = 1.0;  // 1 tile = 1 grid cell = 1 world unit
+            let tile_world_height = 1.0;
             
             let mut tiles = Vec::new();
             let mut min_x = f32::MAX;
