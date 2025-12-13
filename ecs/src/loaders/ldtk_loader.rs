@@ -96,12 +96,14 @@ impl LdtkLoader {
         // Create Grid component
         // Unity standard: 100 pixels = 1 world unit (1 meter)
         let pixels_per_unit = 100.0;
+        let cell_world_size = grid_size / pixels_per_unit;
+        
         let grid = crate::Grid {
-            cell_size: (grid_size / pixels_per_unit, grid_size / pixels_per_unit, 0.0),  // 2D grid (no depth)
+            cell_size: (cell_world_size, cell_world_size, 0.0),  // 2D grid (no depth)
             cell_gap: (0.0, 0.0),
             layout: crate::GridLayout::Rectangle,
             swizzle: crate::CellSwizzle::XYZ,
-            plane: crate::GridPlane::XY,  // Default horizontal plane
+            plane: crate::GridPlane::XY,  // Default horizontal plane - can be changed to XZ for 3D
         };
         world.grids.insert(grid_entity, grid);
         

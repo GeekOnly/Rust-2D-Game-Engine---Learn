@@ -761,29 +761,51 @@ impl SceneCamera {
         // Check if we're in 3D mode (pitch != 0)
         if self.pitch.abs() > 0.1 {
             // 3D mode: maintain current rotation/pitch, adjust distance
-            // Calculate appropriate distance to frame the object
-            let fov = 60.0_f32.to_radians();
-            let viewport_min = viewport_size.x.min(viewport_size.y);
+            // For tilemap viewing in 3D, we want to be much closer
             
-            // Calculate distance needed to frame object with padding
-            let padding_factor = 2.5; // Show object with some padding
-            let target_screen_size = object_size * padding_factor;
+            // For 3D tilemap editing, we want to be very close regardless of object size
+            // This provides optimal view for level editing
+            let base_distance = if object_size < 1.0 {
+                // Small objects: very close
+                1.0 + (object_size * 0.5) // 1.0-1.5 units
+            } else if object_size < 3.0 {
+                // Medium objects: still close
+                1.5 + (object_size * 0.3) // 1.5-2.4 units
+            } else {
+                // Large objects: moderate distance but still close
+                2.0 + (object_size * 0.2) // 2.0-3.0 units for size 5.0
+            };
             
-            // Use FOV to calculate distance
-            let half_fov = fov / 2.0;
-            self.distance = (target_screen_size / 2.0) / half_fov.tan();
-            self.distance = self.distance.clamp(10.0, 10000.0);
+            // No padding factor - use base distance directly for closer view
+            self.distance = base_distance;
+            
+            // Ensure very close bounds for tilemap editing
+            self.distance = self.distance.clamp(0.8, 8.0);
+            
+            // Debug logging for focus issues
+            log::info!("3D Focus: object_size={:.3}, base_distance={:.3}, final_distance={:.3}", 
+                object_size, base_distance, self.distance);
             
             // Update camera position based on new distance and current rotation/pitch
+            // In 3D mode, we orbit around the pivot point
             let yaw_rad = self.rotation.to_radians();
             let pitch_rad = self.pitch.to_radians();
             
+            // Calculate camera position in spherical coordinates around pivot
             let horizontal_distance = self.distance * pitch_rad.cos();
+            
+            // Position camera at the correct orbital position
+            // Use standard spherical coordinate conversion
             let offset_x = horizontal_distance * yaw_rad.cos();
             let offset_z = horizontal_distance * yaw_rad.sin();
             
+            // Position camera relative to pivot point
             self.position = self.pivot + Vec2::new(offset_x, offset_z);
             self.target_position = self.position;
+            
+            // Debug logging for positioning
+            log::info!("3D Focus: pivot=({:.2}, {:.2}), camera=({:.2}, {:.2}), distance={:.2}, yaw={:.1}°, pitch={:.1}°", 
+                self.pivot.x, self.pivot.y, self.position.x, self.position.y, self.distance, self.rotation, self.pitch);
         } else {
             // 2D mode: adjust position and zoom
             self.position = target_pos;

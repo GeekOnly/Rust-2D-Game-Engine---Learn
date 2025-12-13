@@ -244,40 +244,47 @@ impl Tilemap3DRenderer {
         layer_opacity: f32,
     ) -> Option<ScreenTile> {
         let viewport_size = Vec2::new(viewport_rect.width(), viewport_rect.height());
+        
+        // Validate tile position first
+        if !tile.world_pos.is_finite() {
+            eprintln!("Warning: Invalid tile world position: {:?}", tile.world_pos);
+            return None;
+        }
+        
         // Project center position
         let mut screen_pos = projection_3d::world_to_screen(tile.world_pos, camera, viewport_size)?;
+        
+        // Validate screen position
+        if !screen_pos.is_finite() {
+            return None;
+        }
         
         // Apply viewport offset
         screen_pos.x += viewport_rect.min.x;
         screen_pos.y += viewport_rect.min.y;
         
-        // Calculate size in screen space
-        // We need to project another point to determine scale/size
-        // Or use the distance to scale
+        // Calculate size in screen space using distance-based scaling
+        // This is more stable than projecting multiple points
         let dist = self.calculate_depth_from_camera(&tile.world_pos, camera);
         
-        // This is an approximation. Ideally we project 4 corners.
-        // Let's project top-right corner to get width/height
-        let corner_world = tile.world_pos + Vec3::new(tile.width, tile.height, 0.0);
-        let corner_screen = projection_3d::world_to_screen(corner_world, camera, viewport_size)?;
+        // Use distance-based scaling instead of projecting corner points
+        // This avoids the "Invalid point in projection" errors
+        let scale_factor = if dist > 0.1 {
+            // Scale based on distance (perspective effect)
+            let base_scale = 100.0; // Base pixels per world unit
+            base_scale / dist.max(0.1) // Prevent division by zero
+        } else {
+            100.0 // Default scale for very close objects
+        };
         
-        // Calculate dimensions
-        // Note: This assumes no rotation for the tile itself (billboard-like or flat on plane)
-        // If tiles are on the Z-plane (X-Y plane in 2D), they might be rotated in 3D view.
-        // Let's assume they are flat on the world plane.
+        let screen_width = tile.width * scale_factor;
+        let screen_height = tile.height * scale_factor;
         
-        // Actually, let's just project 3 points to get width and height vectors
-        let right_world = tile.world_pos + Vec3::new(tile.width, 0.0, 0.0);
-        let up_world = tile.world_pos + Vec3::new(0.0, tile.height, 0.0);
-        
-        let right_screen = projection_3d::world_to_screen(right_world, camera, viewport_size)?;
-        let up_screen = projection_3d::world_to_screen(up_world, camera, viewport_size)?;
-        
-        let width_vec = right_screen - screen_pos;
-        let height_vec = up_screen - screen_pos;
-        
-        let screen_width = width_vec.length();
-        let screen_height = height_vec.length();
+        // Validate calculated dimensions
+        if !screen_width.is_finite() || !screen_height.is_finite() || 
+           screen_width <= 0.0 || screen_height <= 0.0 {
+            return None;
+        }
         
         // Convert color with layer opacity
         let final_alpha = tile.color[3] * layer_opacity;

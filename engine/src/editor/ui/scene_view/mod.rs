@@ -222,22 +222,43 @@ pub fn render_scene_view(
     if focus_pressed {
         if let Some(entity) = *selected_entity {
             if let Some(transform) = world.transforms.get(&entity) {
-                let pos = glam::Vec2::new(transform.x(), transform.y());
+                // Calculate center position of the entity
+                let mut pos = glam::Vec2::new(transform.x(), transform.y());
                 let size = if let Some(sprite) = world.sprites.get(&entity) {
                     sprite.width.max(sprite.height)
                 } else if let Some(tilemap) = world.tilemaps.get(&entity) {
-                    // For tilemaps, estimate size based on tile count
-                    // Assume average tile size of 16 pixels
-                    let estimated_tile_size = 16.0;
-                    let width = tilemap.width as f32 * estimated_tile_size;
-                    let height = tilemap.height as f32 * estimated_tile_size;
-                    width.max(height)
+                    // For tilemaps, calculate the center position
+                    // Unity standard: 100 pixels = 1 world unit
+                    let pixels_per_unit = 100.0;
+                    let tile_size_pixels = 16.0; // Assume 16px tiles
+                    let tile_size_world = tile_size_pixels / pixels_per_unit; // 0.16 world units per tile
+                    
+                    let width_world = tilemap.width as f32 * tile_size_world;
+                    let height_world = tilemap.height as f32 * tile_size_world;
+                    
+                    // Adjust position to center of tilemap
+                    pos.x += width_world / 2.0;
+                    pos.y += height_world / 2.0;
+                    
+                    // Use small representative size for close focus
+                    let tile_count = (tilemap.width * tilemap.height) as f32;
+                    if tile_count < 100.0 {
+                        0.5
+                    } else if tile_count < 1000.0 {
+                        1.0
+                    } else {
+                        2.0
+                    }
                 } else if world.meshes.contains_key(&entity) {
-                    50.0
+                    2.0 // Reasonable size for meshes in world units
                 } else {
-                    10.0
+                    1.0 // Default size in world units
                 };
                 let viewport_size = glam::Vec2::new(rect.width(), rect.height());
+                
+                // Debug logging for focus
+                log::info!("Focus request: pos=({:.2}, {:.2}), size={:.2}", pos.x, pos.y, size);
+                
                 scene_camera.focus_on(pos, size, viewport_size);
             }
         }

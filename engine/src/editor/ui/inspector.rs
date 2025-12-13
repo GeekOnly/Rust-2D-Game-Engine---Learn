@@ -1142,8 +1142,32 @@ pub fn render_inspector(
                                 
                                 ui.add_space(5.0);
                                 
+                                // 2D/3D Mode Toggle
+                                ui.horizontal(|ui| {
+                                    ui.label("Mode:");
+                                    if ui.button(if grid.is_3d_mode() { "🎮 3D Mode" } else { "🎨 2D Mode" })
+                                        .on_hover_text("Toggle between 2D and 3D tilemap mode")
+                                        .clicked() 
+                                    {
+                                        if grid.is_3d_mode() {
+                                            grid.to_2d_mode();
+                                            log::info!("Switched Grid to 2D mode (XY plane)");
+                                        } else {
+                                            grid.to_3d_mode();
+                                            log::info!("Switched Grid to 3D mode (XZ plane)");
+                                        }
+                                    }
+                                });
+                                
+                                ui.add_space(5.0);
+                                
                                 // Info message
-                                ui.label(egui::RichText::new("💡 Grid defines the cell layout for tilemaps")
+                                let mode_info = if grid.is_3d_mode() {
+                                    "💡 3D Mode: Tilemaps render as vertical walls (XZ plane)"
+                                } else {
+                                    "💡 2D Mode: Tilemaps render horizontally (XY plane)"
+                                };
+                                ui.label(egui::RichText::new(mode_info)
                                     .small()
                                     .color(egui::Color32::from_rgb(150, 150, 150)));
                                 

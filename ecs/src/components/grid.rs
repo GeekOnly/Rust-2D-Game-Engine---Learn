@@ -81,6 +81,23 @@ impl Grid {
         }
     }
     
+    /// Switch to 3D mode (XZ plane for walls/vertical tilemaps)
+    pub fn to_3d_mode(&mut self) {
+        self.plane = GridPlane::XZ;
+        self.swizzle = CellSwizzle::XZY;  // X=right, Z=up, Y=forward
+    }
+    
+    /// Switch to 2D mode (XY plane for horizontal tilemaps)
+    pub fn to_2d_mode(&mut self) {
+        self.plane = GridPlane::XY;
+        self.swizzle = CellSwizzle::XYZ;  // X=right, Y=up, Z=forward
+    }
+    
+    /// Check if grid is in 3D mode
+    pub fn is_3d_mode(&self) -> bool {
+        matches!(self.plane, GridPlane::XZ | GridPlane::YZ)
+    }
+    
     /// Convert cell coordinates to world position
     pub fn cell_to_world(&self, cell_x: i32, cell_y: i32) -> (f32, f32) {
         match self.layout {
