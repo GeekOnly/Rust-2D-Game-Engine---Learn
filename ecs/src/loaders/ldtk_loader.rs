@@ -93,13 +93,11 @@ impl LdtkLoader {
             .as_i64()
             .unwrap_or(8) as f32;
         
-        // Create Grid component
-        // Unity standard: 100 pixels = 1 world unit (1 meter)
-        let pixels_per_unit = 100.0;
-        let cell_world_size = grid_size / pixels_per_unit;
-        
+        // Create Grid component with standard 1x1 world unit cells
+        // This provides consistent reference for object sizing between 2D and 3D modes
+        // Tilemaps will render at their actual tile size (e.g., 8px tiles = 0.08 world units at 100 PPU)
         let grid = crate::Grid {
-            cell_size: (cell_world_size, cell_world_size, 0.0),  // 2D grid (no depth)
+            cell_size: (1.0, 1.0, 0.0),  // Standard 1x1 world unit grid cells
             cell_gap: (0.0, 0.0),
             layout: crate::GridLayout::Rectangle,
             swizzle: crate::CellSwizzle::XYZ,
@@ -113,8 +111,8 @@ impl LdtkLoader {
             crate::Transform::with_position(0.0, 0.0, 0.0),
         );
         
-        log::info!("Created LDtk Grid with cell size: {}x{}", 
-            grid_size / pixels_per_unit, grid_size / pixels_per_unit);
+        log::info!("Created LDtk Grid with standard 1x1 world unit cells (tilemap tiles: {}px = {:.3} world units at 100 PPU)", 
+            grid_size, grid_size / 100.0);
         
         // Load levels as children of Grid
         let mut tilemap_entities = Vec::new();
