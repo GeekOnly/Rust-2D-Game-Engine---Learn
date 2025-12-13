@@ -53,6 +53,7 @@ pub fn render_scene_view(
     texture_manager: &mut crate::texture_manager::TextureManager,
     drag_drop: &mut DragDropState,
     delta_time: f32,
+    map_manager: &crate::editor::map_manager::MapManager,
 ) {
     // Sync camera projection mode with editor state
     scene_camera.projection_mode = *projection_mode;
@@ -214,6 +215,7 @@ pub fn render_scene_view(
                 &response,
                 texture_manager,
                 &ctx,
+                Some(&map_manager.settings),
             );
         }
     }

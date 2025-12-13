@@ -93,11 +93,16 @@ impl LdtkLoader {
             .as_i64()
             .unwrap_or(8) as f32;
         
-        // Create Grid component with standard 1x1 world unit cells
-        // This provides consistent reference for object sizing between 2D and 3D modes
-        // Tilemaps will render at their actual tile size (e.g., 8px tiles = 0.08 world units at 100 PPU)
+        // Create Grid component with cell size matching tilemap tiles
+        // This ensures grid aligns perfectly with tilemap tiles in both 2D and 3D modes
+        // Use appropriate pixels_per_unit for tilemap scale
+        // For 8px tiles to be 1 world unit each (matching grid cells)
+        let pixels_per_unit = grid_size; // 8px = 1 world unit
+        let cell_width = grid_size / pixels_per_unit;
+        let cell_height = grid_size / pixels_per_unit;
+        
         let grid = crate::Grid {
-            cell_size: (1.0, 1.0, 0.0),  // Standard 1x1 world unit grid cells
+            cell_size: (1.0, 1.0, 0.0),  // 1 world unit per cell = 1 tile per cell
             cell_gap: (0.0, 0.0),
             layout: crate::GridLayout::Rectangle,
             swizzle: crate::CellSwizzle::XYZ,
@@ -111,8 +116,8 @@ impl LdtkLoader {
             crate::Transform::with_position(0.0, 0.0, 0.0),
         );
         
-        log::info!("Created LDtk Grid with standard 1x1 world unit cells (tilemap tiles: {}px = {:.3} world units at 100 PPU)", 
-            grid_size, grid_size / 100.0);
+        log::info!("Created LDtk Grid with cell size 1.0x1.0 world units (tilemap tiles: {}px at {:.0} PPU)", 
+            grid_size, pixels_per_unit);
         
         // Load levels as children of Grid
         let mut tilemap_entities = Vec::new();
@@ -325,8 +330,8 @@ impl LdtkLoader {
 
                     // Add transform at layer offset
                     // Convert pixel coordinates to world units (pixels / pixels_per_unit)
-                    // Unity standard: 100 pixels = 1 world unit (consistent with tilemap rendering)
-                    let pixels_per_unit = 100.0;
+                    // Use grid_size as pixels_per_unit for 1:1 tile-to-grid mapping
+                    let pixels_per_unit = grid_size as f32;
                     // Combine level world position with layer offset
                     let total_px_x = level_world_x + px_offset_x;
                     let total_px_y = level_world_y + px_offset_y;
@@ -369,7 +374,7 @@ impl LdtkLoader {
             .map_err(|e| format!("Failed to parse LDTK JSON: {}", e))?;
 
         let mut collider_entities = Vec::new();
-        let pixels_per_unit = 100.0; // Unity standard: 100 pixels = 1 world unit
+        let pixels_per_unit = 8.0; // Use 8px = 1 world unit for LDtk compatibility
 
         // Get levels array
         let levels = project["levels"]
@@ -654,8 +659,8 @@ impl LdtkLoader {
                 world.names.insert(entity, format!("LDTK Layer: {}", identifier));
 
                 // Add transform at layer offset (relative to Grid parent)
-                // Unity standard: 100 pixels = 1 world unit (consistent with tilemap rendering)
-                let pixels_per_unit = 100.0;
+                // Use grid_size as pixels_per_unit for 1:1 tile-to-grid mapping
+                let pixels_per_unit = 8.0; // Standard LDtk grid size
                 let total_px_x = level_world_x + px_offset_x;
                 let total_px_y = level_world_y + px_offset_y;
                 let world_x = total_px_x / pixels_per_unit;
@@ -686,13 +691,13 @@ impl LdtkLoader {
     ) -> Result<Vec<Entity>, String> {
         // Load the project JSON
         let project_data = std::fs::read_to_string(path.as_ref())
-            .map_err(|e| format!("Failed to read LDTK JSON: {}", e))?;
+            .map_err(|e| format!("Failed to read LDTK file: {}", e))?;
         
         let project: Value = serde_json::from_str(&project_data)
             .map_err(|e| format!("Failed to parse LDTK JSON: {}", e))?;
 
         let mut collider_entities = Vec::new();
-        let pixels_per_unit = 100.0; // Unity standard: 100 pixels = 1 world unit
+        let pixels_per_unit = 8.0; // Use 8px = 1 world unit for LDtk compatibility
 
         // Get levels array
         let levels = project["levels"]

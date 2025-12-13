@@ -261,6 +261,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                     self.context.texture_manager,
                     self.context.drag_drop,
                     self.context.delta_time,
+                    self.context.map_manager,
                 );
             }
             EditorTab::Game => {

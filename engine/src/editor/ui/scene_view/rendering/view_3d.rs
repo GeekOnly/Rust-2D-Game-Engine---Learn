@@ -28,6 +28,7 @@ pub fn render_scene_3d(
     response: &egui::Response,
     texture_manager: &mut crate::texture_manager::TextureManager,
     ctx: &egui::Context,
+    tilemap_settings: Option<&crate::editor::tilemap_settings::TilemapSettings>,
 ) {
     // Create render queue for proper depth sorting
     let mut render_queue = RenderQueue::new();
@@ -48,7 +49,7 @@ pub fn render_scene_3d(
     }
     
     // Collect tilemaps from world
-    let mut tilemap_layers = tilemap_renderer.collect_tilemaps(world);
+    let mut tilemap_layers = tilemap_renderer.collect_tilemaps(world, tilemap_settings);
     
     // Depth sort tilemap layers
     tilemap_renderer.depth_sort_layers(&mut tilemap_layers);
@@ -140,7 +141,13 @@ pub fn render_scene_3d(
     }
     
     // Render mesh entities (legacy rendering for non-sprite/tilemap entities)
+    // But skip camera entities - they will be rendered on top later
     for (entity, transform) in mesh_entities.iter() {
+        // Skip camera entities - render them on top later
+        if world.cameras.contains_key(entity) {
+            continue;
+        }
+        
         render_entity_3d(
             painter,
             *entity,
@@ -180,7 +187,7 @@ pub fn render_scene_3d(
             }
             // Render tilemap bounds
             else if world.tilemaps.contains_key(&sel_entity) {
-                let tilemap_layers = tilemap_renderer.collect_tilemaps(world);
+                let tilemap_layers = tilemap_renderer.collect_tilemaps(world, tilemap_settings);
                 let layer = tilemap_layers.into_iter().find(|l| l.entity == sel_entity);
                 
                 if let Some(layer) = layer {
@@ -224,6 +231,23 @@ pub fn render_scene_3d(
                 if let Some(screen_pos) = projection_3d::world_to_screen(world_pos, scene_camera, viewport_size) {
                     render_collider_gizmo(painter, sel_entity, world, screen_pos.x, screen_pos.y, scene_camera, true);
                 }
+            }
+        }
+    }
+    
+    // Render camera gizmos on top of everything else
+    for (entity, transform) in mesh_entities.iter() {
+        if world.cameras.contains_key(entity) {
+            let world_pos = Vec3::from(transform.position);
+            if let Some(screen_pos) = projection_3d::world_to_screen(world_pos, scene_camera, viewport_size) {
+                let screen_x = viewport_rect.min.x + screen_pos.x;
+                let screen_y = viewport_rect.min.y + screen_pos.y;
+                
+                // Render camera gizmo on top
+                render_camera_gizmo(painter, screen_x, screen_y, scene_camera, &SceneViewMode::Mode3D);
+                
+                // Render camera frustum (pyramid showing FOV)
+                render_camera_frustum_3d(painter, *entity, world, scene_camera, viewport_size);
             }
         }
     }

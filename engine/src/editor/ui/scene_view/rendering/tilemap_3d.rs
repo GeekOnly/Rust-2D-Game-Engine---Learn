@@ -71,7 +71,13 @@ impl Tilemap3DRenderer {
     }
     
     /// Collect all tilemaps from the world
-    pub fn collect_tilemaps(&mut self, world: &World) -> Vec<TilemapLayer> {
+    pub fn collect_tilemaps(&mut self, world: &World, tilemap_settings: Option<&crate::editor::tilemap_settings::TilemapSettings>) -> Vec<TilemapLayer> {
+        // Use pixels_per_unit from tilemap settings, or default to LDtk-compatible value
+        // For proper grid alignment: use 8.0 (8px = 1 world unit = 1 grid cell)
+        let pixels_per_unit = tilemap_settings
+            .map(|s| s.pixels_per_unit)
+            .unwrap_or(8.0); // Default to LDtk-compatible value for grid alignment
+        
         let mut layers = Vec::new();
         
         for (&entity, tilemap) in world.tilemaps.iter() {
@@ -97,10 +103,10 @@ impl Tilemap3DRenderer {
             };
             
             // Collect tiles
-            // Make tiles match grid cell size (1 world unit per tile)
-            // This ensures tilemap aligns perfectly with grid for consistent sizing
-            let tile_world_width = 1.0;  // 1 tile = 1 grid cell = 1 world unit
-            let tile_world_height = 1.0;
+            // Calculate tile size in world units using pixels_per_unit
+            // This ensures tilemap aligns perfectly with grid
+            let tile_world_width = tileset.tile_width as f32 / pixels_per_unit;
+            let tile_world_height = tileset.tile_height as f32 / pixels_per_unit;
             
             let mut tiles = Vec::new();
             let mut min_x = f32::MAX;
@@ -123,6 +129,7 @@ impl Tilemap3DRenderer {
                         };
                         
                         // Calculate world position in world units (not pixels)
+                        // Note: Y coordinate is already flipped in the transform from LDtk loader
                         let tile_world_x = transform.position[0] + (x as f32 * tile_world_width);
                         let tile_world_y = transform.position[1] + (y as f32 * tile_world_height);
                         let tile_world_z = transform.position[2];
@@ -266,18 +273,51 @@ impl Tilemap3DRenderer {
         // This is more stable than projecting multiple points
         let dist = self.calculate_depth_from_camera(&tile.world_pos, camera);
         
-        // Use distance-based scaling instead of projecting corner points
-        // This avoids the "Invalid point in projection" errors
-        let scale_factor = if dist > 0.1 {
-            // Scale based on distance (perspective effect)
-            let base_scale = 100.0; // Base pixels per world unit
-            base_scale / dist.max(0.1) // Prevent division by zero
-        } else {
-            100.0 // Default scale for very close objects
-        };
+        // Calculate proper screen size by projecting tile corners
+        // This ensures tiles connect properly and have correct size
+        let tile_half_width = tile.width / 2.0;
+        let tile_half_height = tile.height / 2.0;
         
-        let screen_width = tile.width * scale_factor;
-        let screen_height = tile.height * scale_factor;
+        // Project tile corners to get accurate screen size
+        let corner_positions = [
+            Vec3::new(tile.world_pos.x - tile_half_width, tile.world_pos.y - tile_half_height, tile.world_pos.z),
+            Vec3::new(tile.world_pos.x + tile_half_width, tile.world_pos.y - tile_half_height, tile.world_pos.z),
+            Vec3::new(tile.world_pos.x + tile_half_width, tile.world_pos.y + tile_half_height, tile.world_pos.z),
+            Vec3::new(tile.world_pos.x - tile_half_width, tile.world_pos.y + tile_half_height, tile.world_pos.z),
+        ];
+        
+        let mut projected_corners = Vec::new();
+        for corner in corner_positions {
+            if let Some(screen_corner) = projection_3d::world_to_screen(corner, camera, viewport_size) {
+                projected_corners.push(screen_corner);
+            }
+        }
+        
+        // If we can't project all corners, fall back to distance-based scaling
+        let (screen_width, screen_height) = if projected_corners.len() == 4 {
+            // Calculate screen size from projected corners
+            let min_x = projected_corners.iter().map(|p| p.x).fold(f32::INFINITY, f32::min);
+            let max_x = projected_corners.iter().map(|p| p.x).fold(f32::NEG_INFINITY, f32::max);
+            let min_y = projected_corners.iter().map(|p| p.y).fold(f32::INFINITY, f32::min);
+            let max_y = projected_corners.iter().map(|p| p.y).fold(f32::NEG_INFINITY, f32::max);
+            
+            let width = (max_x - min_x).abs();
+            let height = (max_y - min_y).abs();
+            
+            (width, height)
+        } else {
+            // Fallback: use distance-based scaling with proper base scale
+            let scale_factor = if dist > 0.1 {
+                // Use camera distance for perspective scaling
+                // Adjust base scale to match grid size better
+                let base_scale = 50.0; // Reduced from 100.0 for better size
+                base_scale / dist.max(0.1)
+            } else {
+                50.0
+            };
+            
+            (tile.width * scale_factor, tile.height * scale_factor)
+        };
         
         // Validate calculated dimensions
         if !screen_width.is_finite() || !screen_height.is_finite() || 
@@ -335,7 +375,8 @@ impl Tilemap3DRenderer {
                 // But for now, let's stick to Rect if it's close enough or use Mesh if we have rotation.
                 // Since we calculated screen_size from projected vectors, it's an approximation.
                 
-                let rect = egui::Rect::from_min_size(
+                // screen_pos is the center position, so we need to use from_center_size
+                let rect = egui::Rect::from_center_size(
                     egui::pos2(screen_tile.screen_pos.x, screen_tile.screen_pos.y),
                     egui::vec2(screen_tile.screen_size.x, screen_tile.screen_size.y),
                 );

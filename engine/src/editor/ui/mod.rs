@@ -153,6 +153,7 @@ impl EditorUI {
             let mut dummy_transform_space = scene_view::TransformSpace::Local;
             
             let mut dummy_debug_draw = crate::editor::debug_draw::DebugDrawManager::new();
+            let dummy_map_manager = crate::editor::map_manager::MapManager::new();
             
             scene_view::render_scene_view(
                 ui,
@@ -179,6 +180,7 @@ impl EditorUI {
                 texture_manager,
                 drag_drop,
                 delta_time,
+                &dummy_map_manager,
             );
         });
 
