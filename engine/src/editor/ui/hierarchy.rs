@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use crate::editor::Console;
 
 /// Render the hierarchy panel (left panel) showing scene entities
+/// Returns Some(entity) if user requested to create prefab from entity
 pub fn render_hierarchy(
     ui: &mut egui::Ui,
     world: &mut World,
@@ -15,7 +16,7 @@ pub fn render_hierarchy(
     _console: &mut Console,
     _get_scene_files_fn: impl Fn(&std::path::Path) -> Vec<String>,
     get_entity_icon_fn: &impl Fn(&World, Entity) -> &'static str,
-) {
+) -> Option<Entity> {
     render_hierarchy_with_filter(
         ui,
         world,
@@ -32,6 +33,7 @@ pub fn render_hierarchy(
 }
 
 /// Render the hierarchy panel with optional map entity filtering
+/// Returns Some(entity) if user requested to create prefab from entity
 pub fn render_hierarchy_with_filter(
     ui: &mut egui::Ui,
     world: &mut World,
@@ -44,7 +46,7 @@ pub fn render_hierarchy_with_filter(
     _get_scene_files_fn: impl Fn(&std::path::Path) -> Vec<String>,
     get_entity_icon_fn: &impl Fn(&World, Entity) -> &'static str,
     map_manager: Option<&crate::editor::map_manager::MapManager>,
-) {
+) -> Option<Entity> {
     // Unity-style header with title and icons
     ui.horizontal(|ui| {
         ui.heading("Hierarchy");
@@ -206,6 +208,7 @@ pub fn render_hierarchy_with_filter(
         // Track entity to delete (for right-click menu)
         let mut entity_to_delete: Option<Entity> = None;
         let mut entity_to_create_child: Option<Entity> = None;
+        let mut entity_to_create_prefab: Option<Entity> = None;
 
         // Scene root node (Unity style - always visible)
         let scene_name = if let Some(path) = current_scene_path {
@@ -257,6 +260,7 @@ pub fn render_hierarchy_with_filter(
                         selected_entity,
                         &mut entity_to_delete,
                         &mut entity_to_create_child,
+                        &mut entity_to_create_prefab,
                         get_entity_icon_fn,
                         map_manager,
                     );
@@ -280,7 +284,10 @@ pub fn render_hierarchy_with_filter(
                 *selected_entity = None;
             }
         }
-    });
+        
+        // Return entity_to_create_prefab for handling by caller
+        entity_to_create_prefab
+    }).inner
 
 }
 
@@ -293,11 +300,11 @@ fn is_map_entity(
     // DON'T hide Grid entities - they should be visible in hierarchy
     // Only hide layer entities and collider entities
     
-    // Check if name starts with layer/collider prefixes (hide these)
+    // Check if name starts with layer/collider prefixes
     if let Some(name) = world.names.get(&entity) {
-        if name.starts_with("LDTK Layer:") 
-            || name.starts_with("CompositeCollider")
-            || name.starts_with("Collider_") 
+        // Show both LDTK layers and colliders for now (user wants to clean up colliders)
+        // TODO: Hide colliders again after migration to Tilemap Collider components
+        if false // Temporarily show all entities
         {
             return true;
         }
@@ -320,6 +327,7 @@ pub fn draw_entity_node(
     selected_entity: &mut Option<Entity>,
     entity_to_delete: &mut Option<Entity>,
     entity_to_create_child: &mut Option<Entity>,
+    entity_to_create_prefab: &mut Option<Entity>,
     get_entity_icon_fn: &impl Fn(&World, Entity) -> &'static str,
     map_manager: Option<&crate::editor::map_manager::MapManager>,
 ) {
@@ -388,7 +396,7 @@ pub fn draw_entity_node(
                         }
                     }
                     
-                    draw_entity_node(ui, child, world, entity_names, selected_entity, entity_to_delete, entity_to_create_child, get_entity_icon_fn, map_manager);
+                    draw_entity_node(ui, child, world, entity_names, selected_entity, entity_to_delete, entity_to_create_child, entity_to_create_prefab, get_entity_icon_fn, map_manager);
                 }
             });
     } else {

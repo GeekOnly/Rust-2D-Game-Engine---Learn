@@ -23,6 +23,7 @@ pub mod hot_reload;
 pub mod tilemap_error;
 pub mod tilemap_settings;
 pub mod widget_editor;
+pub mod prefab;
 
 // Re-exports for convenience
 pub use console::Console;
@@ -42,6 +43,7 @@ pub use map_manager::MapManager;
 pub use tilemap_error::TilemapError;
 pub use tilemap_settings::TilemapSettings;
 pub use widget_editor::PrefabEditor;
+pub use prefab::{Prefab, PrefabManager, PrefabEntity, PrefabMetadata};
 
 // Re-export from sprite_editor crate
 pub use sprite_editor::{SpriteMetadata, SpriteDefinition, ExportFormat};

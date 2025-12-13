@@ -18,6 +18,8 @@ pub mod layer_properties_panel;
 pub mod layer_ordering_panel;
 pub mod performance_panel;
 pub mod collider_settings_panel;
+pub mod prefabs_panel;
+pub mod create_prefab_dialog;
 
 // Re-exports
 use ecs::{World, Entity, EntityTag};
@@ -311,6 +313,8 @@ impl EditorUI {
         show_debug_lines: &mut bool,
         debug_draw: &mut crate::editor::debug_draw::DebugDrawManager,
         map_manager: &mut crate::editor::map_manager::MapManager,
+        prefab_manager: &mut crate::editor::PrefabManager,
+        create_prefab_dialog: &mut create_prefab_dialog::CreatePrefabDialog,
         layer_properties_panel: &mut layer_properties_panel::LayerPropertiesPanel,
         layer_ordering_panel: &mut layer_ordering_panel::LayerOrderingPanel,
         performance_panel: &mut performance_panel::PerformancePanel,
@@ -390,6 +394,8 @@ impl EditorUI {
                 show_debug_lines,
                 debug_draw,
                 map_manager,
+                prefab_manager,
+                create_prefab_dialog,
                 layer_properties_panel,
                 layer_ordering_panel,
                 performance_panel,

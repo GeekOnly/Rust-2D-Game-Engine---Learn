@@ -1,5 +1,5 @@
 use egui::{self, Color32, RichText};
-use ecs::World;
+use ecs::{World, LdtkMap, TilemapCollider, LdtkIntGridCollider};
 use crate::editor::map_manager::MapManager;
 
 /// Render the Maps panel as a standalone window
@@ -185,38 +185,88 @@ fn render_loaded_maps_section(
     map_manager: &mut MapManager,
     world: &mut World,
 ) {
-    for (file_path, loaded_map) in map_manager.loaded_maps.clone() {
-        let file_name = file_path
-            .file_name()
-            .and_then(|n| n.to_str())
-            .unwrap_or("Unknown");
-        
-        ui.collapsing(RichText::new(format!("🎯 {}", file_name)).strong(), |ui| {
-            // Info
-            ui.label(format!("Loaded Tilemaps: {}", loaded_map.layer_entities.len()));
-            
-            ui.separator();
-            
-            // Grid entity
-            if let Some(grid_name) = world.names.get(&loaded_map.grid_entity) {
-                ui.collapsing(format!("📐 {}", grid_name), |ui| {
-                    // Grid info
-                    if let Some(grid) = world.grids.get(&loaded_map.grid_entity) {
-                        ui.label(format!("Cell Size: {:.2} x {:.2}", 
-                            grid.cell_size.0, grid.cell_size.1));
-                        ui.label(format!("Layout: {:?}", grid.layout));
-                    }
+    // Show LDtk Maps first
+    ui.collapsing(RichText::new("🗺️ LDtk Maps").strong(), |ui| {
+        if world.ldtk_maps.is_empty() {
+            ui.label(RichText::new("No LDtk maps loaded").color(Color32::GRAY).italics());
+        } else {
+            for (entity, ldtk_map) in world.ldtk_maps.clone() {
+                render_ldtk_map_details(ui, &ldtk_map, entity, world);
+            }
+        }
+    });
+    
+    ui.separator();
+    
+    // Show Tilemap Colliders
+    ui.collapsing(RichText::new("🔧 Tilemap Colliders").strong(), |ui| {
+        if world.tilemap_colliders.is_empty() {
+            ui.label(RichText::new("No tilemap colliders").color(Color32::GRAY).italics());
+        } else {
+            for (entity, mut collider) in world.tilemap_colliders.clone() {
+                render_tilemap_collider_settings(ui, &mut collider, entity);
+                // Update the collider in world
+                world.tilemap_colliders.insert(entity, collider);
+            }
+        }
+    });
+    
+    ui.separator();
+    
+    // Show IntGrid Colliders
+    ui.collapsing(RichText::new("🔲 IntGrid Colliders").strong(), |ui| {
+        if world.ldtk_intgrid_colliders.is_empty() {
+            ui.label(RichText::new("No IntGrid colliders").color(Color32::GRAY).italics());
+        } else {
+            for (entity, mut collider) in world.ldtk_intgrid_colliders.clone() {
+                render_ldtk_intgrid_collider_settings(ui, &mut collider, entity);
+                // Update the collider in world
+                world.ldtk_intgrid_colliders.insert(entity, collider);
+            }
+        }
+    });
+    
+    ui.separator();
+    
+    // Legacy loaded maps section (for backward compatibility)
+    ui.collapsing(RichText::new("📁 Legacy Maps").strong(), |ui| {
+        if map_manager.loaded_maps.is_empty() {
+            ui.label(RichText::new("No legacy maps loaded").color(Color32::GRAY).italics());
+        } else {
+            for (file_path, loaded_map) in map_manager.loaded_maps.clone() {
+                let file_name = file_path
+                    .file_name()
+                    .and_then(|n| n.to_str())
+                    .unwrap_or("Unknown");
+                
+                ui.collapsing(RichText::new(format!("🎯 {}", file_name)), |ui| {
+                    // Info
+                    ui.label(format!("Loaded Tilemaps: {}", loaded_map.layer_entities.len()));
                     
                     ui.separator();
                     
-                    // Layers
-                    for layer in &loaded_map.layer_entities {
-                        render_layer_item(ui, layer, map_manager, world);
+                    // Grid entity
+                    if let Some(grid_name) = world.names.get(&loaded_map.grid_entity) {
+                        ui.collapsing(format!("📐 {}", grid_name), |ui| {
+                            // Grid info
+                            if let Some(grid) = world.grids.get(&loaded_map.grid_entity) {
+                                ui.label(format!("Cell Size: {:.2} x {:.2}", 
+                                    grid.cell_size.0, grid.cell_size.1));
+                                ui.label(format!("Layout: {:?}", grid.layout));
+                            }
+                            
+                            ui.separator();
+                            
+                            // Layers
+                            for layer in &loaded_map.layer_entities {
+                                render_layer_item(ui, layer, map_manager, world);
+                            }
+                        });
                     }
                 });
             }
-        });
-    }
+        }
+    });
 }
 
 fn render_layer_item(
@@ -346,9 +396,30 @@ fn render_statistics_section(
         });
         
         ui.horizontal(|ui| {
+            ui.label("LDtk Maps:");
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                ui.label(RichText::new(format!("{}", world.ldtk_maps.len())).strong().color(Color32::from_rgb(100, 200, 255)));
+            });
+        });
+        
+        ui.horizontal(|ui| {
             ui.label("Tilemaps:");
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 ui.label(RichText::new(format!("{}", world.tilemaps.len())).strong());
+            });
+        });
+        
+        ui.horizontal(|ui| {
+            ui.label("Tilemap Colliders:");
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                ui.label(RichText::new(format!("{}", world.tilemap_colliders.len())).strong().color(Color32::from_rgb(255, 200, 100)));
+            });
+        });
+        
+        ui.horizontal(|ui| {
+            ui.label("IntGrid Colliders:");
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                ui.label(RichText::new(format!("{}", world.ldtk_intgrid_colliders.len())).strong().color(Color32::from_rgb(255, 150, 100)));
             });
         });
         
@@ -373,4 +444,399 @@ fn render_statistics_section(
             });
         });
     });
+}
+
+/// Render LDtk Map details section
+fn render_ldtk_map_details(
+    ui: &mut egui::Ui,
+    ldtk_map: &LdtkMap,
+    entity: ecs::Entity,
+    world: &mut World,
+) {
+    ui.collapsing(RichText::new(format!("🗺️ {}", ldtk_map.identifier)).strong(), |ui| {
+        // Map info
+        ui.horizontal(|ui| {
+            ui.label("File:");
+            ui.label(RichText::new(&ldtk_map.file_path).color(Color32::GRAY));
+        });
+        
+        ui.horizontal(|ui| {
+            ui.label("Size:");
+            ui.label(format!("{}x{} px", ldtk_map.world_width, ldtk_map.world_height));
+        });
+        
+        ui.horizontal(|ui| {
+            ui.label("Grid Size:");
+            ui.label(format!("{} px", ldtk_map.default_grid_size));
+        });
+        
+        ui.horizontal(|ui| {
+            ui.label("Levels:");
+            ui.label(format!("{}", ldtk_map.levels.len()));
+        });
+        
+        ui.separator();
+        
+        // Current level selection
+        if !ldtk_map.levels.is_empty() {
+            ui.horizontal(|ui| {
+                ui.label("Current Level:");
+                
+                let current_level = ldtk_map.current_level.as_deref().unwrap_or("None");
+                egui::ComboBox::from_id_source(format!("level_select_{}", entity))
+                    .selected_text(current_level)
+                    .show_ui(ui, |ui| {
+                        // None option
+                        if ui.selectable_value(&mut world.ldtk_maps.get_mut(&entity).unwrap().current_level, None, "None").clicked() {
+                            log::info!("Deselected current level");
+                        }
+                        
+                        // Level options
+                        for level in &ldtk_map.levels {
+                            let mut current = ldtk_map.current_level.clone();
+                            if ui.selectable_value(&mut current, Some(level.identifier.clone()), &level.identifier).clicked() {
+                                world.ldtk_maps.get_mut(&entity).unwrap().current_level = current;
+                                log::info!("Selected level: {}", level.identifier);
+                            }
+                        }
+                    });
+            });
+        }
+        
+        ui.separator();
+        
+        // Auto-reload toggle
+        ui.horizontal(|ui| {
+            let mut auto_reload = ldtk_map.auto_reload;
+            if ui.checkbox(&mut auto_reload, "Auto-reload").changed() {
+                world.ldtk_maps.get_mut(&entity).unwrap().auto_reload = auto_reload;
+            }
+            ui.label("Automatically reload when file changes");
+        });
+        
+        ui.separator();
+        
+        // Levels details
+        if !ldtk_map.levels.is_empty() {
+            ui.collapsing("📋 Levels", |ui| {
+                for level in &ldtk_map.levels {
+                    render_ldtk_level_details(ui, level);
+                }
+            });
+        }
+        
+        // Tilesets details
+        if !ldtk_map.tilesets.is_empty() {
+            ui.collapsing("🎨 Tilesets", |ui| {
+                for (_, tileset) in &ldtk_map.tilesets {
+                    render_ldtk_tileset_details(ui, tileset);
+                }
+            });
+        }
+    });
+}
+
+/// Render LDtk Level details
+fn render_ldtk_level_details(
+    ui: &mut egui::Ui,
+    level: &ecs::LdtkLevel,
+) {
+    ui.collapsing(format!("📍 {}", level.identifier), |ui| {
+        ui.horizontal(|ui| {
+            ui.label("Position:");
+            ui.label(format!("({}, {})", level.world_x, level.world_y));
+        });
+        
+        ui.horizontal(|ui| {
+            ui.label("Size:");
+            ui.label(format!("{}x{} px", level.px_width, level.px_height));
+        });
+        
+        ui.horizontal(|ui| {
+            ui.label("Layers:");
+            ui.label(format!("{}", level.layers.len()));
+        });
+        
+        ui.horizontal(|ui| {
+            ui.label("Entities:");
+            ui.label(format!("{}", level.entities.len()));
+        });
+        
+        // Layer details
+        if !level.layers.is_empty() {
+            ui.separator();
+            ui.label(RichText::new("Layers:").strong());
+            for layer in &level.layers {
+                render_ldtk_layer_summary(ui, layer);
+            }
+        }
+    });
+}
+
+/// Render LDtk Layer summary
+fn render_ldtk_layer_summary(
+    ui: &mut egui::Ui,
+    layer: &ecs::LdtkLayerInstance,
+) {
+    ui.horizontal(|ui| {
+        let icon = match layer.layer_type {
+            ecs::LdtkLayerType::IntGrid => "🔲",
+            ecs::LdtkLayerType::Tiles => "🎨",
+            ecs::LdtkLayerType::AutoLayer => "🤖",
+            ecs::LdtkLayerType::Entities => "👤",
+        };
+        
+        ui.label(icon);
+        ui.label(&layer.identifier);
+        
+        let type_text = format!("{:?}", layer.layer_type);
+        ui.label(RichText::new(type_text).color(Color32::GRAY).italics());
+        
+        if !layer.visible {
+            ui.label(RichText::new("(Hidden)").color(Color32::RED));
+        }
+        
+        if layer.opacity < 1.0 {
+            ui.label(RichText::new(format!("({:.0}%)", layer.opacity * 100.0)).color(Color32::YELLOW));
+        }
+    });
+}
+
+/// Render LDtk Tileset details
+fn render_ldtk_tileset_details(
+    ui: &mut egui::Ui,
+    tileset: &ecs::LdtkTilesetDef,
+) {
+    ui.horizontal(|ui| {
+        ui.label("🎨");
+        ui.label(&tileset.identifier);
+        ui.label(RichText::new(format!("({}x{} px)", tileset.px_width, tileset.px_height)).color(Color32::GRAY));
+        ui.label(RichText::new(format!("Grid: {}", tileset.tile_grid_size)).color(Color32::GRAY));
+    });
+}
+
+/// Render Tilemap Collider settings
+fn render_tilemap_collider_settings(
+    ui: &mut egui::Ui,
+    collider: &mut TilemapCollider,
+    entity: ecs::Entity,
+) {
+    ui.collapsing(format!("🔧 Tilemap Collider ({})", entity), |ui| {
+        // Collider mode
+        ui.horizontal(|ui| {
+            ui.label("Mode:");
+            egui::ComboBox::from_id_source(format!("collider_mode_{}", entity))
+                .selected_text(format!("{:?}", collider.mode))
+                .show_ui(ui, |ui| {
+                    ui.selectable_value(&mut collider.mode, ecs::TilemapColliderMode::Individual, "Individual");
+                    ui.selectable_value(&mut collider.mode, ecs::TilemapColliderMode::Composite, "Composite");
+                    ui.selectable_value(&mut collider.mode, ecs::TilemapColliderMode::Polygon, "Polygon");
+                    ui.selectable_value(&mut collider.mode, ecs::TilemapColliderMode::None, "None");
+                });
+        });
+        
+        // Physics properties
+        ui.horizontal(|ui| {
+            ui.label("Friction:");
+            ui.add(egui::Slider::new(&mut collider.friction, 0.0..=1.0).step_by(0.1));
+        });
+        
+        ui.horizontal(|ui| {
+            ui.label("Restitution:");
+            ui.add(egui::Slider::new(&mut collider.restitution, 0.0..=1.0).step_by(0.1));
+        });
+        
+        // Flags
+        ui.checkbox(&mut collider.is_trigger, "Is Trigger");
+        ui.checkbox(&mut collider.use_composite, "Use Composite");
+        ui.checkbox(&mut collider.auto_update, "Auto Update");
+        
+        // Collision tiles
+        ui.separator();
+        ui.label("Collision Tiles:");
+        if collider.collision_tiles.is_empty() {
+            ui.label(RichText::new("All non-zero tiles").color(Color32::GRAY).italics());
+        } else {
+            ui.label(format!("Specific tiles: {:?}", collider.collision_tiles));
+        }
+    });
+}
+
+/// Render LDtk IntGrid Collider settings
+fn render_ldtk_intgrid_collider_settings(
+    ui: &mut egui::Ui,
+    collider: &mut LdtkIntGridCollider,
+    entity: ecs::Entity,
+) {
+    ui.collapsing(format!("🔲 IntGrid Collider ({})", entity), |ui| {
+        // Collision value
+        ui.horizontal(|ui| {
+            ui.label("Collision Value:");
+            ui.add(egui::DragValue::new(&mut collider.collision_value).clamp_range(0..=255));
+        });
+        
+        // Mode
+        ui.horizontal(|ui| {
+            ui.label("Mode:");
+            egui::ComboBox::from_id_source(format!("intgrid_mode_{}", entity))
+                .selected_text(format!("{:?}", collider.mode))
+                .show_ui(ui, |ui| {
+                    ui.selectable_value(&mut collider.mode, ecs::TilemapColliderMode::Individual, "Individual");
+                    ui.selectable_value(&mut collider.mode, ecs::TilemapColliderMode::Composite, "Composite");
+                    ui.selectable_value(&mut collider.mode, ecs::TilemapColliderMode::Polygon, "Polygon");
+                    ui.selectable_value(&mut collider.mode, ecs::TilemapColliderMode::None, "None");
+                });
+        });
+        
+        // Physics properties
+        ui.horizontal(|ui| {
+            ui.label("Friction:");
+            ui.add(egui::Slider::new(&mut collider.friction, 0.0..=1.0).step_by(0.1));
+        });
+        
+        ui.horizontal(|ui| {
+            ui.label("Restitution:");
+            ui.add(egui::Slider::new(&mut collider.restitution, 0.0..=1.0).step_by(0.1));
+        });
+        
+        // Flags
+        ui.checkbox(&mut collider.is_trigger, "Is Trigger");
+        ui.checkbox(&mut collider.auto_update, "Auto Update");
+    });
+}
+
+/// Create a new LDtk Map entity from file path
+pub fn create_ldtk_map_entity(
+    world: &mut World,
+    file_path: &std::path::Path,
+) -> Result<ecs::Entity, String> {
+    let entity = world.spawn();
+    
+    // Create LDtk Map component
+    let ldtk_map = LdtkMap::new(file_path.to_string_lossy().to_string());
+    world.ldtk_maps.insert(entity, ldtk_map);
+    
+    // Set entity name
+    let file_name = file_path
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or("Unknown");
+    world.names.insert(entity, format!("LDtk Map: {}", file_name));
+    
+    // Add transform (for positioning in world)
+    world.transforms.insert(entity, ecs::Transform::default());
+    
+    log::info!("Created LDtk Map entity {} for file: {:?}", entity, file_path);
+    Ok(entity)
+}
+
+/// Create a Tilemap Collider entity for a tilemap
+pub fn create_tilemap_collider_entity(
+    world: &mut World,
+    tilemap_entity: ecs::Entity,
+    collision_tiles: Vec<u32>,
+) -> Result<ecs::Entity, String> {
+    let entity = world.spawn();
+    
+    // Create Tilemap Collider component
+    let collider = TilemapCollider::with_collision_tiles(collision_tiles);
+    world.tilemap_colliders.insert(entity, collider);
+    
+    // Set entity name
+    let tilemap_name = world.names.get(&tilemap_entity)
+        .map(|s| s.as_str())
+        .unwrap_or("Unknown Tilemap");
+    world.names.insert(entity, format!("Collider for {}", tilemap_name));
+    
+    // Add transform
+    world.transforms.insert(entity, ecs::Transform::default());
+    
+    // Set parent to tilemap entity
+    world.set_parent(entity, Some(tilemap_entity));
+    
+    log::info!("Created Tilemap Collider entity {} for tilemap {}", entity, tilemap_entity);
+    Ok(entity)
+}
+
+/// Create an IntGrid Collider entity for LDtk IntGrid layer
+pub fn create_intgrid_collider_entity(
+    world: &mut World,
+    layer_entity: ecs::Entity,
+    collision_value: i32,
+) -> Result<ecs::Entity, String> {
+    let entity = world.spawn();
+    
+    // Create IntGrid Collider component
+    let collider = LdtkIntGridCollider::with_value(collision_value);
+    world.ldtk_intgrid_colliders.insert(entity, collider);
+    
+    // Set entity name
+    let layer_name = world.names.get(&layer_entity)
+        .map(|s| s.as_str())
+        .unwrap_or("Unknown Layer");
+    world.names.insert(entity, format!("IntGrid Collider for {}", layer_name));
+    
+    // Add transform
+    world.transforms.insert(entity, ecs::Transform::default());
+    
+    // Set parent to layer entity
+    world.set_parent(entity, Some(layer_entity));
+    
+    log::info!("Created IntGrid Collider entity {} for layer {} with value {}", 
+        entity, layer_entity, collision_value);
+    Ok(entity)
+}
+
+/// Helper function to find LDtk Map entity by file path
+pub fn find_ldtk_map_by_path(
+    world: &World,
+    file_path: &std::path::Path,
+) -> Option<ecs::Entity> {
+    let path_str = file_path.to_string_lossy();
+    
+    for (entity, ldtk_map) in &world.ldtk_maps {
+        if ldtk_map.file_path == path_str {
+            return Some(*entity);
+        }
+    }
+    
+    None
+}
+
+/// Helper function to get all tilemap colliders for a specific tilemap
+pub fn get_tilemap_colliders_for_tilemap(
+    world: &World,
+    tilemap_entity: ecs::Entity,
+) -> Vec<ecs::Entity> {
+    let mut colliders = Vec::new();
+    
+    // Check children of tilemap entity
+    if let Some(children) = world.children.get(&tilemap_entity) {
+        for &child in children {
+            if world.tilemap_colliders.contains_key(&child) {
+                colliders.push(child);
+            }
+        }
+    }
+    
+    colliders
+}
+
+/// Helper function to get all IntGrid colliders for a specific layer
+pub fn get_intgrid_colliders_for_layer(
+    world: &World,
+    layer_entity: ecs::Entity,
+) -> Vec<ecs::Entity> {
+    let mut colliders = Vec::new();
+    
+    // Check children of layer entity
+    if let Some(children) = world.children.get(&layer_entity) {
+        for &child in children {
+            if world.ldtk_intgrid_colliders.contains_key(&child) {
+                colliders.push(child);
+            }
+        }
+    }
+    
+    colliders
 }

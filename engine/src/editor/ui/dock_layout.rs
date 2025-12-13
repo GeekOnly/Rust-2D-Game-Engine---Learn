@@ -15,6 +15,7 @@ pub enum EditorTab {
     Console,
     Project,
     MapView,  // LDtk map management panel
+    Prefabs,  // Prefab management panel
     LayerProperties,  // Layer properties panel for tilemap layers
     LayerOrdering,  // Layer ordering panel for reordering tilemap layers
     Performance,  // Performance monitoring panel for tilemap management
@@ -62,6 +63,8 @@ pub struct TabContext<'a> {
     pub show_debug_lines: &'a mut bool,
     pub debug_draw: &'a mut crate::editor::debug_draw::DebugDrawManager,
     pub map_manager: &'a mut crate::editor::map_manager::MapManager,
+    pub prefab_manager: &'a mut crate::editor::PrefabManager,
+    pub create_prefab_dialog: &'a mut super::create_prefab_dialog::CreatePrefabDialog,
     pub layer_properties_panel: &'a mut super::layer_properties_panel::LayerPropertiesPanel,
     pub layer_ordering_panel: &'a mut super::layer_ordering_panel::LayerOrderingPanel,
     pub performance_panel: &'a mut super::performance_panel::PerformancePanel,
@@ -153,6 +156,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
             EditorTab::Console => "Console".into(),
             EditorTab::Project => "Project".into(),
             EditorTab::MapView => "🗺️ Maps".into(),
+            EditorTab::Prefabs => "📦 Prefabs".into(),
             EditorTab::LayerProperties => "🎨 Layer Properties".into(),
             EditorTab::LayerOrdering => "📑 Layer Ordering".into(),
             EditorTab::Performance => "📊 Performance".into(),
@@ -170,7 +174,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
     fn ui(&mut self, ui: &mut egui::Ui, tab: &mut Self::Tab) {
         match tab {
             EditorTab::Hierarchy => {
-                hierarchy::render_hierarchy_with_filter(
+                if let Some(entity) = hierarchy::render_hierarchy_with_filter(
                     ui,
                     self.context.world,
                     self.context.entity_names,
@@ -182,7 +186,10 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                     get_scene_files,
                     &get_entity_icon,
                     Some(self.context.map_manager), // Pass map_manager to filter map entities
-                );
+                ) {
+                    // User requested to create prefab from entity
+                    self.context.create_prefab_dialog.open(entity, self.context.entity_names);
+                }
             }
             EditorTab::Inspector => {
                 // Show entity inspector or texture inspector based on selection
@@ -285,6 +292,16 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                     ui,
                     self.context.map_manager,
                     self.context.world,
+                );
+            }
+            EditorTab::Prefabs => {
+                // Render prefabs panel
+                super::prefabs_panel::render_prefabs_panel(
+                    ui,
+                    self.context.prefab_manager,
+                    self.context.world,
+                    self.context.entity_names,
+                    self.context.selected_entity,
                 );
             }
             EditorTab::LayerProperties => {
@@ -407,7 +424,7 @@ pub fn create_default_layout() -> DockState<EditorTab> {
         vec![EditorTab::Game],
     );
 
-    // Split bottom area: Console/Project/Maps/Performance (left) and Game (right)
+    // Split bottom area: Console/Project/Maps/Prefabs/Performance (left) and Game (right)
     let [_console, _game] = dock_state.main_surface_mut().split_right(
         bottom_area,
         0.5,
@@ -415,6 +432,7 @@ pub fn create_default_layout() -> DockState<EditorTab> {
             EditorTab::Console,
             EditorTab::Project,
             EditorTab::MapView,
+            EditorTab::Prefabs,
             EditorTab::Performance,
         ],
     );

@@ -410,6 +410,12 @@ pub enum EntityTag {
     Item,
 }
 
+impl Default for EntityTag {
+    fn default() -> Self {
+        EntityTag::Player
+    }
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Script {
     pub script_name: String,
@@ -589,6 +595,11 @@ pub struct World {
     pub grids: HashMap<Entity, Grid>,
     // World-space UI components
     pub world_uis: HashMap<Entity, WorldUI>,
+    // LDtk Map components
+    pub ldtk_maps: HashMap<Entity, LdtkMap>,
+    // Tilemap Collider components
+    pub tilemap_colliders: HashMap<Entity, TilemapCollider>,
+    pub ldtk_intgrid_colliders: HashMap<Entity, LdtkIntGridCollider>,
 }
 
 impl World {
@@ -639,6 +650,9 @@ impl World {
         self.maps.remove(&e);
         self.grids.remove(&e);
         self.world_uis.remove(&e);
+        self.ldtk_maps.remove(&e);
+        self.tilemap_colliders.remove(&e);
+        self.ldtk_intgrid_colliders.remove(&e);
     }
 
     pub fn clear(&mut self) {
@@ -664,6 +678,9 @@ impl World {
         self.maps.clear();
         self.grids.clear();
         self.world_uis.clear();
+        self.ldtk_maps.clear();
+        self.tilemap_colliders.clear();
+        self.ldtk_intgrid_colliders.clear();
         self.next_entity = 0;
     }
 

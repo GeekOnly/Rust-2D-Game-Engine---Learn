@@ -963,6 +963,13 @@ fn main() -> Result<()> {
                                     }
                                 }
                                 
+                                // Set prefab manager project path if not yet set
+                                if editor_state.prefab_manager.project_path.is_none() {
+                                    if let Some(ref project_path) = editor_state.current_project_path {
+                                        editor_state.prefab_manager.set_project_path(project_path.clone());
+                                    }
+                                }
+                                
                                 // Handle layout change request
                                 if let Some(layout_name) = editor_state.layout_request.take() {
                                     if layout_name == "save_default" {
@@ -1109,6 +1116,8 @@ fn main() -> Result<()> {
                                         &mut editor_state.show_debug_lines,
                                         &mut editor_state.debug_draw,
                                         &mut editor_state.map_manager,
+                                        &mut editor_state.prefab_manager,
+                                        &mut editor_state.create_prefab_dialog,
                                         &mut editor_state.layer_properties_panel,
                                         &mut editor_state.layer_ordering_panel,
                                         &mut editor_state.performance_panel,
@@ -1502,6 +1511,31 @@ fn main() -> Result<()> {
                                         });
                                 }
 
+                                // Render Create Prefab Dialog
+                                if let Some(prefab_name) = editor_state.create_prefab_dialog.render(
+                                    &egui_ctx,
+                                    &editor_state.world,
+                                    &editor_state.entity_names,
+                                    &editor_state.prefab_manager,
+                                ) {
+                                    // User confirmed prefab creation
+                                    if let Some(entity) = editor_state.create_prefab_dialog.entity {
+                                        match editor_state.prefab_manager.create_prefab(
+                                            entity,
+                                            &editor_state.world,
+                                            &editor_state.entity_names,
+                                            prefab_name.clone(),
+                                        ) {
+                                            Ok(path) => {
+                                                editor_state.console.info(format!("✅ Created prefab: {:?}", path));
+                                            }
+                                            Err(e) => {
+                                                editor_state.console.error(format!("❌ Failed to create prefab: {}", e));
+                                            }
+                                        }
+                                    }
+                                }
+                                
                                 // Show exit confirmation dialog
                                 if editor_state.show_exit_dialog {
                                     egui::Window::new("Exit Editor")

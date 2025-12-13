@@ -6,7 +6,7 @@
 /// - GetComponent<T>() - ดึงข้อมูล Component
 /// - HasComponent<T>() - ตรวจสอบว่ามี Component หรือไม่
 
-use crate::{World, Entity, Transform, Sprite, Collider, Mesh, Camera, Script, ScriptLifecycleState, EntityTag};
+use crate::{World, Entity, Transform, Sprite, Collider, Mesh, Camera, Script, ScriptLifecycleState, EntityTag, LdtkMap, TilemapCollider, LdtkIntGridCollider};
 use std::collections::HashMap;
 
 /// Component Type Enum สำหรับระบุประเภท Component
@@ -22,6 +22,9 @@ pub enum ComponentType {
     Script,
     Tag,
     Map,
+    LdtkMap,
+    TilemapCollider,
+    LdtkIntGridCollider,
 }
 
 impl ComponentType {
@@ -38,6 +41,9 @@ impl ComponentType {
             ComponentType::Script,
             ComponentType::Tag,
             ComponentType::Map,
+            ComponentType::LdtkMap,
+            ComponentType::TilemapCollider,
+            ComponentType::LdtkIntGridCollider,
         ]
     }
 
@@ -54,6 +60,9 @@ impl ComponentType {
             ComponentType::Script => "Script",
             ComponentType::Tag => "Tag",
             ComponentType::Map => "Map",
+            ComponentType::LdtkMap => "LDTK Map",
+            ComponentType::TilemapCollider => "Tilemap Collider",
+            ComponentType::LdtkIntGridCollider => "LDTK IntGrid Collider",
         }
     }
 
@@ -150,6 +159,15 @@ impl ComponentManager for World {
             ComponentType::Map => {
                 self.maps.insert(entity, crate::Map::default());
             }
+            ComponentType::LdtkMap => {
+                self.ldtk_maps.insert(entity, LdtkMap::default());
+            }
+            ComponentType::TilemapCollider => {
+                self.tilemap_colliders.insert(entity, TilemapCollider::default());
+            }
+            ComponentType::LdtkIntGridCollider => {
+                self.ldtk_intgrid_colliders.insert(entity, LdtkIntGridCollider::default());
+            }
         }
 
         Ok(())
@@ -200,6 +218,15 @@ impl ComponentManager for World {
             ComponentType::Map => {
                 self.maps.remove(&entity);
             }
+            ComponentType::LdtkMap => {
+                self.ldtk_maps.remove(&entity);
+            }
+            ComponentType::TilemapCollider => {
+                self.tilemap_colliders.remove(&entity);
+            }
+            ComponentType::LdtkIntGridCollider => {
+                self.ldtk_intgrid_colliders.remove(&entity);
+            }
         }
 
         Ok(())
@@ -217,6 +244,9 @@ impl ComponentManager for World {
             ComponentType::Script => self.scripts.contains_key(&entity),
             ComponentType::Tag => self.tags.contains_key(&entity),
             ComponentType::Map => self.maps.contains_key(&entity),
+            ComponentType::LdtkMap => self.ldtk_maps.contains_key(&entity),
+            ComponentType::TilemapCollider => self.tilemap_colliders.contains_key(&entity),
+            ComponentType::LdtkIntGridCollider => self.ldtk_intgrid_colliders.contains_key(&entity),
         }
     }
 

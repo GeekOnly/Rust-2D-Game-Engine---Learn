@@ -91,7 +91,7 @@ impl GameViewResolution {
             GameViewResolution::Pixel7Landscape => "Pixel 7 Landscape",
             GameViewResolution::IPadPro => "iPad Pro (2048x2732)",
             GameViewResolution::IPadAir => "iPad Air (1640x2360)",
-            GameViewResolution::Custom(w, h) => "Custom",
+            GameViewResolution::Custom(_, _) => "Custom",
             GameViewResolution::Free => "Free (Fit to Window)",
         }
     }
