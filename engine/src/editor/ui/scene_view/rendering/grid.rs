@@ -224,12 +224,9 @@ fn render_grid_component_3d(
 ) {
     // Use cell_size from Grid component
     let cell_size = grid.cell_size.0.max(grid.cell_size.1).max(0.01);
-    let grid_world_size = if cell_size < 0.5 {
-        // For small cell sizes, use scene_grid.size as visual scale
-        scene_grid.size
-    } else {
-        cell_size
-    };
+    // Always use the Grid component's actual cell size for accurate tilemap alignment
+    // The previous threshold of 0.5 was causing misalignment with small tiles (8px at 100 PPU = 0.08)
+    let grid_world_size = cell_size;
     
     let grid_plane = grid.plane;
     let grid_offset = transform

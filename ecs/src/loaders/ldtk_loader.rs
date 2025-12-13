@@ -327,8 +327,8 @@ impl LdtkLoader {
 
                     // Add transform at layer offset
                     // Convert pixel coordinates to world units (pixels / pixels_per_unit)
-                    // Use 8.0 to match LDtk cell size (8x8 pixels = 1x1 world units)
-                    let pixels_per_unit = 8.0;
+                    // Unity standard: 100 pixels = 1 world unit (consistent with tilemap rendering)
+                    let pixels_per_unit = 100.0;
                     // Combine level world position with layer offset
                     let total_px_x = level_world_x + px_offset_x;
                     let total_px_y = level_world_y + px_offset_y;
@@ -371,7 +371,7 @@ impl LdtkLoader {
             .map_err(|e| format!("Failed to parse LDTK JSON: {}", e))?;
 
         let mut collider_entities = Vec::new();
-        let pixels_per_unit = 8.0; // Match tilemap rendering
+        let pixels_per_unit = 100.0; // Unity standard: 100 pixels = 1 world unit
 
         // Get levels array
         let levels = project["levels"]
@@ -656,7 +656,8 @@ impl LdtkLoader {
                 world.names.insert(entity, format!("LDTK Layer: {}", identifier));
 
                 // Add transform at layer offset (relative to Grid parent)
-                let pixels_per_unit = 8.0;
+                // Unity standard: 100 pixels = 1 world unit (consistent with tilemap rendering)
+                let pixels_per_unit = 100.0;
                 let total_px_x = level_world_x + px_offset_x;
                 let total_px_y = level_world_y + px_offset_y;
                 let world_x = total_px_x / pixels_per_unit;
@@ -687,13 +688,13 @@ impl LdtkLoader {
     ) -> Result<Vec<Entity>, String> {
         // Load the project JSON
         let project_data = std::fs::read_to_string(path.as_ref())
-            .map_err(|e| format!("Failed to read LDTK file: {}", e))?;
+            .map_err(|e| format!("Failed to read LDTK JSON: {}", e))?;
         
         let project: Value = serde_json::from_str(&project_data)
             .map_err(|e| format!("Failed to parse LDTK JSON: {}", e))?;
 
         let mut collider_entities = Vec::new();
-        let pixels_per_unit = 8.0; // Match tilemap rendering
+        let pixels_per_unit = 100.0; // Unity standard: 100 pixels = 1 world unit
 
         // Get levels array
         let levels = project["levels"]

@@ -27,8 +27,14 @@ pub struct Grid {
 
 impl Default for Grid {
     fn default() -> Self {
+        // Unity standard: 100 pixels = 1 world unit
+        // For 16px tiles: 16/100 = 0.16 world units per tile
+        let pixels_per_unit = 100.0;
+        let default_tile_size_pixels = 16.0;
+        let default_cell_size = default_tile_size_pixels / pixels_per_unit;
+        
         Self {
-            cell_size: (1.0, 1.0, 0.0),  // Default 2D grid (no depth)
+            cell_size: (default_cell_size, default_cell_size, 0.0),  // 0.16 world units to match tilemap
             cell_gap: (0.0, 0.0),
             layout: GridLayout::Rectangle,
             swizzle: CellSwizzle::XYZ,
@@ -96,6 +102,21 @@ impl Grid {
     /// Check if grid is in 3D mode
     pub fn is_3d_mode(&self) -> bool {
         matches!(self.plane, GridPlane::XZ | GridPlane::YZ)
+    }
+    
+    /// Set cell size to match tilemap tile size
+    pub fn set_cell_size_from_tilemap(&mut self, tile_width: u32, tile_height: u32, pixels_per_unit: f32) {
+        let cell_width = tile_width as f32 / pixels_per_unit;
+        let cell_height = tile_height as f32 / pixels_per_unit;
+        self.cell_size = (cell_width, cell_height, self.cell_size.2);
+    }
+    
+    /// Set cell size to match Unity standard (16px tiles at 100 PPU = 0.16 world units)
+    pub fn set_standard_cell_size(&mut self) {
+        let pixels_per_unit = 100.0;
+        let standard_tile_size = 16.0;
+        let cell_size = standard_tile_size / pixels_per_unit;
+        self.cell_size = (cell_size, cell_size, 0.0);
     }
     
     /// Convert cell coordinates to world position
