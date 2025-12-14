@@ -253,6 +253,8 @@ pub fn render_scene_view(
                     }
                 } else if world.meshes.contains_key(&entity) {
                     2.0 // Reasonable size for meshes in world units
+                } else if world.cameras.contains_key(&entity) {
+                    2.0 // Reasonable size for camera gizmos
                 } else {
                     1.0 // Default size in world units
                 };

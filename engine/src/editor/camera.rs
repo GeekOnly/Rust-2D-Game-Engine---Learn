@@ -791,20 +791,14 @@ impl SceneCamera {
             let yaw_rad = self.rotation.to_radians();
             let pitch_rad = self.pitch.to_radians();
             
-            // Calculate camera position in spherical coordinates around pivot
-            let horizontal_distance = self.distance * pitch_rad.cos();
-            
-            // Position camera at the correct orbital position
-            // Use standard spherical coordinate conversion
-            let offset_x = horizontal_distance * yaw_rad.cos();
-            let offset_z = horizontal_distance * yaw_rad.sin();
-            
             // Position camera relative to pivot point
-            self.position = self.pivot + Vec2::new(offset_x, offset_z);
+            // In 3D mode, self.position IS the target/pivot point that the camera looks at.
+            // So we just set it to the target position. The 'distance' parameter handles the backing up.
+            self.position = self.pivot;
             self.target_position = self.position;
             
             // Debug logging for positioning
-            log::info!("3D Focus: pivot=({:.2}, {:.2}), camera=({:.2}, {:.2}), distance={:.2}, yaw={:.1}°, pitch={:.1}°", 
+            log::info!("3D Focus: pivot=({:.2}, {:.2}), camera_target=({:.2}, {:.2}), distance={:.2}, yaw={:.1}°, pitch={:.1}°", 
                 self.pivot.x, self.pivot.y, self.position.x, self.position.y, self.distance, self.rotation, self.pitch);
         } else {
             // 2D mode: adjust position and zoom
@@ -943,12 +937,19 @@ impl SceneCamera {
         let pitch_rad = self.pitch.to_radians();
         
         // Calculate camera position in 3D space
-        let cam_x = self.position.x + self.distance * yaw_rad.cos() * pitch_rad.cos();
-        let cam_y = self.distance * pitch_rad.sin();
-        let cam_z = self.position.y + self.distance * yaw_rad.sin() * pitch_rad.cos();
+        // We treat self.position as (WorldX, WorldY) on the Z=0 plane (2D Engine standard)
+        // Previous logic mapped Y to Z (XZ plane logic), which caused focus issues for 2D platformers.
+        
+        let target_x = self.position.x;
+        let target_y = self.position.y;
+        let target_z = 0.0;
+        
+        let cam_x = target_x + self.distance * yaw_rad.cos() * pitch_rad.cos();
+        let cam_y = target_y + self.distance * pitch_rad.sin();
+        let cam_z = target_z + self.distance * yaw_rad.sin() * pitch_rad.cos();
         
         let eye = Vec3::new(cam_x, cam_y, cam_z);
-        let target = Vec3::new(self.position.x, 0.0, self.position.y);
+        let target = Vec3::new(target_x, target_y, target_z);
         let up = Vec3::Y;
         
         Mat4::look_at_rh(eye, target, up)
