@@ -78,10 +78,11 @@ impl Default for Transform3D {
 /// Projection matrix for 3D rendering
 #[derive(Clone, Copy, Debug)]
 pub struct ProjectionMatrix {
-    pub fov: f32,      // Field of view in radians
+    pub fov: f32,      // Field of view in radians (perspective) or size (orthographic)
     pub aspect: f32,   // Aspect ratio (width / height)
     pub near: f32,     // Near clipping plane
     pub far: f32,      // Far clipping plane
+    pub is_orthographic: bool, // True for orthographic, false for perspective
 }
 
 impl ProjectionMatrix {
@@ -92,6 +93,7 @@ impl ProjectionMatrix {
             aspect,
             near,
             far,
+            is_orthographic: false,
         }
     }
     
@@ -105,9 +107,40 @@ impl ProjectionMatrix {
         )
     }
     
+    /// Create orthographic projection matrix
+    pub fn orthographic(size: f32, aspect: f32, near: f32, far: f32) -> Self {
+        // For orthographic projection, we store the size instead of FOV
+        // The size represents the height of the orthographic view volume
+        Self {
+            fov: size,      // Store orthographic size in fov field
+            aspect,
+            near,
+            far,
+            is_orthographic: true,
+        }
+    }
+    
+    /// Create default orthographic projection
+    pub fn default_orthographic(size: f32, aspect: f32) -> Self {
+        Self::orthographic(
+            size,       // Orthographic size (height of view volume)
+            aspect,
+            0.1,        // Near plane
+            10000.0,    // Far plane
+        )
+    }
+    
     /// Get the projection matrix as Mat4
     pub fn to_matrix(&self) -> Mat4 {
-        Mat4::perspective_rh(self.fov, self.aspect, self.near, self.far)
+        if self.is_orthographic {
+            // Orthographic projection - fov field contains the size
+            let height = self.fov;
+            let width = height * self.aspect;
+            Mat4::orthographic_rh(-width/2.0, width/2.0, -height/2.0, height/2.0, self.near, self.far)
+        } else {
+            // Perspective projection
+            Mat4::perspective_rh(self.fov, self.aspect, self.near, self.far)
+        }
     }
     
     /// Project 3D point to screen space
@@ -527,9 +560,101 @@ pub fn world_to_screen(
 ) -> Option<Vec2> {
     let view_matrix = calculate_view_matrix(camera);
     let aspect = viewport_size.x / viewport_size.y;
-    let projection = ProjectionMatrix::default_perspective(aspect);
-    
+
+    // Use camera's projection mode
+    let projection = match camera.projection_mode {
+        crate::editor::camera::SceneProjectionMode::Perspective => {
+            ProjectionMatrix::default_perspective(aspect)
+        }
+        crate::editor::camera::SceneProjectionMode::Isometric => {
+            ProjectionMatrix::default_orthographic(camera.zoom, aspect)
+        }
+    };
+
     projection.project(world_pos, &view_matrix, viewport_size)
+}
+
+/// Project world position to screen space, allowing points behind camera
+/// This is useful for rendering gizmos that should always be visible
+pub fn world_to_screen_allow_behind(
+    world_pos: Vec3,
+    camera: &SceneCamera,
+    viewport_size: Vec2,
+) -> Option<Vec2> {
+    // Validate inputs
+    if !world_pos.is_finite() || !viewport_size.is_finite() {
+        return None;
+    }
+
+    if viewport_size.x <= 0.0 || viewport_size.y <= 0.0 {
+        return None;
+    }
+
+    let view_matrix = calculate_view_matrix(camera);
+    let aspect = viewport_size.x / viewport_size.y;
+
+    // Use camera's projection mode
+    let projection = match camera.projection_mode {
+        crate::editor::camera::SceneProjectionMode::Perspective => {
+            ProjectionMatrix::default_perspective(aspect)
+        }
+        crate::editor::camera::SceneProjectionMode::Isometric => {
+            ProjectionMatrix::default_orthographic(camera.zoom, aspect)
+        }
+    };
+
+    // Create projection matrix
+    let proj_matrix = projection.to_matrix();
+    
+    // Validate matrices
+    if !view_matrix.is_finite() || !proj_matrix.is_finite() {
+        return None;
+    }
+    
+    // Transform point to clip space
+    let clip_space = proj_matrix * view_matrix * Vec4::from((world_pos, 1.0));
+    
+    // Validate clip space
+    if !clip_space.is_finite() {
+        return None;
+    }
+    
+    // Handle points behind camera more gracefully
+    let w = if clip_space.w.abs() < 0.001 { 
+        // Very close to camera or behind - use a small positive value
+        if clip_space.w >= 0.0 { 0.001 } else { -0.001 }
+    } else { 
+        clip_space.w 
+    };
+    
+    // Perspective divide
+    let ndc = clip_space.xyz() / w;
+    
+    // For points behind camera (negative w), we might get inverted coordinates
+    // Clamp NDC to reasonable bounds to prevent extreme values
+    let clamped_ndc = Vec3::new(
+        ndc.x.clamp(-10.0, 10.0),
+        ndc.y.clamp(-10.0, 10.0),
+        ndc.z.clamp(-10.0, 10.0),
+    );
+    
+    // Convert NDC to screen space
+    let screen_x = (clamped_ndc.x + 1.0) * 0.5 * viewport_size.x;
+    let screen_y = (1.0 - clamped_ndc.y) * 0.5 * viewport_size.y;
+    
+    let screen_pos = Vec2::new(screen_x, screen_y);
+    
+    // Validate screen position
+    if !screen_pos.is_finite() {
+        return None;
+    }
+    
+    // Allow wider range for gizmos (they can be off-screen)
+    if screen_pos.x.abs() > 10000.0 || screen_pos.y.abs() > 10000.0 {
+        return None;
+    }
+    
+    Some(screen_pos)
 }
 
 /// Unproject screen position to 3D ray
@@ -540,8 +665,17 @@ pub fn screen_to_ray(
 ) -> Ray3D {
     let view_matrix = calculate_view_matrix(camera);
     let aspect = viewport_size.x / viewport_size.y;
-    let projection = ProjectionMatrix::default_perspective(aspect);
-    
+
+    // Use camera's projection mode
+    let projection = match camera.projection_mode {
+        crate::editor::camera::SceneProjectionMode::Perspective => {
+            ProjectionMatrix::default_perspective(aspect)
+        }
+        crate::editor::camera::SceneProjectionMode::Isometric => {
+            ProjectionMatrix::default_orthographic(camera.zoom, aspect)
+        }
+    };
+
     projection.unproject(screen_pos, &view_matrix, viewport_size)
 }
 
