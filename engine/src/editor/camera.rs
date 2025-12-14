@@ -200,7 +200,7 @@ impl SceneCamera {
             pitch: 0.0,       // Start in 2D mode (0° pitch)
             distance: 500.0,  // Default distance for 3D mode
             pivot: Vec2::ZERO,
-            projection_mode: SceneProjectionMode::Perspective,
+            projection_mode: SceneProjectionMode::Isometric, // Unity-style default (orthographic Scene View)
             min_zoom: 0.01,   // Min zoom (1% - very zoomed out, see entire level)
             max_zoom: 100.0,  // Max zoom (100x - very zoomed in, pixel-level editing)
             min_pitch: -89.0,

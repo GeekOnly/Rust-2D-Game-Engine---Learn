@@ -186,7 +186,7 @@ impl EditorState {
             dragging_entity: None,
             drag_axis: None,
             scene_view_mode: super::ui::scene_view::SceneViewMode::Mode2D,
-            projection_mode: super::ui::scene_view::SceneProjectionMode::Perspective,
+            projection_mode: super::ui::scene_view::SceneProjectionMode::Isometric, // Unity-style default
             transform_space: super::ui::scene_view::TransformSpace::Local,
             undo_stack: super::undo::UndoStack::new(),
             selection: super::selection::SelectionManager::new(),

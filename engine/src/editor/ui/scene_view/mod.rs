@@ -318,6 +318,7 @@ pub fn render_scene_view(
                 scene_view_mode,
                 transform_space,
                 &transform_copy,
+                Some(rect),
             );
             
             if !is_camera_control {
@@ -333,6 +334,8 @@ pub fn render_scene_view(
                     drag_axis,
                     transform_space,
                     &transform_copy,
+                    scene_view_mode,
+                    Some(rect),
                 );
             }
         }

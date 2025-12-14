@@ -272,6 +272,7 @@ pub fn render_transform_gizmo_2d(
             &super::super::types::SceneViewMode::Mode2D,
             transform_space,
             transform,
+            None, // No viewport_rect needed for 2D mode
         );
     }
 }
@@ -569,6 +570,8 @@ fn render_entity_2d(
                 painter,
                 screen_x,
                 screen_y,
+                entity,
+                world,
                 scene_camera,
                 &SceneViewMode::Mode2D,
             );

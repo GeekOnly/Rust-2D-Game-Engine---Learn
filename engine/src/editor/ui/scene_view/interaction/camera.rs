@@ -174,10 +174,50 @@ pub fn handle_camera_controls(
             movement * final_speed
         });
 
+        // Q/E for vertical movement (Z-axis) in 3D mode
+        let vertical_speed = response.ctx.input(|i| {
+            let base_speed = 2.0; // Base movement speed
+
+            // Speed modifiers
+            let speed_multiplier = if i.modifiers.shift {
+                3.0  // Fast mode (Shift)
+            } else if i.modifiers.ctrl {
+                0.3  // Slow mode (Ctrl)
+            } else {
+                1.0  // Normal speed
+            };
+
+            let final_speed = base_speed * speed_multiplier * (scene_camera.distance / 100.0).max(0.5);
+
+            let mut vertical_movement = 0.0;
+
+            // Up/Down (Q/E) - only when not using tool shortcuts
+            // Check if we're not in tool selection mode (avoid conflicts)
+            if !i.modifiers.ctrl && !i.modifiers.alt {
+                if i.key_down(egui::Key::Q) {
+                    vertical_movement += 1.0;  // Move up
+                }
+                if i.key_down(egui::Key::E) {
+                    vertical_movement -= 1.0;  // Move down
+                }
+            }
+
+            vertical_movement * final_speed
+        });
+
         if fly_speed.length() > 0.01 {
             scene_camera.position += fly_speed;
             scene_camera.pivot += fly_speed;
             // No need to update target_position - it's managed internally
+        }
+
+        // Apply vertical movement (Q/E for Z-axis)
+        if vertical_speed.abs() > 0.01 {
+            // In 3D mode, vertical movement affects the Y component of position
+            // This moves the camera up/down in world space
+            let vertical_offset = glam::Vec2::new(0.0, vertical_speed);
+            scene_camera.position += vertical_offset;
+            scene_camera.pivot += vertical_offset;
         }
     }
 }

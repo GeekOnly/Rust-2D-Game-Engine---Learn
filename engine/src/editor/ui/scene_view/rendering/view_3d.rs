@@ -8,6 +8,35 @@ use glam::{Vec2, Vec3};
 use crate::editor::SceneCamera;
 use super::super::types::*;
 use super::gizmos::{render_camera_gizmo, render_camera_frustum_3d, render_collider_gizmo, render_velocity_gizmo};
+
+/// Render a default camera gizmo when no camera component is found
+fn render_default_camera_gizmo(
+    painter: &egui::Painter,
+    screen_x: f32,
+    screen_y: f32,
+    _scene_view_mode: &SceneViewMode,
+) {
+    let size = 40.0;
+    let color = egui::Color32::from_rgb(255, 100, 100); // Red for missing component
+    
+    // Draw a simple camera outline
+    let body_rect = egui::Rect::from_center_size(
+        egui::pos2(screen_x, screen_y),
+        egui::vec2(size, size * 0.6),
+    );
+    painter.rect_stroke(body_rect, 2.0, egui::Stroke::new(2.0, color));
+    
+    // Draw X to indicate missing component
+    let half_size = size * 0.3;
+    painter.line_segment([
+        egui::pos2(screen_x - half_size, screen_y - half_size),
+        egui::pos2(screen_x + half_size, screen_y + half_size)
+    ], egui::Stroke::new(2.0, color));
+    painter.line_segment([
+        egui::pos2(screen_x - half_size, screen_y + half_size),
+        egui::pos2(screen_x + half_size, screen_y - half_size)
+    ], egui::Stroke::new(2.0, color));
+}
 use super::sprite_3d::Sprite3DRenderer;
 use super::tilemap_3d::Tilemap3DRenderer;
 use super::render_queue::{RenderQueue, RenderObject};
@@ -236,20 +265,69 @@ pub fn render_scene_3d(
     }
     
     // Render camera gizmos on top of everything else
-    for (entity, transform) in mesh_entities.iter() {
-        if world.cameras.contains_key(entity) {
-            let world_pos = Vec3::from(transform.position);
-            if let Some(screen_pos) = projection_3d::world_to_screen(world_pos, scene_camera, viewport_size) {
+    // Collect ALL camera entities (both with and without meshes)
+    let mut camera_entities: Vec<(Entity, &ecs::Transform)> = world.transforms.iter()
+        .filter(|(entity, _)| world.cameras.contains_key(entity))
+        .map(|(&e, t)| (e, t))
+        .collect();
+    
+    // Always render camera gizmos, even if projection fails
+    for (entity, transform) in camera_entities.iter() {
+        let world_pos = Vec3::from(transform.position);
+        
+        // Try multiple projection methods to ensure visibility
+        let screen_result = projection_3d::world_to_screen(world_pos, scene_camera, viewport_size)
+            .or_else(|| projection_3d::world_to_screen_allow_behind(world_pos, scene_camera, viewport_size));
+        
+        match screen_result {
+            Some(screen_pos) => {
                 let screen_x = viewport_rect.min.x + screen_pos.x;
                 let screen_y = viewport_rect.min.y + screen_pos.y;
                 
-                // Render camera gizmo on top
-                render_camera_gizmo(painter, screen_x, screen_y, scene_camera, &SceneViewMode::Mode3D);
+                // Render camera gizmo
+                render_camera_gizmo(painter, screen_x, screen_y, *entity, world, scene_camera, &SceneViewMode::Mode3D);
                 
                 // Render camera frustum (pyramid showing FOV)
-                render_camera_frustum_3d(painter, *entity, world, scene_camera, viewport_size);
+                render_camera_frustum_3d(painter, *entity, world, scene_camera, viewport_rect, egui::pos2(screen_x, screen_y));
+            }
+            None => {
+                // Fallback: render at fixed position to ensure visibility
+                let fallback_x = viewport_rect.min.x + 100.0 + (*entity as f32 * 60.0); // Offset multiple cameras
+                let fallback_y = viewport_rect.min.y + 100.0;
+                
+                // Render camera gizmo with fallback position
+                render_camera_gizmo(painter, fallback_x, fallback_y, *entity, world, scene_camera, &SceneViewMode::Mode3D);
+                
+                // Add a label to indicate this is a fallback position
+                painter.text(
+                    egui::pos2(fallback_x + 60.0, fallback_y),
+                    egui::Align2::LEFT_CENTER,
+                    format!("Cam {} (off-screen)", entity),
+                    egui::FontId::proportional(12.0),
+                    egui::Color32::from_rgb(255, 100, 100),
+                );
+                
+                // Still try to render frustum with fallback position
+                render_camera_frustum_3d(painter, *entity, world, scene_camera, viewport_rect, egui::pos2(fallback_x, fallback_y));
             }
         }
+    }
+    
+    // Debug: Always render at least one test camera gizmo at center of screen
+    if camera_entities.is_empty() {
+        let center_x = viewport_rect.center().x;
+        let center_y = viewport_rect.center().y;
+        
+        painter.text(
+            egui::pos2(center_x, center_y - 50.0),
+            egui::Align2::CENTER_CENTER,
+            "No cameras found in scene",
+            egui::FontId::proportional(16.0),
+            egui::Color32::from_rgb(255, 100, 100),
+        );
+        
+        // Render a test camera gizmo
+        render_default_camera_gizmo(painter, center_x, center_y, &SceneViewMode::Mode3D);
     }
 }
 
@@ -343,9 +421,9 @@ fn render_entity_3d(
         let is_camera = world.cameras.contains_key(&entity);
         
         if is_camera {
-            render_camera_gizmo(painter, screen_x, screen_y, scene_camera, &SceneViewMode::Mode3D);
+            render_camera_gizmo(painter, screen_x, screen_y, entity, world, scene_camera, &SceneViewMode::Mode3D);
             // Render camera frustum (pyramid showing FOV)
-            render_camera_frustum_3d(painter, entity, world, scene_camera, viewport_size);
+            render_camera_frustum_3d(painter, entity, world, scene_camera, *viewport_rect, egui::pos2(screen_x, screen_y));
         } else {
             painter.circle_filled(egui::pos2(screen_x, screen_y), 5.0 * scale_factor, egui::Color32::from_rgb(150, 150, 150));
         }
