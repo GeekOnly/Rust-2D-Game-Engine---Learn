@@ -1,32 +1,17 @@
-mod editor;
-mod runtime;
-mod texture_manager;
-mod ui_manager;
-
 use anyhow::Result;
-use engine_core::{EngineContext, EngineModule, project::ProjectManager};
-use ecs::{World, Entity, Transform, Sprite, Collider, EntityTag};
-use script::ScriptEngine;
-#[cfg(feature = "rapier")]
-use physics::rapier_backend::RapierPhysicsWorld;
-#[cfg(not(feature = "rapier"))]
-use physics::PhysicsWorld;
-// Always import PhysicsWorld for helper functions
-use physics::PhysicsWorld as SimplePhysicsWorld;
-use render::RenderModule;
-use ::editor::EditorModule as EditorMod;  // From editor crate (workspace)
-use crate::editor::{EditorUI, TransformTool, AppState, LauncherState, EditorState, EditorAction};  // From local editor module
-use input::Key;
 
-use winit::{
-    event::*,
-    event_loop::{ControlFlow, EventLoop},
-    window::WindowBuilder,
-};
-
-struct GameState {
-    world: World,
-    player: Option<Entity>,
-    items: Vec<Entity>,
-    collected_items: usize,
-    player_speed: f32,
+fn main() -> Result<()> {
+    println!("🎮 Rust 2D Game Engine");
+    println!();
+    println!("Available commands:");
+    println!("  cargo run --bin player    - Run the game player");
+    println!("  cargo run -p editor       - Run the game editor");
+    println!();
+    println!("For game development, use the editor:");
+    println!("  cargo run -p editor");
+    println!();
+    println!("To play exported games, use the player:");
+    println!("  cargo run --bin player");
+    
+    Ok(())
+}
