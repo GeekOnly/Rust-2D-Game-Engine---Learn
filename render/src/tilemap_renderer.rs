@@ -1,10 +1,11 @@
 use wgpu::util::DeviceExt;
 use crate::texture::Texture;
 use crate::sprite_renderer::Vertex;
-use ecs::{Tilemap, TileSet, Tile};
+use ecs::{Tilemap, TileSet};
 
 pub struct TilemapRenderer {
     render_pipeline: wgpu::RenderPipeline,
+    #[allow(dead_code)]
     bind_group_layout: wgpu::BindGroupLayout,
 }
 
@@ -92,8 +93,8 @@ impl TilemapRenderer {
         // UV size for one tile
         // Note: This assumes no spacing/margin for simplicity. 
         // Real implementation should handle spacing/margin.
-        let uv_w = 1.0 / cols as f32;
-        let uv_h = 1.0 / (tileset.tile_count as f32 / cols as f32).ceil(); 
+        let _uv_w = 1.0 / cols as f32;
+        let _uv_h = 1.0 / (tileset.tile_count as f32 / cols as f32).ceil(); 
 
         for (i, tile) in tilemap.tiles.iter().enumerate() {
             // Skip empty tiles

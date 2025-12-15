@@ -1,0 +1,704 @@
+﻿cargo : warning: unused variable: `cell_width`
+At line:1 char:1
++ cargo check --bin engine 2>&1 | Out-File -Encoding utf8 
+check_output_ ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: unus 
+   ed variable: `cell_width`:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+   --> ecs\src\loaders\ldtk_loader.rs:101:13
+    |
+101 |         let cell_width = grid_size / pixels_per_unit;
+    |             ^^^^^^^^^^ help: if this is intentional, 
+prefix it with an underscore: `_cell_width`
+    |
+    = note: `#[warn(unused_variables)]` on by default
+
+warning: unused variable: `cell_height`
+   --> ecs\src\loaders\ldtk_loader.rs:102:13
+    |
+102 |         let cell_height = grid_size / 
+pixels_per_unit;
+    |             ^^^^^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: `_cell_height`
+
+warning: `ecs` (lib) generated 2 warnings
+warning: unused import: `AutoSlicer`
+ --> sprite_editor\src\ui\sprite_editor_window.rs:5:79
+  |
+5 | use crate::{SpriteMetadata, SpriteDefinition, 
+ExportFormat, SpriteStatistics, AutoSlicer};
+  |                                                        
+                       ^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: variant `CellSize` is never constructed
+  --> sprite_editor\src\ui\sprite_editor_window.rs:33:5
+   |
+31 | enum AutoSliceMode {
+   |      ------------- variant in this enum
+32 |     Grid,
+33 |     CellSize,
+   |     ^^^^^^^^
+   |
+   = note: `AutoSliceMode` has derived impls for the 
+traits `Clone` and `Debug`, but these are intentionally 
+ignored during dead code analysis
+   = note: `#[warn(dead_code)]` on by default
+
+warning: multiple fields are never read
+   --> sprite_editor\src\ui\sprite_editor_window.rs:298:5
+    |
+292 | pub struct SpriteEditorWindow {
+    |            ------------------ fields in this struct
+...
+298 |     auto_slice_columns: u32,
+    |     ^^^^^^^^^^^^^^^^^^
+299 |     auto_slice_rows: u32,
+    |     ^^^^^^^^^^^^^^^
+300 |     auto_slice_padding: u32,
+    |     ^^^^^^^^^^^^^^^^^^
+301 |     auto_slice_spacing: u32,
+    |     ^^^^^^^^^^^^^^^^^^
+302 |     auto_slice_mode: AutoSliceMode,
+    |     ^^^^^^^^^^^^^^^
+303 |     auto_slice_cell_width: u32,
+    |     ^^^^^^^^^^^^^^^^^^^^^
+304 |     auto_slice_cell_height: u32,
+    |     ^^^^^^^^^^^^^^^^^^^^^^
+305 |     show_export_dialog: bool,
+306 |     export_format: ExportFormat,
+    |     ^^^^^^^^^^^^^
+
+warning: `sprite_editor` (lib) generated 3 warnings (run 
+`cargo fix --lib -p sprite_editor` to apply 1 suggestion)
+warning: unused import: `Tile`
+ --> render\src\tilemap_renderer.rs:4:29
+  |
+4 | use ecs::{Tilemap, TileSet, Tile};
+  |                             ^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused variable: `uv_w`
+  --> render\src\tilemap_renderer.rs:95:13
+   |
+95 |         let uv_w = 1.0 / cols as f32;
+   |             ^^^^ help: if this is intentional, prefix 
+it with an underscore: `_uv_w`
+   |
+   = note: `#[warn(unused_variables)]` on by default
+
+warning: unused variable: `uv_h`
+  --> render\src\tilemap_renderer.rs:96:13
+   |
+96 |         let uv_h = 1.0 / (tileset.tile_count as f32 / 
+cols as f32).ceil(); 
+   |             ^^^^ help: if this is intentional, prefix 
+it with an underscore: `_uv_h`
+
+warning: field `bind_group_layout` is never read
+  --> render\src\sprite_renderer.rs:37:5
+   |
+32 | pub struct SpriteRenderer {
+   |            -------------- field in this struct
+...
+37 |     bind_group_layout: wgpu::BindGroupLayout,
+   |     ^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: field `bind_group_layout` is never read
+ --> render\src\tilemap_renderer.rs:8:5
+  |
+6 | pub struct TilemapRenderer {
+  |            --------------- field in this struct
+7 |     render_pipeline: wgpu::RenderPipeline,
+8 |     bind_group_layout: wgpu::BindGroupLayout,
+  |     ^^^^^^^^^^^^^^^^^
+
+warning: unexpected `cfg` condition value: `rapier`
+  --> script\src\lib.rs:10:7
+   |
+10 | #[cfg(feature = "rapier")]
+   |       ^^^^^^^^^^^^^^^^^^ help: remove the condition
+   |
+   = note: no expected values for `feature`
+   = help: consider adding `rapier` as a feature in 
+`Cargo.toml`
+   = note: see <https://doc.rust-lang.org/nightly/rustc/che
+ck-cfg/cargo-specifics.html> for more information about 
+checking conditional configuration
+   = note: `#[warn(unexpected_cfgs)]` on by default
+
+warning: `render` (lib) generated 5 warnings (run `cargo 
+fix --lib -p render` to apply 1 suggestion)
+warning: `script` (lib) generated 1 warning
+warning: unused import: `CanvasScaler`
+ --> ui\src\canvas_system.rs:6:21
+  |
+6 | use crate::{Canvas, CanvasScaler};
+  |                     ^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `UIEventType`
+ --> ui\src\slider_system.rs:6:30
+  |
+6 | use crate::events::{UIEvent, UIEventType, UIEventDis...
+  |                              ^^^^^^^^^^^
+
+warning: unused import: `UIEventType`
+ --> ui\src\toggle_system.rs:6:30
+  |
+6 | use crate::events::{UIEvent, UIEventType, UIEventDis...
+  |                              ^^^^^^^^^^^
+
+warning: unused import: `UIEventType`
+ --> ui\src\dropdown_system.rs:6:30
+  |
+6 | use crate::events::{UIEvent, UIEventType, UIEventDis...
+  |                              ^^^^^^^^^^^
+
+warning: unused import: `LineType`
+ --> ui\src\input_field_system.rs:5:61
+  |
+5 | ...haracterValidation, LineType, UIElement, UIText};
+  |                        ^^^^^^^^
+
+warning: unused import: `UIEventType`
+ --> ui\src\input_field_system.rs:6:30
+  |
+6 | use crate::events::{UIEvent, UIEventType, UIEventDis...
+  |                              ^^^^^^^^^^^
+
+warning: unused variable: `available_height`
+   --> ui\src\layout_system.rs:420:9
+    |
+420 |         available_height: f32,
+    |         ^^^^^^^^^^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_available_height`
+    |
+    = note: `#[warn(unused_variables)]` on by default
+
+warning: unused variable: `event_dispatcher`
+  --> ui\src\slider_system.rs:40:9
+   |
+40 |         event_dispatcher: &UIEventDispatcher,
+   |         ^^^^^^^^^^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_event_dispatcher`
+
+warning: unused variable: `event_dispatcher`
+  --> ui\src\toggle_system.rs:38:9
+   |
+38 |         event_dispatcher: &UIEventDispatcher,
+   |         ^^^^^^^^^^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_event_dispatcher`
+
+warning: unused variable: `entity`
+  --> ui\src\toggle_system.rs:71:14
+   |
+71 |         for (entity, toggle) in toggles {
+   |              ^^^^^^ help: if this is intentional, 
+prefix it with an underscore: `_entity`
+
+warning: unused variable: `template`
+  --> ui\src\dropdown_system.rs:62:45
+   |
+62 | ...   if let Some(template) = dropdown.template {
+   |                   ^^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: `_template`
+
+warning: unused variable: `event_dispatcher`
+  --> ui\src\dropdown_system.rs:42:9
+   |
+42 |         event_dispatcher: &UIEventDispatcher,
+   |         ^^^^^^^^^^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_event_dispatcher`
+
+warning: unused variable: `entity`
+  --> ui\src\dropdown_system.rs:98:14
+   |
+98 |         for (entity, dropdown) in dropdowns {
+   |              ^^^^^^ help: if this is intentional, 
+prefix it with an underscore: `_entity`
+
+warning: unused variable: `event_dispatcher`
+  --> ui\src\input_field_system.rs:42:9
+   |
+42 |         event_dispatcher: &UIEventDispatcher,
+   |         ^^^^^^^^^^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_event_dispatcher`
+
+warning: unused variable: `entity`
+   --> ui\src\input_field_system.rs:317:14
+    |
+317 |         for (entity, field) in input_fields {
+    |              ^^^^^^ help: if this is intentional, 
+prefix it with an underscore: `_entity`
+
+warning: unused variable: `placeholder_element`
+   --> ui\src\input_field_system.rs:326:29
+    |
+326 | ...f let Some(placeholder_element) = texts.get_mut...
+    |               ^^^^^^^^^^^^^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_placeholder_element`
+
+warning: unused variable: `alpha_threshold`
+   --> ui\src\rendering\mask_system.rs:249:65
+    |
+249 | ...point: Vec2, alpha_threshold: f32) -> bool {
+    |                 ^^^^^^^^^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_alpha_threshold`
+
+warning: unused variable: `x3`
+   --> ui\src\rendering\nine_slice.rs:149:9
+    |
+149 |     let x3 = rect.x + rect.width;
+    |         ^^ help: if this is intentional, prefix it 
+with an underscore: `_x3`
+
+warning: unused variable: `y3`
+   --> ui\src\rendering\nine_slice.rs:154:9
+    |
+154 |     let y3 = rect.y + rect.height;
+    |         ^^ help: if this is intentional, prefix it 
+with an underscore: `_y3`
+
+warning: unused variable: `batch`
+   --> ui\src\rendering\batch_builder.rs:354:51
+    |
+354 | ... if let Some(ref batch) = current_batch {
+    |                     ^^^^^ help: if this is 
+intentional, prefix it with an underscore: `_batch`
+
+warning: unused variable: `sprite`
+   --> ui\src\style_system.rs:123:25
+    |
+123 | ... if let Some(ref sprite) = style.button_sprite {
+    |                     ^^^^^^ help: if this is 
+intentional, prefix it with an underscore: `_sprite`
+
+warning: unused variable: `world`
+  --> ui\src\lua_bindings\animation.rs:18:5
+   |
+18 |     world: &'scope RefCell<&mut World>,
+   |     ^^^^^ help: if this is intentional, prefix it 
+with an underscore: `_world`
+
+warning: unused variable: `notes`
+  --> ui\src\hud_converter.rs:87:49
+   |
+87 | ..., type_children, notes) = Self::convert_element_...
+   |                     ^^^^^ help: if this is 
+intentional, prefix it with an underscore: `_notes`
+
+warning: unused variable: `binding`
+   --> ui\src\hud_converter.rs:132:9
+    |
+132 |         binding: &str,
+    |         ^^^^^^^ help: if this is intentional, prefix 
+it with an underscore: `_binding`
+
+warning: field `layout_cache` is never read
+  --> ui\src\layout_system.rs:19:5
+   |
+17 | pub struct LayoutSystem {
+   |            ------------ field in this struct
+18 |     /// Cached layout calculations to avoid ...
+19 |     layout_cache: HashMap<Entity, LayoutCache>,
+   |     ^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: fields `child_positions` and `child_sizes` are 
+never read
+  --> ui\src\layout_system.rs:25:5
+   |
+23 | struct LayoutCache {
+   |        ----------- fields in this struct
+24 |     /// Last calculated positions for children
+25 |     child_positions: HashMap<Entity, Vec2>,
+   |     ^^^^^^^^^^^^^^^
+26 |     /// Last calculated sizes for children
+27 |     child_sizes: HashMap<Entity, Vec2>,
+   |     ^^^^^^^^^^^
+   |
+   = note: `LayoutCache` has derived impls for the traits 
+`Debug` and `Clone`, but these are intentionally ignored 
+during dead code analysis
+
+warning: associated function `lighten_color` is never used
+   --> ui\src\style_system.rs:266:8
+    |
+24  | impl StyleSystem {
+    | ---------------- associated function in this 
+implementation
+...
+266 |     fn lighten_color(color: Color, factor: f32) ->...
+    |        ^^^^^^^^^^^^^
+
+warning: function `parse_easing` is never used
+   --> ui\src\lua_bindings\animation.rs:320:4
+    |
+320 | fn parse_easing(name: &str) -> EasingFunction {
+    |    ^^^^^^^^^^^^
+
+warning: `ui` (lib) generated 28 warnings (run `cargo fix 
+--lib -p ui` to apply 6 suggestions)
+    Checking engine v0.1.0 (K:\XSGameStudio\2025 
+Project\Game Engine\Rust 2D Game Engine\engine)
+warning: unused imports: `ProjectionMatrix` and 
+`Transform3D`
+  --> 
+engine\src\editor\ui\scene_view\rendering\view_3d.rs:43:34
+   |
+43 | use super::projection_3d::{self, Transform3D, 
+ProjectionMatrix};
+   |                                  ^^^^^^^^^^^  
+^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `Rect`
+ --> engine\src\editor\ui\layer_ordering_panel.rs:1:43
+  |
+1 | use egui::{self, Color32, RichText, Pos2, Rect};
+  |                                           ^^^^
+
+warning: unused import: `ecs::World`
+ --> engine\src\editor\ui\export_dialog.rs:1:5
+  |
+1 | use ecs::World;
+  |     ^^^^^^^^^^
+
+warning: unused import: `BuildParams`
+ --> engine\src\editor\ui\export_dialog.rs:4:29
+  |
+4 | use crate::editor::states::{BuildParams, EditorState};
+  |                             ^^^^^^^^^^^
+
+error[E0599]: no method named `dragged_stopped` found for 
+struct `Response` in the current scope
+   --> engine\src\editor\ui\scene_view\mod.rs:360:21
+    |
+360 |         if response.dragged_stopped() {
+    |                     ^^^^^^^^^^^^^^^
+    |
+help: there is a method `drag_stopped` with a similar name
+    |
+360 -         if response.dragged_stopped() {
+360 +         if response.drag_stopped() {
+    |
+
+error[E0599]: no method named `dragged_stopped_by` found 
+for reference `&Response` in the current scope
+   --> engine\src\editor\selection.rs:416:17
+    |
+416 |     if 
+response.dragged_stopped_by(egui::PointerButton::Primary) {
+    |                 ^^^^^^^^^^^^^^^^^^
+    |
+help: there is a method `drag_stopped_by` with a similar 
+name
+    |
+416 -     if 
+response.dragged_stopped_by(egui::PointerButton::Primary) {
+416 +     if 
+response.drag_stopped_by(egui::PointerButton::Primary) {
+    |
+
+error[E0599]: no method named `dragged_stopped` found for 
+struct `Response` in the current scope
+   --> engine\src\editor\widget_editor\canvas.rs:519:21
+    |
+519 |         if response.dragged_stopped() {
+    |                     ^^^^^^^^^^^^^^^
+    |
+help: there is a method `drag_stopped` with a similar name
+    |
+519 -         if response.dragged_stopped() {
+519 +         if response.drag_stopped() {
+    |
+
+warning: unused variable: `infinite_grid`
+   --> 
+engine\src\editor\ui\scene_view\rendering\grid.rs:120:5
+    |
+120 |     infinite_grid: &mut InfiniteGrid,
+    |     ^^^^^^^^^^^^^ help: if this is intentional, 
+prefix it with an underscore: `_infinite_grid`
+    |
+    = note: `#[warn(unused_variables)]` on by default
+
+warning: unused variable: `scene_grid`
+   --> 
+engine\src\editor\ui\scene_view\rendering\grid.rs:221:5
+    |
+221 |     scene_grid: &SceneGrid,
+    |     ^^^^^^^^^^ help: if this is intentional, prefix 
+it with an underscore: `_scene_grid`
+
+warning: unused variable: `grid_component`
+   --> 
+engine\src\editor\ui\scene_view\rendering\grid.rs:363:5
+    |
+363 |     grid_component: Option<(&ecs::Grid, 
+Option<&ecs::Transform>)>,
+    |     ^^^^^^^^^^^^^^ help: if this is intentional, 
+prefix it with an underscore: `_grid_component`
+
+warning: unused variable: `yaw_rad`
+  --> 
+engine\src\editor\ui\scene_view\rendering\gizmos.rs:30:9
+   |
+30 |     let yaw_rad = scene_camera.get_rotation_radians();
+   |         ^^^^^^^ help: if this is intentional, prefix 
+it with an underscore: `_yaw_rad`
+
+warning: unused variable: `pitch_rad`
+  --> 
+engine\src\editor\ui\scene_view\rendering\gizmos.rs:31:9
+   |
+31 |     let pitch_rad = scene_camera.get_pitch_radians();
+   |         ^^^^^^^^^ help: if this is intentional, 
+prefix it with an underscore: `_pitch_rad`
+
+warning: unused variable: `forward`
+  --> 
+engine\src\editor\ui\scene_view\rendering\gizmos.rs:39:9
+   |
+39 |     let forward = 
+glam::Vec3::new(view_matrix.x_axis.z, 
+view_matrix.y_axis.z, view_matrix.z_axis.z);
+   |         ^^^^^^^ help: if this is intentional, prefix 
+it with an underscore: `_forward`
+
+warning: unused variable: `scene_camera`
+   --> 
+engine\src\editor\ui\scene_view\rendering\gizmos.rs:399:5
+    |
+399 |     scene_camera: &SceneCamera,
+    |     ^^^^^^^^^^^^ help: if this is intentional, 
+prefix it with an underscore: `_scene_camera`
+
+warning: unused variable: `camera_color`
+   --> 
+engine\src\editor\ui\scene_view\rendering\gizmos.rs:481:5
+    |
+481 |     camera_color: egui::Color32,
+    |     ^^^^^^^^^^^^ help: if this is intentional, 
+prefix it with an underscore: `_camera_color`
+
+warning: unused variable: `selection_size`
+   --> 
+engine\src\editor\ui\scene_view\rendering\view_3d.rs:240:25
+    |
+240 |                     let selection_size = base_size; 
+// Selection bounds matching object size
+    |                         ^^^^^^^^^^^^^^ help: if this 
+is intentional, prefix it with an underscore: 
+`_selection_size`
+
+warning: unused variable: `center`
+  --> 
+engine\src\editor\ui\scene_view\rendering\view_3d.rs:51:5
+   |
+51 |     center: egui::Pos2,
+   |     ^^^^^^ help: if this is intentional, prefix it 
+with an underscore: `_center`
+
+warning: variable does not need to be mutable
+   --> 
+engine\src\editor\ui\scene_view\rendering\view_3d.rs:269:9
+    |
+269 |     let mut camera_entities: Vec<(Entity, 
+&ecs::Transform)> = world.transforms.iter()
+    |         ----^^^^^^^^^^^^^^^
+    |         |
+    |         help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` on by default
+
+warning: unused variable: `screen_x`
+   --> 
+engine\src\editor\ui\scene_view\rendering\view_3d.rs:598:5
+    |
+598 |     screen_x: f32,
+    |     ^^^^^^^^ help: if this is intentional, prefix it 
+with an underscore: `_screen_x`
+
+warning: unused variable: `screen_y`
+   --> 
+engine\src\editor\ui\scene_view\rendering\view_3d.rs:599:5
+    |
+599 |     screen_y: f32,
+    |     ^^^^^^^^ help: if this is intentional, prefix it 
+with an underscore: `_screen_y`
+
+warning: unused variable: `viewport_size`
+   --> engine\src\editor\ui\scene_view\rendering\sprite_3d.
+rs:355:13
+    |
+355 |         let viewport_size = 
+Vec2::new(viewport_rect.width(), viewport_rect.height());
+    |             ^^^^^^^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: `_viewport_size`
+
+warning: unused variable: `tile_world_z`
+   --> engine\src\editor\ui\scene_view\rendering\tilemap_3d
+.rs:136:29
+    |
+136 |                         let tile_world_z = 
+transform.position[2];
+    |                             ^^^^^^^^^^^^ help: if 
+this is intentional, prefix it with an underscore: 
+`_tile_world_z`
+
+warning: unused variable: `cam_pos`
+   --> engine\src\editor\ui\scene_view\rendering\tilemap_3d
+.rs:258:13
+    |
+258 |         let cam_pos = Vec3::new(camera.position.x, 
+0.0, camera.position.y);
+    |             ^^^^^^^ help: if this is intentional, 
+prefix it with an underscore: `_cam_pos`
+
+warning: unused variable: `pos_flat`
+   --> engine\src\editor\ui\scene_view\rendering\tilemap_3d
+.rs:259:13
+    |
+259 |         let pos_flat = Vec3::new(position.x, 0.0, 
+position.z); // Assuming Y is up in 3D, but here Z is 
+depth?
+    |             ^^^^^^^^ help: if this is intentional, 
+prefix it with an underscore: `_pos_flat`
+
+warning: unused variable: `viewport_size`
+   --> engine\src\editor\ui\scene_view\rendering\tilemap_3d
+.rs:413:13
+    |
+413 |         let viewport_size = 
+Vec2::new(viewport_rect.width(), viewport_rect.height());
+    |             ^^^^^^^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: `_viewport_size`
+
+warning: unused variable: `cam_right`
+   --> engine\src\editor\ui\scene_view\interaction\transfor
+m.rs:344:45
+    |
+344 | ...                   let cam_right = 
+glam::Vec3::new(yaw.sin(), 0.0, -yaw.cos()); // Simplified 
+Y-up right
+    |                           ^^^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: `_cam_right`
+
+warning: unused variable: `right`
+   --> engine\src\editor\ui\scene_view\interaction\transfor
+m.rs:354:45
+    |
+354 | ...                   let right = 
+glam::Vec3::new(yaw.cos(), 0.0, yaw.sin()); // approx 
+right? No.
+    |                           ^^^^^ help: if this is 
+intentional, prefix it with an underscore: `_right`
+
+warning: unused variable: `cam_right`
+   --> engine\src\editor\ui\scene_view\interaction\transfor
+m.rs:362:45
+    |
+362 | ...                   let cam_right = 
+glam::Vec3::new(yaw.sin(), 0.0, yaw.cos()); // Wait, this 
+is tricky without full basis.
+    |                           ^^^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: `_cam_right`
+
+warning: unused variable: `c_right`
+   --> engine\src\editor\ui\scene_view\interaction\transfor
+m.rs:373:45
+    |
+373 | ...                   let c_right = 
+glam::Vec3::new(c_yaw.cos(), 0.0, c_yaw.sin()); // Rotated 
+X
+    |                           ^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: `_c_right`
+
+warning: unused variable: `c_up`
+   --> engine\src\editor\ui\scene_view\interaction\transfor
+m.rs:374:45
+    |
+374 | ...                   let c_up = 
+glam::Vec3::new(-c_yaw.sin(), 1.0, 0.0); // Rough Up
+    |                           ^^^^ help: if this is 
+intentional, prefix it with an underscore: `_c_up`
+
+warning: unused variable: `texture_path_full`
+   --> engine\src\editor\ui\sprite_picker.rs:137:53
+    |
+137 | ...                   let texture_path_full = 
+project_path.join(&metadata.texture_path);
+    |                           ^^^^^^^^^^^^^^^^^ help: if 
+this is intentional, prefix it with an underscore: 
+`_texture_path_full`
+
+warning: unused variable: `world_pos_before`
+   --> engine\src\editor\camera.rs:497:21
+    |
+497 |         if let Some(world_pos_before) = 
+self.last_cursor_world_pos {
+    |                     ^^^^^^^^^^^^^^^^ help: if this 
+is intentional, prefix it with an underscore: 
+`_world_pos_before`
+
+warning: unused variable: `yaw_rad`
+   --> engine\src\editor\camera.rs:791:17
+    |
+791 |             let yaw_rad = self.rotation.to_radians();
+    |                 ^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: `_yaw_rad`
+
+warning: unused variable: `pitch_rad`
+   --> engine\src\editor\camera.rs:792:17
+    |
+792 |             let pitch_rad = self.pitch.to_radians();
+    |                 ^^^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: `_pitch_rad`
+
+warning: unused variable: `backup_colliders`
+   --> engine\src\editor\map_manager.rs:653:13
+    |
+653 |         let backup_colliders = 
+loaded_map.collider_entities.clone();
+    |             ^^^^^^^^^^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_backup_colliders`
+
+warning: unused variable: `camera_entity`
+  --> engine\src\runtime\renderer.rs:46:18
+   |
+46 |     if let Some((camera_entity, camera, transform)) = 
+main_camera {
+   |                  ^^^^^^^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: `_camera_entity`
+
+warning: unused variable: `camera`
+   --> engine\src\runtime\renderer.rs:230:5
+    |
+230 |     camera: &Camera,
+    |     ^^^^^^ help: if this is intentional, prefix it 
+with an underscore: `_camera`
+
+For more information about this error, try `rustc 
+--explain E0599`.
+warning: `engine` (lib) generated 34 warnings
+error: could not compile `engine` (lib) due to 3 previous 
+errors; 34 warnings emitted

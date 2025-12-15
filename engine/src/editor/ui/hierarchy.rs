@@ -301,7 +301,7 @@ fn is_map_entity(
     // Only hide layer entities and collider entities
     
     // Check if name starts with layer/collider prefixes
-    if let Some(name) = world.names.get(&entity) {
+    if let Some(_name) = world.names.get(&entity) {
         // Show both LDTK layers and colliders for now (user wants to clean up colliders)
         // TODO: Hide colliders again after migration to Tilemap Collider components
         if false // Temporarily show all entities

@@ -24,12 +24,12 @@ pub fn inject_animation_api<'lua, 'scope>(
     // ================================================================
 
     let animate_position = scope.create_function_mut(|_, args: Table| {
-        let entity = args.get::<_, EcsEntity>("entity")?;
-        let to_x = args.get::<_, f32>("to_x")?;
-        let to_y = args.get::<_, f32>("to_y")?;
-        let duration = args.get::<_, f32>("duration")?;
-        let easing = args.get::<_, Option<String>>("easing")?.unwrap_or("Linear".to_string());
-        let on_complete = args.get::<_, Option<String>>("on_complete")?;
+        let _entity = args.get::<_, EcsEntity>("entity")?;
+        let _to_x = args.get::<_, f32>("to_x")?;
+        let _to_y = args.get::<_, f32>("to_y")?;
+        let _duration = args.get::<_, f32>("duration")?;
+        let _easing = args.get::<_, Option<String>>("easing")?.unwrap_or("Linear".to_string());
+        let _on_complete = args.get::<_, Option<String>>("on_complete")?;
 
         // Create animation
         // let animation = UIAnimation {
@@ -53,12 +53,12 @@ pub fn inject_animation_api<'lua, 'scope>(
     globals.set("ui_animate_position", animate_position)?;
 
     let animate_scale = scope.create_function_mut(|_, args: Table| {
-        let entity = args.get::<_, EcsEntity>("entity")?;
-        let to_x = args.get::<_, f32>("to_x")?;
-        let to_y = args.get::<_, f32>("to_y")?;
-        let duration = args.get::<_, f32>("duration")?;
-        let easing = args.get::<_, Option<String>>("easing")?.unwrap_or("Linear".to_string());
-        let on_complete = args.get::<_, Option<String>>("on_complete")?;
+        let _entity = args.get::<_, EcsEntity>("entity")?;
+        let _to_x = args.get::<_, f32>("to_x")?;
+        let _to_y = args.get::<_, f32>("to_y")?;
+        let _duration = args.get::<_, f32>("duration")?;
+        let _easing = args.get::<_, Option<String>>("easing")?.unwrap_or("Linear".to_string());
+        let _on_complete = args.get::<_, Option<String>>("on_complete")?;
 
         // Create animation
         // Similar to animate_position but for scale
@@ -68,11 +68,11 @@ pub fn inject_animation_api<'lua, 'scope>(
     globals.set("ui_animate_scale", animate_scale)?;
 
     let animate_rotation = scope.create_function_mut(|_, args: Table| {
-        let entity = args.get::<_, EcsEntity>("entity")?;
-        let to_rotation = args.get::<_, f32>("to")?;
-        let duration = args.get::<_, f32>("duration")?;
-        let easing = args.get::<_, Option<String>>("easing")?.unwrap_or("Linear".to_string());
-        let on_complete = args.get::<_, Option<String>>("on_complete")?;
+        let _entity = args.get::<_, EcsEntity>("entity")?;
+        let _to_rotation = args.get::<_, f32>("to")?;
+        let _duration = args.get::<_, f32>("duration")?;
+        let _easing = args.get::<_, Option<String>>("easing")?.unwrap_or("Linear".to_string());
+        let _on_complete = args.get::<_, Option<String>>("on_complete")?;
 
         // Create animation for rotation
 
@@ -81,14 +81,14 @@ pub fn inject_animation_api<'lua, 'scope>(
     globals.set("ui_animate_rotation", animate_rotation)?;
 
     let animate_color = scope.create_function_mut(|_, args: Table| {
-        let entity = args.get::<_, EcsEntity>("entity")?;
-        let to_r = args.get::<_, f32>("to_r")?;
-        let to_g = args.get::<_, f32>("to_g")?;
-        let to_b = args.get::<_, f32>("to_b")?;
-        let to_a = args.get::<_, f32>("to_a")?;
-        let duration = args.get::<_, f32>("duration")?;
-        let easing = args.get::<_, Option<String>>("easing")?.unwrap_or("Linear".to_string());
-        let on_complete = args.get::<_, Option<String>>("on_complete")?;
+        let _entity = args.get::<_, EcsEntity>("entity")?;
+        let _to_r = args.get::<_, f32>("to_r")?;
+        let _to_g = args.get::<_, f32>("to_g")?;
+        let _to_b = args.get::<_, f32>("to_b")?;
+        let _to_a = args.get::<_, f32>("to_a")?;
+        let _duration = args.get::<_, f32>("duration")?;
+        let _easing = args.get::<_, Option<String>>("easing")?.unwrap_or("Linear".to_string());
+        let _on_complete = args.get::<_, Option<String>>("on_complete")?;
 
         // Create animation for color
 
@@ -97,11 +97,11 @@ pub fn inject_animation_api<'lua, 'scope>(
     globals.set("ui_animate_color", animate_color)?;
 
     let animate_alpha = scope.create_function_mut(|_, args: Table| {
-        let entity = args.get::<_, EcsEntity>("entity")?;
-        let to_alpha = args.get::<_, f32>("to")?;
-        let duration = args.get::<_, f32>("duration")?;
-        let easing = args.get::<_, Option<String>>("easing")?.unwrap_or("Linear".to_string());
-        let on_complete = args.get::<_, Option<String>>("on_complete")?;
+        let _entity = args.get::<_, EcsEntity>("entity")?;
+        let _to_alpha = args.get::<_, f32>("to")?;
+        let _duration = args.get::<_, f32>("duration")?;
+        let _easing = args.get::<_, Option<String>>("easing")?.unwrap_or("Linear".to_string());
+        let _on_complete = args.get::<_, Option<String>>("on_complete")?;
 
         // Create animation for alpha
 
@@ -109,7 +109,7 @@ pub fn inject_animation_api<'lua, 'scope>(
     })?;
     globals.set("ui_animate_alpha", animate_alpha)?;
 
-    let stop_animation = scope.create_function_mut(|_, entity: EcsEntity| {
+    let stop_animation = scope.create_function_mut(|_, _entity: EcsEntity| {
         // world.borrow_mut().remove_animations(entity);
         Ok(())
     })?;
@@ -195,7 +195,7 @@ pub fn inject_event_api<'lua, 'scope>(
     globals.set("ui_on_value_changed", on_value_changed)?;
 
     // Remove event callback
-    let remove_event_callback = scope.create_function_mut(move |_, (entity, event_type): (EcsEntity, String)| {
+    let remove_event_callback = scope.create_function_mut(move |_, (_entity, _event_type): (EcsEntity, String)| {
         // Parse event type and remove specific callback
         // For now, we'll just note this needs implementation
         // TODO: Implement selective callback removal

@@ -21,7 +21,11 @@
       "Bash(cloc:*)",
       "Bash(ls:*)",
       "Bash(cargo test:*)",
-      "Bash(cargo clean:*)"
+      "Bash(cargo clean:*)",
+      "Bash(wait:*)",
+      "Bash(taskkill:*)",
+      "Bash(dir:*)",
+      "Bash(cd:*)"
     ],
     "deny": [],
     "ask": []

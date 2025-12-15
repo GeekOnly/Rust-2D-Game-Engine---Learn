@@ -516,7 +516,7 @@ impl PrefabCanvas {
         }
         
         // Handle drag end
-        if response.drag_released() {
+        if response.drag_stopped() {
             state.is_dragging = false;
             state.drag_mode = DragMode::None;
             state.drag_start = None;

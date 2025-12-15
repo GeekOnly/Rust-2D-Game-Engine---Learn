@@ -1097,6 +1097,7 @@ fn main() -> Result<()> {
                                         &mut editor_state.infinite_grid,
                                         &editor_state.camera_state_display,
                                         &mut editor_state.show_exit_dialog,
+                                        &mut editor_state.show_export_dialog,
                                         &mut editor_state.asset_manager,
                                         &mut editor_state.drag_drop,
                                         &mut editor_state.layout_request,
@@ -1156,6 +1157,7 @@ fn main() -> Result<()> {
                                         &mut editor_state.infinite_grid,
                                         &editor_state.camera_state_display,
                                         &mut editor_state.show_exit_dialog,
+                                        &mut editor_state.show_export_dialog,
                                         &mut editor_state.asset_manager,
                                         &mut editor_state.drag_drop,
                                         &mut editor_state.layout_request,
@@ -1378,6 +1380,30 @@ fn main() -> Result<()> {
                                     }
                                 }
 
+                                // Handle build export updates
+                                if let Some(rx) = &editor_state.build_receiver {
+                                    let mut received = false;
+                                    while let Ok(msg) = rx.try_recv() {
+                                        received = true;
+                                        if msg.starts_with("ERROR:") {
+                                             editor_state.build_params.build_error = Some(msg);
+                                             editor_state.build_params.is_building = false;
+                                        } else if msg == "SUCCESS" {
+                                             editor_state.build_params.is_building = false;
+                                             editor_state.console.info("Game exported successfully!");
+                                        } else {
+                                             editor_state.build_params.build_output.push_str(&format!("{}\n", msg));
+                                        }
+                                    }
+                                    if received {
+                                        egui_ctx.request_repaint();
+                                    }
+                                }
+                                
+                                // Render Export Dialog
+                                editor::ui::export_dialog::ExportGameDialog::render(&egui_ctx, &mut editor_state);
+
+
                                 // Show save required dialog if needed
                                 if editor_state.show_save_required_dialog {
                                     egui::Window::new("Save Required")
@@ -1457,6 +1483,9 @@ fn main() -> Result<()> {
                                                             Some(EditorAction::Quit) => {
                                                                 target.exit();
                                                             }
+                                                            Some(EditorAction::ExportGame) => {
+                                                                editor_state.show_export_dialog = true;
+                                                            }
                                                             None => {}
                                                         }
                                                     }
@@ -1498,6 +1527,9 @@ fn main() -> Result<()> {
                                                         }
                                                         Some(EditorAction::Quit) => {
                                                             target.exit();
+                                                        }
+                                                        Some(EditorAction::ExportGame) => {
+                                                            editor_state.show_export_dialog = true;
                                                         }
                                                         None => {}
                                                     }

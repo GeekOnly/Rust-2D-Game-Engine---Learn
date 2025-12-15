@@ -23,6 +23,7 @@ pub fn render_menu_bar(
     current_scene_path: &Option<std::path::PathBuf>,
     is_playing: bool,
     show_exit_dialog: &mut bool,
+    show_export_dialog: &mut bool,
     layout_request: &mut Option<String>,
     current_layout_name: &str,
     get_scene_files_fn: impl Fn(&std::path::Path) -> Vec<String>,
@@ -45,6 +46,11 @@ pub fn render_menu_bar(
             ui.separator();
             if ui.button("Load Scene...").clicked() {
                 *load_request = true;
+                ui.close_menu();
+            }
+            ui.separator();
+            if ui.button("Export Game...").clicked() {
+                *show_export_dialog = true;
                 ui.close_menu();
             }
             ui.separator();

@@ -130,15 +130,68 @@ impl Tilemap3DRenderer {
                         
                         // Calculate world position in world units (not pixels)
                         // Note: Y coordinate is already flipped in the transform from LDtk loader
+                        // We invert Y in 3D view to match 2D Y-Down coordinate system (Visual Fix)
                         let tile_world_x = transform.position[0] + (x as f32 * tile_world_width);
-                        let tile_world_y = transform.position[1] + (y as f32 * tile_world_height);
+                        let tile_world_y = -(transform.position[1] + (y as f32 * tile_world_height));
                         let tile_world_z = transform.position[2];
                         
                         // Update bounds
                         min_x = min_x.min(tile_world_x);
                         min_y = min_y.min(tile_world_y);
-                        max_x = max_x.max(tile_world_x + tile_world_width);
-                        max_y = max_y.max(tile_world_y + tile_world_height);
+                        // Since we flip Y, [y + height] is essentially [y_base - height] visually? 
+                        // Actually, just using min/max on the calculated corner points is safer if we project.
+                        // But here we construct bounds from top-left.
+                        // If tile_world_y is Top-Left (visual). And height extends "down" (visually).
+                        // In 3D Y-Up, "down" is -Y. 
+                        // tile_world_y is the anchor.
+                        // We construct the tile as a rect.
+                        // We should probably explicitly set max_y logic or just let the loop handle it
+                        // But wait, the tile rect rendering logic uses width/height.
+                        // If we invert Y, does it grow up or down?
+                        // Render logic later: `project_tile_to_screen` -> `projected_corners`.
+                        // corners use `y - half_height`, `y + half_height`.
+                        // So `tile_world_y` represents the CENTER?
+                        // No, the calculation above: `pos + x*w`. This is Top-Left of the tile in Grid space.
+                        // In `project_tile_to_screen`, it uses `tile.world_pos`.
+                        // It projects corners: `pos.y - half_height`.
+                        // This implies `tile.world_pos` is treated as CENTER.
+                        // BUT `tile_world_x` above is calculated as `index * width`. This is Corner!
+                        // We should shift it to CENTER?
+                        
+                        // Let's check existing code lines 143+:
+                        // tiles.push(TileRenderData { world_pos: ... })
+                        // And project_tile_to_screen: corners use `world_pos +/- half_width`.
+                        // This proves `world_pos` represents CENTER in `project_tile_to_screen`.
+                        // BUT `tile_world_x` here calculates TOP-LEFT (Grid Corner).
+                        
+                        // So we must add half-width/height offset!
+                        // Currently existing code: `let tile_world_x = transform.position[0] + (x as f32 * tile_world_width);`
+                        // If this is passed as "world_pos", and then treated as center...
+                        // THEN THE TILES ARE SHIFTED BY HALF SIZE!
+                        // This might be another bug? Or intentional?
+                        // Usually Grid (0,0) is center of tile (0,0)? No, usually corner.
+                        
+                        // If `TileRenderData` expects CENTER (based on corner projection logic), we must convert GridCorner to Center.
+                        // offset_x = tile_world_width / 2.0; offset_y = tile_world_height / 2.0;
+                        
+                        // Let's Fix the Y Inversion first.
+                        // And adjust Center offset if needed.
+                        // Given user complaint about "incorrect coordinate", maybe the Shift is also part of it.
+                        // Let's assume the previous code "worked" for X?
+                        
+                        // Modifying:
+                        let half_w = tile_world_width * 0.5;
+                        let half_h = tile_world_height * 0.5;
+                        
+                        let tile_world_x = transform.position[0] + (x as f32 * tile_world_width) + half_w;
+                        let tile_world_y = -(transform.position[1] + (y as f32 * tile_world_height)) - half_h; // Growing Down (Negative Y)
+                        let tile_world_z = transform.position[2];
+
+                        // Update bounds
+                        min_x = min_x.min(tile_world_x - half_w);
+                        min_y = min_y.min(tile_world_y - half_h);
+                        max_x = max_x.max(tile_world_x + half_w);
+                        max_y = max_y.max(tile_world_y + half_h);
                         
                         // Create tile render data (width/height in world units)
                         tiles.push(TileRenderData {

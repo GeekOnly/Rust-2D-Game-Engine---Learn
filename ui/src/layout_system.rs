@@ -417,7 +417,7 @@ impl LayoutSystem {
         constraint: &GridConstraint,
         constraint_count: i32,
         available_width: f32,
-        available_height: f32,
+        _available_height: f32,
         cell_size: Vec2,
         spacing: Vec2,
     ) -> (usize, usize) {

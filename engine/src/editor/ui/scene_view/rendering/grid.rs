@@ -117,7 +117,7 @@ pub fn render_infinite_grid_3d(
     painter: &egui::Painter,
     rect: egui::Rect,
     scene_camera: &SceneCamera,
-    infinite_grid: &mut InfiniteGrid,
+    _infinite_grid: &mut InfiniteGrid,
 ) {
     // For now, use the legacy grid rendering which is known to work
     // TODO: Debug and fix the infinite grid system
@@ -126,55 +126,7 @@ pub fn render_infinite_grid_3d(
     
     /* DISABLED: Infinite grid system needs debugging
     let center = rect.center();
-    let viewport_size = glam::Vec2::new(rect.width(), rect.height());
-    
-    // Create camera state for grid generation
-    let camera_state = CameraState {
-        position: scene_camera.position,
-        rotation: scene_camera.rotation,
-        pitch: scene_camera.pitch,
-        zoom: scene_camera.zoom,
-    };
-    
-    // Generate grid geometry (uses cache when possible)
-    let geometry = infinite_grid.generate_geometry(&camera_state, viewport_size);
-    
-    // Get view and projection matrices
-    let view_matrix = scene_camera.get_view_matrix();
-    let aspect = rect.width() / rect.height();
-    let projection_matrix = scene_camera.get_projection_matrix(aspect, crate::editor::camera::ProjectionMode::Perspective);
-    let view_proj = projection_matrix * view_matrix;
-    
-    // OPTIMIZED: Project and render each line with spatial culling
-    for line in &geometry.lines {
-        // Project start and end points
-        let start_screen = project_point_to_screen(line.start, &view_proj, center, viewport_size);
-        let end_screen = project_point_to_screen(line.end, &view_proj, center, viewport_size);
-        
-        // Skip lines that are behind the camera or off-screen
-        if let (Some(start), Some(end)) = (start_screen, end_screen) {
-            // OPTIMIZED: Tighter bounds checking for better culling
-            let margin = 50.0; // Reduced margin for more aggressive culling
-            let in_bounds = (start.x >= rect.min.x - margin && start.x <= rect.max.x + margin &&
-                            start.y >= rect.min.y - margin && start.y <= rect.max.y + margin) ||
-                           (end.x >= rect.min.x - margin && end.x <= rect.max.x + margin &&
-                            end.y >= rect.min.y - margin && end.y <= rect.max.y + margin);
-            
-            if in_bounds {
-                let color = egui::Color32::from_rgba_premultiplied(
-                    (line.color[0] * 255.0) as u8,
-                    (line.color[1] * 255.0) as u8,
-                    (line.color[2] * 255.0) as u8,
-                    (line.color[3] * 255.0) as u8,
-                );
-                
-                painter.line_segment(
-                    [start, end],
-                    egui::Stroke::new(line.width, color),
-                );
-            }
-        }
-    }
+    // ...
     */
 }
 
@@ -360,7 +312,7 @@ fn render_grid_3d_legacy(
     rect: egui::Rect,
     scene_camera: &SceneCamera,
     scene_grid: &SceneGrid,
-    grid_component: Option<(&ecs::Grid, Option<&ecs::Transform>)>,
+    _grid_component: Option<(&ecs::Grid, Option<&ecs::Transform>)>,
 ) {
     // Default 3D space grid settings (always ground plane)
     let grid_world_size = scene_grid.size;

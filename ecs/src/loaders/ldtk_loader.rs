@@ -98,8 +98,8 @@ impl LdtkLoader {
         // Use appropriate pixels_per_unit for tilemap scale
         // For 8px tiles to be 1 world unit each (matching grid cells)
         let pixels_per_unit = grid_size; // 8px = 1 world unit
-        let cell_width = grid_size / pixels_per_unit;
-        let cell_height = grid_size / pixels_per_unit;
+        let _cell_width = grid_size / pixels_per_unit;
+        let _cell_height = grid_size / pixels_per_unit;
         
         let grid = crate::Grid {
             cell_size: (1.0, 1.0, 0.0),  // 1 world unit per cell = 1 tile per cell

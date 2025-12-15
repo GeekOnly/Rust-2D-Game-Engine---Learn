@@ -413,7 +413,7 @@ pub fn handle_scene_selection(
         }
     }
     
-    if response.drag_released_by(egui::PointerButton::Primary) {
+    if response.drag_stopped_by(egui::PointerButton::Primary) {
         selection.finish_box_selection(world, scene_camera, center);
     }
     

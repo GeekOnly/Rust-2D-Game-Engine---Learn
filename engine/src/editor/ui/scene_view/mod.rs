@@ -357,7 +357,7 @@ pub fn render_scene_view(
         }
         
         // Handle drop
-        if response.drag_released() {
+        if response.drag_stopped() {
             if let Some(asset) = drag_drop.get_dragged_asset() {
                 // Check if it's a sprite file
                 if asset.path.extension().and_then(|s| s.to_str()) == Some("sprite") {

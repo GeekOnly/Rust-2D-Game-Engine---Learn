@@ -1477,7 +1477,7 @@ pub fn render_inspector(
 
                 // LdtkMap Component
                 let has_ldtk_map = world.has_component(entity, ComponentType::LdtkMap);
-                let mut remove_ldtk_map = false;
+                let remove_ldtk_map = false;
                 
                 if has_ldtk_map {
                     let ldtk_map_id = ui.make_persistent_id("ldtk_map_component");

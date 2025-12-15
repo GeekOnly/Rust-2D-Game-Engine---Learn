@@ -3,6 +3,7 @@ use engine_core::project::ProjectManager;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use anyhow::Result;
+use std::sync::mpsc::Receiver;
 
 /// Application state machine
 #[derive(Debug, PartialEq)]
@@ -19,6 +20,30 @@ pub enum EditorAction {
     NewScene,
     LoadScene(Option<std::path::PathBuf>), // None = Browse, Some = Direct load
     Quit,
+    ExportGame,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct BuildParams {
+    pub output_path: PathBuf,
+    pub game_name: String,
+    pub target_platform: String,
+    pub is_building: bool,
+    pub build_output: String,
+    pub build_error: Option<String>,
+}
+
+impl Default for BuildParams {
+    fn default() -> Self {
+        Self {
+            output_path: std::env::current_dir().unwrap_or_default().join("build"),
+            game_name: "RustGame".to_string(),
+            target_platform: "windows".to_string(),
+            is_building: false,
+            build_output: String::new(),
+            build_error: None,
+        }
+    }
 }
 
 /// Launcher state - Project selection and creation
@@ -75,6 +100,9 @@ pub struct EditorState {
     pub show_rename_dialog: bool,
     pub rename_buffer: String,
     pub show_camera_settings: bool,  // Camera settings dialog
+    pub show_export_dialog: bool,    // Export game dialog
+    pub build_params: BuildParams,   // Export parameters
+    pub build_receiver: Option<Receiver<String>>, // Channel for build updates
     
     // NEW: Unity-like editor features
     pub shortcut_manager: super::shortcuts::ShortcutManager,
@@ -162,6 +190,9 @@ impl EditorState {
             show_rename_dialog: false,
             rename_buffer: String::new(),
             show_camera_settings: false,
+            show_export_dialog: false,
+            build_params: BuildParams::default(),
+            build_receiver: None,
             
             // NEW: Initialize Unity-like features
             shortcut_manager: super::shortcuts::ShortcutManager::new(),

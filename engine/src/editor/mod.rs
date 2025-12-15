@@ -46,7 +46,7 @@ pub use widget_editor::PrefabEditor;
 pub use prefab::{Prefab, PrefabManager, PrefabEntity, PrefabMetadata};
 
 // Re-export from sprite_editor crate
-pub use sprite_editor::{SpriteMetadata, SpriteDefinition, ExportFormat};
+pub use sprite_editor::{SpriteMetadata, SpriteDefinition};
 
 // Sprite editor window (still in engine for now - TODO: move to sprite_editor crate)
 pub mod sprite_editor_window;

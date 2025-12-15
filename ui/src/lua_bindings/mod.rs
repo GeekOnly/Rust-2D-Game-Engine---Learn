@@ -129,7 +129,7 @@ impl UILuaBindings {
         // CANVAS CREATION
         // ================================================================
 
-        let create_canvas = scope.create_function_mut(|lua, args: Table| {
+        let create_canvas = scope.create_function_mut(|_lua, args: Table| {
             let render_mode = args.get::<_, Option<String>>("render_mode")
                 .unwrap_or(Some("ScreenSpaceOverlay".to_string()))
                 .unwrap_or("ScreenSpaceOverlay".to_string());
@@ -192,7 +192,7 @@ impl UILuaBindings {
             let color = args.get::<_, Option<Table>>("color")?;
 
             let ecs_entity = world.borrow_mut().spawn();
-            let ui_entity = ecs_entity as UIEntity;
+            let _ui_entity = ecs_entity as UIEntity;
 
             // Create RectTransform
             let _rect_transform = RectTransform::anchored(

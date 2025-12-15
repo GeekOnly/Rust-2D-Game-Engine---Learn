@@ -2,6 +2,7 @@
 name = "engine"
 version = "0.1.0"
 edition = "2021"
+default-run = "engine"
 
 [dependencies]
 engine_core = { path = "../engine_core" }
@@ -45,6 +46,11 @@ criterion = { version = "0.5", features = ["html_reports"] }
 [features]
 default = ["rapier"]
 rapier = ["physics/rapier"]
+system-clipboard = []
+
+[[bin]]
+name = "player"
+path = "src/bin/player.rs"
 
 [[bench]]
 name = "scene_view_performance"

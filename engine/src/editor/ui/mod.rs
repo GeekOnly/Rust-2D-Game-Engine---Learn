@@ -20,6 +20,7 @@ pub mod performance_panel;
 pub mod collider_settings_panel;
 pub mod prefabs_panel;
 pub mod create_prefab_dialog;
+pub mod export_dialog;
 
 // Re-exports
 use ecs::{World, Entity, EntityTag};
@@ -72,6 +73,7 @@ impl EditorUI {
         infinite_grid: &mut crate::editor::grid::InfiniteGrid,
         camera_state_display: &crate::editor::camera::CameraStateDisplay,
         show_exit_dialog: &mut bool,
+        show_export_dialog: &mut bool,
         asset_manager: &mut Option<crate::editor::AssetManager>,
         drag_drop: &mut crate::editor::DragDropState,
         _layout_request: &mut Option<String>,
@@ -102,6 +104,7 @@ impl EditorUI {
                 current_scene_path,
                 is_playing,
                 show_exit_dialog,
+                show_export_dialog,
                 &mut dummy_layout,
                 "default",
                 Self::get_scene_files,
@@ -294,8 +297,10 @@ impl EditorUI {
         scene_camera: &mut SceneCamera,
         scene_grid: &SceneGrid,
         infinite_grid: &mut crate::editor::grid::InfiniteGrid,
+        // NEW: Unity-like editor features
         camera_state_display: &crate::editor::camera::CameraStateDisplay,
         show_exit_dialog: &mut bool,
+        show_export_dialog: &mut bool,
         asset_manager: &mut Option<crate::editor::AssetManager>,
         drag_drop: &mut crate::editor::DragDropState,
         layout_request: &mut Option<String>,
@@ -350,6 +355,7 @@ impl EditorUI {
                 current_scene_path,
                 is_playing,
                 show_exit_dialog,
+                show_export_dialog,
                 layout_request,
                 current_layout_name,
                 Self::get_scene_files,
