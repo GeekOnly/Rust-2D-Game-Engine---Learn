@@ -10,7 +10,6 @@ ecs = { path = "../ecs" }
 script = { path = "../script" }
 physics = { path = "../physics", features = ["rapier"] }
 render = { path = "../render" }
-editor = { path = "../editor" }
 input = { path = "../input" }
 sprite_editor = { path = "../sprite_editor" }
 ui = { path = "../ui" }

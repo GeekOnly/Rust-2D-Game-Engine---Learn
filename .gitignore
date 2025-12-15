@@ -20,3 +20,4 @@ Thumbs.db
 *.pdb
 ExampleCode
 dist
+build

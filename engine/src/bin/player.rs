@@ -19,6 +19,68 @@ use engine::runtime;
 use engine::texture_manager::TextureManager;
 use engine::ui_manager::UIManager;
 
+// Map winit keycode to our input system key
+fn map_winit_keycode(keycode: winit::keyboard::KeyCode) -> Option<input::Key> {
+    use winit::keyboard::KeyCode;
+    use input::Key;
+    
+    match keycode {
+        KeyCode::KeyA => Some(Key::A),
+        KeyCode::KeyB => Some(Key::B),
+        KeyCode::KeyC => Some(Key::C),
+        KeyCode::KeyD => Some(Key::D),
+        KeyCode::KeyE => Some(Key::E),
+        KeyCode::KeyF => Some(Key::F),
+        KeyCode::KeyG => Some(Key::G),
+        KeyCode::KeyH => Some(Key::H),
+        KeyCode::KeyI => Some(Key::I),
+        KeyCode::KeyJ => Some(Key::J),
+        KeyCode::KeyK => Some(Key::K),
+        KeyCode::KeyL => Some(Key::L),
+        KeyCode::KeyM => Some(Key::M),
+        KeyCode::KeyN => Some(Key::N),
+        KeyCode::KeyO => Some(Key::O),
+        KeyCode::KeyP => Some(Key::P),
+        KeyCode::KeyQ => Some(Key::Q),
+        KeyCode::KeyR => Some(Key::R),
+        KeyCode::KeyS => Some(Key::S),
+        KeyCode::KeyT => Some(Key::T),
+        KeyCode::KeyU => Some(Key::U),
+        KeyCode::KeyV => Some(Key::V),
+        KeyCode::KeyW => Some(Key::W),
+        KeyCode::KeyX => Some(Key::X),
+        KeyCode::KeyY => Some(Key::Y),
+        KeyCode::KeyZ => Some(Key::Z),
+        KeyCode::Digit0 => Some(Key::Num0),
+        KeyCode::Digit1 => Some(Key::Num1),
+        KeyCode::Digit2 => Some(Key::Num2),
+        KeyCode::Digit3 => Some(Key::Num3),
+        KeyCode::Digit4 => Some(Key::Num4),
+        KeyCode::Digit5 => Some(Key::Num5),
+        KeyCode::Digit6 => Some(Key::Num6),
+        KeyCode::Digit7 => Some(Key::Num7),
+        KeyCode::Digit8 => Some(Key::Num8),
+        KeyCode::Digit9 => Some(Key::Num9),
+        KeyCode::ArrowUp => Some(Key::Up),
+        KeyCode::ArrowDown => Some(Key::Down),
+        KeyCode::ArrowLeft => Some(Key::Left),
+        KeyCode::ArrowRight => Some(Key::Right),
+        KeyCode::Space => Some(Key::Space),
+        KeyCode::Enter => Some(Key::Enter),
+        KeyCode::Escape => Some(Key::Escape),
+        KeyCode::Tab => Some(Key::Tab),
+        KeyCode::Backspace => Some(Key::Backspace),
+        KeyCode::Delete => Some(Key::Delete),
+        KeyCode::ShiftLeft => Some(Key::LShift),
+        KeyCode::ShiftRight => Some(Key::RShift),
+        KeyCode::ControlLeft => Some(Key::LCtrl),
+        KeyCode::ControlRight => Some(Key::RCtrl),
+        KeyCode::AltLeft => Some(Key::LAlt),
+        KeyCode::AltRight => Some(Key::RAlt),
+        _ => None,
+    }
+}
+
 fn main() -> Result<()> {
     env_logger::init();
     log::info!("=== Game Player Runtime Starting ===");
@@ -61,7 +123,16 @@ fn main() -> Result<()> {
  
     // Load Game Project
     // In a real export, these paths would be relative to the executable
-    let project_path = std::env::current_dir()?; 
+    let mut project_path = std::env::current_dir()?;
+    
+    // If we're in the root directory, look for Celeste Demo project
+    if !project_path.join("scenes").exists() {
+        let celeste_path = project_path.join("projects/Celeste Demo");
+        if celeste_path.exists() {
+            project_path = celeste_path;
+        }
+    }
+    
     log::info!("Loading project from: {:?}", project_path);
 
     // Initial World
@@ -111,6 +182,27 @@ fn main() -> Result<()> {
         match event {
             Event::WindowEvent { ref event, window_id } if window_id == window.id() => {
                 let _ = egui_state.on_window_event(&window, event);
+                
+                // Handle input events
+                match event {
+                    WindowEvent::KeyboardInput { event, .. } => {
+                        use winit::keyboard::{PhysicalKey, KeyCode};
+                        if let PhysicalKey::Code(keycode) = event.physical_key {
+                            if let Some(key) = map_winit_keycode(keycode) {
+                                match event.state {
+                                    winit::event::ElementState::Pressed => {
+                                        ctx.input.press_key(key);
+                                    }
+                                    winit::event::ElementState::Released => {
+                                        ctx.input.release_key(key);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    _ => {}
+                }
+                
                 match event {
                     WindowEvent::CloseRequested => target.exit(),
                     WindowEvent::Resized(physical_size) => renderer.resize(*physical_size),

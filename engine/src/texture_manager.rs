@@ -1,7 +1,48 @@
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use egui::{ColorImage, TextureHandle, TextureOptions};
-use crate::editor::texture_import_settings::TextureImportSettings;
+
+// Default texture import settings for when editor is not available
+#[derive(Debug, Clone)]
+pub struct TextureImportSettings {
+    pub pixels_per_unit: f32,
+    pub filter_mode: FilterMode,
+    pub wrap_mode: WrapMode,
+    pub max_size: u32,
+}
+
+#[derive(Debug, Clone)]
+pub enum FilterMode {
+    Point,
+    Bilinear,
+    Trilinear,
+}
+
+#[derive(Debug, Clone)]
+pub enum WrapMode {
+    Clamp,
+    Repeat,
+    Mirror,
+}
+
+impl Default for TextureImportSettings {
+    fn default() -> Self {
+        Self {
+            pixels_per_unit: 100.0,
+            filter_mode: FilterMode::Bilinear,
+            wrap_mode: WrapMode::Clamp,
+            max_size: 2048,
+        }
+    }
+}
+
+impl TextureImportSettings {
+    pub fn load(_path: &Path) -> Result<Self, std::io::Error> {
+        // For now, just return default settings
+        // In the future, this could load from a .meta file
+        Ok(Self::default())
+    }
+}
 
 pub struct TextureManager {
     textures: HashMap<String, TextureHandle>,
@@ -139,7 +180,6 @@ impl TextureManager {
     
     /// Convert import settings to egui TextureOptions
     fn get_texture_options(settings: &TextureImportSettings) -> TextureOptions {
-        use crate::editor::texture_import_settings::{FilterMode, WrapMode};
         
         let magnification = match settings.filter_mode {
             FilterMode::Point => egui::TextureFilter::Nearest,

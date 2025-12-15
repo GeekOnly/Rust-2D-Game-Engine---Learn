@@ -6,9 +6,10 @@ members = [
   "physics",
   "script",
   "input",
-  "editor",
   "engine",
-  "ui", "sprite_editor",
+  "ui", 
+  "sprite_editor",
+  "editor",
 ]
 resolver = "2"
 default-members = ["engine"]
