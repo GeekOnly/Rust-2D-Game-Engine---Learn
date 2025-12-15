@@ -21,6 +21,8 @@ pub mod collider_settings_panel;
 pub mod prefabs_panel;
 pub mod create_prefab_dialog;
 pub mod export_dialog;
+pub mod launcher_window;
+pub mod game_window;
 
 // Re-exports
 use ecs::{World, Entity, EntityTag};

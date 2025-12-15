@@ -45,3 +45,4 @@ pub use tilemap_settings::TilemapSettings;
 pub use widget_editor::PrefabEditor;
 pub use prefab::{Prefab, PrefabManager, PrefabEntity, PrefabMetadata};
 pub use sprite_editor_window::SpriteEditorWindow;
+pub mod editor_logic;

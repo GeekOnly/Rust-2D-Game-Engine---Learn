@@ -21,6 +21,7 @@ pub enum EditorAction {
     LoadScene(Option<std::path::PathBuf>), // None = Browse, Some = Direct load
     Quit,
     ExportGame,
+    DeleteEntity(ecs::Entity),
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -276,6 +277,41 @@ impl EditorState {
         if let Some(ref project_path) = self.current_project_path {
             if let Err(e) = super::ui::save_default_layout(&self.current_layout_name, project_path) {
                 eprintln!("Failed to save default layout: {}", e);
+            }
+        }
+    }
+
+    /// Execute editor action
+    pub fn execute_action(&mut self, action: EditorAction) {
+        match action {
+            EditorAction::DeleteEntity(entity) => {
+                if let Some(selected) = self.selected_entity {
+                    if selected == entity {
+                        self.selected_entity = None;
+                    }
+                }
+                self.world.despawn(entity);
+                self.console.info(format!("Deleted entity {:?}", entity));
+            }
+            EditorAction::NewScene => {
+                self.world = ecs::World::new();
+                self.selected_entity = None;
+                self.entity_names.clear();
+                self.current_scene_path = None;
+                self.console.info("Created new scene".to_string());
+            }
+            EditorAction::LoadScene(path) => {
+                if let Some(path) = path {
+                    // TODO: Implement scene loading
+                    self.console.info(format!("Loading scene: {:?}", path));
+                }
+            }
+            EditorAction::Quit => {
+                self.should_exit = true;
+            }
+            EditorAction::ExportGame => {
+                // TODO: Implement game export
+                self.console.info("Exporting game...".to_string());
             }
         }
     }
