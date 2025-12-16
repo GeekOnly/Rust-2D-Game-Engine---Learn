@@ -20,6 +20,10 @@ pub enum EcsError {
     InvalidHierarchy,
     /// Serialization or deserialization error
     SerializationError(String),
+    /// Failed to insert component
+    ComponentInsertFailed,
+    /// Backend is not available (feature not enabled)
+    BackendNotAvailable,
 }
 
 impl fmt::Display for EcsError {
@@ -29,6 +33,8 @@ impl fmt::Display for EcsError {
             EcsError::ComponentNotFound => write!(f, "Component not found"),
             EcsError::InvalidHierarchy => write!(f, "Invalid parent-child hierarchy"),
             EcsError::SerializationError(msg) => write!(f, "Serialization error: {}", msg),
+            EcsError::ComponentInsertFailed => write!(f, "Failed to insert component"),
+            EcsError::BackendNotAvailable => write!(f, "ECS backend is not available"),
         }
     }
 }
@@ -158,9 +164,9 @@ pub trait Serializable {
 /// Macro to reduce boilerplate when implementing ComponentAccess for HashMap-based storage
 #[macro_export]
 macro_rules! impl_component_access {
-    ($world_type:ty, $component_type:ty, $field:ident) => {
+    ($world_type:ty, $component_type:ty, $field:ident, $entity_type:ty) => {
         impl $crate::traits::ComponentAccess<$component_type> for $world_type {
-            type Entity = $crate::Entity;
+            type Entity = $entity_type;
             type Error = $crate::traits::EcsError;
             
             type ReadGuard<'a> = &'a $component_type;

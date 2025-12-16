@@ -6,7 +6,7 @@
 /// - GetComponent<T>() - ดึงข้อมูล Component
 /// - HasComponent<T>() - ตรวจสอบว่ามี Component หรือไม่
 
-use crate::{World, Entity, Transform, Sprite, Collider, Mesh, Camera, Script, ScriptLifecycleState, EntityTag, LdtkMap, TilemapCollider, LdtkIntGridCollider};
+use crate::{Entity, Transform, Sprite, Collider, Mesh, Camera, Script, ScriptLifecycleState, EntityTag, LdtkMap, TilemapCollider, LdtkIntGridCollider};
 use std::collections::HashMap;
 
 /// Component Type Enum สำหรับระบุประเภท Component

@@ -10,11 +10,23 @@ tiled = { workspace = true }
 image = { workspace = true }
 notify = { workspace = true }
 log = { workspace = true }
+env_logger = { workspace = true }
+chrono = { workspace = true }
+clap = { workspace = true }
 hecs = { version = "0.10", optional = true, features = ["serde"] }
+specs = { version = "0.20", optional = true, features = ["serde"] }
+bevy_ecs = { version = "0.12", optional = true }
 
 [dev-dependencies]
 criterion = { workspace = true }
 proptest = { workspace = true }
+
+[features]
+default = []
+hecs = ["dep:hecs"]
+specs = ["dep:specs"]
+bevy = ["dep:bevy_ecs"]
+all_backends = ["hecs", "specs", "bevy"]
 
 [[bench]]
 name = "ecs_benchmark"

@@ -1,0 +1,484 @@
+   Compiling ecs v0.1.0 (K:\XSGameStudio\2025 Project\Game Engine\Rust 2D Game Engine\ecs)
+warning: unused imports: `Camera`, `Collider`, `EntityTag`, `LdtkIntGridCollider`, `LdtkMap`, `Mesh`, `ScriptLifecycleState`, `Script`, `Sprite`, `TilemapCollider`, and `Transform`
+ --> ecs\src\component_manager.rs:9:21
+  |
+9 | ...y, Transform, Sprite, Collider, Mesh, Camera, Script, ScriptLifecycleState, EntityTag, LdtkMap, TilemapCollider, LdtkIntGridCollider};
+  |       ^^^^^^^^^  ^^^^^^  ^^^^^^^^  ^^^^  ^^^^^^  ^^^^^^  ^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^  ^^^^^^^  ^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `std::collections::HashMap`
+  --> ecs\src\component_manager.rs:10:5
+   |
+10 | use std::collections::HashMap;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `Grid`
+ --> ecs\src\loaders\ldtk_loader.rs:1:46
+  |
+1 | use crate::{World, Entity, Tilemap, TileSet, Grid, Transform, Collider, Rigidbody2D};
+  |                                              ^^^^
+
+warning: unused import: `Component`
+ --> ecs\src\backends\hecs_backend.rs:4:22
+  |
+4 |     use hecs::{self, Component};
+  |                      ^^^^^^^^^
+
+warning: unused imports: `Deserialize` and `Serialize`
+ --> ecs\src\backends\hecs_backend.rs:6:17
+  |
+6 |     use serde::{Serialize, Deserialize};
+  |                 ^^^^^^^^^  ^^^^^^^^^^^
+
+warning: unused import: `Component`
+ --> ecs\src\backends\hecs_minimal.rs:5:22
+  |
+5 |     use hecs::{self, Component};
+  |                      ^^^^^^^^^
+
+warning: unused import: `std::collections::HashMap`
+ --> ecs\src\backends\hecs_minimal.rs:6:9
+  |
+6 |     use std::collections::HashMap;
+  |         ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `DispatcherBuilder`, `Dispatcher`, `LazyUpdate`, `ReadStorage`, `RunNow`, `SystemData`, `System`, and `WriteStorage`
+ --> ecs\src\backends\specs_backend.rs:7:30
+  |
+7 |     WorldExt, Builder, Join, ReadStorage, WriteStorage, Entities, LazyUpdate,
+  |                              ^^^^^^^^^^^  ^^^^^^^^^^^^            ^^^^^^^^^^
+8 |     System, SystemData, Dispatcher, DispatcherBuilder, RunNow
+  |     ^^^^^^  ^^^^^^^^^^  ^^^^^^^^^^  ^^^^^^^^^^^^^^^^^  ^^^^^^
+
+warning: unused imports: `Commands`, `EntityMut`, `EntityRef`, `Query`, `ResMut`, `Res`, and `bundle::Bundle`
+  --> ecs\src\backends\bevy_backend.rs:8:33
+   |
+8  |     world::{World as BevyWorld, EntityMut, EntityRef},
+   |                                 ^^^^^^^^^  ^^^^^^^^^
+9  |     system::{Query, Commands, Res, ResMut, Resource},
+   |              ^^^^^  ^^^^^^^^  ^^^  ^^^^^^
+10 |     bundle::Bundle,
+   |     ^^^^^^^^^^^^^^
+
+warning: unused variable: `world`
+   --> ecs\src\loaders\ldtk_hot_reload.rs:205:45
+    |
+205 |     fn remove_existing_ldtk_entities(&self, world: &mut World) {
+    |                                             ^^^^^ help: if this is intentional, prefix it with an underscore: `_world`
+    |
+    = note: `#[warn(unused_variables)]` on by default
+
+warning: unreachable pattern
+   --> ecs\src\backends\chooser.rs:192:13
+    |
+192 |             _ => Err(EcsError::BackendNotAvailable),
+    |             ^ no value can reach this
+    |
+note: multiple earlier patterns match some of the same values
+   --> ecs\src\backends\chooser.rs:192:13
+    |
+185 |             EcsBackendType::Custom => Ok(DynamicWorld::Custom(CustomWorld::new())),
+    |             ---------------------- matches some of the same values
+186 |             #[cfg(feature = "hecs")]
+187 |             EcsBackendType::Hecs => Ok(DynamicWorld::Hecs(HecsMinimal::new())),
+    |             -------------------- matches some of the same values
+188 |             #[cfg(feature = "specs")]
+189 |             EcsBackendType::Specs => Ok(DynamicWorld::Specs(SpecsBackend::new())),
+    |             --------------------- matches some of the same values
+190 |             #[cfg(feature = "bevy")]
+191 |             EcsBackendType::Bevy => Ok(DynamicWorld::Bevy(BevyBackend::new())),
+    |             -------------------- matches some of the same values
+192 |             _ => Err(EcsError::BackendNotAvailable),
+    |             ^ collectively making this unreachable
+    = note: `#[warn(unreachable_patterns)]` on by default
+
+warning: unused `Result` that must be used
+  --> ecs\src\loaders\ldtk_loader.rs:54:25
+   |
+54 |                         world.set_parent(collider, Some(grid_entity));
+   |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+   = note: `#[warn(unused_must_use)]` on by default
+help: use `let _ = ...` to ignore the resulting value
+   |
+54 |                         let _ = world.set_parent(collider, Some(grid_entity));
+   |                         +++++++
+
+warning: unused `Result` that must be used
+   --> ecs\src\loaders\ldtk_loader.rs:547:17
+    |
+547 |                 world.set_parent(entity, Some(grid_parent));
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: this `Result` may be an `Err` variant, which should be handled
+help: use `let _ = ...` to ignore the resulting value
+    |
+547 |                 let _ = world.set_parent(entity, Some(grid_parent));
+    |                 +++++++
+
+warning: `ecs` (lib test) generated 13 warnings (12 duplicates)
+warning: `ecs` (lib) generated 13 warnings (1 duplicate) (run `cargo fix --lib -p ecs` to apply 9 suggestions)
+warning: unused import: `Duration`
+ --> ecs\src\bin\core_benchmark.rs:5:17
+  |
+5 | use std::time::{Duration, Instant};
+  |                 ^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `BenchmarkRunner`
+ --> ecs\src\bin\simple_benchmark.rs:6:41
+  |
+6 | use ecs::{EcsBackendType, DynamicWorld, BenchmarkRunner};
+  |                                         ^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused imports: `Duration` and `Instant`
+ --> ecs\src\bin\performance_comparison.rs:5:17
+  |
+5 | use std::time::{Duration, Instant};
+  |                 ^^^^^^^^  ^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `DynamicWorld`
+ --> ecs\src\bin\performance_comparison.rs:6:27
+  |
+6 | use ecs::{EcsBackendType, DynamicWorld, BenchmarkRunner};
+  |                           ^^^^^^^^^^^^
+
+warning: unused import: `ecs::traits::EcsWorld`
+ --> ecs\src\bin\performance_comparison.rs:7:5
+  |
+7 | use ecs::traits::EcsWorld;
+  |     ^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `ComponentAccess`
+ --> ecs\benches\ecs_benchmark.rs:7:29
+  |
+7 | use ecs::traits::{EcsWorld, ComponentAccess};
+  |                             ^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused imports: `Collider`, `Rigidbody2D`, and `Sprite`
+ --> ecs\benches\ecs_benchmark.rs:8:22
+  |
+8 | use ecs::{Transform, Sprite, Collider, Rigidbody2D};
+  |                      ^^^^^^  ^^^^^^^^  ^^^^^^^^^^^
+
+warning: unused variable: `entity`
+  --> ecs\benches\ecs_benchmark.rs:90:38
+   |
+90 | ...                   for (i, &entity) in entities.iter().enumerate() {
+   |                                ^^^^^^ help: if this is intentional, prefix it with an underscore: `_entity`
+   |
+   = note: `#[warn(unused_variables)]` on by default
+
+warning: unused variable: `world`
+  --> ecs\benches\ecs_benchmark.rs:87:31
+   |
+87 |                         |(mut world, entities)| {
+   |                               ^^^^^ help: if this is intentional, prefix it with an underscore: `_world`
+
+warning: variable does not need to be mutable
+  --> ecs\benches\ecs_benchmark.rs:87:27
+   |
+87 |                         |(mut world, entities)| {
+   |                           ----^^^^^
+   |                           |
+   |                           help: remove this `mut`
+   |
+   = note: `#[warn(unused_mut)]` on by default
+
+warning: `ecs` (bin "performance_comparison") generated 3 warnings (3 duplicates)
+warning: `ecs` (bin "core_benchmark") generated 1 warning (run `cargo fix --bin "core_benchmark"` to apply 1 suggestion)
+warning: `ecs` (bin "simple_benchmark") generated 1 warning (run `cargo fix --bin "simple_benchmark"` to apply 1 suggestion)
+warning: `ecs` (bin "core_benchmark" test) generated 1 warning (1 duplicate)
+warning: `ecs` (bin "performance_comparison" test) generated 3 warnings (run `cargo fix --bin "performance_comparison" --tests` to apply 3 suggestions)
+warning: `ecs` (bin "simple_benchmark" test) generated 1 warning (1 duplicate)
+warning: `ecs` (bench "ecs_benchmark") generated 5 warnings (run `cargo fix --bench "ecs_benchmark"` to apply 3 suggestions)
+    Finished `bench` profile [optimized] target(s) in 2m 39s
+     Running unittests src\lib.rs (target\release\deps\ecs-7756583a2c685dc0.exe)
+
+running 41 tests
+test backends::bevy_backend::tests::test_bevy_backend_basic_operations ... ignored
+test backends::bevy_backend::tests::test_bevy_backend_hierarchy ... ignored
+test backends::chooser::tests::test_available_backends ... ignored
+test backends::chooser::tests::test_backend_descriptions ... ignored
+test backends::chooser::tests::test_dynamic_world_creation ... ignored
+test backends::specs_backend::tests::test_specs_backend_basic_operations ... ignored
+test backends::specs_backend::tests::test_specs_backend_hierarchy ... ignored
+test benchmark_runner::tests::test_benchmark_runner ... ignored
+test benchmark_runner::tests::test_benchmark_suite ... ignored
+test components::grid::tests::test_cell_center ... ignored
+test components::grid::tests::test_grid_planes ... ignored
+test components::grid::tests::test_grid_with_gap ... ignored
+test components::grid::tests::test_isometric_grid ... ignored
+test components::grid::tests::test_rectangle_grid ... ignored
+test components::grid::tests::test_swizzle ... ignored
+test components::grid::tests::test_vertical_grid ... ignored
+test components::ldtk_map::tests::test_int_grid_value_access ... ignored
+test components::ldtk_map::tests::test_ldtk_map_creation ... ignored
+test components::map::tests::test_map_creation ... ignored
+test components::map::tests::test_map_extension ... ignored
+test components::map::tests::test_map_type_extensions ... ignored
+test components::sprite_sheet::tests::test_from_sprite_file_handles_invalid_json ... ignored
+test components::sprite_sheet::tests::test_from_sprite_file_handles_missing_file ... ignored
+test components::sprite_sheet::tests::test_from_sprite_file_loads_metadata ... ignored
+test components::tilemap::tests::test_tile_flips ... ignored
+test components::tilemap::tests::test_tilemap_bounds_checking ... ignored
+test components::tilemap::tests::test_tilemap_clear ... ignored
+test components::tilemap::tests::test_tilemap_creation ... ignored
+test components::tilemap::tests::test_tilemap_get_set_tile ... ignored
+test components::tilemap::tests::test_tilemap_renderer_default ... ignored
+test components::tilemap::tests::test_tilemap_renderer_with_color ... ignored
+test components::tilemap::tests::test_tilemap_renderer_with_sorting ... ignored
+test components::tilemap::tests::test_tilemap_set_tile_id ... ignored
+test components::tilemap::tests::test_tileset_tile_coords ... ignored
+test components::tilemap::tests::test_tileset_with_spacing_and_margin ... ignored
+test components::tilemap_collider::tests::test_ldtk_intgrid_collider ... ignored
+test components::tilemap_collider::tests::test_should_collide ... ignored
+test components::tilemap_collider::tests::test_tilemap_collider_default ... ignored
+test loaders::ldtk_hot_reload::tests::test_hot_reloader_creation ... ignored
+test tests::property_tests::entity_despawn_decreases_count ... ignored
+test tests::property_tests::entity_spawn_increases_count ... ignored
+
+test result: ok. 0 passed; 0 failed; 41 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\bin\core_benchmark.rs (target\release\deps\core_benchmark-09323ddf91e8f035.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\bin\ecs_benchmark.rs (target\release\deps\ecs_benchmark-53e602a6490894a2.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\bin\performance_comparison.rs (target\release\deps\performance_comparison-f8fe8223a36b0f0e.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\bin\simple_benchmark.rs (target\release\deps\simple_benchmark-b43a80657aaace56.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\bin\stress_test.rs (target\release\deps\stress_test-9fc79b0ee3acec64.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running benches\ecs_benchmark.rs (target\release\deps\ecs_benchmark-68a25b4a3dc9cc43.exe)
+Gnuplot not found, using plotters backend
+Benchmarking entity_spawn/Custom/100
+Benchmarking entity_spawn/Custom/100: Warming up for 3.0000 s
+Benchmarking entity_spawn/Custom/100: Collecting 100 samples in estimated 5.0313 s (465k iterations)
+Benchmarking entity_spawn/Custom/100: Analyzing
+entity_spawn/Custom/100 time:   [10.206 µs 10.313 µs 10.425 µs]
+Found 6 outliers among 100 measurements (6.00%)
+  2 (2.00%) low mild
+  3 (3.00%) high mild
+  1 (1.00%) high severe
+Benchmarking entity_spawn/Custom/1000
+Benchmarking entity_spawn/Custom/1000: Warming up for 3.0000 s
+Benchmarking entity_spawn/Custom/1000: Collecting 100 samples in estimated 5.0424 s (40k iterations)
+Benchmarking entity_spawn/Custom/1000: Analyzing
+entity_spawn/Custom/1000
+                        time:   [123.67 µs 125.12 µs 126.65 µs]
+Found 6 outliers among 100 measurements (6.00%)
+  4 (4.00%) high mild
+  2 (2.00%) high severe
+Benchmarking entity_spawn/Custom/10000
+Benchmarking entity_spawn/Custom/10000: Warming up for 3.0000 s
+
+Warning: Unable to complete 100 samples in 5.0s. You may wish to increase target time to 6.2s, enable flat sampling, or reduce sample count to 60.
+Benchmarking entity_spawn/Custom/10000: Collecting 100 samples in estimated 6.2253 s (5050 iterations)
+Benchmarking entity_spawn/Custom/10000: Analyzing
+entity_spawn/Custom/10000
+                        time:   [1.1834 ms 1.1985 ms 1.2137 ms]
+Found 3 outliers among 100 measurements (3.00%)
+  3 (3.00%) high mild
+Benchmarking entity_spawn/Hecs/100
+Benchmarking entity_spawn/Hecs/100: Warming up for 3.0000 s
+Benchmarking entity_spawn/Hecs/100: Collecting 100 samples in estimated 5.0121 s (1.2M iterations)
+Benchmarking entity_spawn/Hecs/100: Analyzing
+entity_spawn/Hecs/100   time:   [3.3727 µs 3.4117 µs 3.4511 µs]
+                        change: [+29.572% +33.812% +37.969%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 5 outliers among 100 measurements (5.00%)
+  4 (4.00%) low mild
+  1 (1.00%) high mild
+Benchmarking entity_spawn/Hecs/1000
+Benchmarking entity_spawn/Hecs/1000: Warming up for 3.0000 s
+Benchmarking entity_spawn/Hecs/1000: Collecting 100 samples in estimated 5.0524 s (207k iterations)
+Benchmarking entity_spawn/Hecs/1000: Analyzing
+entity_spawn/Hecs/1000  time:   [23.282 µs 23.556 µs 23.839 µs]
+                        change: [+41.681% +45.594% +49.348%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 4 outliers among 100 measurements (4.00%)
+  2 (2.00%) high mild
+  2 (2.00%) high severe
+Benchmarking entity_spawn/Hecs/10000
+Benchmarking entity_spawn/Hecs/10000: Warming up for 3.0000 s
+Benchmarking entity_spawn/Hecs/10000: Collecting 100 samples in estimated 5.8066 s (25k iterations)
+Benchmarking entity_spawn/Hecs/10000: Analyzing
+entity_spawn/Hecs/10000 time:   [229.36 µs 232.22 µs 235.11 µs]
+                        change: [+48.026% +51.020% +53.984%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 2 outliers among 100 measurements (2.00%)
+  1 (1.00%) low mild
+  1 (1.00%) high mild
+Benchmarking entity_spawn/Specs/100
+Benchmarking entity_spawn/Specs/100: Warming up for 3.0000 s
+Benchmarking entity_spawn/Specs/100: Collecting 100 samples in estimated 5.0904 s (45k iterations)
+Benchmarking entity_spawn/Specs/100: Analyzing
+entity_spawn/Specs/100  time:   [20.759 µs 21.966 µs 23.228 µs]
+                        change: [+28.296% +41.409% +56.476%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 3 outliers among 100 measurements (3.00%)
+  3 (3.00%) high mild
+Benchmarking entity_spawn/Specs/1000
+Benchmarking entity_spawn/Specs/1000: Warming up for 3.0000 s
+Benchmarking entity_spawn/Specs/1000: Collecting 100 samples in estimated 5.4248 s (50k iterations)
+Benchmarking entity_spawn/Specs/1000: Analyzing
+entity_spawn/Specs/1000 time:   [39.771 µs 41.156 µs 42.675 µs]
+                        change: [-0.3295% +14.815% +41.101%] (p = 0.21 > 0.05)
+                        No change in performance detected.
+Found 8 outliers among 100 measurements (8.00%)
+  3 (3.00%) low mild
+  3 (3.00%) high mild
+  2 (2.00%) high severe
+Benchmarking entity_spawn/Specs/10000
+Benchmarking entity_spawn/Specs/10000: Warming up for 3.0000 s
+Benchmarking entity_spawn/Specs/10000: Collecting 100 samples in estimated 5.1955 s (20k iterations)
+Benchmarking entity_spawn/Specs/10000: Analyzing
+entity_spawn/Specs/10000
+                        time:   [212.46 µs 215.98 µs 219.69 µs]
+                        change: [-20.636% -18.485% -16.226%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 6 outliers among 100 measurements (6.00%)
+  5 (5.00%) high mild
+  1 (1.00%) high severe
+Benchmarking entity_spawn/Bevy/100
+Benchmarking entity_spawn/Bevy/100: Warming up for 3.0000 s
+Benchmarking entity_spawn/Bevy/100: Collecting 100 samples in estimated 5.0145 s (384k iterations)
+Benchmarking entity_spawn/Bevy/100: Analyzing
+entity_spawn/Bevy/100   time:   [11.432 µs 11.849 µs 12.301 µs]
+                        change: [-23.981% -21.682% -19.144%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 10 outliers among 100 measurements (10.00%)
+  8 (8.00%) high mild
+  2 (2.00%) high severe
+Benchmarking entity_spawn/Bevy/1000
+Benchmarking entity_spawn/Bevy/1000: Warming up for 3.0000 s
+Benchmarking entity_spawn/Bevy/1000: Collecting 100 samples in estimated 5.2086 s (86k iterations)
+Benchmarking entity_spawn/Bevy/1000: Analyzing
+entity_spawn/Bevy/1000  time:   [56.706 µs 57.477 µs 58.256 µs]
+                        change: [-24.311% -22.848% -21.108%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 4 outliers among 100 measurements (4.00%)
+  2 (2.00%) high mild
+  2 (2.00%) high severe
+Benchmarking entity_spawn/Bevy/10000
+Benchmarking entity_spawn/Bevy/10000: Warming up for 3.0000 s
+Benchmarking entity_spawn/Bevy/10000: Collecting 100 samples in estimated 5.4359 s (10k iterations)
+Benchmarking entity_spawn/Bevy/10000: Analyzing
+entity_spawn/Bevy/10000 time:   [531.35 µs 539.64 µs 548.33 µs]
+                        change: [-33.491% -30.274% -27.486%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 2 outliers among 100 measurements (2.00%)
+  1 (1.00%) high mild
+  1 (1.00%) high severe
+
+Benchmarking entity_despawn/Custom/100
+Benchmarking entity_despawn/Custom/100: Warming up for 3.0000 s
+Benchmarking entity_despawn/Custom/100: Collecting 100 samples in estimated 5.1161 s (96k iterations)
+Benchmarking entity_despawn/Custom/100: Analyzing
+entity_despawn/Custom/100
+                        time:   [38.530 µs 39.187 µs 39.884 µs]
+Found 7 outliers among 100 measurements (7.00%)
+  4 (4.00%) high mild
+  3 (3.00%) high severe
+Benchmarking entity_despawn/Custom/1000
+Benchmarking entity_despawn/Custom/1000: Warming up for 3.0000 s
+Benchmarking entity_despawn/Custom/1000: Collecting 100 samples in estimated 5.2705 s (10k iterations)
+Benchmarking entity_despawn/Custom/1000: Analyzing
+entity_despawn/Custom/1000
+                        time:   [378.84 µs 385.73 µs 393.11 µs]
+Found 4 outliers among 100 measurements (4.00%)
+  2 (2.00%) high mild
+  2 (2.00%) high severe
+Benchmarking entity_despawn/Custom/10000
+Benchmarking entity_despawn/Custom/10000: Warming up for 3.0000 s
+Benchmarking entity_despawn/Custom/10000: Collecting 100 samples in estimated 5.3060 s (1000 iterations)
+Benchmarking entity_despawn/Custom/10000: Analyzing
+entity_despawn/Custom/10000
+                        time:   [3.8821 ms 3.9538 ms 4.0292 ms]
+Found 2 outliers among 100 measurements (2.00%)
+  2 (2.00%) high mild
+Benchmarking entity_despawn/Hecs/100
+Benchmarking entity_despawn/Hecs/100: Warming up for 3.0000 s
+Benchmarking entity_despawn/Hecs/100: Collecting 100 samples in estimated 5.0160 s (758k iterations)
+Benchmarking entity_despawn/Hecs/100: Analyzing
+entity_despawn/Hecs/100 time:   [2.9107 µs 3.0092 µs 3.1136 µs]
+                        change: [-21.636% -17.713% -13.554%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 3 outliers among 100 measurements (3.00%)
+  3 (3.00%) high mild
+Benchmarking entity_despawn/Hecs/1000
+Benchmarking entity_despawn/Hecs/1000: Warming up for 3.0000 s
+Benchmarking entity_despawn/Hecs/1000: Collecting 100 samples in estimated 5.1700 s (116k iterations)
+Benchmarking entity_despawn/Hecs/1000: Analyzing
+entity_despawn/Hecs/1000
+                        time:   [16.645 µs 17.211 µs 17.834 µs]
+                        change: [-18.073% -15.283% -12.212%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 8 outliers among 100 measurements (8.00%)
+  6 (6.00%) high mild
+  2 (2.00%) high severe
+Benchmarking entity_despawn/Hecs/10000
+Benchmarking entity_despawn/Hecs/10000: Warming up for 3.0000 s
+Benchmarking entity_despawn/Hecs/10000: Collecting 100 samples in estimated 5.9795 s (15k iterations)
+Benchmarking entity_despawn/Hecs/10000: Analyzing
+entity_despawn/Hecs/10000
+                        time:   [145.66 µs 149.91 µs 154.68 µs]
+                        change: [-22.407% -19.430% -16.229%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 9 outliers among 100 measurements (9.00%)
+  7 (7.00%) high mild
+  2 (2.00%) high severe
+Benchmarking entity_despawn/Specs/100
+Benchmarking entity_despawn/Specs/100: Warming up for 3.0000 s
+Benchmarking entity_despawn/Specs/100: Collecting 100 samples in estimated 5.5473 s (40k iterations)
+Benchmarking entity_despawn/Specs/100: Analyzing
+entity_despawn/Specs/100
+                        time:   [89.659 µs 91.568 µs 93.552 µs]
+                        change: [+3.0218% +6.4174% +9.7845%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 3 outliers among 100 measurements (3.00%)
+  1 (1.00%) low mild
+  2 (2.00%) high mild
+Benchmarking entity_despawn/Specs/1000
+Benchmarking entity_despawn/Specs/1000: Warming up for 3.0000 s
+Benchmarking entity_despawn/Specs/1000: Collecting 100 samples in estimated 6.6359 s (10k iterations)
+Benchmarking entity_despawn/Specs/1000: Analyzing
+entity_despawn/Specs/1000
+                        time:   [556.94 µs 575.35 µs 595.77 µs]
+                        change: [-15.188% -12.018% -8.1816%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 5 outliers among 100 measurements (5.00%)
+  4 (4.00%) high mild
+  1 (1.00%) high severe
+Benchmarking entity_despawn/Specs/10000
+Benchmarking entity_despawn/Specs/10000: Warming up for 3.0000 s

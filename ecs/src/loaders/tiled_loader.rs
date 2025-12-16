@@ -1,6 +1,7 @@
 use crate::{World, Entity, Tilemap, TileSet, Tile, Transform};
 use tiled::{Loader, Map};
 use std::path::Path;
+use crate::traits::{EcsWorld, ComponentAccess};
 
 /// Tiled/TMX file loader
 /// 
@@ -73,12 +74,12 @@ impl TiledLoader {
             }
 
             // Add components
-            world.tilemaps.insert(entity, tilemap);
-            world.names.insert(entity, format!("Tiled Layer {}", layer_index));
+            let _ = ComponentAccess::<Tilemap>::insert(world, entity, tilemap);
+            let _ = ComponentAccess::<String>::insert(world, entity, format!("Tiled Layer {}", layer_index));
 
             // Add transform
             let transform = Transform::default();
-            world.transforms.insert(entity, transform);
+            let _ = ComponentAccess::<Transform>::insert(world, entity, transform);
 
             entities.push(entity);
         }
@@ -104,8 +105,8 @@ impl TiledLoader {
                 tileset.tilecount,
             );
 
-            world.tilesets.insert(entity, tile_set);
-            world.names.insert(entity, format!("TileSet: {}", tileset.name));
+            let _ = ComponentAccess::<TileSet>::insert(world, entity, tile_set);
+            let _ = ComponentAccess::<String>::insert(world, entity, format!("TileSet: {}", tileset.name));
 
             entities.push(entity);
         }
@@ -113,3 +114,4 @@ impl TiledLoader {
         Ok(entities)
     }
 }
+

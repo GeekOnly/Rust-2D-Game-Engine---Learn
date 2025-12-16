@@ -6,17 +6,20 @@ pub mod component_manager;
 pub mod components;
 pub mod loaders;
 pub mod backends;
+pub mod benchmark_runner;
 
 // Re-export สำหรับใช้งานง่าย
 pub use component_manager::{ComponentType, ComponentManager};
 pub use components::*;
+pub use backends::{EcsBackendType, DynamicWorld, BackendPerformanceInfo, PerformanceLevel};
+pub use benchmark_runner::{BenchmarkRunner, BenchmarkSuite, BenchmarkResult};
 
 // ----------------------------------------------------------------------------
 // Backend Selection
 // ----------------------------------------------------------------------------
 
 #[cfg(feature = "hecs")]
-pub use backends::hecs_backend::HecsWorld as World;
+pub use backends::hecs_minimal::HecsMinimal as World;
 
 #[cfg(not(feature = "hecs"))]
 pub use CustomWorld as World;
@@ -587,48 +590,49 @@ impl Camera {
     }
 }
 
-#[cfg(not(feature = "hecs"))]
+// CustomWorld available always for benchmarking/fallback
+pub type CustomEntity = u32;
+
 #[derive(Default, Clone)]
 pub struct CustomWorld {
-    next_entity: Entity,
-    pub transforms: HashMap<Entity, Transform>,
-    pub velocities: HashMap<Entity, (f32, f32)>,  // Legacy - kept for backward compatibility
-    pub rigidbodies: HashMap<Entity, Rigidbody2D>, // New Rigidbody2D component
-    pub sprites: HashMap<Entity, Sprite>,
-    pub colliders: HashMap<Entity, Collider>,
-    pub meshes: HashMap<Entity, Mesh>,      // 3D meshes
-    pub cameras: HashMap<Entity, Camera>,   // Camera components
-    pub tags: HashMap<Entity, EntityTag>,
-    pub scripts: HashMap<Entity, Script>,
-    pub active: HashMap<Entity, bool>,      // Active state (Unity-like)
-    pub layers: HashMap<Entity, u8>,        // Layer (0-31, Unity has 32 layers)
-    pub parents: HashMap<Entity, Entity>,   // Parent entity
-    pub children: HashMap<Entity, Vec<Entity>>, // Children entities
-    pub names: HashMap<Entity, String>,     // Entity names (for editor)
+    next_entity: CustomEntity,
+    pub transforms: HashMap<CustomEntity, Transform>,
+    pub velocities: HashMap<CustomEntity, (f32, f32)>,  // Legacy - kept for backward compatibility
+    pub rigidbodies: HashMap<CustomEntity, Rigidbody2D>, // New Rigidbody2D component
+    pub sprites: HashMap<CustomEntity, Sprite>,
+    pub colliders: HashMap<CustomEntity, Collider>,
+    pub meshes: HashMap<CustomEntity, Mesh>,      // 3D meshes
+    pub cameras: HashMap<CustomEntity, Camera>,   // Camera components
+    pub tags: HashMap<CustomEntity, EntityTag>,
+    pub scripts: HashMap<CustomEntity, Script>,
+    pub active: HashMap<CustomEntity, bool>,      // Active state (Unity-like)
+    pub layers: HashMap<CustomEntity, u8>,        // Layer (0-31, Unity has 32 layers)
+    pub parents: HashMap<CustomEntity, CustomEntity>,   // Parent entity
+    pub children: HashMap<CustomEntity, Vec<CustomEntity>>, // Children entities
+    pub names: HashMap<CustomEntity, String>,     // Entity names (for editor)
     // Sprite sheet and tilemap components
-    pub sprite_sheets: HashMap<Entity, SpriteSheet>,
-    pub animated_sprites: HashMap<Entity, AnimatedSprite>,
-    pub tilemaps: HashMap<Entity, Tilemap>,
-    pub tilesets: HashMap<Entity, TileSet>,
-    pub tilemap_renderers: HashMap<Entity, TilemapRenderer>,  // Tilemap renderer component
+    pub sprite_sheets: HashMap<CustomEntity, SpriteSheet>,
+    pub animated_sprites: HashMap<CustomEntity, AnimatedSprite>,
+    pub tilemaps: HashMap<CustomEntity, Tilemap>,
+    pub tilesets: HashMap<CustomEntity, TileSet>,
+    pub tilemap_renderers: HashMap<CustomEntity, TilemapRenderer>,  // Tilemap renderer component
     // Map component (LDtk/Tiled integration)
-    pub maps: HashMap<Entity, Map>,
+    pub maps: HashMap<CustomEntity, Map>,
     // Grid component (Unity-like)
-    pub grids: HashMap<Entity, Grid>,
+    pub grids: HashMap<CustomEntity, Grid>,
     // World-space UI components
-    pub world_uis: HashMap<Entity, WorldUI>,
+    pub world_uis: HashMap<CustomEntity, WorldUI>,
     // LDtk Map components
-    pub ldtk_maps: HashMap<Entity, LdtkMap>,
+    pub ldtk_maps: HashMap<CustomEntity, LdtkMap>,
     // Tilemap Collider components
-    pub tilemap_colliders: HashMap<Entity, TilemapCollider>,
-    pub ldtk_intgrid_colliders: HashMap<Entity, LdtkIntGridCollider>,
+    pub tilemap_colliders: HashMap<CustomEntity, TilemapCollider>,
+    pub ldtk_intgrid_colliders: HashMap<CustomEntity, LdtkIntGridCollider>,
 }
 
-#[cfg(not(feature = "hecs"))]
 impl CustomWorld {
     pub fn new() -> Self { Self::default() }
 
-    pub fn spawn(&mut self) -> Entity {
+    pub fn spawn(&mut self) -> CustomEntity {
         let id = self.next_entity;
         self.next_entity += 1;
         // New entities are active by default (Unity behavior)
@@ -638,7 +642,7 @@ impl CustomWorld {
         id
     }
 
-    pub fn despawn(&mut self, e: Entity) {
+    pub fn despawn(&mut self, e: CustomEntity) {
         // Recursively despawn children
         if let Some(children) = self.children.remove(&e) {
             for child in children {
@@ -707,7 +711,7 @@ impl CustomWorld {
         self.next_entity = 0;
     }
 
-    pub fn set_parent(&mut self, child: Entity, parent: Option<Entity>) {
+    pub fn set_parent(&mut self, child: CustomEntity, parent: Option<CustomEntity>) {
         // Remove from old parent
         if let Some(old_parent) = self.parents.remove(&child) {
             if let Some(siblings) = self.children.get_mut(&old_parent) {
@@ -722,39 +726,39 @@ impl CustomWorld {
         }
     }
 
-    pub fn get_children(&self, entity: Entity) -> &[Entity] {
+    pub fn get_children(&self, entity: CustomEntity) -> &[CustomEntity] {
         self.children.get(&entity).map(|v| v.as_slice()).unwrap_or(&[])
     }
 
-    pub fn get_parent(&self, entity: Entity) -> Option<Entity> {
+    pub fn get_parent(&self, entity: CustomEntity) -> Option<CustomEntity> {
         self.parents.get(&entity).copied()
     }
 
     pub fn save_to_json(&self) -> Result<String, serde_json::Error> {
         #[derive(Serialize)]
         struct SceneData {
-            next_entity: Entity,
-            transforms: Vec<(Entity, Transform)>,
-            velocities: Vec<(Entity, (f32, f32))>,
-            sprites: Vec<(Entity, Sprite)>,
-            colliders: Vec<(Entity, Collider)>,
-            rigidbodies: Vec<(Entity, Rigidbody2D)>,  // Added rigidbody serialization
-            cameras: Vec<(Entity, Camera)>,
-            meshes: Vec<(Entity, Mesh)>,
-            tags: Vec<(Entity, EntityTag)>,
-            scripts: Vec<(Entity, Script)>,
-            active: Vec<(Entity, bool)>,
-            layers: Vec<(Entity, u8)>,
-            parents: Vec<(Entity, Entity)>,
-            names: Vec<(Entity, String)>,
-            sprite_sheets: Vec<(Entity, SpriteSheet)>,
-            animated_sprites: Vec<(Entity, AnimatedSprite)>,
-            tilemaps: Vec<(Entity, Tilemap)>,
-            tilesets: Vec<(Entity, TileSet)>,
-            tilemap_renderers: Vec<(Entity, TilemapRenderer)>,
-            grids: Vec<(Entity, Grid)>,
-            maps: Vec<(Entity, Map)>,
-            world_uis: Vec<(Entity, WorldUI)>,
+            next_entity: CustomEntity,
+            transforms: Vec<(CustomEntity, Transform)>,
+            velocities: Vec<(CustomEntity, (f32, f32))>,
+            sprites: Vec<(CustomEntity, Sprite)>,
+            colliders: Vec<(CustomEntity, Collider)>,
+            rigidbodies: Vec<(CustomEntity, Rigidbody2D)>,  // Added rigidbody serialization
+            cameras: Vec<(CustomEntity, Camera)>,
+            meshes: Vec<(CustomEntity, Mesh)>,
+            tags: Vec<(CustomEntity, EntityTag)>,
+            scripts: Vec<(CustomEntity, Script)>,
+            active: Vec<(CustomEntity, bool)>,
+            layers: Vec<(CustomEntity, u8)>,
+            parents: Vec<(CustomEntity, CustomEntity)>,
+            names: Vec<(CustomEntity, String)>,
+            sprite_sheets: Vec<(CustomEntity, SpriteSheet)>,
+            animated_sprites: Vec<(CustomEntity, AnimatedSprite)>,
+            tilemaps: Vec<(CustomEntity, Tilemap)>,
+            tilesets: Vec<(CustomEntity, TileSet)>,
+            tilemap_renderers: Vec<(CustomEntity, TilemapRenderer)>,
+            grids: Vec<(CustomEntity, Grid)>,
+            maps: Vec<(CustomEntity, Map)>,
+            world_uis: Vec<(CustomEntity, WorldUI)>,
         }
 
         let data = SceneData {
@@ -789,49 +793,49 @@ impl CustomWorld {
         #[derive(Deserialize)]
         struct SceneData {
             #[serde(default)]
-            next_entity: Entity,
+            next_entity: CustomEntity,
             #[serde(default)]
-            transforms: Vec<(Entity, Transform)>,
+            transforms: Vec<(CustomEntity, Transform)>,
             #[serde(default)]
-            velocities: Vec<(Entity, (f32, f32))>,
+            velocities: Vec<(CustomEntity, (f32, f32))>,
             #[serde(default)]
-            sprites: Vec<(Entity, Sprite)>,
+            sprites: Vec<(CustomEntity, Sprite)>,
             #[serde(default)]
-            colliders: Vec<(Entity, Collider)>,
+            colliders: Vec<(CustomEntity, Collider)>,
             #[serde(default)]
-            rigidbodies: Vec<(Entity, Rigidbody2D)>,  // Added rigidbody deserialization
+            rigidbodies: Vec<(CustomEntity, Rigidbody2D)>,  // Added rigidbody deserialization
             #[serde(default)]
-            cameras: Vec<(Entity, Camera)>,
+            cameras: Vec<(CustomEntity, Camera)>,
             #[serde(default)]
-            meshes: Vec<(Entity, Mesh)>,
+            meshes: Vec<(CustomEntity, Mesh)>,
             #[serde(default)]
-            tags: Vec<(Entity, EntityTag)>,
+            tags: Vec<(CustomEntity, EntityTag)>,
             #[serde(default)]
-            scripts: Vec<(Entity, Script)>,
+            scripts: Vec<(CustomEntity, Script)>,
             #[serde(default)]
-            active: Vec<(Entity, bool)>,
+            active: Vec<(CustomEntity, bool)>,
             #[serde(default)]
-            layers: Vec<(Entity, u8)>,
+            layers: Vec<(CustomEntity, u8)>,
             #[serde(default)]
-            parents: Vec<(Entity, Entity)>,
+            parents: Vec<(CustomEntity, CustomEntity)>,
             #[serde(default)]
-            names: Vec<(Entity, String)>,
+            names: Vec<(CustomEntity, String)>,
             #[serde(default)]
-            sprite_sheets: Vec<(Entity, SpriteSheet)>,
+            sprite_sheets: Vec<(CustomEntity, SpriteSheet)>,
             #[serde(default)]
-            animated_sprites: Vec<(Entity, AnimatedSprite)>,
+            animated_sprites: Vec<(CustomEntity, AnimatedSprite)>,
             #[serde(default)]
-            tilemaps: Vec<(Entity, Tilemap)>,
+            tilemaps: Vec<(CustomEntity, Tilemap)>,
             #[serde(default)]
-            tilesets: Vec<(Entity, TileSet)>,
+            tilesets: Vec<(CustomEntity, TileSet)>,
             #[serde(default)]
-            tilemap_renderers: Vec<(Entity, TilemapRenderer)>,
+            tilemap_renderers: Vec<(CustomEntity, TilemapRenderer)>,
             #[serde(default)]
-            grids: Vec<(Entity, Grid)>,
+            grids: Vec<(CustomEntity, Grid)>,
             #[serde(default)]
-            maps: Vec<(Entity, Map)>,
+            maps: Vec<(CustomEntity, Map)>,
             #[serde(default)]
-            world_uis: Vec<(Entity, WorldUI)>,
+            world_uis: Vec<(CustomEntity, WorldUI)>,
         }
 
         let data: SceneData = serde_json::from_str(json)?;
@@ -933,9 +937,8 @@ impl CustomWorld {
 
 use traits::{EcsWorld, EcsError, Serializable};
 
-#[cfg(not(feature = "hecs"))]
 impl EcsWorld for CustomWorld {
-    type Entity = Entity;
+    type Entity = CustomEntity;
     type Error = EcsError;
     
     fn spawn(&mut self) -> Self::Entity {
@@ -996,7 +999,6 @@ impl EcsWorld for CustomWorld {
     }
 }
 
-#[cfg(not(feature = "hecs"))]
 impl Serializable for CustomWorld {
     fn save_to_json(&self) -> Result<String, Box<dyn std::error::Error>> {
         CustomWorld::save_to_json(self).map_err(|e| Box::new(e) as Box<dyn std::error::Error>)
@@ -1008,38 +1010,37 @@ impl Serializable for CustomWorld {
 }
 
 // Implement ComponentAccess for all component types using the macro
-#[cfg(not(feature = "hecs"))]
 mod custom_world_impls {
     use super::*;
-    impl_component_access!(CustomWorld, Transform, transforms);
-    impl_component_access!(CustomWorld, Sprite, sprites);
-    impl_component_access!(CustomWorld, Collider, colliders);
-    impl_component_access!(CustomWorld, Rigidbody2D, rigidbodies);
-    impl_component_access!(CustomWorld, Mesh, meshes);
-    impl_component_access!(CustomWorld, Camera, cameras);
-    impl_component_access!(CustomWorld, Script, scripts);
-    impl_component_access!(CustomWorld, EntityTag, tags);
-    impl_component_access!(CustomWorld, SpriteSheet, sprite_sheets);
-    impl_component_access!(CustomWorld, AnimatedSprite, animated_sprites);
-    impl_component_access!(CustomWorld, Tilemap, tilemaps);
-    impl_component_access!(CustomWorld, TileSet, tilesets);
-    impl_component_access!(CustomWorld, TilemapRenderer, tilemap_renderers);
-    impl_component_access!(CustomWorld, Map, maps);
-    impl_component_access!(CustomWorld, Grid, grids);
-    impl_component_access!(CustomWorld, WorldUI, world_uis);
-    impl_component_access!(CustomWorld, LdtkMap, ldtk_maps);
-    impl_component_access!(CustomWorld, TilemapCollider, tilemap_colliders);
-    impl_component_access!(CustomWorld, LdtkIntGridCollider, ldtk_intgrid_colliders);
+    impl_component_access!(CustomWorld, Transform, transforms, CustomEntity);
+    impl_component_access!(CustomWorld, Sprite, sprites, CustomEntity);
+    impl_component_access!(CustomWorld, Collider, colliders, CustomEntity);
+    impl_component_access!(CustomWorld, Rigidbody2D, rigidbodies, CustomEntity);
+    impl_component_access!(CustomWorld, Mesh, meshes, CustomEntity);
+    impl_component_access!(CustomWorld, Camera, cameras, CustomEntity);
+    impl_component_access!(CustomWorld, Script, scripts, CustomEntity);
+    impl_component_access!(CustomWorld, EntityTag, tags, CustomEntity);
+    impl_component_access!(CustomWorld, SpriteSheet, sprite_sheets, CustomEntity);
+    impl_component_access!(CustomWorld, AnimatedSprite, animated_sprites, CustomEntity);
+    impl_component_access!(CustomWorld, Tilemap, tilemaps, CustomEntity);
+    impl_component_access!(CustomWorld, TileSet, tilesets, CustomEntity);
+    impl_component_access!(CustomWorld, TilemapRenderer, tilemap_renderers, CustomEntity);
+    impl_component_access!(CustomWorld, Map, maps, CustomEntity);
+    impl_component_access!(CustomWorld, Grid, grids, CustomEntity);
+    impl_component_access!(CustomWorld, WorldUI, world_uis, CustomEntity);
+    impl_component_access!(CustomWorld, LdtkMap, ldtk_maps, CustomEntity);
+    impl_component_access!(CustomWorld, TilemapCollider, tilemap_colliders, CustomEntity);
+    impl_component_access!(CustomWorld, LdtkIntGridCollider, ldtk_intgrid_colliders, CustomEntity);
 }
 
 // Manual implementations for tuple and primitive types
 // Manual implementations for tuple and primitive types
-#[cfg(not(feature = "hecs"))]
+
 mod custom_world_manual_impls {
     use super::*;
 
     impl traits::ComponentAccess<(f32, f32)> for CustomWorld {
-        type Entity = Entity;
+        type Entity = CustomEntity;
         type Error = EcsError;
         
         type ReadGuard<'a> = &'a (f32, f32);
@@ -1071,7 +1072,7 @@ mod custom_world_manual_impls {
     }
 
     impl traits::ComponentAccess<bool> for CustomWorld {
-        type Entity = Entity;
+        type Entity = CustomEntity;
         type Error = EcsError;
         
         type ReadGuard<'a> = &'a bool;
@@ -1103,7 +1104,7 @@ mod custom_world_manual_impls {
     }
 
     impl traits::ComponentAccess<u8> for CustomWorld {
-        type Entity = Entity;
+        type Entity = CustomEntity;
         type Error = EcsError;
         
         type ReadGuard<'a> = &'a u8;
@@ -1135,7 +1136,7 @@ mod custom_world_manual_impls {
     }
 
     impl traits::ComponentAccess<String> for CustomWorld {
-        type Entity = Entity;
+        type Entity = CustomEntity;
         type Error = EcsError;
 
         type ReadGuard<'a> = &'a String;

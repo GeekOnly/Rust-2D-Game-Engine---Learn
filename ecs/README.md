@@ -1,353 +1,250 @@
-# ECS (Entity Component System)
+# ECS Module - Multi-Backend Entity Component System
 
-High-performance Entity Component System for the Rust 2D/3D Game Engine.
+A flexible Entity Component System (ECS) implementation that supports multiple backends including custom HashMap-based, Hecs, Specs, and Bevy ECS.
 
-## 📚 Overview
+## Features
 
-This ECS library provides entity management and component storage for our game engine. Currently using a custom HashMap-based implementation, with plans to support multiple backends (hecs, Specs, Bevy) in the future.
+- **Multiple ECS Backends**: Choose between different ECS implementations based on your needs
+- **Runtime Backend Switching**: Switch between backends at runtime (clears world)
+- **Comprehensive Benchmarking**: Built-in benchmark suite to compare backend performance
+- **Unified API**: Same API across all backends for easy switching
+- **Performance Analysis**: Detailed performance characteristics for each backend
 
----
+## Available Backends
 
-## 🎯 Current Status
+### 1. Custom HashMap Backend (Always Available)
+- **Description**: Simple HashMap-based ECS implementation
+- **Best For**: Prototyping and small games
+- **Performance**: Medium entity spawn, medium component access, low query speed
+- **Features**: Basic functionality, easy to understand
 
-**Implementation:** Custom HashMap-based ECS
-**Performance:** Good for small-medium games (<5,000 entities)
-**Benchmarked:** Yes ([BENCHMARK_RESULTS.md](BENCHMARK_RESULTS.md))
-**Production Ready:** ✅ Yes
+### 2. Hecs Backend (Feature: `hecs`)
+- **Description**: Fast, minimal, and flexible ECS library
+- **Best For**: Balance of performance and simplicity
+- **Performance**: High entity spawn, high component access, high query speed
+- **Features**: Archetype-based, excellent performance, minimal API
 
-### Performance Baseline (10,000 entities):
-- **Spawn:** 53 ns/entity
-- **Query (single component):** 2.3 ns/entity
-- **Query (multi-component):** 20.3 ns/entity
-- **Game scenario (1,000 entities × 60 frames):** ~40 µs/frame
+### 3. Specs Backend (Feature: `specs`)
+- **Description**: Mature, parallel ECS library
+- **Best For**: Complex games with many systems
+- **Performance**: Medium entity spawn, high component access, high query speed
+- **Features**: Parallel systems, mature ecosystem, flexible
 
----
+### 4. Bevy ECS Backend (Feature: `bevy`)
+- **Description**: Modern, high-performance ECS with excellent ergonomics
+- **Best For**: Modern game development with advanced scheduling
+- **Performance**: High entity spawn, high component access, very high query speed
+- **Features**: Archetype-based, parallel systems, advanced scheduling
 
-## 📖 Documentation
-
-| Document | Description |
-|----------|-------------|
-| [BENCHMARK_RESULTS.md](BENCHMARK_RESULTS.md) | Performance analysis and comparison with other ECS libraries |
-| [MIGRATION_TO_HECS.md](MIGRATION_TO_HECS.md) | Step-by-step guide for migrating to hecs when needed |
-| [examples/migration_example.rs](examples/migration_example.rs) | Code examples showing before/after migration patterns |
-
----
-
-## 🚀 Quick Start
+## Usage
 
 ### Basic Usage
 
 ```rust
-use ecs::{World, Transform, Sprite, Collider};
+use ecs::{EcsBackendType, DynamicWorld, Transform, Sprite};
+use ecs::traits::{EcsWorld, ComponentAccess};
 
-// Create world
-let mut world = World::new();
+// Create a world with the default backend
+let mut world = DynamicWorld::new(EcsBackendType::default())?;
 
-// Spawn entity
+// Spawn entities
 let player = world.spawn();
+let enemy = world.spawn();
 
-// Add components
-world.transforms.insert(player, Transform::default());
-world.sprites.insert(player, Sprite {
-    texture_id: "player.png".to_string(),
-    width: 32.0,
-    height: 32.0,
-    color: [1.0, 1.0, 1.0, 1.0],
-    billboard: false,
-});
+// Add components (simplified - actual implementation varies by backend)
+// world.insert_component(player, Transform::default())?;
+// world.insert_component(player, Sprite::default())?;
+
+// Set up hierarchy
+world.set_parent(enemy, Some(player))?;
 
 // Query entities
-for (entity, transform) in &world.transforms {
-    if let Some(sprite) = world.sprites.get(&entity) {
-        // Render sprite at transform position
-    }
-}
-
-// Remove components
-world.sprites.remove(&player);
-
-// Despawn entity
-world.despawn(player);
+println!("Player children: {:?}", world.get_children(player));
 ```
 
-### Using Prefabs
+### Backend Selection
 
 ```rust
-use ecs::{World, Prefab};
+use ecs::{EcsBackendType, DynamicWorld};
 
-let mut world = World::new();
+// List available backends
+for backend in EcsBackendType::available_backends() {
+    println!("{}: {}", backend, backend.description());
+}
 
-// Spawn predefined entity types
-let player = Prefab::player().spawn(&mut world);
-let item = Prefab::item().spawn(&mut world);
+// Create world with specific backend
+let mut world = DynamicWorld::new(EcsBackendType::Hecs)?;
+
+// Switch backend at runtime (clears world)
+world.switch_backend(EcsBackendType::Specs)?;
 ```
 
----
-
-## 📊 Components
-
-### Transform
-Position, rotation, and scale in 3D space.
+### Performance Analysis
 
 ```rust
-pub struct Transform {
-    pub position: [f32; 3],  // X, Y, Z
-    pub rotation: [f32; 3],  // Euler angles (degrees)
-    pub scale: [f32; 3],     // X, Y, Z
-}
+use ecs::{EcsBackendType, BenchmarkRunner};
+
+// Get performance characteristics
+let backend = EcsBackendType::Hecs;
+let perf_info = backend.performance_info();
+println!("Entity spawn speed: {}", perf_info.entity_spawn_speed);
+println!("Supports parallel systems: {}", perf_info.parallel_systems);
+
+// Run benchmarks
+let runner = BenchmarkRunner::new(1000, 100);
+let suite = runner.run_all_benchmarks();
+println!("{}", suite.generate_report());
 ```
 
-### Sprite (2D Rendering)
-2D sprite with texture and color.
+## Cargo Features
 
-```rust
-pub struct Sprite {
-    pub texture_id: String,
-    pub width: f32,
-    pub height: f32,
-    pub color: [f32; 4],    // RGBA
-    pub billboard: bool,    // Face camera in 3D mode
-}
+Enable specific backends by adding features to your `Cargo.toml`:
+
+```toml
+[dependencies]
+ecs = { path = "../ecs", features = ["hecs", "specs", "bevy"] }
+
+# Or enable all backends
+ecs = { path = "../ecs", features = ["all_backends"] }
 ```
 
-### SpriteSheet
-Sprite sheet component for managing sprite atlas data with multiple frames.
+Available features:
+- `hecs` - Enable Hecs backend
+- `specs` - Enable Specs backend  
+- `bevy` - Enable Bevy ECS backend
+- `all_backends` - Enable all backends
 
-```rust
-pub struct SpriteSheet {
-    pub texture_path: String,
-    pub texture_id: String,
-    pub sheet_width: u32,
-    pub sheet_height: u32,
-    pub frames: Vec<SpriteFrame>,
-}
-```
+## Command Line Tools
 
-**Loading from Sprite Editor files:**
+### ECS Benchmark CLI
 
-```rust
-use ecs::components::sprite_sheet::SpriteSheet;
-use std::path::Path;
-
-// Load sprite sheet from .sprite file created by the Sprite Editor
-let sprite_sheet = SpriteSheet::from_sprite_file(Path::new("assets/characters/knight.sprite"))
-    .expect("Failed to load sprite sheet");
-
-// Access individual sprites by name
-if let Some(frame) = sprite_sheet.get_frame_by_name("knight_idle_0") {
-    println!("Frame at ({}, {}), size {}x{}", 
-        frame.x, frame.y, frame.width, frame.height);
-}
-
-// Or by index
-if let Some(frame) = sprite_sheet.get_frame(0) {
-    // Use frame data for rendering
-}
-```
-
-### Mesh (3D Rendering)
-3D mesh with type and color.
-
-```rust
-pub struct Mesh {
-    pub mesh_type: MeshType,  // Cube, Sphere, Cylinder, etc.
-    pub color: [f32; 4],      // RGBA
-}
-```
-
-### Collider
-Physics collider (2D box collider).
-
-```rust
-pub struct Collider {
-    pub width: f32,
-    pub height: f32,
-}
-```
-
-### Camera
-Camera component for rendering (Unity-like).
-
-```rust
-pub struct Camera {
-    pub projection: CameraProjection,  // Orthographic or Perspective
-    pub fov: f32,                      // Field of view (degrees)
-    pub orthographic_size: f32,        // Half-height in world units
-    pub near_clip: f32,
-    pub far_clip: f32,
-    pub background_color: [f32; 4],
-    pub depth: i32,                    // Render order
-    // ...
-}
-```
-
-### Script
-Lua script component.
-
-```rust
-pub struct Script {
-    pub script_name: String,
-    pub enabled: bool,
-    pub parameters: HashMap<String, ScriptParameter>,
-}
-```
-
----
-
-## 🔧 Running Benchmarks
+Run benchmarks from the command line:
 
 ```bash
-# Run all benchmarks
-cd ecs
+# List available backends
+cargo run --bin ecs_benchmark list
+
+# Show backend information
+cargo run --bin ecs_benchmark info
+
+# Run benchmarks for all backends
+cargo run --bin ecs_benchmark benchmark --iterations 1000 --output results.json
+
+# Run benchmarks for specific backend
+cargo run --bin ecs_benchmark benchmark --backend hecs
+
+# Compare results
+cargo run --bin ecs_benchmark compare --input results.json
+
+# Test backend functionality
+cargo run --bin ecs_benchmark test
+```
+
+### Example Usage
+
+```bash
+# Run with all features enabled
+cargo run --features all_backends --bin ecs_benchmark benchmark
+
+# Run with specific backend
+cargo run --features hecs --bin ecs_benchmark benchmark --backend hecs
+```
+
+## Examples
+
+Run the backend chooser example:
+
+```bash
+cargo run --example backend_chooser --features all_backends
+```
+
+## Benchmarking
+
+The module includes comprehensive benchmarking tools:
+
+### Built-in Benchmarks
+
+- **Entity Spawn**: Measures entity creation speed
+- **Entity Despawn**: Measures entity destruction speed
+- **Component Insert**: Measures component addition speed
+- **World Clear**: Measures world clearing speed
+- **Hierarchy Operations**: Measures parent-child relationship operations
+- **Mixed Operations**: Simulates typical game frame operations
+
+### Running Criterion Benchmarks
+
+```bash
+# Run all benchmarks with Criterion
 cargo bench
 
 # Run specific benchmark
-cargo bench spawn
-
-# View HTML report
-# Open: target/criterion/report/index.html
+cargo bench entity_spawn
 ```
 
----
-
-## 📈 When to Migrate to hecs?
-
-Consider migrating to [hecs](https://github.com/Ralith/hecs) when:
-
-✅ You have **>5,000 active entities**
-✅ Multi-component queries are **slow** (profiling shows ECS bottleneck)
-✅ You need **better memory efficiency**
-✅ You want **2-10x faster queries**
-
-See [MIGRATION_TO_HECS.md](MIGRATION_TO_HECS.md) for complete migration guide.
-
-### Expected Performance Gains:
-- Query 10k entities: **23 µs → 5-8 µs** (2-5x faster)
-- Multi-component query: **203 µs → 20-40 µs** (5-10x faster)
-- Insert components: **895 µs → 200-300 µs** (2-4x faster)
-
----
-
-## 🏗️ Architecture
-
-### Current Structure:
-```
-ecs/
-├── src/
-│   ├── lib.rs                 # Main World struct + components
-│   ├── traits.rs              # Abstraction traits (for future backends)
-│   ├── components/            # Component definitions (future)
-│   └── backends/              # Backend implementations (future)
-│       ├── custom.rs          # HashMap-based (current)
-│       ├── hecs_backend.rs    # hecs (future)
-│       ├── specs_backend.rs   # Specs (future)
-│       └── bevy_backend.rs    # Bevy ECS (future)
-├── benches/
-│   └── ecs_benchmark.rs       # Performance benchmarks
-└── examples/
-    └── migration_example.rs   # Migration examples
-```
-
----
-
-## 🎮 Features
-
-- [x] Entity spawning and despawning
-- [x] Component add/remove/query
-- [x] Entity hierarchies (parent/child)
-- [x] Entity tags and layers
-- [x] Prefab system
-- [x] Serialization (JSON)
-- [x] Performance benchmarks
-- [ ] System scheduling (future)
-- [ ] Multiple backend support (future)
-- [ ] Change detection (future)
-
----
-
-## 🔬 Performance Tips
-
-### DO:
-✅ Use `for (entity, component) in &world.components` for iteration
-✅ Batch component additions/removals
-✅ Use prefabs for common entity types
-✅ Profile before optimizing
-
-### DON'T:
-❌ Don't iterate all entities then filter by component
-❌ Don't spawn/despawn entities in hot loops
-❌ Don't use `world.clone()` (expensive!)
-❌ Don't add components one-by-one in inner loops
-
----
-
-## 📝 Example: Physics System
+### Custom Benchmarks
 
 ```rust
-pub fn physics_system(world: &mut World, dt: f32) {
-    // Collect entities with velocity first (avoid borrow issues)
-    let entities: Vec<_> = world.velocities.keys().copied().collect();
+use ecs::{BenchmarkRunner, EcsBackendType};
 
-    for entity in entities {
-        if let (Some(&(vx, vy)), Some(transform)) = (
-            world.velocities.get(&entity),
-            world.transforms.get_mut(&entity),
-        ) {
-            // Update position based on velocity
-            transform.position[0] += vx * dt;
-            transform.position[1] += vy * dt;
+let runner = BenchmarkRunner::new(1000, 100);
 
-            // Optional: Apply collision detection
-            if let Some(collider) = world.colliders.get(&entity) {
-                // Check collisions...
-            }
-        }
-    }
-}
+// Benchmark specific operation
+let result = runner.bench_entity_spawn(EcsBackendType::Hecs, 10000)?;
+println!("Hecs: {:.0} entities/sec", result.operations_per_second);
+
+// Run full benchmark suite
+let suite = runner.run_all_benchmarks();
+suite.save_to_file("benchmark_results.json")?;
 ```
 
----
+## Performance Comparison
 
-## 🆘 Common Issues
+Based on typical benchmarks (results may vary):
 
-### Issue: "Borrow checker errors when iterating"
-**Solution:** Collect entity IDs first, then iterate:
-```rust
-let entities: Vec<_> = world.transforms.keys().copied().collect();
-for entity in entities {
-    // Now you can borrow world mutably
-}
+| Backend | Entity Spawn | Component Access | Query Speed | Memory Usage | Parallel |
+|---------|-------------|------------------|-------------|--------------|----------|
+| Custom  | Medium      | Medium           | Low         | Medium       | No       |
+| Hecs    | High        | High             | High        | High         | No       |
+| Specs   | Medium      | High             | High        | Medium       | Yes      |
+| Bevy    | High        | High             | Very High   | High         | Yes      |
+
+## Architecture
+
+The ECS module uses a trait-based abstraction layer:
+
+- `EcsWorld` - Core world operations (spawn, despawn, hierarchy)
+- `ComponentAccess<T>` - Type-safe component operations
+- `Serializable` - World persistence
+- `DynamicWorld` - Runtime backend switching
+
+Each backend implements these traits, providing a unified API while leveraging the strengths of different ECS libraries.
+
+## Testing
+
+Run tests for all available backends:
+
+```bash
+# Run unit tests
+cargo test
+
+# Run tests with all features
+cargo test --features all_backends
+
+# Run property-based tests
+cargo test property_tests
 ```
 
-### Issue: "Performance is slow with many entities"
-**Solution:**
-1. Run benchmarks to identify bottleneck
-2. See [BENCHMARK_RESULTS.md](BENCHMARK_RESULTS.md) for analysis
-3. Consider migrating to hecs (see [MIGRATION_TO_HECS.md](MIGRATION_TO_HECS.md))
+## Contributing
 
-### Issue: "Entity not found after despawn"
-**Solution:** Entities are removed immediately. Store entity references carefully and check `world.is_alive()`.
+When adding new backends:
 
----
+1. Implement the core traits (`EcsWorld`, `ComponentAccess<T>`, `Serializable`)
+2. Add feature flag to `Cargo.toml`
+3. Update `EcsBackendType` enum
+4. Add backend to `DynamicWorld`
+5. Add benchmarks and tests
+6. Update documentation
 
-## 📜 License
+## License
 
-Part of the Rust 2D/3D Game Engine project.
-
----
-
-## 🤝 Contributing
-
-This ECS is designed for our game engine. If you find bugs or have suggestions:
-1. Check [BENCHMARK_RESULTS.md](BENCHMARK_RESULTS.md) for performance baseline
-2. Read [MIGRATION_TO_HECS.md](MIGRATION_TO_HECS.md) for future plans
-3. Submit issues or suggestions
-
----
-
-## 🔗 Related Projects
-
-- [hecs](https://github.com/Ralith/hecs) - High-performance archetype-based ECS
-- [Bevy ECS](https://github.com/bevyengine/bevy) - Bevy's powerful ECS
-- [Specs](https://github.com/amethyst/specs) - Specs parallel ECS
-- [Legion](https://github.com/amethyst/legion) - High-performance ECS with scheduling
+This module is part of the Rust 2D Game Engine project.

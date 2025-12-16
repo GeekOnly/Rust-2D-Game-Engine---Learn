@@ -1,0 +1,311 @@
+   Compiling ecs v0.1.0 (K:\XSGameStudio\2025 Project\Game Engine\Rust 2D Game Engine\ecs)
+error[E0412]: cannot find type `TileSet` in this scope
+   --> ecs\src\loaders\ldtk_loader.rs:652:63
+    |
+652 | ...                   let _ = ComponentAccess::<TileSet>::insert(world, entity, tileset);
+    |                                                 ^^^^^^^ not found in this scope
+    |
+help: consider importing this struct through its public re-export
+    |
+1   + use crate::TileSet;
+    |
+
+warning: unused import: `std::collections::HashMap`
+ --> ecs\src\lib.rs:1:5
+  |
+1 | use std::collections::HashMap;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused imports: `Camera`, `Collider`, `EntityTag`, `LdtkIntGridCollider`, `LdtkMap`, `Mesh`, `ScriptLifecycleState`, `Script`, `Sprite`, `TilemapCollider`, and `Transform`
+ --> ecs\src\component_manager.rs:9:21
+  |
+9 | ...y, Transform, Sprite, Collider, Mesh, Camera, Script, ScriptLifecycleState, EntityTag, LdtkMap, TilemapCollider, LdtkIntGridCollider};
+  |       ^^^^^^^^^  ^^^^^^  ^^^^^^^^  ^^^^  ^^^^^^  ^^^^^^  ^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^  ^^^^^^^  ^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `std::collections::HashMap`
+  --> ecs\src\component_manager.rs:10:5
+   |
+10 | use std::collections::HashMap;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `Component`
+ --> ecs\src\backends\hecs_backend.rs:4:22
+  |
+4 |     use hecs::{self, Component};
+  |                      ^^^^^^^^^
+
+warning: unused imports: `Deserialize` and `Serialize`
+ --> ecs\src\backends\hecs_backend.rs:6:17
+  |
+6 |     use serde::{Serialize, Deserialize};
+  |                 ^^^^^^^^^  ^^^^^^^^^^^
+
+warning: unused import: `Component`
+ --> ecs\src\backends\hecs_minimal.rs:5:22
+  |
+5 |     use hecs::{self, Component};
+  |                      ^^^^^^^^^
+
+warning: unused import: `std::collections::HashMap`
+ --> ecs\src\backends\hecs_minimal.rs:6:9
+  |
+6 |     use std::collections::HashMap;
+  |         ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `DispatcherBuilder`, `Dispatcher`, `LazyUpdate`, `ReadStorage`, `RunNow`, `SystemData`, `System`, and `WriteStorage`
+ --> ecs\src\backends\specs_backend.rs:7:30
+  |
+7 |     WorldExt, Builder, Join, ReadStorage, WriteStorage, Entities, LazyUpdate,
+  |                              ^^^^^^^^^^^  ^^^^^^^^^^^^            ^^^^^^^^^^
+8 |     System, SystemData, Dispatcher, DispatcherBuilder, RunNow
+  |     ^^^^^^  ^^^^^^^^^^  ^^^^^^^^^^  ^^^^^^^^^^^^^^^^^  ^^^^^^
+
+warning: unused imports: `Commands`, `EntityMut`, `EntityRef`, `Query`, `ResMut`, `Res`, and `bundle::Bundle`
+  --> ecs\src\backends\bevy_backend.rs:8:33
+   |
+8  |     world::{World as BevyWorld, EntityMut, EntityRef},
+   |                                 ^^^^^^^^^  ^^^^^^^^^
+9  |     system::{Query, Commands, Res, ResMut, Resource},
+   |              ^^^^^  ^^^^^^^^  ^^^  ^^^^^^
+10 |     bundle::Bundle,
+   |     ^^^^^^^^^^^^^^
+
+warning: unused imports: `EcsError` and `Serializable`
+   --> ecs\src\lib.rs:937:24
+    |
+937 | use traits::{EcsWorld, EcsError, Serializable};
+    |                        ^^^^^^^^  ^^^^^^^^^^^^
+
+error[E0277]: the trait bound `HecsMinimal: ComponentAccess<grid::Grid>` is not satisfied
+   --> ecs\src\loaders\ldtk_loader.rs:112:76
+    |
+112 |         let _ = ComponentAccess::<crate::Grid>::insert(world, grid_entity, grid);
+    |                 --------------------------------------                     ^^^^ the trait `ComponentAccess<grid::Grid>` is not implemented for `HecsMinimal`
+    |                 |
+    |                 required by a bound introduced by this call
+    |
+    = help: the following other types implement trait `ComponentAccess<T>`:
+              `HecsMinimal` implements `ComponentAccess<(f32, f32)>`
+              `HecsMinimal` implements `ComponentAccess<Camera>`
+              `HecsMinimal` implements `ComponentAccess<Collider>`
+              `HecsMinimal` implements `ComponentAccess<EntityTag>`
+              `HecsMinimal` implements `ComponentAccess<Mesh>`
+              `HecsMinimal` implements `ComponentAccess<Rigidbody2D>`
+              `HecsMinimal` implements `ComponentAccess<Script>`
+              `HecsMinimal` implements `ComponentAccess<Sprite>`
+            and 4 others
+
+error[E0277]: the trait bound `HecsMinimal: ComponentAccess<grid::Grid>` is not satisfied
+   --> ecs\src\loaders\ldtk_loader.rs:112:63
+    |
+112 |         let _ = ComponentAccess::<crate::Grid>::insert(world, grid_entity, grid);
+    |                                                               ^^^^^^^^^^^ the trait `ComponentAccess<grid::Grid>` is not implemented for `HecsMinimal`
+    |
+    = help: the following other types implement trait `ComponentAccess<T>`:
+              `HecsMinimal` implements `ComponentAccess<(f32, f32)>`
+              `HecsMinimal` implements `ComponentAccess<Camera>`
+              `HecsMinimal` implements `ComponentAccess<Collider>`
+              `HecsMinimal` implements `ComponentAccess<EntityTag>`
+              `HecsMinimal` implements `ComponentAccess<Mesh>`
+              `HecsMinimal` implements `ComponentAccess<Rigidbody2D>`
+              `HecsMinimal` implements `ComponentAccess<Script>`
+              `HecsMinimal` implements `ComponentAccess<Sprite>`
+            and 4 others
+
+error[E0277]: the trait bound `HecsMinimal: ComponentAccess<tilemap::TileSet>` is not satisfied
+   --> ecs\src\loaders\ldtk_loader.rs:322:106
+    |
+322 | ...                   let _ = ComponentAccess::<crate::TileSet>::insert(world, entity, tileset);
+    |                               -----------------------------------------                ^^^^^^^ the trait `ComponentAccess<tilemap::TileSet>` is not implemented for `HecsMinimal`
+    |                               |
+    |                               required by a bound introduced by this call
+    |
+    = help: the following other types implement trait `ComponentAccess<T>`:
+              `HecsMinimal` implements `ComponentAccess<(f32, f32)>`
+              `HecsMinimal` implements `ComponentAccess<Camera>`
+              `HecsMinimal` implements `ComponentAccess<Collider>`
+              `HecsMinimal` implements `ComponentAccess<EntityTag>`
+              `HecsMinimal` implements `ComponentAccess<Mesh>`
+              `HecsMinimal` implements `ComponentAccess<Rigidbody2D>`
+              `HecsMinimal` implements `ComponentAccess<Script>`
+              `HecsMinimal` implements `ComponentAccess<Sprite>`
+            and 4 others
+
+error[E0277]: the trait bound `HecsMinimal: ComponentAccess<tilemap::Tilemap>` is not satisfied
+   --> ecs\src\loaders\ldtk_loader.rs:330:79
+    |
+330 |                     let _ = ComponentAccess::<Tilemap>::insert(world, entity, tilemap);
+    |                             ----------------------------------                ^^^^^^^ the trait `ComponentAccess<tilemap::Tilemap>` is not implemented for `HecsMinimal`
+    |                             |
+    |                             required by a bound introduced by this call
+    |
+    = help: the following other types implement trait `ComponentAccess<T>`:
+              `HecsMinimal` implements `ComponentAccess<(f32, f32)>`
+              `HecsMinimal` implements `ComponentAccess<Camera>`
+              `HecsMinimal` implements `ComponentAccess<Collider>`
+              `HecsMinimal` implements `ComponentAccess<EntityTag>`
+              `HecsMinimal` implements `ComponentAccess<Mesh>`
+              `HecsMinimal` implements `ComponentAccess<Rigidbody2D>`
+              `HecsMinimal` implements `ComponentAccess<Script>`
+              `HecsMinimal` implements `ComponentAccess<Sprite>`
+            and 4 others
+
+error[E0277]: the trait bound `HecsMinimal: ComponentAccess<tilemap::TileSet>` is not satisfied
+   --> ecs\src\loaders\ldtk_loader.rs:322:98
+    |
+322 | ...                   let _ = ComponentAccess::<crate::TileSet>::insert(world, entity, tileset);
+    |                                                                                ^^^^^^ the trait `ComponentAccess<tilemap::TileSet>` is not implemented for `HecsMinimal`
+    |
+    = help: the following other types implement trait `ComponentAccess<T>`:
+              `HecsMinimal` implements `ComponentAccess<(f32, f32)>`
+              `HecsMinimal` implements `ComponentAccess<Camera>`
+              `HecsMinimal` implements `ComponentAccess<Collider>`
+              `HecsMinimal` implements `ComponentAccess<EntityTag>`
+              `HecsMinimal` implements `ComponentAccess<Mesh>`
+              `HecsMinimal` implements `ComponentAccess<Rigidbody2D>`
+              `HecsMinimal` implements `ComponentAccess<Script>`
+              `HecsMinimal` implements `ComponentAccess<Sprite>`
+            and 4 others
+
+error[E0277]: the trait bound `HecsMinimal: ComponentAccess<tilemap::Tilemap>` is not satisfied
+   --> ecs\src\loaders\ldtk_loader.rs:330:71
+    |
+330 |                     let _ = ComponentAccess::<Tilemap>::insert(world, entity, tilemap);
+    |                                                                       ^^^^^^ the trait `ComponentAccess<tilemap::Tilemap>` is not implemented for `HecsMinimal`
+    |
+    = help: the following other types implement trait `ComponentAccess<T>`:
+              `HecsMinimal` implements `ComponentAccess<(f32, f32)>`
+              `HecsMinimal` implements `ComponentAccess<Camera>`
+              `HecsMinimal` implements `ComponentAccess<Collider>`
+              `HecsMinimal` implements `ComponentAccess<EntityTag>`
+              `HecsMinimal` implements `ComponentAccess<Mesh>`
+              `HecsMinimal` implements `ComponentAccess<Rigidbody2D>`
+              `HecsMinimal` implements `ComponentAccess<Script>`
+              `HecsMinimal` implements `ComponentAccess<Sprite>`
+            and 4 others
+
+error[E0277]: the trait bound `HecsMinimal: ComponentAccess<tilemap::Tilemap>` is not satisfied
+   --> ecs\src\loaders\ldtk_loader.rs:660:82
+    |
+660 |                 let _ = ComponentAccess::<crate::Tilemap>::insert(world, entity, tilemap);
+    |                         -----------------------------------------                ^^^^^^^ the trait `ComponentAccess<tilemap::Tilemap>` is not implemented for `HecsMinimal`
+    |                         |
+    |                         required by a bound introduced by this call
+    |
+    = help: the following other types implement trait `ComponentAccess<T>`:
+              `HecsMinimal` implements `ComponentAccess<(f32, f32)>`
+              `HecsMinimal` implements `ComponentAccess<Camera>`
+              `HecsMinimal` implements `ComponentAccess<Collider>`
+              `HecsMinimal` implements `ComponentAccess<EntityTag>`
+              `HecsMinimal` implements `ComponentAccess<Mesh>`
+              `HecsMinimal` implements `ComponentAccess<Rigidbody2D>`
+              `HecsMinimal` implements `ComponentAccess<Script>`
+              `HecsMinimal` implements `ComponentAccess<Sprite>`
+            and 4 others
+
+error[E0277]: the trait bound `HecsMinimal: ComponentAccess<tilemap::Tilemap>` is not satisfied
+   --> ecs\src\loaders\ldtk_loader.rs:660:74
+    |
+660 |                 let _ = ComponentAccess::<crate::Tilemap>::insert(world, entity, tilemap);
+    |                                                                          ^^^^^^ the trait `ComponentAccess<tilemap::Tilemap>` is not implemented for `HecsMinimal`
+    |
+    = help: the following other types implement trait `ComponentAccess<T>`:
+              `HecsMinimal` implements `ComponentAccess<(f32, f32)>`
+              `HecsMinimal` implements `ComponentAccess<Camera>`
+              `HecsMinimal` implements `ComponentAccess<Collider>`
+              `HecsMinimal` implements `ComponentAccess<EntityTag>`
+              `HecsMinimal` implements `ComponentAccess<Mesh>`
+              `HecsMinimal` implements `ComponentAccess<Rigidbody2D>`
+              `HecsMinimal` implements `ComponentAccess<Script>`
+              `HecsMinimal` implements `ComponentAccess<Sprite>`
+            and 4 others
+
+error[E0277]: the trait bound `HecsMinimal: ComponentAccess<tilemap::Tilemap>` is not satisfied
+  --> ecs\src\loaders\tiled_loader.rs:77:71
+   |
+77 |             let _ = ComponentAccess::<Tilemap>::insert(world, entity, tilemap);
+   |                     ----------------------------------                ^^^^^^^ the trait `ComponentAccess<tilemap::Tilemap>` is not implemented for `HecsMinimal`
+   |                     |
+   |                     required by a bound introduced by this call
+   |
+   = help: the following other types implement trait `ComponentAccess<T>`:
+             `HecsMinimal` implements `ComponentAccess<(f32, f32)>`
+             `HecsMinimal` implements `ComponentAccess<Camera>`
+             `HecsMinimal` implements `ComponentAccess<Collider>`
+             `HecsMinimal` implements `ComponentAccess<EntityTag>`
+             `HecsMinimal` implements `ComponentAccess<Mesh>`
+             `HecsMinimal` implements `ComponentAccess<Rigidbody2D>`
+             `HecsMinimal` implements `ComponentAccess<Script>`
+             `HecsMinimal` implements `ComponentAccess<Sprite>`
+           and 4 others
+
+error[E0277]: the trait bound `HecsMinimal: ComponentAccess<tilemap::Tilemap>` is not satisfied
+  --> ecs\src\loaders\tiled_loader.rs:77:63
+   |
+77 |             let _ = ComponentAccess::<Tilemap>::insert(world, entity, tilemap);
+   |                                                               ^^^^^^ the trait `ComponentAccess<tilemap::Tilemap>` is not implemented for `HecsMinimal`
+   |
+   = help: the following other types implement trait `ComponentAccess<T>`:
+             `HecsMinimal` implements `ComponentAccess<(f32, f32)>`
+             `HecsMinimal` implements `ComponentAccess<Camera>`
+             `HecsMinimal` implements `ComponentAccess<Collider>`
+             `HecsMinimal` implements `ComponentAccess<EntityTag>`
+             `HecsMinimal` implements `ComponentAccess<Mesh>`
+             `HecsMinimal` implements `ComponentAccess<Rigidbody2D>`
+             `HecsMinimal` implements `ComponentAccess<Script>`
+             `HecsMinimal` implements `ComponentAccess<Sprite>`
+           and 4 others
+
+error[E0277]: the trait bound `HecsMinimal: ComponentAccess<tilemap::TileSet>` is not satisfied
+   --> ecs\src\loaders\tiled_loader.rs:108:71
+    |
+108 |             let _ = ComponentAccess::<TileSet>::insert(world, entity, tile_set);
+    |                     ----------------------------------                ^^^^^^^^ the trait `ComponentAccess<tilemap::TileSet>` is not implemented for `HecsMinimal`
+    |                     |
+    |                     required by a bound introduced by this call
+    |
+    = help: the following other types implement trait `ComponentAccess<T>`:
+              `HecsMinimal` implements `ComponentAccess<(f32, f32)>`
+              `HecsMinimal` implements `ComponentAccess<Camera>`
+              `HecsMinimal` implements `ComponentAccess<Collider>`
+              `HecsMinimal` implements `ComponentAccess<EntityTag>`
+              `HecsMinimal` implements `ComponentAccess<Mesh>`
+              `HecsMinimal` implements `ComponentAccess<Rigidbody2D>`
+              `HecsMinimal` implements `ComponentAccess<Script>`
+              `HecsMinimal` implements `ComponentAccess<Sprite>`
+            and 4 others
+
+error[E0277]: the trait bound `HecsMinimal: ComponentAccess<tilemap::TileSet>` is not satisfied
+   --> ecs\src\loaders\tiled_loader.rs:108:63
+    |
+108 |             let _ = ComponentAccess::<TileSet>::insert(world, entity, tile_set);
+    |                                                               ^^^^^^ the trait `ComponentAccess<tilemap::TileSet>` is not implemented for `HecsMinimal`
+    |
+    = help: the following other types implement trait `ComponentAccess<T>`:
+              `HecsMinimal` implements `ComponentAccess<(f32, f32)>`
+              `HecsMinimal` implements `ComponentAccess<Camera>`
+              `HecsMinimal` implements `ComponentAccess<Collider>`
+              `HecsMinimal` implements `ComponentAccess<EntityTag>`
+              `HecsMinimal` implements `ComponentAccess<Mesh>`
+              `HecsMinimal` implements `ComponentAccess<Rigidbody2D>`
+              `HecsMinimal` implements `ComponentAccess<Script>`
+              `HecsMinimal` implements `ComponentAccess<Sprite>`
+            and 4 others
+
+warning: unused variable: `world`
+   --> ecs\src\loaders\ldtk_hot_reload.rs:205:45
+    |
+205 |     fn remove_existing_ldtk_entities(&self, world: &mut World) {
+    |                                             ^^^^^ help: if this is intentional, prefix it with an underscore: `_world`
+    |
+    = note: `#[warn(unused_variables)]` on by default
+
+Some errors have detailed explanations: E0277, E0412.
+For more information about an error, try `rustc --explain E0277`.
+warning: `ecs` (lib) generated 11 warnings
+error: could not compile `ecs` (lib) due to 13 previous errors; 11 warnings emitted
+warning: build failed, waiting for other jobs to finish...
+warning: `ecs` (lib test) generated 11 warnings (11 duplicates)
+error: could not compile `ecs` (lib test) due to 13 previous errors; 11 warnings emitted

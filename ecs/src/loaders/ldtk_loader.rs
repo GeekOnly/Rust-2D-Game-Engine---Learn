@@ -1,6 +1,7 @@
-use crate::{World, Entity, Tilemap, Transform, Collider, Rigidbody2D};
+use crate::{World, Entity, Tilemap, TileSet, Grid, Transform, Collider, Rigidbody2D};
 use serde_json::Value;
 use std::path::Path;
+use crate::traits::{EcsWorld, ComponentAccess};
 
 /// Normalize texture path - extract filename from absolute paths
 fn normalize_texture_path(path: &str) -> String {
@@ -86,7 +87,7 @@ impl LdtkLoader {
             .file_stem()
             .and_then(|s| s.to_str())
             .unwrap_or("Unknown");
-        world.names.insert(grid_entity, format!("LDtk Grid - {}", file_name));
+        let _ = ComponentAccess::<String>::insert(world, grid_entity, format!("LDtk Grid - {}", file_name));
         
         // Get grid size from LDtk
         let grid_size = project["defaultGridSize"]
@@ -108,10 +109,11 @@ impl LdtkLoader {
             swizzle: crate::CellSwizzle::XYZ,
             plane: crate::GridPlane::XY,  // Default horizontal plane - can be changed to XZ for 3D
         };
-        world.grids.insert(grid_entity, grid);
+        let _ = ComponentAccess::<crate::Grid>::insert(world, grid_entity, grid);
         
         // Position grid at origin
-        world.transforms.insert(
+        let _ = ComponentAccess::<crate::Transform>::insert(
+            world,
             grid_entity,
             crate::Transform::with_position(0.0, 0.0, 0.0),
         );
@@ -317,7 +319,7 @@ impl LdtkLoader {
                                             tile_count,
                                         );
                                         
-                                        world.tilesets.insert(entity, tileset);
+                                        let _ = ComponentAccess::<crate::TileSet>::insert(world, entity, tileset);
                                     }
                                     break;
                                 }
@@ -325,8 +327,8 @@ impl LdtkLoader {
                         }
                     }
 
-                    world.tilemaps.insert(entity, tilemap);
-                    world.names.insert(entity, format!("LDTK Layer: {}", identifier));
+                    let _ = ComponentAccess::<Tilemap>::insert(world, entity, tilemap);
+                    let _ = ComponentAccess::<String>::insert(world, entity, format!("LDTK Layer: {}", identifier));
 
                     // Add transform at layer offset
                     // Convert pixel coordinates to world units (pixels / pixels_per_unit)
@@ -343,7 +345,7 @@ impl LdtkLoader {
                         world_y,
                         0.0,
                     );
-                    world.transforms.insert(entity, transform);
+                    let _ = ComponentAccess::<Transform>::insert(world, entity, transform);
 
                     entities.push(entity);
                 } else {
@@ -445,11 +447,11 @@ impl LdtkLoader {
                                 let center_y = world_y - tile_size / 2.0;
                                 
                                 let transform = Transform::with_position(center_x, center_y, 0.0);
-                                world.transforms.insert(entity, transform);
+                                let _ = ComponentAccess::<Transform>::insert(world, entity, transform);
                                 
                                 // Add collider (size = 1 world unit = 1 tile)
                                 let collider = Collider::new(tile_size, tile_size);
-                                world.colliders.insert(entity, collider);
+                                let _ = ComponentAccess::<Collider>::insert(world, entity, collider);
                                 
                                 // Add kinematic rigidbody (static, doesn't move)
                                 let rigidbody = Rigidbody2D {
@@ -460,10 +462,10 @@ impl LdtkLoader {
                                     freeze_rotation: true,
                                     enable_ccd: false, // Static objects don't need CCD
                                 };
-                                world.rigidbodies.insert(entity, rigidbody);
+                                let _ = ComponentAccess::<Rigidbody2D>::insert(world, entity, rigidbody);
                                 
                                 // Add name for debugging
-                                world.names.insert(entity, format!("Collider_{}_{}", x, y));
+                                let _ = ComponentAccess::<String>::insert(world, entity, format!("Collider_{}_{}", x, y));
                                 
                                 collider_entities.push(entity);
                                 collider_count += 1;
@@ -647,7 +649,7 @@ impl LdtkLoader {
                                         tile_count,
                                     );
                                     
-                                    world.tilesets.insert(entity, tileset);
+                                    let _ = ComponentAccess::<TileSet>::insert(world, entity, tileset);
                                 }
                                 break;
                             }
@@ -655,8 +657,8 @@ impl LdtkLoader {
                     }
                 }
 
-                world.tilemaps.insert(entity, tilemap);
-                world.names.insert(entity, format!("LDTK Layer: {}", identifier));
+                let _ = ComponentAccess::<crate::Tilemap>::insert(world, entity, tilemap);
+                let _ = ComponentAccess::<String>::insert(world, entity, format!("LDTK Layer: {}", identifier));
 
                 // Add transform at layer offset (relative to Grid parent)
                 // Use grid_size as pixels_per_unit for 1:1 tile-to-grid mapping
@@ -671,7 +673,7 @@ impl LdtkLoader {
                     world_y,
                     0.0,
                 );
-                world.transforms.insert(entity, transform);
+                let _ = ComponentAccess::<Transform>::insert(world, entity, transform);
 
                 entities.push(entity);
             } else {
@@ -778,11 +780,11 @@ impl LdtkLoader {
                         let center_y = world_y - rect_height / 2.0;
                         
                         let transform = Transform::with_position(center_x, center_y, 0.0);
-                        world.transforms.insert(entity, transform);
+                        let _ = ComponentAccess::<Transform>::insert(world, entity, transform);
                         
                         // Add collider with rectangle size
                         let collider = Collider::new(rect_width, rect_height);
-                        world.colliders.insert(entity, collider);
+                        let _ = ComponentAccess::<Collider>::insert(world, entity, collider);
                         
                         // Add kinematic rigidbody (static, doesn't move)
                         let rigidbody = Rigidbody2D {
@@ -793,10 +795,10 @@ impl LdtkLoader {
                             freeze_rotation: true,
                             enable_ccd: false, // Static objects don't need CCD
                         };
-                        world.rigidbodies.insert(entity, rigidbody);
+                        let _ = ComponentAccess::<Rigidbody2D>::insert(world, entity, rigidbody);
                         
                         // Add name for debugging
-                        world.names.insert(entity, format!("CompositeCollider_{}x{}", rect.width, rect.height));
+                        let _ = ComponentAccess::<String>::insert(world, entity, format!("CompositeCollider_{}x{}", rect.width, rect.height));
                         
                         collider_entities.push(entity);
                     }
