@@ -40,6 +40,11 @@ end
 
 -- Unity-style lifecycle: Update is called every frame
 function Update(dt)
+    -- Debug: Check if script is running (only log occasionally to avoid spam)
+    if math.random() < 0.01 then  -- 1% chance per frame
+        log("🎮 Player controller Update() running - dt: " .. dt)
+    end
+    
     -- Update dash timer
     if is_dashing then
         dash_timer = dash_timer + dt
@@ -89,10 +94,12 @@ end
 function handle_movement(dt)
     -- Horizontal movement
     if is_key_down("A") or is_key_down("Left") then
+        log("🎮 Moving LEFT - A or Left key pressed")
         velocity_x = -move_speed
         set_velocity(velocity_x, velocity_y)  -- Update velocity
         set_sprite_flip_x(true)  -- Flip sprite to face left
     elseif is_key_down("D") or is_key_down("Right") then
+        log("🎮 Moving RIGHT - D or Right key pressed")
         velocity_x = move_speed
         set_velocity(velocity_x, velocity_y)  -- Update velocity
         set_sprite_flip_x(false)  -- Face right (normal)
@@ -112,7 +119,9 @@ end
 function handle_jump()
     -- Jump (use is_key_just_pressed for single press detection)
     if is_key_just_pressed("Space") then
+        log("🎮 SPACE key just pressed!")
         if is_grounded then
+            log("🎮 JUMPING - Player is grounded")
             -- Record jump start position
             local pos = get_position()
             if pos then
@@ -123,6 +132,8 @@ function handle_jump()
             velocity_y = jump_force
             is_grounded = false  -- Immediately set to false to prevent double jump
             set_velocity(velocity_x, velocity_y)  -- Apply jump velocity
+        else
+            log("🎮 Cannot jump - Player not grounded")
         end
     end
     
@@ -149,6 +160,7 @@ end
 function handle_dash()
     -- Dash (Shift key - use is_key_just_pressed for single press)
     if is_key_just_pressed("LShift") and can_dash then
+        log("🎮 DASH - LShift pressed and can dash")
         -- Get dash direction from input
         local dash_x = 0.0
         local dash_y = 0.0

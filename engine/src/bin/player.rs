@@ -93,7 +93,7 @@ fn main() -> Result<()> {
 
     // Initialize systems
     let mut ctx = EngineContext::new();
-    let script_engine = ScriptEngine::new()?;
+    let mut script_engine = ScriptEngine::new()?;
     
     #[cfg(feature = "rapier")]
     let mut physics = RapierPhysicsWorld::new();
@@ -157,6 +157,14 @@ fn main() -> Result<()> {
                 log::error!("Failed to load scene: {}", e);
             } else {
                 log::info!("Scene loaded successfully");
+                
+                // Load scripts after scene is loaded
+                let scripts_folder = project_path.join("scripts");
+                if let Err(e) = runtime::script_loader::load_all_scripts(&mut world, &mut script_engine, &scripts_folder) {
+                    log::error!("Failed to load scripts: {}", e);
+                } else {
+                    log::info!("Scripts loaded successfully");
+                }
             }
         }
     }
@@ -214,17 +222,8 @@ fn main() -> Result<()> {
                         // Clear per-frame input state
                         ctx.input.begin_frame();
 
-                        // Scripts Update - call for all entities with scripts
-                        let scripts_to_update: Vec<_> = world.scripts.iter()
-                            .map(|(entity, script)| (*entity, script.script_name.clone()))
-                            .collect();
-
-                        for (entity, script_name) in scripts_to_update {
-                            if let Err(_e) = script_engine.call_update(&script_name, dt, &mut world) {
-                                // Limit error logging to avoid flooding
-                                // log::error!("Script update error for entity {:?}: {}", entity, e);
-                            }
-                        }
+                        // Scripts Update - use proper script system
+                        runtime::script_system::update_scripts(&mut script_engine, &mut world, &ctx.input, dt);
 
                         // Physics
                         physics_accumulator += dt;
