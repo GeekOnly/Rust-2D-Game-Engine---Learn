@@ -77,6 +77,9 @@ impl EditorUI {
         open_sprite_editor_request: &mut Option<std::path::PathBuf>,
         sprite_picker_state: &mut sprite_picker::SpritePickerState,
         show_debug_lines: &mut bool,
+        scene_view_renderer: &mut crate::scene_view_renderer::SceneViewRenderer,
+        egui_renderer: &mut egui_wgpu::Renderer,
+        device: &wgpu::Device,
     ) {
         // Top Menu Bar
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
@@ -180,6 +183,9 @@ impl EditorUI {
                 drag_drop,
                 delta_time,
                 &dummy_map_manager,
+                scene_view_renderer,
+                egui_renderer,
+                device,
             );
         });
 
@@ -309,6 +315,7 @@ impl EditorUI {
         game_view_renderer: &mut crate::game_view_renderer::GameViewRenderer,
         device: &wgpu::Device,
         egui_renderer: &mut egui_wgpu::Renderer,
+        scene_view_renderer: &mut crate::scene_view_renderer::SceneViewRenderer,
         texture_manager: &mut engine::texture_manager::TextureManager,
         open_sprite_editor_request: &mut Option<std::path::PathBuf>,
         open_prefab_editor_request: &mut Option<std::path::PathBuf>,
@@ -414,6 +421,7 @@ impl EditorUI {
                 game_view_renderer,
                 device,
                 egui_renderer,
+                scene_view_renderer,
             };
 
             let mut tab_viewer = EditorTabViewer {

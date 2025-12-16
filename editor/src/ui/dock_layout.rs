@@ -79,6 +79,7 @@ pub struct TabContext<'a> {
     pub game_view_renderer: &'a mut crate::game_view_renderer::GameViewRenderer,
     pub device: &'a wgpu::Device,
     pub egui_renderer: &'a mut egui_wgpu::Renderer,
+    pub scene_view_renderer: &'a mut crate::scene_view_renderer::SceneViewRenderer,
 }
 
 /// Render game view toolbar (resolution selector, etc.)
@@ -268,6 +269,9 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                     self.context.drag_drop,
                     self.context.delta_time,
                     self.context.map_manager,
+                    self.context.scene_view_renderer,
+                    self.context.egui_renderer,
+                    self.context.device,
                 );
             }
             EditorTab::Game => {

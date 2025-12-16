@@ -6,7 +6,7 @@ use script::ScriptEngine;
 use physics::rapier_backend::RapierPhysicsWorld;
 #[cfg(not(feature = "rapier"))]
 use physics::PhysicsWorld;
-use render::RenderModule;
+use render::{RenderModule, CameraBinding};
 use crate::ui::{EditorUI, TransformTool};
 use crate::states::{AppState, LauncherState, EditorState, EditorAction};
 use crate::shortcuts::EditorShortcut;
@@ -39,6 +39,8 @@ pub struct EditorApp {
     pub egui_state: egui_winit::State,
     pub egui_renderer: egui_wgpu::Renderer,
     pub game_view_renderer: crate::game_view_renderer::GameViewRenderer,
+    pub scene_view_renderer: crate::scene_view_renderer::SceneViewRenderer,
+    pub scene_camera_binding: CameraBinding,
     pub physics_accumulator: f32,
     pub fixed_timestep: f32,
 }
@@ -159,6 +161,15 @@ impl EditorApp {
             720,
         );
 
+        let scene_view_renderer = crate::scene_view_renderer::SceneViewRenderer::new(
+            &renderer.device,
+            &mut egui_renderer,
+            1280, // Default resolution
+            720,
+        );
+
+        let scene_camera_binding = CameraBinding::new(&renderer.device);
+
         Ok(Self {
             window,
             app_state,
@@ -172,6 +183,8 @@ impl EditorApp {
             egui_state,
             egui_renderer,
             game_view_renderer,
+            scene_view_renderer,
+            scene_camera_binding,
             physics_accumulator: 0.0,
             fixed_timestep: 1.0 / 60.0,
         })
@@ -516,9 +529,69 @@ impl EditorApp {
             self.egui_renderer.update_texture(&self.renderer.device, &self.renderer.queue, *id, image_delta);
         }
 
-        let res = self.renderer.render_with_callback(|device, queue, encoder, view, texture_manager, batch_renderer, mesh_renderer, camera_binding, light_binding| {
+        let res = self.renderer.render_with_callback(|device, queue, encoder, view, depth_view, texture_manager, batch_renderer, mesh_renderer, camera_binding, light_binding| {
             // Render Game World to Offscreen Texture (for Editor Game View)
             if self.app_state == AppState::Editor {
+                // ----------------------------------------------------------------
+                // 1. Render Scene View (Editor Camera)
+                // ----------------------------------------------------------------
+                
+                // Update scene camera buffer
+                self.scene_camera_binding.update(
+                    queue,
+                    self.editor_state.scene_camera.get_view_matrix(),
+                    self.editor_state.scene_camera.get_projection_matrix(16.0 / 9.0), // TODO: Use actual aspect ratio
+                    self.editor_state.scene_camera.position
+                );
+
+                {
+                    let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                        label: Some("Scene View Render Pass"),
+                        color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                            view: &self.scene_view_renderer.view,
+                            resolve_target: None,
+                            ops: wgpu::Operations {
+                                load: wgpu::LoadOp::Clear(wgpu::Color {
+                                    r: 0.15, g: 0.15, b: 0.20, a: 1.0, // Unity-like dark gray/blue
+                                }),
+                                store: wgpu::StoreOp::Store,
+                            },
+                        })],
+                        depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                            view: &self.scene_view_renderer.depth_view,
+                            depth_ops: Some(wgpu::Operations {
+                                load: wgpu::LoadOp::Clear(0.0), // Reverse-Z: 0.0 is far
+                                store: wgpu::StoreOp::Store,
+                            }),
+                            stencil_ops: None,
+                        }),
+                        occlusion_query_set: None,
+                        timestamp_writes: None,
+                    });
+
+                    let screen_size = winit::dpi::PhysicalSize::new(
+                        self.scene_view_renderer.width, 
+                        self.scene_view_renderer.height
+                    );
+
+                    runtime::render_system::render_game_world(
+                        &self.editor_state.world,
+                        batch_renderer,
+                        mesh_renderer,
+                        &self.scene_camera_binding, // Use scene camera
+                        light_binding,
+                        texture_manager,
+                        queue,
+                        device,
+                        screen_size,
+                        &mut rpass,
+                    );
+                }
+
+                // ----------------------------------------------------------------
+                // 2. Render Game View (Game Camera)
+                // ----------------------------------------------------------------
+
                 let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                     label: Some("Game View Render Pass"),
                     color_attachments: &[Some(wgpu::RenderPassColorAttachment {
@@ -754,6 +827,7 @@ impl EditorApp {
             &mut self.game_view_renderer,
             &self.renderer.device,
             &mut self.egui_renderer,
+            &mut self.scene_view_renderer,
         );
         
         // Clear input state if not in play mode (PlayModeSystem handles it when playing)

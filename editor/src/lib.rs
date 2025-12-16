@@ -12,6 +12,7 @@ pub mod grid;
 // pub mod selection; // Moved to tools
 pub mod rendering_3d;
 pub mod game_view_renderer;
+pub mod scene_view_renderer;
 
 pub mod states;
 pub mod toolbar;

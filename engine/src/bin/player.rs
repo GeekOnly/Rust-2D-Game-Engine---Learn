@@ -312,7 +312,7 @@ fn main() -> Result<()> {
                             egui_renderer.update_texture(&renderer.device, &renderer.queue, *id, image_delta);
                         }
 
-                        let res = renderer.render_with_callback(|device, queue, encoder, view, texture_manager, batch_renderer, mesh_renderer, camera_binding, light_binding| {
+                        let res = renderer.render_with_callback(|device, queue, encoder, view, depth_view, texture_manager, batch_renderer, mesh_renderer, camera_binding, light_binding| {
                             egui_renderer.update_buffers(
                                 device,
                                 queue,
@@ -332,7 +332,7 @@ fn main() -> Result<()> {
                                     },
                                 })],
                                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                                    view: &renderer.depth_view,
+                                    view: depth_view,
                                     depth_ops: Some(wgpu::Operations {
                                         load: wgpu::LoadOp::Clear(0.0), // Reverse-Z: clear to 0.0
                                         store: wgpu::StoreOp::Store,

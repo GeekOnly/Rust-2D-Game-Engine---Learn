@@ -54,6 +54,9 @@ pub fn render_scene_view(
     drag_drop: &mut DragDropState,
     delta_time: f32,
     map_manager: &crate::map_manager::MapManager,
+    scene_view_renderer: &mut crate::scene_view_renderer::SceneViewRenderer,
+    egui_renderer: &mut egui_wgpu::Renderer,
+    device: &wgpu::Device,
 ) {
     // Sync camera projection mode with editor state
     scene_camera.projection_mode = *projection_mode;
@@ -216,6 +219,9 @@ pub fn render_scene_view(
                 texture_manager,
                 &ctx,
                 Some(&map_manager.settings),
+                scene_view_renderer,
+                egui_renderer,
+                device,
             );
         }
     }

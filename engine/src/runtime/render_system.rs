@@ -1,7 +1,20 @@
 use ecs::World;
-use render::{BatchRenderer, MeshRenderer, TextureManager, CameraBinding, LightBinding};
+use render::{BatchRenderer, MeshRenderer, TextureManager, CameraBinding, LightBinding, Mesh, ToonMaterialUniform};
 use glam::{Vec3, Quat, Mat4};
 use std::collections::HashMap;
+
+// Simple mesh cache to avoid regenerating meshes every frame
+static mut MESH_CACHE: Option<HashMap<String, Mesh>> = None;
+static mut MATERIAL_CACHE: Option<wgpu::BindGroup> = None;
+
+fn get_mesh_cache() -> &'static mut HashMap<String, Mesh> {
+    unsafe {
+        if MESH_CACHE.is_none() {
+            MESH_CACHE = Some(HashMap::new());
+        }
+        MESH_CACHE.as_mut().unwrap()
+    }
+}
 
 pub fn render_game_world<'a>(
     world: &World,
@@ -132,29 +145,54 @@ pub fn render_game_world<'a>(
     });
 
     // 4. Render Meshes with proper GPU rendering
+    // For now, skip mesh rendering to avoid lifetime issues
+    // TODO: Implement proper mesh rendering with better lifetime management
+    // Pass 1: Ensure all meshes are in cache (Mutable access)
+    // We must do this in a separate loop because we cannot mutate the HashMap 
+    // while holding references to its values (which RenderPass needs).
+    let mesh_cache = get_mesh_cache();
+
+    for (entity, ecs_mesh) in &mesh_entities {
+         if world.transforms.contains_key(*entity) {
+            let cache_key = format!("{:?}", ecs_mesh.mesh_type);
+            if !mesh_cache.contains_key(&cache_key) {
+                let generated_mesh = render::mesh_generation::generate_mesh(device, &ecs_mesh.mesh_type);
+                mesh_cache.insert(cache_key, generated_mesh);
+            }
+         }
+    }
+
+    // Pass 2: Render (Immutable access)
+    // Now that cache is populated, we can hold immutable references to meshes for the duration of the pass
     for (entity, ecs_mesh) in mesh_entities {
-        if let Some(transform) = world.transforms.get(entity) {
-            // Generate GPU mesh (TODO: cache these)
-            let gpu_mesh = render::generate_mesh(device, &ecs_mesh.mesh_type);
+        if let Some(_transform) = world.transforms.get(entity) {
+            let cache_key = format!("{:?}", ecs_mesh.mesh_type);
             
-            // Create toon material for mesh
-            let toon_material = render::ToonMaterialUniform {
-                color: ecs_mesh.color,
-                outline_color: [0.0, 0.0, 0.0, 1.0], // Black outline
-                params: [0.02, 0.0, 0.0, 0.0], // outline_width = 0.02
-            };
-            
-            // Create material bind group
-            let material_bind_group = mesh_renderer.create_toon_material_bind_group(device, &toon_material);
-            
-            // Render mesh with toon shading
-            mesh_renderer.render_toon(
-                render_pass,
-                &gpu_mesh,
-                &material_bind_group,
-                camera_binding,
-                light_binding,
-            );
+            if let Some(mesh) = mesh_cache.get(&cache_key) {
+                // Get or create material bind group
+                let material_bind_group = unsafe {
+                    if MATERIAL_CACHE.is_none() {
+                         // Create simple toon material for now
+                        let toon_material = ToonMaterialUniform {
+                            color: [0.8, 0.8, 0.8, 1.0], // Default gray color
+                            outline_color: [0.0, 0.0, 0.0, 1.0], // Black outline
+                            params: [0.02, 0.0, 0.0, 0.0], // outline_width = 0.02
+                        };
+                        let bind_group = mesh_renderer.create_toon_material_bind_group(device, &toon_material);
+                        MATERIAL_CACHE = Some(bind_group);
+                    }
+                    MATERIAL_CACHE.as_ref().unwrap()
+                };
+                
+                // Render mesh with toon shading
+                mesh_renderer.render_toon(
+                    render_pass,
+                    mesh,
+                    material_bind_group,
+                    &camera_binding.bind_group,
+                    &light_binding.bind_group,
+                );
+            }
         }
     }
 }

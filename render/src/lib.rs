@@ -22,8 +22,7 @@ pub mod lighting;
 pub mod material;
 pub use lighting::{LightBinding, LightUniform};
 pub use material::{PbrMaterial, PbrMaterialUniform, ToonMaterial, ToonMaterialUniform};
-pub mod mesh_renderer;
-pub use mesh_renderer::MeshRenderer;
+
 
 pub struct RenderModule {
     pub surface: wgpu::Surface<'static>,
@@ -231,11 +230,11 @@ impl RenderModule {
     }
 
     pub fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
-        self.render_with_callback(|_, _, _, _, _, _, _, _, _| {})
+        self.render_with_callback(|_, _, _, _, _, _, _, _, _, _| {})
     }
 
     pub fn render_with_callback<F>(&mut self, callback: F) -> Result<(), wgpu::SurfaceError> 
-    where F: FnOnce(&wgpu::Device, &wgpu::Queue, &mut wgpu::CommandEncoder, &wgpu::TextureView, &mut TextureManager, &mut BatchRenderer, &mut MeshRenderer, &CameraBinding, &LightBinding)
+    where F: FnOnce(&wgpu::Device, &wgpu::Queue, &mut wgpu::CommandEncoder, &wgpu::TextureView, &wgpu::TextureView, &mut TextureManager, &mut BatchRenderer, &mut MeshRenderer, &CameraBinding, &LightBinding)
     {
         let output = self.surface.get_current_texture()?;
         let view = output.texture.create_view(&wgpu::TextureViewDescriptor::default());
@@ -274,7 +273,7 @@ impl RenderModule {
         }
         
         // Callback for overlay (egui) and game render
-        callback(&self.device, &self.queue, &mut encoder, &view, &mut self.texture_manager, &mut self.batch_renderer, &mut self.mesh_renderer, &self.camera_binding, &self.light_binding);
+        callback(&self.device, &self.queue, &mut encoder, &view, &self.depth_view, &mut self.texture_manager, &mut self.batch_renderer, &mut self.mesh_renderer, &self.camera_binding, &self.light_binding);
         
         self.queue.submit(std::iter::once(encoder.finish()));
         output.present();

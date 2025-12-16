@@ -16,40 +16,40 @@ fn generate_cube_mesh(device: &wgpu::Device) -> Mesh {
     // Cube vertices (positions, normals, UVs)
     let vertices = vec![
         // Front face
-        ModelVertex { position: [-0.5, -0.5,  0.5], tex_coords: [0.0, 1.0], normal: [0.0, 0.0, 1.0] },
-        ModelVertex { position: [ 0.5, -0.5,  0.5], tex_coords: [1.0, 1.0], normal: [0.0, 0.0, 1.0] },
-        ModelVertex { position: [ 0.5,  0.5,  0.5], tex_coords: [1.0, 0.0], normal: [0.0, 0.0, 1.0] },
-        ModelVertex { position: [-0.5,  0.5,  0.5], tex_coords: [0.0, 0.0], normal: [0.0, 0.0, 1.0] },
+        ModelVertex { position: [-0.5, -0.5,  0.5], tex_coords: [0.0, 1.0], normal: [0.0, 0.0, 1.0], tangent: [1.0, 0.0, 0.0], bitangent: [0.0, 1.0, 0.0] },
+        ModelVertex { position: [ 0.5, -0.5,  0.5], tex_coords: [1.0, 1.0], normal: [0.0, 0.0, 1.0], tangent: [1.0, 0.0, 0.0], bitangent: [0.0, 1.0, 0.0] },
+        ModelVertex { position: [ 0.5,  0.5,  0.5], tex_coords: [1.0, 0.0], normal: [0.0, 0.0, 1.0], tangent: [1.0, 0.0, 0.0], bitangent: [0.0, 1.0, 0.0] },
+        ModelVertex { position: [-0.5,  0.5,  0.5], tex_coords: [0.0, 0.0], normal: [0.0, 0.0, 1.0], tangent: [1.0, 0.0, 0.0], bitangent: [0.0, 1.0, 0.0] },
         
         // Back face
-        ModelVertex { position: [ 0.5, -0.5, -0.5], tex_coords: [0.0, 1.0], normal: [0.0, 0.0, -1.0] },
-        ModelVertex { position: [-0.5, -0.5, -0.5], tex_coords: [1.0, 1.0], normal: [0.0, 0.0, -1.0] },
-        ModelVertex { position: [-0.5,  0.5, -0.5], tex_coords: [1.0, 0.0], normal: [0.0, 0.0, -1.0] },
-        ModelVertex { position: [ 0.5,  0.5, -0.5], tex_coords: [0.0, 0.0], normal: [0.0, 0.0, -1.0] },
+        ModelVertex { position: [ 0.5, -0.5, -0.5], tex_coords: [0.0, 1.0], normal: [0.0, 0.0, -1.0], tangent: [1.0, 0.0, 0.0], bitangent: [0.0, 1.0, 0.0] },
+        ModelVertex { position: [-0.5, -0.5, -0.5], tex_coords: [1.0, 1.0], normal: [0.0, 0.0, -1.0], tangent: [1.0, 0.0, 0.0], bitangent: [0.0, 1.0, 0.0] },
+        ModelVertex { position: [-0.5,  0.5, -0.5], tex_coords: [1.0, 0.0], normal: [0.0, 0.0, -1.0], tangent: [1.0, 0.0, 0.0], bitangent: [0.0, 1.0, 0.0] },
+        ModelVertex { position: [ 0.5,  0.5, -0.5], tex_coords: [0.0, 0.0], normal: [0.0, 0.0, -1.0], tangent: [1.0, 0.0, 0.0], bitangent: [0.0, 1.0, 0.0] },
         
         // Left face
-        ModelVertex { position: [-0.5, -0.5, -0.5], tex_coords: [0.0, 1.0], normal: [-1.0, 0.0, 0.0] },
-        ModelVertex { position: [-0.5, -0.5,  0.5], tex_coords: [1.0, 1.0], normal: [-1.0, 0.0, 0.0] },
-        ModelVertex { position: [-0.5,  0.5,  0.5], tex_coords: [1.0, 0.0], normal: [-1.0, 0.0, 0.0] },
-        ModelVertex { position: [-0.5,  0.5, -0.5], tex_coords: [0.0, 0.0], normal: [-1.0, 0.0, 0.0] },
+        ModelVertex { position: [-0.5, -0.5, -0.5], tex_coords: [0.0, 1.0], normal: [-1.0, 0.0, 0.0], tangent: [1.0, 0.0, 0.0], bitangent: [0.0, 1.0, 0.0] },
+        ModelVertex { position: [-0.5, -0.5,  0.5], tex_coords: [1.0, 1.0], normal: [-1.0, 0.0, 0.0], tangent: [1.0, 0.0, 0.0], bitangent: [0.0, 1.0, 0.0] },
+        ModelVertex { position: [-0.5,  0.5,  0.5], tex_coords: [1.0, 0.0], normal: [-1.0, 0.0, 0.0], tangent: [1.0, 0.0, 0.0], bitangent: [0.0, 1.0, 0.0] },
+        ModelVertex { position: [-0.5,  0.5, -0.5], tex_coords: [0.0, 0.0], normal: [-1.0, 0.0, 0.0], tangent: [1.0, 0.0, 0.0], bitangent: [0.0, 1.0, 0.0] },
         
         // Right face
-        ModelVertex { position: [ 0.5, -0.5,  0.5], tex_coords: [0.0, 1.0], normal: [1.0, 0.0, 0.0] },
-        ModelVertex { position: [ 0.5, -0.5, -0.5], tex_coords: [1.0, 1.0], normal: [1.0, 0.0, 0.0] },
-        ModelVertex { position: [ 0.5,  0.5, -0.5], tex_coords: [1.0, 0.0], normal: [1.0, 0.0, 0.0] },
-        ModelVertex { position: [ 0.5,  0.5,  0.5], tex_coords: [0.0, 0.0], normal: [1.0, 0.0, 0.0] },
+        ModelVertex { position: [ 0.5, -0.5,  0.5], tex_coords: [0.0, 1.0], normal: [1.0, 0.0, 0.0], tangent: [1.0, 0.0, 0.0], bitangent: [0.0, 1.0, 0.0] },
+        ModelVertex { position: [ 0.5, -0.5, -0.5], tex_coords: [1.0, 1.0], normal: [1.0, 0.0, 0.0], tangent: [1.0, 0.0, 0.0], bitangent: [0.0, 1.0, 0.0] },
+        ModelVertex { position: [ 0.5,  0.5, -0.5], tex_coords: [1.0, 0.0], normal: [1.0, 0.0, 0.0], tangent: [1.0, 0.0, 0.0], bitangent: [0.0, 1.0, 0.0] },
+        ModelVertex { position: [ 0.5,  0.5,  0.5], tex_coords: [0.0, 0.0], normal: [1.0, 0.0, 0.0], tangent: [1.0, 0.0, 0.0], bitangent: [0.0, 1.0, 0.0] },
         
         // Top face
-        ModelVertex { position: [-0.5,  0.5,  0.5], tex_coords: [0.0, 1.0], normal: [0.0, 1.0, 0.0] },
-        ModelVertex { position: [ 0.5,  0.5,  0.5], tex_coords: [1.0, 1.0], normal: [0.0, 1.0, 0.0] },
-        ModelVertex { position: [ 0.5,  0.5, -0.5], tex_coords: [1.0, 0.0], normal: [0.0, 1.0, 0.0] },
-        ModelVertex { position: [-0.5,  0.5, -0.5], tex_coords: [0.0, 0.0], normal: [0.0, 1.0, 0.0] },
+        ModelVertex { position: [-0.5,  0.5,  0.5], tex_coords: [0.0, 1.0], normal: [0.0, 1.0, 0.0], tangent: [1.0, 0.0, 0.0], bitangent: [0.0, 1.0, 0.0] },
+        ModelVertex { position: [ 0.5,  0.5,  0.5], tex_coords: [1.0, 1.0], normal: [0.0, 1.0, 0.0], tangent: [1.0, 0.0, 0.0], bitangent: [0.0, 1.0, 0.0] },
+        ModelVertex { position: [ 0.5,  0.5, -0.5], tex_coords: [1.0, 0.0], normal: [0.0, 1.0, 0.0], tangent: [1.0, 0.0, 0.0], bitangent: [0.0, 1.0, 0.0] },
+        ModelVertex { position: [-0.5,  0.5, -0.5], tex_coords: [0.0, 0.0], normal: [0.0, 1.0, 0.0], tangent: [1.0, 0.0, 0.0], bitangent: [0.0, 1.0, 0.0] },
         
         // Bottom face
-        ModelVertex { position: [-0.5, -0.5, -0.5], tex_coords: [0.0, 1.0], normal: [0.0, -1.0, 0.0] },
-        ModelVertex { position: [ 0.5, -0.5, -0.5], tex_coords: [1.0, 1.0], normal: [0.0, -1.0, 0.0] },
-        ModelVertex { position: [ 0.5, -0.5,  0.5], tex_coords: [1.0, 0.0], normal: [0.0, -1.0, 0.0] },
-        ModelVertex { position: [-0.5, -0.5,  0.5], tex_coords: [0.0, 0.0], normal: [0.0, -1.0, 0.0] },
+        ModelVertex { position: [-0.5, -0.5, -0.5], tex_coords: [0.0, 1.0], normal: [0.0, -1.0, 0.0], tangent: [1.0, 0.0, 0.0], bitangent: [0.0, 1.0, 0.0] },
+        ModelVertex { position: [ 0.5, -0.5, -0.5], tex_coords: [1.0, 1.0], normal: [0.0, -1.0, 0.0], tangent: [1.0, 0.0, 0.0], bitangent: [0.0, 1.0, 0.0] },
+        ModelVertex { position: [ 0.5, -0.5,  0.5], tex_coords: [1.0, 0.0], normal: [0.0, -1.0, 0.0], tangent: [1.0, 0.0, 0.0], bitangent: [0.0, 1.0, 0.0] },
+        ModelVertex { position: [-0.5, -0.5,  0.5], tex_coords: [0.0, 0.0], normal: [0.0, -1.0, 0.0], tangent: [1.0, 0.0, 0.0], bitangent: [0.0, 1.0, 0.0] },
     ];
 
     // Cube indices (2 triangles per face)
@@ -73,10 +73,10 @@ fn generate_cube_mesh(device: &wgpu::Device) -> Mesh {
 
 fn generate_plane_mesh(device: &wgpu::Device) -> Mesh {
     let vertices = vec![
-        ModelVertex { position: [-0.5, 0.0, -0.5], tex_coords: [0.0, 1.0], normal: [0.0, 1.0, 0.0] },
-        ModelVertex { position: [ 0.5, 0.0, -0.5], tex_coords: [1.0, 1.0], normal: [0.0, 1.0, 0.0] },
-        ModelVertex { position: [ 0.5, 0.0,  0.5], tex_coords: [1.0, 0.0], normal: [0.0, 1.0, 0.0] },
-        ModelVertex { position: [-0.5, 0.0,  0.5], tex_coords: [0.0, 0.0], normal: [0.0, 1.0, 0.0] },
+        ModelVertex { position: [-0.5, 0.0, -0.5], tex_coords: [0.0, 1.0], normal: [0.0, 1.0, 0.0], tangent: [1.0, 0.0, 0.0], bitangent: [0.0, 1.0, 0.0] },
+        ModelVertex { position: [ 0.5, 0.0, -0.5], tex_coords: [1.0, 1.0], normal: [0.0, 1.0, 0.0], tangent: [1.0, 0.0, 0.0], bitangent: [0.0, 1.0, 0.0] },
+        ModelVertex { position: [ 0.5, 0.0,  0.5], tex_coords: [1.0, 0.0], normal: [0.0, 1.0, 0.0], tangent: [1.0, 0.0, 0.0], bitangent: [0.0, 1.0, 0.0] },
+        ModelVertex { position: [-0.5, 0.0,  0.5], tex_coords: [0.0, 0.0], normal: [0.0, 1.0, 0.0], tangent: [1.0, 0.0, 0.0], bitangent: [0.0, 1.0, 0.0] },
     ];
 
     let indices = vec![0, 1, 2,  2, 3, 0];
@@ -106,6 +106,8 @@ fn generate_sphere_mesh(device: &wgpu::Device) -> Mesh {
                 position: [x * 0.5, y * 0.5, z * 0.5],
                 tex_coords: [j as f32 / sectors as f32, i as f32 / rings as f32],
                 normal: [x, y, z],
+                tangent: [1.0, 0.0, 0.0],
+                bitangent: [0.0, 1.0, 0.0],
             });
         }
     }
@@ -139,8 +141,8 @@ fn generate_cylinder_mesh(device: &wgpu::Device) -> Mesh {
     let radius = 0.5;
     
     // Top and bottom centers
-    vertices.push(ModelVertex { position: [0.0, height / 2.0, 0.0], tex_coords: [0.5, 0.5], normal: [0.0, 1.0, 0.0] });
-    vertices.push(ModelVertex { position: [0.0, -height / 2.0, 0.0], tex_coords: [0.5, 0.5], normal: [0.0, -1.0, 0.0] });
+    vertices.push(ModelVertex { position: [0.0, height / 2.0, 0.0], tex_coords: [0.5, 0.5], normal: [0.0, 1.0, 0.0], tangent: [1.0, 0.0, 0.0], bitangent: [0.0, 0.0, 1.0] });
+    vertices.push(ModelVertex { position: [0.0, -height / 2.0, 0.0], tex_coords: [0.5, 0.5], normal: [0.0, -1.0, 0.0], tangent: [1.0, 0.0, 0.0], bitangent: [0.0, 0.0, 1.0] });
     
     // Side vertices
     for i in 0..sectors {
@@ -153,6 +155,8 @@ fn generate_cylinder_mesh(device: &wgpu::Device) -> Mesh {
             position: [x, height / 2.0, z],
             tex_coords: [i as f32 / sectors as f32, 0.0],
             normal: [x / radius, 0.0, z / radius],
+            tangent: [-z / radius, 0.0, x / radius],
+            bitangent: [0.0, 1.0, 0.0],
         });
         
         // Bottom ring
@@ -160,6 +164,8 @@ fn generate_cylinder_mesh(device: &wgpu::Device) -> Mesh {
             position: [x, -height / 2.0, z],
             tex_coords: [i as f32 / sectors as f32, 1.0],
             normal: [x / radius, 0.0, z / radius],
+            tangent: [-z / radius, 0.0, x / radius],
+            bitangent: [0.0, 1.0, 0.0],
         });
     }
     
@@ -205,6 +211,7 @@ fn create_mesh_buffers(device: &wgpu::Device, vertices: Vec<ModelVertex>, indice
     });
 
     Mesh {
+        name: "Generated Mesh".to_string(),
         vertex_buffer,
         index_buffer,
         num_elements: indices.len() as u32,
