@@ -28,22 +28,23 @@ local wall_direction = 0
 
 -- Unity-style lifecycle: Awake is called when script is loaded
 function Awake()
+    log("🎮 Player Controller Awake() called - Script loaded successfully!")
     -- Initialization
 end
 
 -- Unity-style lifecycle: Start is called before first Update
 function Start()
+    log("🎮 Player Controller Start() called - Initializing player")
     -- Set initial velocity and gravity
     set_velocity(0.0, 0.0)
     set_gravity_scale(gravity_scale)
+    log("🎮 Player Controller initialized - velocity set, gravity scale: " .. gravity_scale)
 end
 
 -- Unity-style lifecycle: Update is called every frame
 function Update(dt)
-    -- Debug: Check if script is running (only log occasionally to avoid spam)
-    if math.random() < 0.01 then  -- 1% chance per frame
-        log("🎮 Player controller Update() running - dt: " .. dt)
-    end
+    -- Debug: Always log to confirm script is running
+    log("🎮 Player controller Update() - dt: " .. dt .. ", grounded: " .. tostring(is_grounded))
     
     -- Update dash timer
     if is_dashing then
@@ -61,9 +62,9 @@ function Update(dt)
         velocity_y = vel.y
     end
     
-    -- ✅ RAPIER GROUND CHECK - แม่นยำ 100%
-    -- ใช้ contact normals จาก Rapier แทนการเช็คตำแหน่ง
-    is_grounded = is_grounded_rapier
+    -- ✅ SIMPLE GROUND CHECK - Always assume grounded for testing
+    -- This is a temporary fix to test jumping
+    is_grounded = true  -- Force grounded for testing
     
     -- Ground state updated (debug logs disabled)
     
@@ -117,43 +118,13 @@ function handle_movement(dt)
 end
 
 function handle_jump()
-    -- Jump (use is_key_just_pressed for single press detection)
+    -- Simple jump test - just check for Space key
     if is_key_just_pressed("Space") then
-        log("🎮 SPACE key just pressed!")
-        if is_grounded then
-            log("🎮 JUMPING - Player is grounded")
-            -- Record jump start position
-            local pos = get_position()
-            if pos then
-                jump_start_y = pos.y
-            end
-            
-            -- Apply jump force (positive Y = up)
-            velocity_y = jump_force
-            is_grounded = false  -- Immediately set to false to prevent double jump
-            set_velocity(velocity_x, velocity_y)  -- Apply jump velocity
-        else
-            log("🎮 Cannot jump - Player not grounded")
-        end
-    end
-    
-    -- Variable jump height: if player releases Space while going up, reduce velocity
-    -- This gives more control over jump height (Celeste-style)
-    if not is_key_down("Space") and velocity_y > 0.0 then
-        -- Player released jump button while going up - cut velocity for shorter jump
-        velocity_y = velocity_y * 0.5
-        set_velocity(velocity_x, velocity_y)  -- Apply modified velocity
-    end
-    
-    -- Limit max jump height
-    local pos = get_position()
-    if pos and velocity_y > 0.0 then
-        local jump_height = jump_start_y - pos.y  -- How high we've jumped
-        if jump_height > max_jump_height then
-            -- Reached max height - stop upward movement
-            velocity_y = 0.0
-            set_velocity(velocity_x, velocity_y)  -- Stop upward movement
-        end
+        log("🎮 SPACE key pressed - JUMPING!")
+        -- Apply jump force (negative Y = up in this coordinate system)
+        velocity_y = -jump_force  -- Try negative for up
+        set_velocity(velocity_x, velocity_y)
+        log("🎮 Jump applied - velocity set to: " .. velocity_x .. ", " .. velocity_y)
     end
 end
 
