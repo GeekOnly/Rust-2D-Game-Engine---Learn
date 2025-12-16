@@ -85,7 +85,11 @@ impl SpriteRenderer {
                 depth_write_enabled: true,
                 depth_compare: wgpu::CompareFunction::Less,
                 stencil: wgpu::StencilState::default(),
-                bias: wgpu::DepthBiasState::default(),
+                bias: wgpu::DepthBiasState {
+                    constant: 1, // Small bias for sprites
+                    slope_scale: 1.0, // Small slope bias for sprites
+                    clamp: 0.0, // Maximum depth bias clamp
+                },
             }),
             multisample: wgpu::MultisampleState {
                 count: 1,

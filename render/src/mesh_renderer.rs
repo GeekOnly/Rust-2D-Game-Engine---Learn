@@ -135,7 +135,11 @@ impl MeshRenderer {
                 depth_write_enabled: true,
                 depth_compare: wgpu::CompareFunction::Less,
                 stencil: wgpu::StencilState::default(),
-                bias: wgpu::DepthBiasState::default(),
+                bias: wgpu::DepthBiasState {
+                    constant: 2, // Constant depth bias (in depth buffer units)
+                    slope_scale: 2.0, // Slope-scaled depth bias
+                    clamp: 0.0, // Maximum depth bias clamp
+                },
             }),
             multisample: wgpu::MultisampleState {
                 count: 1,
@@ -209,7 +213,11 @@ impl MeshRenderer {
                 depth_write_enabled: true,
                 depth_compare: wgpu::CompareFunction::Less,
                 stencil: wgpu::StencilState::default(),
-                bias: wgpu::DepthBiasState::default(),
+                bias: wgpu::DepthBiasState {
+                    constant: 2, // Constant depth bias (in depth buffer units)
+                    slope_scale: 2.0, // Slope-scaled depth bias
+                    clamp: 0.0, // Maximum depth bias clamp
+                },
             }),
             multisample: wgpu::MultisampleState {
                 count: 1,
@@ -254,7 +262,11 @@ impl MeshRenderer {
                 depth_write_enabled: true,
                 depth_compare: wgpu::CompareFunction::Less, // We want outlines behind or at same depth? Usually slightly extruded.
                 stencil: wgpu::StencilState::default(),
-                bias: wgpu::DepthBiasState::default(),
+                bias: wgpu::DepthBiasState {
+                    constant: 4, // Slightly more bias for outlines to render behind
+                    slope_scale: 4.0, // More slope bias for outlines
+                    clamp: 0.0, // Maximum depth bias clamp
+                },
             }),
             multisample: wgpu::MultisampleState {
                 count: 1,

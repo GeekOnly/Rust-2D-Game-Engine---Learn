@@ -55,7 +55,11 @@ impl TilemapRenderer {
                 depth_write_enabled: true,
                 depth_compare: wgpu::CompareFunction::Less,
                 stencil: wgpu::StencilState::default(),
-                bias: wgpu::DepthBiasState::default(),
+                bias: wgpu::DepthBiasState {
+                    constant: 0, // No bias for tilemaps (background)
+                    slope_scale: 0.0, // No slope bias for tilemaps
+                    clamp: 0.0, // Maximum depth bias clamp
+                },
             }),
             multisample: wgpu::MultisampleState {
                 count: 1,
