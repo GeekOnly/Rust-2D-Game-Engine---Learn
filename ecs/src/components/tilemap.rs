@@ -527,6 +527,31 @@ mod tests {
         // First tile in second row
         assert_eq!(tileset.get_tile_coords(4), Some((1, 19))); // 1 + 16 + 2
     }
+
+    #[test]
+    fn test_tilemap_renderer_default() {
+        let renderer = TilemapRenderer::default();
+        assert_eq!(renderer.mode, TilemapRenderMode::Chunk);
+        assert_eq!(renderer.sorting_layer, "Default");
+        assert_eq!(renderer.order_in_layer, 0);
+        assert_eq!(renderer.color, [1.0, 1.0, 1.0, 1.0]);
+        assert_eq!(renderer.chunk_size, 16);
+        assert!(renderer.detect_chunk_culling);
+    }
+
+    #[test]
+    fn test_tilemap_renderer_with_sorting() {
+        let renderer = TilemapRenderer::with_sorting("Background", -10);
+        assert_eq!(renderer.sorting_layer, "Background");
+        assert_eq!(renderer.order_in_layer, -10);
+    }
+
+    #[test]
+    fn test_tilemap_renderer_with_color() {
+        let renderer = TilemapRenderer::new()
+            .with_color(1.0, 0.5, 0.0, 0.8);
+        assert_eq!(renderer.color, [1.0, 0.5, 0.0, 0.8]);
+    }
 }
 
 /// Tilemap Renderer component (Unity-style)
@@ -624,34 +649,4 @@ pub enum MaskInteraction {
     
     /// Visible outside mask
     VisibleOutsideMask,
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_tilemap_renderer_default() {
-        let renderer = TilemapRenderer::default();
-        assert_eq!(renderer.mode, TilemapRenderMode::Chunk);
-        assert_eq!(renderer.sorting_layer, "Default");
-        assert_eq!(renderer.order_in_layer, 0);
-        assert_eq!(renderer.color, [1.0, 1.0, 1.0, 1.0]);
-        assert_eq!(renderer.chunk_size, 16);
-        assert!(renderer.detect_chunk_culling);
-    }
-
-    #[test]
-    fn test_tilemap_renderer_with_sorting() {
-        let renderer = TilemapRenderer::with_sorting("Background", -10);
-        assert_eq!(renderer.sorting_layer, "Background");
-        assert_eq!(renderer.order_in_layer, -10);
-    }
-
-    #[test]
-    fn test_tilemap_renderer_with_color() {
-        let renderer = TilemapRenderer::new()
-            .with_color(1.0, 0.5, 0.0, 0.8);
-        assert_eq!(renderer.color, [1.0, 0.5, 0.0, 0.8]);
-    }
 }

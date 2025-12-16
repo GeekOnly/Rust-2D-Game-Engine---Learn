@@ -90,11 +90,12 @@ pub trait ComponentManager {
     fn get_addable_components(&self, entity: Entity) -> Vec<ComponentType>;
 }
 
-impl ComponentManager for World {
+#[cfg(not(feature = "hecs"))]
+impl ComponentManager for crate::CustomWorld {
     fn add_component(&mut self, entity: Entity, component_type: ComponentType) -> Result<(), String> {
         // ตรวจสอบว่า Entity มีอยู่จริง
         if !self.active.contains_key(&entity) {
-            return Err(format!("Entity {} does not exist", entity));
+            return Err(format!("Entity {:?} does not exist", entity));
         }
 
         // ตรวจสอบว่ามี Component อยู่แล้วหรือไม่
@@ -270,7 +271,7 @@ impl ComponentManager for World {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, not(feature = "hecs")))]
 mod tests {
     use super::*;
 

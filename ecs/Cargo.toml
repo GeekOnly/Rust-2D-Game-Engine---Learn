@@ -10,6 +10,7 @@ tiled = { workspace = true }
 image = { workspace = true }
 notify = { workspace = true }
 log = { workspace = true }
+hecs = { version = "0.10", optional = true, features = ["serde"] }
 
 [dev-dependencies]
 criterion = { workspace = true }

@@ -94,15 +94,21 @@ pub trait ComponentAccess<T> {
     /// The error type
     type Error;
     
+    /// The read guard type (allows supporting both &T and Ref<T>)
+    type ReadGuard<'a>: std::ops::Deref<Target = T> where Self: 'a;
+    
+    /// The write guard type (allows supporting both &mut T and RefMut<T>)
+    type WriteGuard<'a>: std::ops::DerefMut<Target = T> where Self: 'a;
+    
     /// Insert a component for an entity
     /// Returns the previous component value if one existed
     fn insert(&mut self, entity: Self::Entity, component: T) -> Result<Option<T>, Self::Error>;
     
     /// Get an immutable reference to a component
-    fn get(&self, entity: Self::Entity) -> Option<&T>;
+    fn get<'a>(&'a self, entity: Self::Entity) -> Option<Self::ReadGuard<'a>>;
     
     /// Get a mutable reference to a component
-    fn get_mut(&mut self, entity: Self::Entity) -> Option<&mut T>;
+    fn get_mut<'a>(&'a mut self, entity: Self::Entity) -> Option<Self::WriteGuard<'a>>;
     
     /// Remove a component from an entity
     /// Returns the component value if it existed
@@ -157,17 +163,20 @@ macro_rules! impl_component_access {
             type Entity = $crate::Entity;
             type Error = $crate::traits::EcsError;
             
+            type ReadGuard<'a> = &'a $component_type;
+            type WriteGuard<'a> = &'a mut $component_type;
+            
             fn insert(&mut self, entity: Self::Entity, component: $component_type) 
                 -> Result<Option<$component_type>, Self::Error> 
             {
                 Ok(self.$field.insert(entity, component))
             }
             
-            fn get(&self, entity: Self::Entity) -> Option<&$component_type> {
+            fn get<'a>(&'a self, entity: Self::Entity) -> Option<Self::ReadGuard<'a>> {
                 self.$field.get(&entity)
             }
             
-            fn get_mut(&mut self, entity: Self::Entity) -> Option<&mut $component_type> {
+            fn get_mut<'a>(&'a mut self, entity: Self::Entity) -> Option<Self::WriteGuard<'a>> {
                 self.$field.get_mut(&entity)
             }
             

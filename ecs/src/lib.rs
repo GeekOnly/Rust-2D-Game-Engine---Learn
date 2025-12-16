@@ -5,12 +5,29 @@ pub mod traits;
 pub mod component_manager;
 pub mod components;
 pub mod loaders;
+pub mod backends;
 
 // Re-export สำหรับใช้งานง่าย
 pub use component_manager::{ComponentType, ComponentManager};
 pub use components::*;
 
+// ----------------------------------------------------------------------------
+// Backend Selection
+// ----------------------------------------------------------------------------
+
+#[cfg(feature = "hecs")]
+pub use backends::hecs_backend::HecsWorld as World;
+
+#[cfg(not(feature = "hecs"))]
+pub use CustomWorld as World;
+
+#[cfg(feature = "hecs")]
+pub use hecs::Entity;
+
+#[cfg(not(feature = "hecs"))]
 pub type Entity = u32;
+
+// ----------------------------------------------------------------------------
 
 /// Prefab system for reusable entity templates
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -126,32 +143,36 @@ impl Prefab {
 
     /// Spawn this prefab into the world
     pub fn spawn(&self, world: &mut World) -> Entity {
+        use crate::traits::ComponentAccess;
+
         let entity = world.spawn();
-        world.transforms.insert(entity, self.transform.clone());
-        world.names.insert(entity, self.name.clone());
+        
+        // Use explicit trait method calls to avoid ambiguity
+        let _ = ComponentAccess::<Transform>::insert(world, entity, self.transform.clone());
+        let _ = ComponentAccess::<String>::insert(world, entity, self.name.clone());
 
         if let Some(sprite) = &self.sprite {
-            world.sprites.insert(entity, sprite.clone());
+            let _ = ComponentAccess::<Sprite>::insert(world, entity, sprite.clone());
         }
         if let Some(collider) = &self.collider {
-            world.colliders.insert(entity, collider.clone());
+            let _ = ComponentAccess::<Collider>::insert(world, entity, collider.clone());
         }
         if let Some(rigidbody) = &self.rigidbody {
-            world.rigidbodies.insert(entity, rigidbody.clone());
+            let _ = ComponentAccess::<Rigidbody2D>::insert(world, entity, rigidbody.clone());
             // Sync velocity from rigidbody
-            world.velocities.insert(entity, rigidbody.velocity);
+            let _ = ComponentAccess::<(f32, f32)>::insert(world, entity, rigidbody.velocity);
         } else if let Some(velocity) = self.velocity {
             // Legacy velocity support
-            world.velocities.insert(entity, velocity);
+            let _ = ComponentAccess::<(f32, f32)>::insert(world, entity, velocity);
         }
         if let Some(tag) = &self.tag {
-            world.tags.insert(entity, tag.clone());
+            let _ = ComponentAccess::<EntityTag>::insert(world, entity, tag.clone());
         }
         if let Some(script) = &self.script {
-            world.scripts.insert(entity, script.clone());
+            let _ = ComponentAccess::<Script>::insert(world, entity, script.clone());
         }
         if let Some(camera) = &self.camera {
-            world.cameras.insert(entity, camera.clone());
+            let _ = ComponentAccess::<Camera>::insert(world, entity, camera.clone());
         }
 
         entity
@@ -566,8 +587,9 @@ impl Camera {
     }
 }
 
+#[cfg(not(feature = "hecs"))]
 #[derive(Default, Clone)]
-pub struct World {
+pub struct CustomWorld {
     next_entity: Entity,
     pub transforms: HashMap<Entity, Transform>,
     pub velocities: HashMap<Entity, (f32, f32)>,  // Legacy - kept for backward compatibility
@@ -602,7 +624,8 @@ pub struct World {
     pub ldtk_intgrid_colliders: HashMap<Entity, LdtkIntGridCollider>,
 }
 
-impl World {
+#[cfg(not(feature = "hecs"))]
+impl CustomWorld {
     pub fn new() -> Self { Self::default() }
 
     pub fn spawn(&mut self) -> Entity {
@@ -910,12 +933,13 @@ impl World {
 
 use traits::{EcsWorld, EcsError, Serializable};
 
-impl EcsWorld for World {
+#[cfg(not(feature = "hecs"))]
+impl EcsWorld for CustomWorld {
     type Entity = Entity;
     type Error = EcsError;
     
     fn spawn(&mut self) -> Self::Entity {
-        World::spawn(self)
+        CustomWorld::spawn(self)
     }
     
     fn despawn(&mut self, entity: Self::Entity) -> Result<(), Self::Error> {
@@ -924,7 +948,7 @@ impl EcsWorld for World {
             return Err(EcsError::EntityNotFound);
         }
         
-        World::despawn(self, entity);
+        CustomWorld::despawn(self, entity);
         Ok(())
     }
     
@@ -939,7 +963,7 @@ impl EcsWorld for World {
     }
     
     fn clear(&mut self) {
-        World::clear(self);
+        CustomWorld::clear(self);
     }
     
     fn entity_count(&self) -> usize {
@@ -959,157 +983,187 @@ impl EcsWorld for World {
             }
         }
         
-        World::set_parent(self, child, parent);
+        CustomWorld::set_parent(self, child, parent);
         Ok(())
     }
     
     fn get_parent(&self, entity: Self::Entity) -> Option<Self::Entity> {
-        World::get_parent(self, entity)
+        CustomWorld::get_parent(self, entity)
     }
     
     fn get_children(&self, entity: Self::Entity) -> Vec<Self::Entity> {
-        World::get_children(self, entity).to_vec()
+        CustomWorld::get_children(self, entity).to_vec()
     }
 }
 
-impl Serializable for World {
+#[cfg(not(feature = "hecs"))]
+impl Serializable for CustomWorld {
     fn save_to_json(&self) -> Result<String, Box<dyn std::error::Error>> {
-        World::save_to_json(self).map_err(|e| Box::new(e) as Box<dyn std::error::Error>)
+        CustomWorld::save_to_json(self).map_err(|e| Box::new(e) as Box<dyn std::error::Error>)
     }
     
     fn load_from_json(&mut self, json: &str) -> Result<(), Box<dyn std::error::Error>> {
-        World::load_from_json(self, json).map_err(|e| Box::new(e) as Box<dyn std::error::Error>)
+        CustomWorld::load_from_json(self, json).map_err(|e| Box::new(e) as Box<dyn std::error::Error>)
     }
 }
 
 // Implement ComponentAccess for all component types using the macro
-impl_component_access!(World, Transform, transforms);
-impl_component_access!(World, Sprite, sprites);
-impl_component_access!(World, Collider, colliders);
-impl_component_access!(World, Mesh, meshes);
-impl_component_access!(World, Camera, cameras);
-impl_component_access!(World, Script, scripts);
-impl_component_access!(World, EntityTag, tags);
-impl_component_access!(World, SpriteSheet, sprite_sheets);
-impl_component_access!(World, AnimatedSprite, animated_sprites);
-impl_component_access!(World, Tilemap, tilemaps);
-impl_component_access!(World, TileSet, tilesets);
-impl_component_access!(World, Map, maps);
+#[cfg(not(feature = "hecs"))]
+mod custom_world_impls {
+    use super::*;
+    impl_component_access!(CustomWorld, Transform, transforms);
+    impl_component_access!(CustomWorld, Sprite, sprites);
+    impl_component_access!(CustomWorld, Collider, colliders);
+    impl_component_access!(CustomWorld, Rigidbody2D, rigidbodies);
+    impl_component_access!(CustomWorld, Mesh, meshes);
+    impl_component_access!(CustomWorld, Camera, cameras);
+    impl_component_access!(CustomWorld, Script, scripts);
+    impl_component_access!(CustomWorld, EntityTag, tags);
+    impl_component_access!(CustomWorld, SpriteSheet, sprite_sheets);
+    impl_component_access!(CustomWorld, AnimatedSprite, animated_sprites);
+    impl_component_access!(CustomWorld, Tilemap, tilemaps);
+    impl_component_access!(CustomWorld, TileSet, tilesets);
+    impl_component_access!(CustomWorld, TilemapRenderer, tilemap_renderers);
+    impl_component_access!(CustomWorld, Map, maps);
+    impl_component_access!(CustomWorld, Grid, grids);
+    impl_component_access!(CustomWorld, WorldUI, world_uis);
+    impl_component_access!(CustomWorld, LdtkMap, ldtk_maps);
+    impl_component_access!(CustomWorld, TilemapCollider, tilemap_colliders);
+    impl_component_access!(CustomWorld, LdtkIntGridCollider, ldtk_intgrid_colliders);
+}
 
 // Manual implementations for tuple and primitive types
-impl traits::ComponentAccess<(f32, f32)> for World {
-    type Entity = Entity;
-    type Error = EcsError;
-    
-    fn insert(&mut self, entity: Self::Entity, component: (f32, f32)) 
-        -> Result<Option<(f32, f32)>, Self::Error> 
-    {
-        Ok(self.velocities.insert(entity, component))
-    }
-    
-    fn get(&self, entity: Self::Entity) -> Option<&(f32, f32)> {
-        self.velocities.get(&entity)
-    }
-    
-    fn get_mut(&mut self, entity: Self::Entity) -> Option<&mut (f32, f32)> {
-        self.velocities.get_mut(&entity)
-    }
-    
-    fn remove(&mut self, entity: Self::Entity) 
-        -> Result<Option<(f32, f32)>, Self::Error> 
-    {
-        Ok(self.velocities.remove(&entity))
-    }
-    
-    fn has(&self, entity: Self::Entity) -> bool {
-        self.velocities.contains_key(&entity)
-    }
-}
+// Manual implementations for tuple and primitive types
+#[cfg(not(feature = "hecs"))]
+mod custom_world_manual_impls {
+    use super::*;
 
-impl traits::ComponentAccess<bool> for World {
-    type Entity = Entity;
-    type Error = EcsError;
-    
-    fn insert(&mut self, entity: Self::Entity, component: bool) 
-        -> Result<Option<bool>, Self::Error> 
-    {
-        Ok(self.active.insert(entity, component))
-    }
-    
-    fn get(&self, entity: Self::Entity) -> Option<&bool> {
-        self.active.get(&entity)
-    }
-    
-    fn get_mut(&mut self, entity: Self::Entity) -> Option<&mut bool> {
-        self.active.get_mut(&entity)
-    }
-    
-    fn remove(&mut self, entity: Self::Entity) 
-        -> Result<Option<bool>, Self::Error> 
-    {
-        Ok(self.active.remove(&entity))
-    }
-    
-    fn has(&self, entity: Self::Entity) -> bool {
-        self.active.contains_key(&entity)
-    }
-}
+    impl traits::ComponentAccess<(f32, f32)> for CustomWorld {
+        type Entity = Entity;
+        type Error = EcsError;
+        
+        type ReadGuard<'a> = &'a (f32, f32);
+        type WriteGuard<'a> = &'a mut (f32, f32);
 
-impl traits::ComponentAccess<u8> for World {
-    type Entity = Entity;
-    type Error = EcsError;
-    
-    fn insert(&mut self, entity: Self::Entity, component: u8) 
-        -> Result<Option<u8>, Self::Error> 
-    {
-        Ok(self.layers.insert(entity, component))
+        fn insert(&mut self, entity: Self::Entity, component: (f32, f32)) 
+            -> Result<Option<(f32, f32)>, Self::Error> 
+        {
+            Ok(self.velocities.insert(entity, component))
+        }
+        
+        fn get<'a>(&'a self, entity: Self::Entity) -> Option<Self::ReadGuard<'a>> {
+            self.velocities.get(&entity)
+        }
+        
+        fn get_mut<'a>(&'a mut self, entity: Self::Entity) -> Option<Self::WriteGuard<'a>> {
+            self.velocities.get_mut(&entity)
+        }
+        
+        fn remove(&mut self, entity: Self::Entity) 
+            -> Result<Option<(f32, f32)>, Self::Error> 
+        {
+            Ok(self.velocities.remove(&entity))
+        }
+        
+        fn has(&self, entity: Self::Entity) -> bool {
+            self.velocities.contains_key(&entity)
+        }
     }
-    
-    fn get(&self, entity: Self::Entity) -> Option<&u8> {
-        self.layers.get(&entity)
-    }
-    
-    fn get_mut(&mut self, entity: Self::Entity) -> Option<&mut u8> {
-        self.layers.get_mut(&entity)
-    }
-    
-    fn remove(&mut self, entity: Self::Entity) 
-        -> Result<Option<u8>, Self::Error> 
-    {
-        Ok(self.layers.remove(&entity))
-    }
-    
-    fn has(&self, entity: Self::Entity) -> bool {
-        self.layers.contains_key(&entity)
-    }
-}
 
-impl traits::ComponentAccess<String> for World {
-    type Entity = Entity;
-    type Error = EcsError;
-    
-    fn insert(&mut self, entity: Self::Entity, component: String) 
-        -> Result<Option<String>, Self::Error> 
-    {
-        Ok(self.names.insert(entity, component))
+    impl traits::ComponentAccess<bool> for CustomWorld {
+        type Entity = Entity;
+        type Error = EcsError;
+        
+        type ReadGuard<'a> = &'a bool;
+        type WriteGuard<'a> = &'a mut bool;
+
+        fn insert(&mut self, entity: Self::Entity, component: bool) 
+            -> Result<Option<bool>, Self::Error> 
+        {
+            Ok(self.active.insert(entity, component))
+        }
+        
+        fn get<'a>(&'a self, entity: Self::Entity) -> Option<Self::ReadGuard<'a>> {
+            self.active.get(&entity)
+        }
+        
+        fn get_mut<'a>(&'a mut self, entity: Self::Entity) -> Option<Self::WriteGuard<'a>> {
+            self.active.get_mut(&entity)
+        }
+        
+        fn remove(&mut self, entity: Self::Entity) 
+            -> Result<Option<bool>, Self::Error> 
+        {
+            Ok(self.active.remove(&entity))
+        }
+        
+        fn has(&self, entity: Self::Entity) -> bool {
+            self.active.contains_key(&entity)
+        }
     }
-    
-    fn get(&self, entity: Self::Entity) -> Option<&String> {
-        self.names.get(&entity)
+
+    impl traits::ComponentAccess<u8> for CustomWorld {
+        type Entity = Entity;
+        type Error = EcsError;
+        
+        type ReadGuard<'a> = &'a u8;
+        type WriteGuard<'a> = &'a mut u8;
+
+        fn insert(&mut self, entity: Self::Entity, component: u8) 
+            -> Result<Option<u8>, Self::Error> 
+        {
+            Ok(self.layers.insert(entity, component))
+        }
+        
+        fn get<'a>(&'a self, entity: Self::Entity) -> Option<Self::ReadGuard<'a>> {
+            self.layers.get(&entity)
+        }
+        
+        fn get_mut<'a>(&'a mut self, entity: Self::Entity) -> Option<Self::WriteGuard<'a>> {
+            self.layers.get_mut(&entity)
+        }
+        
+        fn remove(&mut self, entity: Self::Entity) 
+            -> Result<Option<u8>, Self::Error> 
+        {
+            Ok(self.layers.remove(&entity))
+        }
+        
+        fn has(&self, entity: Self::Entity) -> bool {
+            self.layers.contains_key(&entity)
+        }
     }
-    
-    fn get_mut(&mut self, entity: Self::Entity) -> Option<&mut String> {
-        self.names.get_mut(&entity)
-    }
-    
-    fn remove(&mut self, entity: Self::Entity) 
-        -> Result<Option<String>, Self::Error> 
-    {
-        Ok(self.names.remove(&entity))
-    }
-    
-    fn has(&self, entity: Self::Entity) -> bool {
-        self.names.contains_key(&entity)
+
+    impl traits::ComponentAccess<String> for CustomWorld {
+        type Entity = Entity;
+        type Error = EcsError;
+
+        type ReadGuard<'a> = &'a String;
+        type WriteGuard<'a> = &'a mut String;
+
+        fn insert(&mut self, entity: Self::Entity, component: String) 
+            -> Result<Option<String>, Self::Error> 
+        {
+            Ok(self.names.insert(entity, component))
+        }
+        
+        fn get<'a>(&'a self, entity: Self::Entity) -> Option<Self::ReadGuard<'a>> {
+            self.names.get(&entity)
+        }
+        
+        fn get_mut<'a>(&'a mut self, entity: Self::Entity) -> Option<Self::WriteGuard<'a>> {
+            self.names.get_mut(&entity)
+        }
+        
+        fn remove(&mut self, entity: Self::Entity) 
+            -> Result<Option<String>, Self::Error> 
+        {
+            Ok(self.names.remove(&entity))
+        }
+        
+        fn has(&self, entity: Self::Entity) -> bool {
+            self.names.contains_key(&entity)
+        }
     }
 }
 
