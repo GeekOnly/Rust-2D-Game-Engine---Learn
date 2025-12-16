@@ -1,6 +1,8 @@
 use egui_dock::{DockState, NodeIndex, Style, TabViewer};
 use ecs::{World, Entity};
 use egui;
+use wgpu;
+use egui_wgpu;
 use std::collections::HashMap;
 use crate::{Console, SceneCamera, SceneGrid, AssetManager, DragDropState};
 use super::{TransformTool, inspector, scene_view, texture_inspector};
@@ -74,6 +76,9 @@ pub struct TabContext<'a> {
     pub prefab_editor: &'a mut crate::PrefabEditor,
     pub ui_manager: &'a mut engine::ui_manager::UIManager,
     pub dt: f32,
+    pub game_view_renderer: &'a mut crate::game_view_renderer::GameViewRenderer,
+    pub device: &'a wgpu::Device,
+    pub egui_renderer: &'a mut egui_wgpu::Renderer,
 }
 
 /// Render game view toolbar (resolution selector, etc.)
@@ -276,13 +281,32 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                     });
                 
                 // Render game view
-                engine::runtime::render_game_view(
-                    ui,
-                    self.context.world,
-                    self.context.texture_manager,
-                    Some(self.context.ui_manager),
-                    Some(self.context.game_view_settings),
-                );
+                // NOTE: We now use the offscreen texture rendered by WGPU in EditorApp::render
+                // Instead of software rendering via engine::runtime::render_game_view
+
+                // Get available size for the game view
+                let available_size = ui.available_size();
+                let (width, height) = (available_size.x as u32, available_size.y as u32);
+                
+                // Resize if needed
+                if width > 0 && height > 0 {
+                    self.context.game_view_renderer.resize(
+                        self.context.device,
+                        self.context.egui_renderer,
+                        width,
+                        height
+                    );
+                }
+
+                // Calculate display rect based on resolution settings (e.g. aspect ratio) if needed.
+                // For now, if "Free", fill the space. If fixed, center it.
+                // GameViewSettings handling logic needs to be respected here.
+                
+                let texture_id = self.context.game_view_renderer.texture_id;
+                
+                // Draw the texture
+                // We use uv (0,0) to (1,1)
+                ui.image(egui::load::SizedTexture::new(texture_id, available_size));
             }
             EditorTab::Console => {
                 // Render console with full functionality

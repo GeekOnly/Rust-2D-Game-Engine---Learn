@@ -38,6 +38,7 @@ pub struct EditorApp {
     pub egui_ctx: egui::Context,
     pub egui_state: egui_winit::State,
     pub egui_renderer: egui_wgpu::Renderer,
+    pub game_view_renderer: crate::game_view_renderer::GameViewRenderer,
     pub physics_accumulator: f32,
     pub fixed_timestep: f32,
 }
@@ -144,11 +145,18 @@ impl EditorApp {
             None,
         );
 
-        let egui_renderer = egui_wgpu::Renderer::new(
+        let mut egui_renderer = egui_wgpu::Renderer::new(
             &renderer.device,
             renderer.config.format,
             None,
             1,
+        );
+
+        let game_view_renderer = crate::game_view_renderer::GameViewRenderer::new(
+            &renderer.device,
+            &mut egui_renderer,
+            1280, // Default resolution
+            720,
         );
 
         Ok(Self {
@@ -163,6 +171,7 @@ impl EditorApp {
             egui_ctx,
             egui_state,
             egui_renderer,
+            game_view_renderer,
             physics_accumulator: 0.0,
             fixed_timestep: 1.0 / 60.0,
         })
@@ -508,6 +517,58 @@ impl EditorApp {
         }
 
         let res = self.renderer.render_with_callback(|device, queue, encoder, view, texture_manager, batch_renderer, mesh_renderer, camera_binding, light_binding| {
+            // Render Game World to Offscreen Texture (for Editor Game View)
+            if self.app_state == AppState::Editor {
+                let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                    label: Some("Game View Render Pass"),
+                    color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                        view: &self.game_view_renderer.view,
+                        resolve_target: None,
+                        ops: wgpu::Operations {
+                            load: wgpu::LoadOp::Clear(wgpu::Color {
+                                r: 0.1, g: 0.1, b: 0.1, a: 1.0,
+                            }),
+                            store: wgpu::StoreOp::Store,
+                        },
+                    })],
+                    depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                        view: &self.game_view_renderer.depth_view,
+                        depth_ops: Some(wgpu::Operations {
+                            load: wgpu::LoadOp::Clear(1.0),
+                            store: wgpu::StoreOp::Store,
+                        }),
+                        stencil_ops: None,
+                    }),
+                    occlusion_query_set: None,
+                    timestamp_writes: None,
+                });
+
+                // Get game view resolution from settings to set viewport
+                let (w, h) = if matches!(self.editor_state.game_view_settings.resolution, runtime::GameViewResolution::Free) {
+                     (self.game_view_renderer.width, self.game_view_renderer.height)
+                } else {
+                     self.editor_state.game_view_settings.resolution.get_size()
+                };
+                
+                // Use actual texture size for now to fill the view
+                let (w, h) = (self.game_view_renderer.width, self.game_view_renderer.height);
+
+                let screen_size = winit::dpi::PhysicalSize::new(w, h);
+
+                runtime::render_system::render_game_world(
+                    &self.editor_state.world,
+                    batch_renderer,
+                    mesh_renderer,
+                    camera_binding,
+                    light_binding,
+                    texture_manager,
+                    queue,
+                    device,
+                    screen_size,
+                    &mut rpass,
+                );
+            }
+
             self.egui_renderer.update_buffers(
                 device,
                 queue,
@@ -531,7 +592,8 @@ impl EditorApp {
                 timestamp_writes: None,
             });
 
-            // If in Playing mode, render the game world using BatchRenderer
+            // If in Playing mode (Fullscreen Game), render directly to screen (Overlay)
+            // Note: In Editor mode we use the offscreen texture rendered above.
             if self.app_state == AppState::Playing {
                 runtime::render_system::render_game_world(
                     &self.editor_state.world,
@@ -689,6 +751,9 @@ impl EditorApp {
             &mut self.physics_accumulator,
             self.fixed_timestep,
             1.0 / 60.0, // dt
+            &mut self.game_view_renderer,
+            &self.renderer.device,
+            &mut self.egui_renderer,
         );
         
         // Clear input state if not in play mode (PlayModeSystem handles it when playing)

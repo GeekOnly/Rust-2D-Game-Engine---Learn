@@ -306,6 +306,9 @@ impl EditorUI {
         scene_view_mode: &mut scene_view::SceneViewMode,
         projection_mode: &mut scene_view::SceneProjectionMode,
         transform_space: &mut scene_view::TransformSpace,
+        game_view_renderer: &mut crate::game_view_renderer::GameViewRenderer,
+        device: &wgpu::Device,
+        egui_renderer: &mut egui_wgpu::Renderer,
         texture_manager: &mut engine::texture_manager::TextureManager,
         open_sprite_editor_request: &mut Option<std::path::PathBuf>,
         open_prefab_editor_request: &mut Option<std::path::PathBuf>,
@@ -408,6 +411,9 @@ impl EditorUI {
                 prefab_editor,
                 ui_manager,
                 dt,
+                game_view_renderer,
+                device,
+                egui_renderer,
             };
 
             let mut tab_viewer = EditorTabViewer {

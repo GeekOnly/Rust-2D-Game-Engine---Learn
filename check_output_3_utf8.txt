@@ -1,0 +1,1295 @@
+﻿cargo : warning: unused import: `EcsWorld`
+At line:1 char:1
++ cargo check -p editor > check_output_3.txt 2>&1
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warn 
+   ing: unused import: `EcsWorld`:String) [], Re  
+  moteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+ --> ecs\src\loaders\ldtk_loader.rs:4:21
+  |
+4 | use crate::traits::{EcsWorld, 
+ComponentAccess};
+  |                     ^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `EcsWorld`
+ --> ecs\src\loaders\tiled_loader.rs:4:21
+  |
+4 | use crate::traits::{EcsWorld, 
+ComponentAccess};
+  |                     ^^^^^^^^
+
+warning: `ecs` (lib) generated 2 warnings
+warning: unused import: `PbrMaterial`
+ --> render\src\mesh_renderer.rs:2:26
+  |
+2 | use crate::{ModelVertex, PbrMaterial, Textu...
+  |                          ^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: field `bind_group_layout` is never read
+  --> render\src\sprite_renderer.rs:37:5
+   |
+32 | pub struct SpriteRenderer {
+   |            -------------- field in this 
+struct
+...
+37 |     bind_group_layout: wgpu::BindGroupLayout,
+   |     ^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: variant `CellSize` is never constructed
+  --> 
+sprite_editor\src\ui\sprite_editor_window.rs:33:5
+   |
+31 | enum AutoSliceMode {
+   |      ------------- variant in this enum
+32 |     Grid,
+33 |     CellSize,
+   |     ^^^^^^^^
+   |
+   = note: `AutoSliceMode` has derived impls for 
+the traits `Clone` and `Debug`, but these are 
+intentionally ignored during dead code analysis
+   = note: `#[warn(dead_code)]` on by default
+
+warning: multiple fields are never read
+   --> 
+sprite_editor\src\ui\sprite_editor_window.rs:298:5
+    |
+292 | pub struct SpriteEditorWindow {
+    |            ------------------ fields in 
+this struct
+...
+298 |     auto_slice_columns: u32,
+    |     ^^^^^^^^^^^^^^^^^^
+299 |     auto_slice_rows: u32,
+    |     ^^^^^^^^^^^^^^^
+300 |     auto_slice_padding: u32,
+    |     ^^^^^^^^^^^^^^^^^^
+301 |     auto_slice_spacing: u32,
+    |     ^^^^^^^^^^^^^^^^^^
+302 |     auto_slice_mode: AutoSliceMode,
+    |     ^^^^^^^^^^^^^^^
+303 |     auto_slice_cell_width: u32,
+    |     ^^^^^^^^^^^^^^^^^^^^^
+304 |     auto_slice_cell_height: u32,
+    |     ^^^^^^^^^^^^^^^^^^^^^^
+305 |     show_export_dialog: bool,
+306 |     export_format: ExportFormat,
+    |     ^^^^^^^^^^^^^
+
+warning: `render` (lib) generated 2 warnings (run 
+`cargo fix --lib -p render` to apply 1 suggestion)
+warning: `sprite_editor` (lib) generated 2 
+warnings
+warning: unused import: `CanvasScaler`
+ --> ui\src\canvas_system.rs:6:21
+  |
+6 | use crate::{Canvas, CanvasScaler};
+  |                     ^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `UIEventType`
+ --> ui\src\slider_system.rs:6:30
+  |
+6 | use crate::events::{UIEvent, UIEventType, U...
+  |                              ^^^^^^^^^^^
+
+warning: unused import: `UIEventType`
+ --> ui\src\toggle_system.rs:6:30
+  |
+6 | use crate::events::{UIEvent, UIEventType, U...
+  |                              ^^^^^^^^^^^
+
+warning: unused import: `UIEventType`
+ --> ui\src\dropdown_system.rs:6:30
+  |
+6 | use crate::events::{UIEvent, UIEventType, U...
+  |                              ^^^^^^^^^^^
+
+warning: unused import: `LineType`
+ --> ui\src\input_field_system.rs:5:61
+  |
+5 | ...cterValidation, LineType, UIElement, UIT...
+  |                    ^^^^^^^^
+
+warning: unused import: `UIEventType`
+ --> ui\src\input_field_system.rs:6:30
+  |
+6 | use crate::events::{UIEvent, UIEventType, U...
+  |                              ^^^^^^^^^^^
+
+warning: unused variable: `event_dispatcher`
+  --> ui\src\slider_system.rs:40:9
+   |
+40 |         event_dispatcher: &UIEventDispatcher,
+   |         ^^^^^^^^^^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_event_dispatcher`
+   |
+   = note: `#[warn(unused_variables)]` on by 
+default
+
+warning: unused variable: `event_dispatcher`
+  --> ui\src\toggle_system.rs:38:9
+   |
+38 |         event_dispatcher: &UIEventDispatcher,
+   |         ^^^^^^^^^^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_event_dispatcher`
+
+warning: unused variable: `entity`
+  --> ui\src\toggle_system.rs:71:14
+   |
+71 |         for (entity, toggle) in toggles {
+   |              ^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_entity`
+
+warning: unused variable: `template`
+  --> ui\src\dropdown_system.rs:62:45
+   |
+62 | ... if let Some(template) = dropdown.templ...
+   |                 ^^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_template`
+
+warning: unused variable: `event_dispatcher`
+  --> ui\src\dropdown_system.rs:42:9
+   |
+42 |         event_dispatcher: &UIEventDispatcher,
+   |         ^^^^^^^^^^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_event_dispatcher`
+
+warning: unused variable: `entity`
+  --> ui\src\dropdown_system.rs:98:14
+   |
+98 |         for (entity, dropdown) in dropdowns {
+   |              ^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_entity`
+
+warning: unused variable: `event_dispatcher`
+  --> ui\src\input_field_system.rs:42:9
+   |
+42 |         event_dispatcher: &UIEventDispatcher,
+   |         ^^^^^^^^^^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_event_dispatcher`
+
+warning: unused variable: `entity`
+   --> ui\src\input_field_system.rs:317:14
+    |
+317 |         for (entity, field) in input_fiel...
+    |              ^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_entity`
+
+warning: unused variable: `placeholder_element`
+   --> ui\src\input_field_system.rs:326:29
+    |
+326 | ...t Some(placeholder_element) = texts.ge...
+    |           ^^^^^^^^^^^^^^^^^^^ help: if this 
+is intentional, prefix it with an underscore: 
+`_placeholder_element`
+
+warning: unused variable: `alpha_threshold`
+   --> ui\src\rendering\mask_system.rs:249:65
+    |
+249 | ...t: Vec2, alpha_threshold: f32) -> bool {
+    |             ^^^^^^^^^^^^^^^ help: if this 
+is intentional, prefix it with an underscore: 
+`_alpha_threshold`
+
+warning: unused variable: `x3`
+   --> ui\src\rendering\nine_slice.rs:149:9
+    |
+149 |     let x3 = rect.x + rect.width;
+    |         ^^ help: if this is intentional, 
+prefix it with an underscore: `_x3`
+
+warning: unused variable: `y3`
+   --> ui\src\rendering\nine_slice.rs:154:9
+    |
+154 |     let y3 = rect.y + rect.height;
+    |         ^^ help: if this is intentional, 
+prefix it with an underscore: `_y3`
+
+warning: unused variable: `batch`
+   --> ui\src\rendering\batch_builder.rs:354:51
+    |
+354 | ...let Some(ref batch) = current_batch {
+    |                 ^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_batch`
+
+warning: unused variable: `sprite`
+   --> ui\src\style_system.rs:123:25
+    |
+123 | ...let Some(ref sprite) = style.button_sp...
+    |                 ^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_sprite`
+
+warning: unused variable: `world`
+  --> ui\src\lua_bindings\animation.rs:18:5
+   |
+18 |     world: &'scope RefCell<&mut World>,
+   |     ^^^^^ help: if this is intentional, 
+prefix it with an underscore: `_world`
+
+warning: unused variable: `notes`
+  --> ui\src\hud_converter.rs:87:49
+   |
+87 | ...pe_children, notes) = Self::convert_ele...
+   |                 ^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_notes`
+
+warning: unused variable: `binding`
+   --> ui\src\hud_converter.rs:132:9
+    |
+132 |         binding: &str,
+    |         ^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_binding`
+
+warning: field `layout_cache` is never read
+  --> ui\src\layout_system.rs:19:5
+   |
+17 | pub struct LayoutSystem {
+   |            ------------ field in this struct
+18 |     /// Cached layout calculations to avoi...
+19 |     layout_cache: HashMap<Entity, LayoutCa...
+   |     ^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: fields `child_positions` and 
+`child_sizes` are never read
+  --> ui\src\layout_system.rs:25:5
+   |
+23 | struct LayoutCache {
+   |        ----------- fields in this struct
+24 |     /// Last calculated positions for ch...
+25 |     child_positions: HashMap<Entity, Vec2>,
+   |     ^^^^^^^^^^^^^^^
+26 |     /// Last calculated sizes for children
+27 |     child_sizes: HashMap<Entity, Vec2>,
+   |     ^^^^^^^^^^^
+   |
+   = note: `LayoutCache` has derived impls for 
+the traits `Debug` and `Clone`, but these are 
+intentionally ignored during dead code analysis
+
+warning: associated function `lighten_color` is 
+never used
+   --> ui\src\style_system.rs:266:8
+    |
+24  | impl StyleSystem {
+    | ---------------- associated function in 
+this implementation
+...
+266 |     fn lighten_color(color: Color, factor...
+    |        ^^^^^^^^^^^^^
+
+warning: function `parse_easing` is never used
+   --> ui\src\lua_bindings\animation.rs:320:4
+    |
+320 | fn parse_easing(name: &str) -> EasingFunc...
+    |    ^^^^^^^^^^^^
+
+warning: unexpected `cfg` condition value: 
+`rapier`
+  --> script\src\lib.rs:10:7
+   |
+10 | #[cfg(feature = "rapier")]
+   |       ^^^^^^^^^^^^^^^^^^ help: remove the 
+condition
+   |
+   = note: no expected values for `feature`
+   = help: consider adding `rapier` as a feature 
+in `Cargo.toml`
+   = note: see <https://doc.rust-lang.org/nightly/
+rustc/check-cfg/cargo-specifics.html> for more 
+information about checking conditional 
+configuration
+   = note: `#[warn(unexpected_cfgs)]` on by 
+default
+
+warning: `ui` (lib) generated 27 warnings (run 
+`cargo fix --lib -p ui` to apply 6 suggestions)
+warning: `script` (lib) generated 1 warning
+warning: unused variable: `camera_entity`
+  --> engine\src\runtime\renderer.rs:47:18
+   |
+47 | ... let Some((camera_entity, camera, trans...
+   |               ^^^^^^^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_camera_entity`
+   |
+   = note: `#[warn(unused_variables)]` on by 
+default
+
+warning: unused variable: `cam_pos`
+   --> engine\src\runtime\renderer.rs:212:9
+    |
+212 |     let cam_pos = camera_transform.position;
+    |         ^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_cam_pos`
+
+warning: unused variable: `camera`
+   --> engine\src\runtime\renderer.rs:231:5
+    |
+231 |     camera: &Camera,
+    |     ^^^^^^ help: if this is intentional, 
+prefix it with an underscore: `_camera`
+
+warning: unused variable: `top_world_pos`
+   --> engine\src\runtime\renderer.rs:650:13
+    |
+650 |         let top_world_pos = world_pos + (...
+    |             ^^^^^^^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_top_world_pos`
+
+warning: field `texture_id` is never read
+  --> engine\src\runtime\render_system.rs:68:9
+   |
+67 |     struct DrawCommand {
+   |            ----------- field in this struct
+68 |         texture_id: String,
+   |         ^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: `engine` (lib) generated 5 warnings
+    Checking editor v0.1.0 (K:\XSGameStudio\2025 
+Project\Game Engine\Rust 2D Game Engine\editor)
+warning: unexpected `cfg` condition value: 
+`rapier`
+ --> editor\src\app.rs:5:7
+  |
+5 | #[cfg(feature = "rapier")]
+  |       ^^^^^^^^^^^^^^^^^^ help: remove the 
+condition
+  |
+  = note: no expected values for `feature`
+  = help: consider adding `rapier` as a feature 
+in `Cargo.toml`
+  = note: see <https://doc.rust-lang.org/nightly/r
+ustc/check-cfg/cargo-specifics.html> for more 
+information about checking conditional 
+configuration
+  = note: `#[warn(unexpected_cfgs)]` on by default
+
+warning: unexpected `cfg` condition value: 
+`rapier`
+ --> editor\src\app.rs:7:11
+  |
+7 | #[cfg(not(feature = "rapier"))]
+  |           ^^^^^^^^^^^^^^^^^^ help: remove the 
+condition
+  |
+  = note: no expected values for `feature`
+  = help: consider adding `rapier` as a feature 
+in `Cargo.toml`
+  = note: see <https://doc.rust-lang.org/nightly/r
+ustc/check-cfg/cargo-specifics.html> for more 
+information about checking conditional 
+configuration
+
+warning: unused imports: `EngineModule` and 
+`project::ProjectManager`
+ --> editor\src\app.rs:2:34
+  |
+2 | use engine_core::{EngineContext, 
+EngineModule, project::ProjectManager};
+  |                                  ^^^^^^^^^^^^ 
+ ^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused imports: `Collider`, `EntityTag`, 
+`Entity`, `Sprite`, `Transform`, and `World`
+ --> editor\src\app.rs:3:11
+  |
+3 | use ecs::{World, Entity, Transform, Sprite, 
+Collider, EntityTag};
+  |           ^^^^^  ^^^^^^  ^^^^^^^^^  ^^^^^^  
+^^^^^^^^  ^^^^^^^^^
+
+warning: unused import: `EditorUI`
+  --> editor\src\app.rs:10:17
+   |
+10 | use crate::ui::{EditorUI, TransformTool};
+   |                 ^^^^^^^^
+
+warning: unused import: `EditorAction`
+  --> editor\src\app.rs:11:59
+   |
+11 | use crate::states::{AppState, LauncherState, 
+EditorState, EditorAction};
+   |                                              
+             ^^^^^^^^^^^^
+
+warning: unused import: 
+`crate::shortcuts::EditorShortcut`
+  --> editor\src\app.rs:12:5
+   |
+12 | use crate::shortcuts::EditorShortcut;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `crate::console::Console`
+  --> editor\src\app.rs:13:5
+   |
+13 | use crate::console::Console;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `engine::texture_manager`
+  --> editor\src\app.rs:15:5
+   |
+15 | use engine::texture_manager;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `engine::ui_manager`
+  --> editor\src\app.rs:16:5
+   |
+16 | use engine::ui_manager;
+   |     ^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `input::Key`
+  --> editor\src\app.rs:18:5
+   |
+18 | use input::Key;
+   |     ^^^^^^^^^^
+
+warning: unused import: `std::str::FromStr`
+  --> editor\src\app.rs:24:5
+   |
+24 | use std::str::FromStr;
+   |     ^^^^^^^^^^^^^^^^^
+
+warning: unexpected `cfg` condition value: 
+`rapier`
+  --> editor\src\app.rs:33:11
+   |
+33 |     #[cfg(feature = "rapier")]
+   |           ^^^^^^^^^^^^^^^^^^ help: remove 
+the condition
+   |
+   = note: no expected values for `feature`
+   = help: consider adding `rapier` as a feature 
+in `Cargo.toml`
+   = note: see <https://doc.rust-lang.org/nightly/
+rustc/check-cfg/cargo-specifics.html> for more 
+information about checking conditional 
+configuration
+
+warning: unexpected `cfg` condition value: 
+`rapier`
+  --> editor\src\app.rs:35:15
+   |
+35 |     #[cfg(not(feature = "rapier"))]
+   |               ^^^^^^^^^^^^^^^^^^ help: 
+remove the condition
+   |
+   = note: no expected values for `feature`
+   = help: consider adding `rapier` as a feature 
+in `Cargo.toml`
+   = note: see <https://doc.rust-lang.org/nightly/
+rustc/check-cfg/cargo-specifics.html> for more 
+information about checking conditional 
+configuration
+
+warning: unexpected `cfg` condition value: 
+`rapier`
+   --> editor\src\app.rs:123:15
+    |
+123 |         #[cfg(feature = "rapier")]
+    |               ^^^^^^^^^^^^^^^^^^ help: 
+remove the condition
+    |
+    = note: no expected values for `feature`
+    = help: consider adding `rapier` as a feature 
+in `Cargo.toml`
+    = note: see <https://doc.rust-lang.org/nightly
+/rustc/check-cfg/cargo-specifics.html> for more 
+information about checking conditional 
+configuration
+
+warning: unexpected `cfg` condition value: 
+`rapier`
+   --> editor\src\app.rs:125:19
+    |
+125 |         #[cfg(not(feature = "rapier"))]
+    |                   ^^^^^^^^^^^^^^^^^^ help: 
+remove the condition
+    |
+    = note: no expected values for `feature`
+    = help: consider adding `rapier` as a feature 
+in `Cargo.toml`
+    = note: see <https://doc.rust-lang.org/nightly
+/rustc/check-cfg/cargo-specifics.html> for more 
+information about checking conditional 
+configuration
+
+warning: unexpected `cfg` condition value: 
+`system-clipboard`
+   --> editor\src\systems\clipboard.rs:508:7
+    |
+508 | #[cfg(feature = "system-clipboard")]
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: 
+remove the condition
+    |
+    = note: no expected values for `feature`
+    = help: consider adding `system-clipboard` as 
+a feature in `Cargo.toml`
+    = note: see <https://doc.rust-lang.org/nightly
+/rustc/check-cfg/cargo-specifics.html> for more 
+information about checking conditional 
+configuration
+
+warning: unexpected `cfg` condition value: 
+`rapier`
+ --> editor\src\systems\play_mode.rs:4:7
+  |
+4 | #[cfg(feature = "rapier")]
+  |       ^^^^^^^^^^^^^^^^^^ help: remove the 
+condition
+  |
+  = note: no expected values for `feature`
+  = help: consider adding `rapier` as a feature 
+in `Cargo.toml`
+  = note: see <https://doc.rust-lang.org/nightly/r
+ustc/check-cfg/cargo-specifics.html> for more 
+information about checking conditional 
+configuration
+
+warning: unexpected `cfg` condition value: 
+`rapier`
+ --> editor\src\systems\play_mode.rs:6:11
+  |
+6 | #[cfg(not(feature = "rapier"))]
+  |           ^^^^^^^^^^^^^^^^^^ help: remove the 
+condition
+  |
+  = note: no expected values for `feature`
+  = help: consider adding `rapier` as a feature 
+in `Cargo.toml`
+  = note: see <https://doc.rust-lang.org/nightly/r
+ustc/check-cfg/cargo-specifics.html> for more 
+information about checking conditional 
+configuration
+
+warning: unexpected `cfg` condition value: 
+`rapier`
+  --> editor\src\systems\play_mode.rs:32:15
+   |
+32 |         #[cfg(feature = "rapier")]
+   |               ^^^^^^^^^^^^^^^^^^ help: 
+remove the condition
+   |
+   = note: no expected values for `feature`
+   = help: consider adding `rapier` as a feature 
+in `Cargo.toml`
+   = note: see <https://doc.rust-lang.org/nightly/
+rustc/check-cfg/cargo-specifics.html> for more 
+information about checking conditional 
+configuration
+
+warning: unexpected `cfg` condition value: 
+`rapier`
+   --> editor\src\systems\play_mode.rs:146:19
+    |
+146 |             #[cfg(feature = "rapier")]
+    |                   ^^^^^^^^^^^^^^^^^^ help: 
+remove the condition
+    |
+    = note: no expected values for `feature`
+    = help: consider adding `rapier` as a feature 
+in `Cargo.toml`
+    = note: see <https://doc.rust-lang.org/nightly
+/rustc/check-cfg/cargo-specifics.html> for more 
+information about checking conditional 
+configuration
+
+warning: unexpected `cfg` condition value: 
+`rapier`
+   --> editor\src\systems\play_mode.rs:152:23
+    |
+152 |             #[cfg(not(feature = "rapier"))]
+    |                       ^^^^^^^^^^^^^^^^^^ 
+help: remove the condition
+    |
+    = note: no expected values for `feature`
+    = help: consider adding `rapier` as a feature 
+in `Cargo.toml`
+    = note: see <https://doc.rust-lang.org/nightly
+/rustc/check-cfg/cargo-specifics.html> for more 
+information about checking conditional 
+configuration
+
+warning: unexpected `cfg` condition value: 
+`rapier`
+   --> editor\src\systems\play_mode.rs:179:31
+    |
+179 |                         #[cfg(feature = 
+"rapier")]
+    |                               
+^^^^^^^^^^^^^^^^^^ help: remove the condition
+    |
+    = note: no expected values for `feature`
+    = help: consider adding `rapier` as a feature 
+in `Cargo.toml`
+    = note: see <https://doc.rust-lang.org/nightly
+/rustc/check-cfg/cargo-specifics.html> for more 
+information about checking conditional 
+configuration
+
+warning: unexpected `cfg` condition value: 
+`rapier`
+   --> editor\src\systems\play_mode.rs:184:35
+    |
+184 |                         #[cfg(not(feature = 
+"rapier"))]
+    |                                   
+^^^^^^^^^^^^^^^^^^ help: remove the condition
+    |
+    = note: no expected values for `feature`
+    = help: consider adding `rapier` as a feature 
+in `Cargo.toml`
+    = note: see <https://doc.rust-lang.org/nightly
+/rustc/check-cfg/cargo-specifics.html> for more 
+information about checking conditional 
+configuration
+
+warning: unexpected `cfg` condition value: 
+`rapier`
+ --> editor\src\systems\menu_commands.rs:5:7
+  |
+5 | #[cfg(feature = "rapier")]
+  |       ^^^^^^^^^^^^^^^^^^ help: remove the 
+condition
+  |
+  = note: no expected values for `feature`
+  = help: consider adding `rapier` as a feature 
+in `Cargo.toml`
+  = note: see <https://doc.rust-lang.org/nightly/r
+ustc/check-cfg/cargo-specifics.html> for more 
+information about checking conditional 
+configuration
+
+warning: unexpected `cfg` condition value: 
+`rapier`
+ --> editor\src\systems\menu_commands.rs:7:11
+  |
+7 | #[cfg(not(feature = "rapier"))]
+  |           ^^^^^^^^^^^^^^^^^^ help: remove the 
+condition
+  |
+  = note: no expected values for `feature`
+  = help: consider adding `rapier` as a feature 
+in `Cargo.toml`
+  = note: see <https://doc.rust-lang.org/nightly/r
+ustc/check-cfg/cargo-specifics.html> for more 
+information about checking conditional 
+configuration
+
+warning: unused import: 
+`engine_core::EngineContext`
+ --> editor\src\systems\menu_commands.rs:3:5
+  |
+3 | use engine_core::EngineContext;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unexpected `cfg` condition value: 
+`rapier`
+   --> editor\src\systems\menu_commands.rs:148:24
+    |
+148 |                  #[cfg(feature = "rapier")]
+    |                        ^^^^^^^^^^^^^^^^^^ 
+help: remove the condition
+    |
+    = note: no expected values for `feature`
+    = help: consider adding `rapier` as a feature 
+in `Cargo.toml`
+    = note: see <https://doc.rust-lang.org/nightly
+/rustc/check-cfg/cargo-specifics.html> for more 
+information about checking conditional 
+configuration
+
+warning: unexpected `cfg` condition value: 
+`rapier`
+   --> editor\src\systems\menu_commands.rs:155:28
+    |
+155 |                  #[cfg(not(feature = 
+"rapier"))]
+    |                            
+^^^^^^^^^^^^^^^^^^ help: remove the condition
+    |
+    = note: no expected values for `feature`
+    = help: consider adding `rapier` as a feature 
+in `Cargo.toml`
+    = note: see <https://doc.rust-lang.org/nightly
+/rustc/check-cfg/cargo-specifics.html> for more 
+information about checking conditional 
+configuration
+
+warning: unused import: `ComponentType`
+ --> editor\src\ui\inspector\utils.rs:1:43
+  |
+1 | use ecs::{World, Entity, ScriptParameter, 
+ComponentType};
+  |                                           
+^^^^^^^^^^^^^
+
+warning: unused import: 
+`std::collections::HashMap`
+ --> editor\src\ui\inspector\script.rs:3:5
+  |
+3 | use std::collections::HashMap;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `ecs::World`
+ --> editor\src\ui\export_dialog.rs:1:5
+  |
+1 | use ecs::World;
+  |     ^^^^^^^^^^
+
+warning: unused import: `BuildParams`
+ --> editor\src\ui\export_dialog.rs:4:21
+  |
+4 | use crate::states::{BuildParams, EditorState};
+  |                     ^^^^^^^^^^^
+
+warning: unused import: `Rect`
+ --> 
+editor\src\ui\panels\layer_ordering_panel.rs:1:43
+  |
+1 | use egui::{self, Color32, RichText, Pos2, 
+Rect};
+  |                                           ^^^^
+
+error[E0599]: no method named `clone` found for 
+struct `wgpu::TextureView` in the current scope
+   --> editor\src\game_view_renderer.rs:114:23
+    |
+114 |             self.view.clone(),
+    |                       ^^^^^ method not 
+found in `wgpu::TextureView`
+
+error[E0063]: missing fields `device`, 
+`egui_renderer` and `game_view_renderer` in 
+initializer of `TabContext<'_>`
+   --> editor\src\ui\mod.rs:363:35
+    |
+363 |             let mut tab_context = 
+TabContext {
+    |                                   
+^^^^^^^^^^ missing `device`, `egui_renderer` and 
+`game_view_renderer`
+
+error[E0061]: this function takes 58 arguments 
+but 61 arguments were supplied
+   --> editor\src\editor_logic.rs:43:14
+    |
+43  |              
+EditorUI::render_editor_with_dock(
+    |              
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+82  |                 game_view_renderer,
+    |                 ------------------ 
+unexpected argument #39 of type `&mut 
+GameViewRenderer`
+83  |                 device,
+    |                 ------ unexpected argument 
+#40 of type `&wgpu::Device`
+84  |                 egui_renderer,
+    |                 ------------- unexpected 
+argument #41 of type `&mut Renderer`
+    |
+note: associated function defined here
+   --> editor\src\ui\mod.rs:269:12
+    |
+269 |     pub fn render_editor_with_dock(
+    |            ^^^^^^^^^^^^^^^^^^^^^^^
+help: remove the extra arguments
+    |
+81  -                 &mut 
+editor_state.transform_space,
+82  -                 game_view_renderer,
+81  +                 &mut 
+editor_state.transform_space,
+    |
+
+error[E0596]: cannot borrow `egui_renderer` as 
+mutable, as it is not declared as mutable
+   --> editor\src\app.rs:157:13
+    |
+157 |             &mut egui_renderer,
+    |             ^^^^^^^^^^^^^^^^^^ cannot 
+borrow as mutable
+    |
+help: consider changing this to be mutable
+    |
+148 |         let mut egui_renderer = 
+egui_wgpu::Renderer::new(
+    |             +++
+
+warning: unused variable: `dt`
+   --> editor\src\app.rs:455:13
+    |
+455 |         let dt = 1.0 / 60.0; // Fixed time 
+step for now
+    |             ^^ help: if this is 
+intentional, prefix it with an underscore: `_dt`
+    |
+    = note: `#[warn(unused_variables)]` on by 
+default
+
+warning: unused variable: `w`
+   --> editor\src\app.rs:547:22
+    |
+547 |                 let (w, h) = if matches!(sel
+f.editor_state.game_view_settings.resolution, 
+runtime::GameViewResolution::Free) {
+    |                      ^ help: if this is 
+intentional, prefix it with an underscore: `_w`
+
+warning: unused variable: `h`
+   --> editor\src\app.rs:547:25
+    |
+547 |                 let (w, h) = if matches!(sel
+f.editor_state.game_view_settings.resolution, 
+runtime::GameViewResolution::Free) {
+    |                         ^ help: if this is 
+intentional, prefix it with an underscore: `_h`
+
+warning: unused variable: `save_request`
+   --> editor\src\app.rs:633:17
+    |
+633 |         let mut save_request = false;
+    |                 ^^^^^^^^^^^^ help: if this 
+is intentional, prefix it with an underscore: 
+`_save_request`
+
+warning: unused variable: `save_as_request`
+   --> editor\src\app.rs:634:17
+    |
+634 |         let mut save_as_request = false;
+    |                 ^^^^^^^^^^^^^^^ help: if 
+this is intentional, prefix it with an 
+underscore: `_save_as_request`
+
+warning: unused variable: `load_request`
+   --> editor\src\app.rs:635:17
+    |
+635 |         let mut load_request = false;
+    |                 ^^^^^^^^^^^^ help: if this 
+is intentional, prefix it with an underscore: 
+`_load_request`
+
+warning: unused variable: `load_file_request`
+   --> editor\src\app.rs:636:17
+    |
+636 |         let mut load_file_request: 
+Option<std::path::PathBuf> = None;
+    |                 ^^^^^^^^^^^^^^^^^ help: if 
+this is intentional, prefix it with an 
+underscore: `_load_file_request`
+
+warning: unused variable: `new_scene_request`
+   --> editor\src\app.rs:637:17
+    |
+637 |         let mut new_scene_request = false;
+    |                 ^^^^^^^^^^^^^^^^^ help: if 
+this is intentional, prefix it with an 
+underscore: `_new_scene_request`
+
+warning: unused variable: `play_request`
+   --> editor\src\app.rs:638:17
+    |
+638 |         let mut play_request = false;
+    |                 ^^^^^^^^^^^^ help: if this 
+is intentional, prefix it with an underscore: 
+`_play_request`
+
+warning: unused variable: `stop_request`
+   --> editor\src\app.rs:639:17
+    |
+639 |         let mut stop_request = false;
+    |                 ^^^^^^^^^^^^ help: if this 
+is intentional, prefix it with an underscore: 
+`_stop_request`
+
+warning: unused variable: `edit_script_request`
+   --> editor\src\app.rs:640:17
+    |
+640 |         let mut edit_script_request: 
+Option<String> = None;
+    |                 ^^^^^^^^^^^^^^^^^^^ help: 
+if this is intentional, prefix it with an 
+underscore: `_edit_script_request`
+
+warning: variable does not need to be mutable
+   --> editor\src\app.rs:633:13
+    |
+633 |         let mut save_request = false;
+    |             ----^^^^^^^^^^^^
+    |             |
+    |             help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` on by default
+
+warning: variable does not need to be mutable
+   --> editor\src\app.rs:634:13
+    |
+634 |         let mut save_as_request = false;
+    |             ----^^^^^^^^^^^^^^^
+    |             |
+    |             help: remove this `mut`
+
+warning: variable does not need to be mutable
+   --> editor\src\app.rs:635:13
+    |
+635 |         let mut load_request = false;
+    |             ----^^^^^^^^^^^^
+    |             |
+    |             help: remove this `mut`
+
+warning: variable does not need to be mutable
+   --> editor\src\app.rs:636:13
+    |
+636 |         let mut load_file_request: 
+Option<std::path::PathBuf> = None;
+    |             ----^^^^^^^^^^^^^^^^^
+    |             |
+    |             help: remove this `mut`
+
+warning: variable does not need to be mutable
+   --> editor\src\app.rs:637:13
+    |
+637 |         let mut new_scene_request = false;
+    |             ----^^^^^^^^^^^^^^^^^
+    |             |
+    |             help: remove this `mut`
+
+warning: variable does not need to be mutable
+   --> editor\src\app.rs:638:13
+    |
+638 |         let mut play_request = false;
+    |             ----^^^^^^^^^^^^
+    |             |
+    |             help: remove this `mut`
+
+warning: variable does not need to be mutable
+   --> editor\src\app.rs:639:13
+    |
+639 |         let mut stop_request = false;
+    |             ----^^^^^^^^^^^^
+    |             |
+    |             help: remove this `mut`
+
+warning: variable does not need to be mutable
+   --> editor\src\app.rs:640:13
+    |
+640 |         let mut edit_script_request: 
+Option<String> = None;
+    |             ----^^^^^^^^^^^^^^^^^^^
+    |             |
+    |             help: remove this `mut`
+
+warning: unused variable: `yaw_rad`
+   --> editor\src\systems\camera.rs:727:17
+    |
+727 |             let yaw_rad = 
+self.rotation.to_radians();
+    |                 ^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_yaw_rad`
+
+warning: unused variable: `pitch_rad`
+   --> editor\src\systems\camera.rs:728:17
+    |
+728 |             let pitch_rad = 
+self.pitch.to_radians();
+    |                 ^^^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_pitch_rad`
+
+warning: unused variable: `yaw_rad`
+   --> editor\src\systems\camera.rs:817:17
+    |
+817 |             let yaw_rad = 
+self.rotation.to_radians();
+    |                 ^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_yaw_rad`
+
+warning: unused variable: `pitch_rad`
+   --> editor\src\systems\camera.rs:818:17
+    |
+818 |             let pitch_rad = 
+self.pitch.to_radians();
+    |                 ^^^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_pitch_rad`
+
+warning: unused variable: `view_proj`
+   --> editor\src\systems\camera.rs:921:17
+    |
+921 |             let view_proj = 
+self.get_view_matrix(); // Missing projection 
+matrix here
+    |                 ^^^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_view_proj`
+
+warning: unused variable: `scene_grid`
+   --> 
+editor\src\ui\scene_view\rendering\grid.rs:174:5
+    |
+174 |     scene_grid: &SceneGrid,
+    |     ^^^^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_scene_grid`
+
+warning: unused variable: `yaw_rad`
+  --> 
+editor\src\ui\scene_view\rendering\gizmos.rs:30:9
+   |
+30 |     let yaw_rad = 
+scene_camera.get_rotation_radians();
+   |         ^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_yaw_rad`
+
+warning: unused variable: `pitch_rad`
+  --> 
+editor\src\ui\scene_view\rendering\gizmos.rs:31:9
+   |
+31 |     let pitch_rad = 
+scene_camera.get_pitch_radians();
+   |         ^^^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_pitch_rad`
+
+warning: unused variable: `forward`
+  --> 
+editor\src\ui\scene_view\rendering\gizmos.rs:39:9
+   |
+39 |     let forward = 
+glam::Vec3::new(view_matrix.x_axis.z, 
+view_matrix.y_axis.z, view_matrix.z_axis.z);
+   |         ^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_forward`
+
+warning: unused variable: `scene_camera`
+   --> 
+editor\src\ui\scene_view\rendering\gizmos.rs:414:5
+    |
+414 |     scene_camera: &SceneCamera,
+    |     ^^^^^^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_scene_camera`
+
+warning: unused variable: `camera_color`
+   --> 
+editor\src\ui\scene_view\rendering\gizmos.rs:496:5
+    |
+496 |     camera_color: egui::Color32,
+    |     ^^^^^^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_camera_color`
+
+warning: unused variable: `selection_size`
+   --> editor\src\ui\scene_view\rendering\view_3d.
+rs:248:25
+    |
+248 |                     let selection_size = 
+base_size; // Selection bounds matching object 
+size
+    |                         ^^^^^^^^^^^^^^ 
+help: if this is intentional, prefix it with an 
+underscore: `_selection_size`
+
+warning: unused variable: `infinite_grid`
+  --> 
+editor\src\ui\scene_view\rendering\view_3d.rs:53:5
+   |
+53 |     infinite_grid: &mut InfiniteGrid,
+   |     ^^^^^^^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_infinite_grid`
+
+warning: unused variable: `center`
+  --> 
+editor\src\ui\scene_view\rendering\view_3d.rs:55:5
+   |
+55 |     center: egui::Pos2,
+   |     ^^^^^^ help: if this is intentional, 
+prefix it with an underscore: `_center`
+
+warning: variable does not need to be mutable
+   --> editor\src\ui\scene_view\rendering\view_3d.
+rs:277:9
+    |
+277 |     let mut camera_entities: Vec<(Entity, 
+&ecs::Transform)> = world.transforms.iter()
+    |         ----^^^^^^^^^^^^^^^
+    |         |
+    |         help: remove this `mut`
+
+warning: unused variable: `screen_x`
+   --> editor\src\ui\scene_view\rendering\view_3d.
+rs:606:5
+    |
+606 |     screen_x: f32,
+    |     ^^^^^^^^ help: if this is intentional, 
+prefix it with an underscore: `_screen_x`
+
+warning: unused variable: `screen_y`
+   --> editor\src\ui\scene_view\rendering\view_3d.
+rs:607:5
+    |
+607 |     screen_y: f32,
+    |     ^^^^^^^^ help: if this is intentional, 
+prefix it with an underscore: `_screen_y`
+
+warning: unused variable: `viewport_size`
+   --> editor\src\ui\scene_view\rendering\sprite_3
+d.rs:355:13
+    |
+355 |         let viewport_size = 
+Vec2::new(viewport_rect.width(), 
+viewport_rect.height());
+    |             ^^^^^^^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_viewport_size`
+
+warning: unused variable: `tile_world_z`
+   --> editor\src\ui\scene_view\rendering\tilemap_
+3d.rs:134:29
+    |
+134 |                         let tile_world_z = 
+transform.position[2];
+    |                             ^^^^^^^^^^^^ 
+help: if this is intentional, prefix it with an 
+underscore: `_tile_world_z`
+
+warning: unused variable: `cam_pos`
+   --> editor\src\ui\scene_view\rendering\tilemap_
+3d.rs:256:13
+    |
+256 |         let cam_pos = 
+Vec3::new(camera.position.x, 0.0, 
+camera.position.y);
+    |             ^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_cam_pos`
+
+warning: unused variable: `pos_flat`
+   --> editor\src\ui\scene_view\rendering\tilemap_
+3d.rs:257:13
+    |
+257 |         let pos_flat = 
+Vec3::new(position.x, 0.0, position.z); // 
+Assuming Y is up in 3D, but here Z is depth?
+    |             ^^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_pos_flat`
+
+warning: unused variable: `viewport_size`
+   --> editor\src\ui\scene_view\rendering\tilemap_
+3d.rs:411:13
+    |
+411 |         let viewport_size = 
+Vec2::new(viewport_rect.width(), 
+viewport_rect.height());
+    |             ^^^^^^^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_viewport_size`
+
+warning: unused variable: `cam_right`
+   --> editor\src\ui\scene_view\interaction\transf
+orm.rs:344:45
+    |
+344 | ...                   let cam_right = 
+glam::Vec3::new(yaw.sin(), 0.0, -yaw.cos()); // 
+Simplified Y-up right
+    |                           ^^^^^^^^^ help: 
+if this is intentional, prefix it with an 
+underscore: `_cam_right`
+
+warning: unused variable: `right`
+   --> editor\src\ui\scene_view\interaction\transf
+orm.rs:354:45
+    |
+354 | ...                   let right = 
+glam::Vec3::new(yaw.cos(), 0.0, yaw.sin()); // 
+approx right? No.
+    |                           ^^^^^ help: if 
+this is intentional, prefix it with an 
+underscore: `_right`
+
+warning: unused variable: `cam_right`
+   --> editor\src\ui\scene_view\interaction\transf
+orm.rs:362:45
+    |
+362 | ...                   let cam_right = 
+glam::Vec3::new(yaw.sin(), 0.0, yaw.cos()); // 
+Wait, this is tricky without full basis.
+    |                           ^^^^^^^^^ help: 
+if this is intentional, prefix it with an 
+underscore: `_cam_right`
+
+warning: unused variable: `c_right`
+   --> editor\src\ui\scene_view\interaction\transf
+orm.rs:373:45
+    |
+373 | ...                   let c_right = 
+glam::Vec3::new(c_yaw.cos(), 0.0, c_yaw.sin()); 
+// Rotated X
+    |                           ^^^^^^^ help: if 
+this is intentional, prefix it with an 
+underscore: `_c_right`
+
+warning: unused variable: `c_up`
+   --> editor\src\ui\scene_view\interaction\transf
+orm.rs:374:45
+    |
+374 | ...                   let c_up = 
+glam::Vec3::new(-c_yaw.sin(), 1.0, 0.0); // Rough 
+Up
+    |                           ^^^^ help: if 
+this is intentional, prefix it with an 
+underscore: `_c_up`
+
+warning: unused variable: `grid_size`
+   --> editor\src\ui\scene_view\mod.rs:491:29
+    |
+491 |                         let grid_size = if 
+infinite_grid.enabled {
+    |                             ^^^^^^^^^ help: 
+if this is intentional, prefix it with an 
+underscore: `_grid_size`
+
+Some errors have detailed explanations: E0061, 
+E0063, E0596, E0599.
+For more information about an error, try `rustc 
+--explain E0061`.
+warning: `editor` (lib) generated 81 warnings
+error: could not compile `editor` (lib) due to 4 
+previous errors; 81 warnings emitted

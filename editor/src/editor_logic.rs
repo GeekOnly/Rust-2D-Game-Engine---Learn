@@ -4,6 +4,8 @@ use crate::ui::EditorUI;
 use script::ScriptEngine;
 use crate::systems::{play_mode::PlayModeSystem, menu_commands::MenuCommandSystem};
 use crate::ui::dialogs::ExitDialog;
+use wgpu;
+use egui_wgpu;
 
 pub struct EditorLogic;
 
@@ -18,6 +20,9 @@ impl EditorLogic {
         physics_accumulator: &mut f32,
         fixed_time_step: f32,
         dt: f32,
+        game_view_renderer: &mut crate::game_view_renderer::GameViewRenderer,
+        device: &wgpu::Device,
+        egui_renderer: &mut egui_wgpu::Renderer,
     ) {
         let mut save_request = false;
         let mut save_as_request = false;
@@ -74,6 +79,9 @@ impl EditorLogic {
                 &mut editor_state.scene_view_mode,
                 &mut editor_state.projection_mode,
                 &mut editor_state.transform_space,
+                game_view_renderer,
+                device,
+                egui_renderer,
                 &mut editor_state.texture_manager,
                 &mut editor_state.open_sprite_editor_request,
                 &mut editor_state.open_prefab_editor_request,
