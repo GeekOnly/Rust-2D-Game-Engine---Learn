@@ -11,9 +11,7 @@ use super::projection_3d::{self, Transform3D};
 
 /// Tilemap 3D renderer for rendering tilemaps in 3D mode
 pub struct Tilemap3DRenderer {
-    /// Layers sorted by depth
-    layers: Vec<TilemapLayer>,
-    
+
     /// Selected tilemaps
     selected_tilemaps: HashSet<Entity>,
     
@@ -64,7 +62,7 @@ impl Tilemap3DRenderer {
     /// Create a new Tilemap3DRenderer
     pub fn new() -> Self {
         Self {
-            layers: Vec::new(),
+
             selected_tilemaps: HashSet::new(),
             hovered_tilemap: None,
         }
@@ -553,6 +551,7 @@ impl Tilemap3DRenderer {
     }
     
     /// Helper method to project a single point to screen space
+    #[allow(dead_code)]
     fn project_point_to_screen(
         &self,
         point: &Vec3,
@@ -586,7 +585,7 @@ mod tests {
     #[test]
     fn test_tilemap_3d_renderer_creation() {
         let renderer = Tilemap3DRenderer::new();
-        assert_eq!(renderer.layers.len(), 0);
+
         assert_eq!(renderer.selected_tilemaps.len(), 0);
         assert!(renderer.hovered_tilemap.is_none());
     }

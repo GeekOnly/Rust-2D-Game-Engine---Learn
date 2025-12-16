@@ -134,7 +134,7 @@ pub fn render_sprite_picker(
 
                                             for (idx, sprite) in metadata.sprites.iter().enumerate() {
                                                 // Try to load texture and show preview
-                                                let texture_path_full = project_path.join(&metadata.texture_path);
+                                                let _texture_path_full = project_path.join(&metadata.texture_path);
                                                 let texture_id = format!("sprite_picker_{}_{}", file_name, idx);
                                                 
                                                 // Create a frame for the sprite

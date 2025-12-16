@@ -1,28 +1,21 @@
 // Sub-modules
 pub mod resource_manager;
 pub mod menu_bar;
-pub mod hierarchy;
 pub mod inspector;
 pub mod texture_inspector;
 pub mod scene_view;
-pub mod bottom_panel;
 pub mod project_settings;
-pub mod asset_browser;
 pub mod dock_layout;
 pub mod camera_settings;
 pub mod sprite_picker;
 pub mod map_inspector;
 pub mod map_view;
-pub mod maps_panel;
-pub mod layer_properties_panel;
-pub mod layer_ordering_panel;
-pub mod performance_panel;
-pub mod collider_settings_panel;
-pub mod prefabs_panel;
 pub mod create_prefab_dialog;
 pub mod export_dialog;
+pub mod dialogs;
 pub mod launcher_window;
 pub mod game_window;
+pub mod panels;
 
 // Re-exports
 use ecs::{World, Entity, EntityTag};
@@ -34,6 +27,7 @@ pub use dock_layout::{
     create_default_layout,
     get_dock_style, save_default_layout, load_default_layout_name, get_layout_by_name, load_custom_layouts, save_custom_layout_state, load_custom_layout_state
 };
+use panels::{hierarchy, bottom_panel};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum TransformTool {
@@ -324,10 +318,10 @@ impl EditorUI {
         map_manager: &mut crate::map_manager::MapManager,
         prefab_manager: &mut crate::PrefabManager,
         create_prefab_dialog: &mut create_prefab_dialog::CreatePrefabDialog,
-        layer_properties_panel: &mut layer_properties_panel::LayerPropertiesPanel,
-        layer_ordering_panel: &mut layer_ordering_panel::LayerOrderingPanel,
-        performance_panel: &mut performance_panel::PerformancePanel,
-        collider_settings_panel: &mut collider_settings_panel::ColliderSettingsPanel,
+        layer_properties_panel: &mut panels::layer_properties_panel::LayerPropertiesPanel,
+        layer_ordering_panel: &mut panels::layer_ordering_panel::LayerOrderingPanel,
+        performance_panel: &mut panels::performance_panel::PerformancePanel,
+        collider_settings_panel: &mut panels::collider_settings_panel::ColliderSettingsPanel,
         game_view_settings: &mut engine::runtime::GameViewSettings,
         prefab_editor: &mut crate::PrefabEditor,
         ui_manager: &mut engine::ui_manager::UIManager,

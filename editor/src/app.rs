@@ -591,39 +591,7 @@ impl EditorApp {
         }
 
         // Save Layout Dialog
-        if self.editor_state.show_save_layout_dialog {
-             egui::Window::new("Save Layout As")
-                .collapsible(false)
-                .resizable(false)
-                .show(&self.egui_ctx, |ui| {
-                    ui.label("Layout Name:");
-                    ui.text_edit_singleline(&mut self.editor_state.save_layout_name);
-                    
-                    ui.add_space(10.0);
-                    ui.horizontal(|ui| {
-                        if ui.button("Save").clicked() && !self.editor_state.save_layout_name.is_empty() {
-                            if let Some(ref project_path) = self.editor_state.current_project_path {
-                                if let Err(e) = crate::ui::save_custom_layout_state(
-                                    &self.editor_state.save_layout_name,
-                                    &self.editor_state.dock_state,
-                                    project_path
-                                ) {
-                                    self.editor_state.console.error(format!("Failed to save layout: {}", e));
-                                } else {
-                                    let saved_name = self.editor_state.save_layout_name.clone();
-                                    self.editor_state.current_layout_name = saved_name.clone();
-                                    self.editor_state.current_layout_type = "custom".to_string();
-                                    self.editor_state.console.info(format!("Saved layout as '{}'", saved_name));
-                                    self.editor_state.show_save_layout_dialog = false;
-                                }
-                            }
-                        }
-                        if ui.button("Cancel").clicked() {
-                            self.editor_state.show_save_layout_dialog = false;
-                        }
-                    });
-                });
-        }
+        crate::ui::dialogs::LayoutDialog::render(&self.egui_ctx, &mut self.editor_state);
 
         // Process hot-reload for LDtk maps
         let reloaded_maps = self.editor_state.map_manager.process_hot_reload(&mut self.editor_state.world);

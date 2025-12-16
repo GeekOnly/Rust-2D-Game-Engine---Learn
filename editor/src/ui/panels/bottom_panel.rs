@@ -1,6 +1,6 @@
 use egui;
 use crate::{Console, AssetManager, DragDropState};
-use crate::ui::asset_browser::{AssetBrowser, AssetBrowserAction};
+use crate::ui::panels::asset_browser::{AssetBrowser, AssetBrowserAction};
 
 /// Renders the bottom panel with Assets and Console tabs
 pub fn render_bottom_panel(

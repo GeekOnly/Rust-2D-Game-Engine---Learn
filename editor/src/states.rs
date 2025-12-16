@@ -145,10 +145,10 @@ pub struct EditorState {
     pub map_manager: super::map_manager::MapManager,  // Map manager for LDtk files
     pub prefab_manager: super::prefab::PrefabManager,  // Prefab manager for reusable entity templates
     pub create_prefab_dialog: super::ui::create_prefab_dialog::CreatePrefabDialog,  // Create prefab dialog
-    pub layer_properties_panel: super::ui::layer_properties_panel::LayerPropertiesPanel,  // Layer properties panel for tilemap layers
-    pub layer_ordering_panel: super::ui::layer_ordering_panel::LayerOrderingPanel,  // Layer ordering panel for reordering tilemap layers
-    pub performance_panel: super::ui::performance_panel::PerformancePanel,  // Performance monitoring panel for tilemap management
-    pub collider_settings_panel: super::ui::collider_settings_panel::ColliderSettingsPanel,  // Collider configuration panel for tilemap colliders
+    pub layer_properties_panel: super::ui::panels::layer_properties_panel::LayerPropertiesPanel,  // Layer properties panel for tilemap layers
+    pub layer_ordering_panel: super::ui::panels::layer_ordering_panel::LayerOrderingPanel,  // Layer ordering panel for reordering tilemap layers
+    pub performance_panel: super::ui::panels::performance_panel::PerformancePanel,  // Performance monitoring panel for tilemap management
+    pub collider_settings_panel: super::ui::panels::collider_settings_panel::ColliderSettingsPanel,  // Collider configuration panel for tilemap colliders
     pub game_view_settings: engine::runtime::GameViewSettings,  // Game view resolution and display settings
     pub prefab_editor: super::widget_editor::PrefabEditor,  // Visual UI prefab editor (Unity-style)
     pub ui_manager: engine::ui_manager::UIManager,  // New UI system manager
@@ -235,10 +235,10 @@ impl EditorState {
             map_manager: super::map_manager::MapManager::new(),
             prefab_manager: super::prefab::PrefabManager::new(),
             create_prefab_dialog: super::ui::create_prefab_dialog::CreatePrefabDialog::new(),
-            layer_properties_panel: super::ui::layer_properties_panel::LayerPropertiesPanel::new(),
-            layer_ordering_panel: super::ui::layer_ordering_panel::LayerOrderingPanel::new(),
-            performance_panel: super::ui::performance_panel::PerformancePanel::new(),
-            collider_settings_panel: super::ui::collider_settings_panel::ColliderSettingsPanel::new(),
+            layer_properties_panel: super::ui::panels::layer_properties_panel::LayerPropertiesPanel::new(),
+            layer_ordering_panel: super::ui::panels::layer_ordering_panel::LayerOrderingPanel::new(),
+            performance_panel: super::ui::panels::performance_panel::PerformancePanel::new(),
+            collider_settings_panel: super::ui::panels::collider_settings_panel::ColliderSettingsPanel::new(),
             game_view_settings: engine::runtime::GameViewSettings::default(),
             prefab_editor: super::widget_editor::PrefabEditor::new(),
             ui_manager: engine::ui_manager::UIManager::new(),

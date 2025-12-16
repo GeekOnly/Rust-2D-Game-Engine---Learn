@@ -298,25 +298,7 @@ impl ColliderSettingsPanel {
     }
     
     /// Render action buttons
-    fn render_action_buttons(&mut self, ui: &mut egui::Ui) {
-        ui.horizontal(|ui| {
-            if ui.button("💾 Save Settings")
-                .on_hover_text("Save collider settings to project configuration")
-                .clicked() 
-            {
-                // Settings will be saved by the caller
-                self.has_changes = false;
-            }
-            
-            if ui.button("↺ Reset to Defaults")
-                .on_hover_text("Reset all settings to default values")
-                .clicked() 
-            {
-                self.configuration = ColliderConfiguration::default();
-                self.has_changes = true;
-            }
-        });
-    }
+
     
     /// Apply configuration to MapManager
     pub fn apply_to_map_manager(&self, map_manager: &mut MapManager) {

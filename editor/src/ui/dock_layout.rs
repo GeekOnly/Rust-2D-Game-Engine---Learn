@@ -3,7 +3,8 @@ use ecs::{World, Entity};
 use egui;
 use std::collections::HashMap;
 use crate::{Console, SceneCamera, SceneGrid, AssetManager, DragDropState};
-use super::{TransformTool, hierarchy, inspector, scene_view, asset_browser, texture_inspector};
+use super::{TransformTool, inspector, scene_view, texture_inspector};
+use super::panels::{hierarchy, asset_browser};
 
 /// Tab types for the docking system
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -65,10 +66,10 @@ pub struct TabContext<'a> {
     pub map_manager: &'a mut crate::map_manager::MapManager,
     pub prefab_manager: &'a mut crate::PrefabManager,
     pub create_prefab_dialog: &'a mut super::create_prefab_dialog::CreatePrefabDialog,
-    pub layer_properties_panel: &'a mut super::layer_properties_panel::LayerPropertiesPanel,
-    pub layer_ordering_panel: &'a mut super::layer_ordering_panel::LayerOrderingPanel,
-    pub performance_panel: &'a mut super::performance_panel::PerformancePanel,
-    pub collider_settings_panel: &'a mut super::collider_settings_panel::ColliderSettingsPanel,
+    pub layer_properties_panel: &'a mut super::panels::layer_properties_panel::LayerPropertiesPanel,
+    pub layer_ordering_panel: &'a mut super::panels::layer_ordering_panel::LayerOrderingPanel,
+    pub performance_panel: &'a mut super::panels::performance_panel::PerformancePanel,
+    pub collider_settings_panel: &'a mut super::panels::collider_settings_panel::ColliderSettingsPanel,
     pub game_view_settings: &'a mut engine::runtime::GameViewSettings,
     pub prefab_editor: &'a mut crate::PrefabEditor,
     pub ui_manager: &'a mut engine::ui_manager::UIManager,
@@ -289,7 +290,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
             }
             EditorTab::MapView => {
                 // Render maps panel with MapManager
-                super::maps_panel::render_maps_panel_content(
+                super::panels::maps_panel::render_maps_panel_content(
                     ui,
                     self.context.map_manager,
                     self.context.world,
@@ -297,7 +298,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
             }
             EditorTab::Prefabs => {
                 // Render prefabs panel
-                super::prefabs_panel::render_prefabs_panel(
+                super::panels::prefabs_panel::render_prefabs_panel(
                     ui,
                     self.context.prefab_manager,
                     self.context.world,

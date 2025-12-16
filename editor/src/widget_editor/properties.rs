@@ -6,6 +6,7 @@ use egui;
 use super::state::PrefabEditorState;
 
 pub struct PropertiesPanel {
+    #[allow(dead_code)]
     show_component_palette: bool,
 }
 

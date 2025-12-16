@@ -131,6 +131,7 @@ pub fn render_infinite_grid_3d(
 }
 
 /// Project a 3D point to screen space
+#[allow(dead_code)]
 fn project_point_to_screen(
     point: glam::Vec3,
     view_proj: &Mat4,

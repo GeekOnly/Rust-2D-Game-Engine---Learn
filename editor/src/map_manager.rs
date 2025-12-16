@@ -640,78 +640,37 @@ impl MapManager {
     }
     
     /// Regenerate colliders for a map
+    /// Regenerate colliders for a map
     pub fn regenerate_colliders(&mut self, path: &PathBuf, world: &mut World) -> Result<usize, TilemapError> {
         // Get loaded map
-        let loaded_map = self.loaded_maps.get(path)
+        let loaded_map = self.loaded_maps.get_mut(path)
             .ok_or_else(|| {
                 let error = TilemapError::ValidationError(format!("Map not loaded: {:?}", path));
                 error.log_error();
                 error
             })?;
+
+        use crate::systems::generators::ColliderGenerator;
         
-        // Store backup of current collider entities
-        let backup_colliders = loaded_map.collider_entities.clone();
-        let grid_entity = loaded_map.grid_entity;
-        
-        // Remove old colliders from loaded_map (but keep backup)
-        if let Some(loaded_map) = self.loaded_maps.get_mut(path) {
-            for &collider in &loaded_map.collider_entities {
-                world.despawn(collider);
-            }
-            loaded_map.collider_entities.clear();
-        }
-        
-        // Generate new colliders
-        let colliders = match ecs::loaders::LdtkLoader::generate_composite_colliders_from_intgrid(
-            path,
+        let result = ColliderGenerator::regenerate_colliders(
+            loaded_map,
             world,
-            self.collision_value,  // Use configured collision value
-        ) {
-            Ok(colliders) => colliders,
-            Err(e) => {
-                // Restore backup colliders on error
-                let error = TilemapError::ColliderGenerationFailed(e);
-                error.log_error();
-                
-                log::warn!("Restoring previous collider state after generation failure");
-                
-                // Note: We can't restore the actual entities since they were despawned
-                // But we clear the tracking to maintain consistency
-                if let Some(loaded_map) = self.loaded_maps.get_mut(path) {
-                    loaded_map.collider_entities.clear();
-                }
-                
-                return Err(error);
-            }
-        };
-        
-        // Set as children of Grid
-        for &collider in &colliders {
-            world.set_parent(collider, Some(grid_entity));
+            self.collision_value,
+            path
+        );
+
+        if let Ok(count) = result {
+            log::info!("Regenerated {} colliders for {:?}", count, path);
         }
-        
-        // Update tracking
-        if let Some(loaded_map) = self.loaded_maps.get_mut(path) {
-            loaded_map.collider_entities = colliders.clone();
-        }
-        
-        log::info!("Regenerated {} colliders for {:?}", colliders.len(), path);
-        Ok(colliders.len())
+
+        result
     }
     
     /// Clean up colliders for a specific map
     pub fn clean_up_colliders(&mut self, path: &PathBuf, world: &mut World) -> usize {
         if let Some(loaded_map) = self.loaded_maps.get_mut(path) {
-            let count = loaded_map.collider_entities.len();
-            
-            // Remove colliders
-            for &collider in &loaded_map.collider_entities {
-                world.despawn(collider);
-            }
-            
-            // Clear tracking
-            loaded_map.collider_entities.clear();
-            
+            use crate::systems::generators::ColliderGenerator;
+            let count = ColliderGenerator::clean_up_colliders(loaded_map, world);
             log::info!("Cleaned up {} colliders for {:?}", count, path);
             count
         } else {

@@ -2,7 +2,7 @@
 //!
 //! Visual editor window for sprite sheets with egui
 
-use crate::{SpriteMetadata, SpriteDefinition, ExportFormat, SpriteStatistics, AutoSlicer};
+use crate::{SpriteMetadata, SpriteDefinition, ExportFormat, SpriteStatistics};
 use std::fs;
 use std::path::PathBuf;
 use std::time::SystemTime;
