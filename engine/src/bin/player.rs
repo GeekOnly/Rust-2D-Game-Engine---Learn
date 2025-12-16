@@ -222,6 +222,58 @@ fn main() -> Result<()> {
                         // Scripts Update - use proper script system (before clearing input)
                         runtime::script_system::update_scripts(&mut script_engine, &mut world, &ctx.input, dt);
 
+                        // Process UI commands from Lua scripts
+                        let ui_commands = script_engine.take_ui_commands();
+                        for command in ui_commands {
+                            use script::UICommand;
+                            match command {
+                                UICommand::LoadPrefab { path } => {
+                                    if let Err(e) = ui_manager.load_prefab(&path) {
+                                        log::error!("Failed to load prefab '{}': {}", path, e);
+                                    }
+                                }
+                                UICommand::ActivatePrefab { path, instance_name } => {
+                                    if let Err(e) = ui_manager.activate_prefab(&path, &instance_name) {
+                                        log::error!("Failed to activate prefab '{}': {}", path, e);
+                                    }
+                                }
+                                UICommand::DeactivatePrefab { instance_name } => {
+                                    ui_manager.deactivate_prefab(&instance_name);
+                                }
+                                UICommand::SetText { element_path, text } => {
+                                    ui_manager.set_ui_data(&element_path, text);
+                                }
+                                UICommand::SetImageFill { element_path, fill_amount } => {
+                                    if let Some((instance, element)) = element_path.split_once('/') {
+                                        if let Err(e) = ui_manager.set_element_fill(instance, element, fill_amount) {
+                                            log::error!("Failed to set fill: {}", e);
+                                        }
+                                    }
+                                }
+                                UICommand::SetColor { element_path, r, g, b, a } => {
+                                    if let Some((instance, element)) = element_path.split_once('/') {
+                                        if let Err(e) = ui_manager.set_element_color(instance, element, r, g, b, a) {
+                                            log::error!("Failed to set color: {}", e);
+                                        }
+                                    }
+                                }
+                                UICommand::ShowElement { element_path } => {
+                                    if let Some((instance, element)) = element_path.split_once('/') {
+                                        if let Err(e) = ui_manager.show_element(instance, element) {
+                                            log::error!("Failed to show element: {}", e);
+                                        }
+                                    }
+                                }
+                                UICommand::HideElement { element_path } => {
+                                    if let Some((instance, element)) = element_path.split_once('/') {
+                                        if let Err(e) = ui_manager.hide_element(instance, element) {
+                                            log::error!("Failed to hide element: {}", e);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
                         // Clear per-frame input state AFTER scripts have read it
                         ctx.input.begin_frame();
 
