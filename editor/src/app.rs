@@ -507,7 +507,7 @@ impl EditorApp {
             self.egui_renderer.update_texture(&self.renderer.device, &self.renderer.queue, *id, image_delta);
         }
 
-        let res = self.renderer.render_with_callback(|device, queue, encoder, view, texture_manager, batch_renderer| {
+        let res = self.renderer.render_with_callback(|device, queue, encoder, view, texture_manager, batch_renderer, mesh_renderer, camera_binding, light_binding| {
             self.egui_renderer.update_buffers(
                 device,
                 queue,
@@ -536,10 +536,14 @@ impl EditorApp {
                 runtime::render_system::render_game_world(
                     &self.editor_state.world,
                     batch_renderer,
+                    mesh_renderer,
+                    camera_binding,
+                    light_binding,
                     texture_manager,
                     queue,
                     device,
                     self.window.inner_size(),
+                    &mut rpass,
                 );
             }
 
