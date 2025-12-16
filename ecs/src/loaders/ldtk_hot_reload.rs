@@ -226,10 +226,10 @@ impl LdtkHotReloader {
             
             // Despawn all LDTK entities (this will also despawn children)
             if !ldtk_entities.is_empty() {
-                use crate::traits::EcsWorld;
+
                 info!("Removing {} existing LDTK entities before reload", ldtk_entities.len());
                 for entity in ldtk_entities {
-                    world.despawn(entity).unwrap_or(());
+                    let _ = world.despawn(entity);
                 }
             }
         }

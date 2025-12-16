@@ -482,3 +482,391 @@ Found 5 outliers among 100 measurements (5.00%)
   1 (1.00%) high severe
 Benchmarking entity_despawn/Specs/10000
 Benchmarking entity_despawn/Specs/10000: Warming up for 3.0000 s
+Benchmarking entity_despawn/Specs/10000: Collecting 100 samples in estimated 5.0191 s (800 iterations)
+Benchmarking entity_despawn/Specs/10000: Analyzing
+entity_despawn/Specs/10000
+                        time:   [6.6751 ms 6.9106 ms 7.1853 ms]
+                        change: [+3.7936% +7.6074% +11.698%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 11 outliers among 100 measurements (11.00%)
+  2 (2.00%) high mild
+  9 (9.00%) high severe
+Benchmarking entity_despawn/Bevy/100
+Benchmarking entity_despawn/Bevy/100: Warming up for 3.0000 s
+Benchmarking entity_despawn/Bevy/100: Collecting 100 samples in estimated 5.0034 s (131k iterations)
+Benchmarking entity_despawn/Bevy/100: Analyzing
+entity_despawn/Bevy/100 time:   [20.332 µs 22.067 µs 24.194 µs]
+                        change: [+13.757% +20.770% +28.787%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 7 outliers among 100 measurements (7.00%)
+  5 (5.00%) high mild
+  2 (2.00%) high severe
+Benchmarking entity_despawn/Bevy/1000
+Benchmarking entity_despawn/Bevy/1000: Warming up for 3.0000 s
+Benchmarking entity_despawn/Bevy/1000: Collecting 100 samples in estimated 5.7534 s (25k iterations)
+Benchmarking entity_despawn/Bevy/1000: Analyzing
+entity_despawn/Bevy/1000
+                        time:   [137.46 µs 147.32 µs 158.61 µs]
+                        change: [+22.257% +34.263% +44.172%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 13 outliers among 100 measurements (13.00%)
+  1 (1.00%) low severe
+  1 (1.00%) low mild
+  5 (5.00%) high mild
+  6 (6.00%) high severe
+Benchmarking entity_despawn/Bevy/10000
+Benchmarking entity_despawn/Bevy/10000: Warming up for 3.0000 s
+Benchmarking entity_despawn/Bevy/10000: Collecting 100 samples in estimated 5.1505 s (2300 iterations)
+Benchmarking entity_despawn/Bevy/10000: Analyzing
+entity_despawn/Bevy/10000
+                        time:   [1.3415 ms 1.4281 ms 1.5370 ms]
+                        change: [+38.021% +47.046% +58.798%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 17 outliers among 100 measurements (17.00%)
+  5 (5.00%) low mild
+  2 (2.00%) high mild
+  10 (10.00%) high severe
+
+Benchmarking component_insert/Custom/100
+Benchmarking component_insert/Custom/100: Warming up for 3.0000 s
+Benchmarking component_insert/Custom/100: Collecting 100 samples in estimated 5.0196 s (434k iterations)
+Benchmarking component_insert/Custom/100: Analyzing
+component_insert/Custom/100
+                        time:   [784.85 ns 848.07 ns 927.17 ns]
+Found 8 outliers among 100 measurements (8.00%)
+  4 (4.00%) high mild
+  4 (4.00%) high severe
+Benchmarking component_insert/Custom/1000
+Benchmarking component_insert/Custom/1000: Warming up for 3.0000 s
+Benchmarking component_insert/Custom/1000: Collecting 100 samples in estimated 5.0675 s (35k iterations)
+Benchmarking component_insert/Custom/1000: Analyzing
+component_insert/Custom/1000
+                        time:   [3.8301 µs 4.2938 µs 4.9442 µs]
+Found 4 outliers among 100 measurements (4.00%)
+  2 (2.00%) high mild
+  2 (2.00%) high severe
+Benchmarking component_insert/Custom/5000
+Benchmarking component_insert/Custom/5000: Warming up for 3.0000 s
+Benchmarking component_insert/Custom/5000: Collecting 100 samples in estimated 7.4552 s (10k iterations)
+Benchmarking component_insert/Custom/5000: Analyzing
+component_insert/Custom/5000
+                        time:   [14.245 µs 16.008 µs 19.094 µs]
+Found 4 outliers among 100 measurements (4.00%)
+  1 (1.00%) high mild
+  3 (3.00%) high severe
+Benchmarking component_insert/Hecs/100
+Benchmarking component_insert/Hecs/100: Warming up for 3.0000 s
+Benchmarking component_insert/Hecs/100: Collecting 100 samples in estimated 5.0293 s (747k iterations)
+Benchmarking component_insert/Hecs/100: Analyzing
+component_insert/Hecs/100
+                        time:   [1.1054 µs 1.1591 µs 1.2095 µs]
+                        change: [+62.329% +77.543% +93.084%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Benchmarking component_insert/Hecs/1000
+Benchmarking component_insert/Hecs/1000: Warming up for 3.0000 s
+Benchmarking component_insert/Hecs/1000: Collecting 100 samples in estimated 5.1591 s (136k iterations)
+Benchmarking component_insert/Hecs/1000: Analyzing
+component_insert/Hecs/1000
+                        time:   [3.0531 µs 3.1608 µs 3.2842 µs]
+                        change: [+46.283% +51.874% +57.944%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 1 outliers among 100 measurements (1.00%)
+  1 (1.00%) high mild
+Benchmarking component_insert/Hecs/5000
+Benchmarking component_insert/Hecs/5000: Warming up for 3.0000 s
+Benchmarking component_insert/Hecs/5000: Collecting 100 samples in estimated 5.3678 s (25k iterations)
+Benchmarking component_insert/Hecs/5000: Analyzing
+component_insert/Hecs/5000
+                        time:   [10.582 µs 11.290 µs 12.297 µs]
+                        change: [-5.2225% +11.849% +26.379%] (p = 0.13 > 0.05)
+                        No change in performance detected.
+Found 6 outliers among 100 measurements (6.00%)
+  5 (5.00%) high mild
+  1 (1.00%) high severe
+Benchmarking component_insert/Specs/100
+Benchmarking component_insert/Specs/100: Warming up for 3.0000 s
+Benchmarking component_insert/Specs/100: Collecting 100 samples in estimated 5.1082 s (56k iterations)
+Benchmarking component_insert/Specs/100: Analyzing
+component_insert/Specs/100
+                        time:   [19.074 µs 20.436 µs 21.804 µs]
+                        change: [-46.065% +5.8788% +112.06%] (p = 0.83 > 0.05)
+                        No change in performance detected.
+Found 2 outliers among 100 measurements (2.00%)
+  1 (1.00%) high mild
+  1 (1.00%) high severe
+Benchmarking component_insert/Specs/1000
+Benchmarking component_insert/Specs/1000: Warming up for 3.0000 s
+Benchmarking component_insert/Specs/1000: Collecting 100 samples in estimated 5.2317 s (45k iterations)
+Benchmarking component_insert/Specs/1000: Analyzing
+component_insert/Specs/1000
+                        time:   [27.413 µs 30.106 µs 33.375 µs]
+                        change: [+9.2889% +56.370% +119.98%] (p = 0.01 < 0.05)
+                        Performance has regressed.
+Found 4 outliers among 100 measurements (4.00%)
+  4 (4.00%) high severe
+Benchmarking component_insert/Specs/5000
+Benchmarking component_insert/Specs/5000: Warming up for 3.0000 s
+Benchmarking component_insert/Specs/5000: Collecting 100 samples in estimated 5.7352 s (25k iterations)
+Benchmarking component_insert/Specs/5000: Analyzing
+component_insert/Specs/5000
+                        time:   [26.544 µs 27.695 µs 28.846 µs]
+                        change: [-9.6271% -3.9649% +1.7361%] (p = 0.19 > 0.05)
+                        No change in performance detected.
+Found 2 outliers among 100 measurements (2.00%)
+  2 (2.00%) high mild
+Benchmarking component_insert/Bevy/100
+Benchmarking component_insert/Bevy/100: Warming up for 3.0000 s
+Benchmarking component_insert/Bevy/100: Collecting 100 samples in estimated 5.0480 s (247k iterations)
+Benchmarking component_insert/Bevy/100: Analyzing
+component_insert/Bevy/100
+                        time:   [2.4622 µs 2.5673 µs 2.6670 µs]
+                        change: [-72.980% -51.329% -18.162%] (p = 0.14 > 0.05)
+                        No change in performance detected.
+Found 1 outliers among 100 measurements (1.00%)
+  1 (1.00%) high severe
+Benchmarking component_insert/Bevy/1000
+Benchmarking component_insert/Bevy/1000: Warming up for 3.0000 s
+Benchmarking component_insert/Bevy/1000: Collecting 100 samples in estimated 5.1411 s (50k iterations)
+Benchmarking component_insert/Bevy/1000: Analyzing
+component_insert/Bevy/1000
+                        time:   [6.6750 µs 6.8563 µs 7.0371 µs]
+                        change: [-72.670% +27.607% +353.35%] (p = 0.79 > 0.05)
+                        No change in performance detected.
+Found 2 outliers among 100 measurements (2.00%)
+  2 (2.00%) high severe
+Benchmarking component_insert/Bevy/5000
+Benchmarking component_insert/Bevy/5000: Warming up for 3.0000 s
+Benchmarking component_insert/Bevy/5000: Collecting 100 samples in estimated 5.9629 s (10k iterations)
+Benchmarking component_insert/Bevy/5000: Analyzing
+component_insert/Bevy/5000
+                        time:   [20.044 µs 22.421 µs 26.661 µs]
+                        change: [-6.6499% +5.0170% +23.436%] (p = 0.71 > 0.05)
+                        No change in performance detected.
+Found 6 outliers among 100 measurements (6.00%)
+  1 (1.00%) low mild
+  2 (2.00%) high mild
+  3 (3.00%) high severe
+
+Benchmarking world_clear/Custom/100
+Benchmarking world_clear/Custom/100: Warming up for 3.0000 s
+Benchmarking world_clear/Custom/100: Collecting 100 samples in estimated 5.0556 s (364k iterations)
+Benchmarking world_clear/Custom/100: Analyzing
+world_clear/Custom/100  time:   [441.40 ns 458.72 ns 476.65 ns]
+Found 4 outliers among 100 measurements (4.00%)
+  1 (1.00%) low mild
+  2 (2.00%) high mild
+  1 (1.00%) high severe
+Benchmarking world_clear/Custom/1000
+Benchmarking world_clear/Custom/1000: Warming up for 3.0000 s
+Benchmarking world_clear/Custom/1000: Collecting 100 samples in estimated 5.5506 s (40k iterations)
+Benchmarking world_clear/Custom/1000: Analyzing
+world_clear/Custom/1000 time:   [2.0287 µs 2.4865 µs 3.3304 µs]
+Found 2 outliers among 100 measurements (2.00%)
+  2 (2.00%) high severe
+Benchmarking world_clear/Custom/10000
+Benchmarking world_clear/Custom/10000: Warming up for 3.0000 s
+
+Warning: Unable to complete 100 samples in 5.0s. You may wish to increase target time to 6.3s, enable flat sampling, or reduce sample count to 60.
+Benchmarking world_clear/Custom/10000: Collecting 100 samples in estimated 6.2810 s (5050 iterations)
+Benchmarking world_clear/Custom/10000: Analyzing
+world_clear/Custom/10000
+                        time:   [6.0489 µs 7.0020 µs 8.8704 µs]
+Found 6 outliers among 100 measurements (6.00%)
+  3 (3.00%) high mild
+  3 (3.00%) high severe
+Benchmarking world_clear/Hecs/100
+Benchmarking world_clear/Hecs/100: Warming up for 3.0000 s
+Benchmarking world_clear/Hecs/100: Collecting 100 samples in estimated 5.0156 s (1.0M iterations)
+Benchmarking world_clear/Hecs/100: Analyzing
+world_clear/Hecs/100    time:   [659.64 ns 728.55 ns 809.70 ns]
+                        change: [+17.428% +32.669% +52.625%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 4 outliers among 100 measurements (4.00%)
+  2 (2.00%) high mild
+  2 (2.00%) high severe
+Benchmarking world_clear/Hecs/1000
+Benchmarking world_clear/Hecs/1000: Warming up for 3.0000 s
+Benchmarking world_clear/Hecs/1000: Collecting 100 samples in estimated 5.0603 s (167k iterations)
+Benchmarking world_clear/Hecs/1000: Analyzing
+world_clear/Hecs/1000   time:   [835.41 ns 894.39 ns 956.34 ns]
+                        change: [+6.3772% +24.816% +43.774%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 2 outliers among 100 measurements (2.00%)
+  1 (1.00%) high mild
+  1 (1.00%) high severe
+Benchmarking world_clear/Hecs/10000
+Benchmarking world_clear/Hecs/10000: Warming up for 3.0000 s
+Benchmarking world_clear/Hecs/10000: Collecting 100 samples in estimated 5.9419 s (20k iterations)
+Benchmarking world_clear/Hecs/10000: Analyzing
+world_clear/Hecs/10000  time:   [3.0633 µs 3.9687 µs 5.4324 µs]
+                        change: [-34.639% +42.661% +197.49%] (p = 0.58 > 0.05)
+                        No change in performance detected.
+Found 8 outliers among 100 measurements (8.00%)
+  2 (2.00%) high mild
+  6 (6.00%) high severe
+Benchmarking world_clear/Specs/100
+Benchmarking world_clear/Specs/100: Warming up for 3.0000 s
+Benchmarking world_clear/Specs/100: Collecting 100 samples in estimated 5.2209 s (50k iterations)
+Benchmarking world_clear/Specs/100: Analyzing
+world_clear/Specs/100   time:   [35.253 µs 37.423 µs 39.505 µs]
+                        change: [+58.968% +134.01% +271.64%] (p = 0.01 < 0.05)
+                        Performance has regressed.
+Found 2 outliers among 100 measurements (2.00%)
+  1 (1.00%) high mild
+  1 (1.00%) high severe
+Benchmarking world_clear/Specs/1000
+Benchmarking world_clear/Specs/1000: Warming up for 3.0000 s
+Benchmarking world_clear/Specs/1000: Collecting 100 samples in estimated 5.4247 s (40k iterations)
+Benchmarking world_clear/Specs/1000: Analyzing
+world_clear/Specs/1000  time:   [56.227 µs 58.381 µs 61.087 µs]
+                        change: [+75.064% +89.767% +106.52%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 17 outliers among 100 measurements (17.00%)
+  3 (3.00%) high mild
+  14 (14.00%) high severe
+Benchmarking world_clear/Specs/10000
+Benchmarking world_clear/Specs/10000: Warming up for 3.0000 s
+Benchmarking world_clear/Specs/10000: Collecting 100 samples in estimated 6.7884 s (10k iterations)
+Benchmarking world_clear/Specs/10000: Analyzing
+world_clear/Specs/10000 time:   [293.57 µs 299.90 µs 306.39 µs]
+                        change: [+2.7543% +5.3226% +7.9141%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 5 outliers among 100 measurements (5.00%)
+  5 (5.00%) high mild
+Benchmarking world_clear/Bevy/100
+Benchmarking world_clear/Bevy/100: Warming up for 3.0000 s
+Benchmarking world_clear/Bevy/100: Collecting 100 samples in estimated 5.0144 s (177k iterations)
+Benchmarking world_clear/Bevy/100: Analyzing
+world_clear/Bevy/100    time:   [3.9877 µs 4.2011 µs 4.4107 µs]
+                        change: [-78.414% -35.164% +150.29%] (p = 0.77 > 0.05)
+                        No change in performance detected.
+Found 3 outliers among 100 measurements (3.00%)
+  3 (3.00%) high severe
+Benchmarking world_clear/Bevy/1000
+Benchmarking world_clear/Bevy/1000: Warming up for 3.0000 s
+Benchmarking world_clear/Bevy/1000: Collecting 100 samples in estimated 5.3426 s (56k iterations)
+Benchmarking world_clear/Bevy/1000: Analyzing
+world_clear/Bevy/1000   time:   [5.3946 µs 5.6634 µs 5.9424 µs]
+                        change: [-70.512% +44.472% +408.99%] (p = 0.72 > 0.05)
+                        No change in performance detected.
+Found 4 outliers among 100 measurements (4.00%)
+  4 (4.00%) high severe
+Benchmarking world_clear/Bevy/10000
+Benchmarking world_clear/Bevy/10000: Warming up for 3.0000 s
+
+Warning: Unable to complete 100 samples in 5.0s. You may wish to increase target time to 5.5s, enable flat sampling, or reduce sample count to 60.
+Benchmarking world_clear/Bevy/10000: Collecting 100 samples in estimated 5.4742 s (5050 iterations)
+Benchmarking world_clear/Bevy/10000: Analyzing
+world_clear/Bevy/10000  time:   [13.908 µs 14.575 µs 15.354 µs]
+                        change: [-21.629% +3.7275% +26.466%] (p = 0.84 > 0.05)
+                        No change in performance detected.
+Found 6 outliers among 100 measurements (6.00%)
+  4 (4.00%) high mild
+  2 (2.00%) high severe
+
+Benchmarking hierarchy_operations/Custom_set_parent
+Benchmarking hierarchy_operations/Custom_set_parent: Warming up for 3.0000 s
+Benchmarking hierarchy_operations/Custom_set_parent: Collecting 100 samples in estimated 5.1016 s (202k iterations)
+Benchmarking hierarchy_operations/Custom_set_parent: Analyzing
+hierarchy_operations/Custom_set_parent
+                        time:   [13.114 µs 13.381 µs 13.726 µs]
+Found 22 outliers among 100 measurements (22.00%)
+  2 (2.00%) high mild
+  20 (20.00%) high severe
+Benchmarking hierarchy_operations/Custom_get_children
+Benchmarking hierarchy_operations/Custom_get_children: Warming up for 3.0000 s
+Benchmarking hierarchy_operations/Custom_get_children: Collecting 100 samples in estimated 5.0240 s (192k iterations)
+Benchmarking hierarchy_operations/Custom_get_children: Analyzing
+hierarchy_operations/Custom_get_children
+                        time:   [1.2209 µs 1.3604 µs 1.5422 µs]
+Found 6 outliers among 100 measurements (6.00%)
+  1 (1.00%) high mild
+  5 (5.00%) high severe
+Benchmarking hierarchy_operations/Hecs_set_parent
+Benchmarking hierarchy_operations/Hecs_set_parent: Warming up for 3.0000 s
+Benchmarking hierarchy_operations/Hecs_set_parent: Collecting 100 samples in estimated 5.0050 s (788k iterations)
+Benchmarking hierarchy_operations/Hecs_set_parent: Analyzing
+hierarchy_operations/Hecs_set_parent
+                        time:   [1.5617 µs 1.7157 µs 1.9075 µs]
+Found 9 outliers among 100 measurements (9.00%)
+  6 (6.00%) high mild
+  3 (3.00%) high severe
+Benchmarking hierarchy_operations/Hecs_get_children
+Benchmarking hierarchy_operations/Hecs_get_children: Warming up for 3.0000 s
+Benchmarking hierarchy_operations/Hecs_get_children: Collecting 100 samples in estimated 5.0226 s (848k iterations)
+Benchmarking hierarchy_operations/Hecs_get_children: Analyzing
+hierarchy_operations/Hecs_get_children
+                        time:   [729.66 ns 776.28 ns 818.31 ns]
+Benchmarking hierarchy_operations/Specs_set_parent
+Benchmarking hierarchy_operations/Specs_set_parent: Warming up for 3.0000 s
+Benchmarking hierarchy_operations/Specs_set_parent: Collecting 100 samples in estimated 5.2385 s (50k iterations)
+Benchmarking hierarchy_operations/Specs_set_parent: Analyzing
+hierarchy_operations/Specs_set_parent
+                        time:   [49.485 µs 52.967 µs 57.238 µs]
+Found 9 outliers among 100 measurements (9.00%)
+  6 (6.00%) high mild
+  3 (3.00%) high severe
+Benchmarking hierarchy_operations/Specs_get_children
+Benchmarking hierarchy_operations/Specs_get_children: Warming up for 3.0000 s
+Benchmarking hierarchy_operations/Specs_get_children: Collecting 100 samples in estimated 5.4168 s (56k iterations)
+Benchmarking hierarchy_operations/Specs_get_children: Analyzing
+hierarchy_operations/Specs_get_children
+                        time:   [26.226 µs 27.784 µs 29.534 µs]
+Found 7 outliers among 100 measurements (7.00%)
+  6 (6.00%) high mild
+  1 (1.00%) high severe
+Benchmarking hierarchy_operations/Bevy_set_parent
+Benchmarking hierarchy_operations/Bevy_set_parent: Warming up for 3.0000 s
+Benchmarking hierarchy_operations/Bevy_set_parent: Collecting 100 samples in estimated 5.1643 s (116k iterations)
+Benchmarking hierarchy_operations/Bevy_set_parent: Analyzing
+hierarchy_operations/Bevy_set_parent
+                        time:   [21.312 µs 21.840 µs 22.491 µs]
+Found 7 outliers among 100 measurements (7.00%)
+  2 (2.00%) high mild
+  5 (5.00%) high severe
+Benchmarking hierarchy_operations/Bevy_get_children
+Benchmarking hierarchy_operations/Bevy_get_children: Warming up for 3.0000 s
+Benchmarking hierarchy_operations/Bevy_get_children: Collecting 100 samples in estimated 5.1936 s (116k iterations)
+Benchmarking hierarchy_operations/Bevy_get_children: Analyzing
+hierarchy_operations/Bevy_get_children
+                        time:   [4.4329 µs 4.6605 µs 4.9238 µs]
+Found 2 outliers among 100 measurements (2.00%)
+  1 (1.00%) high mild
+  1 (1.00%) high severe
+
+Benchmarking mixed_operations/Custom_game_simulation
+Benchmarking mixed_operations/Custom_game_simulation: Warming up for 3.0000 s
+Benchmarking mixed_operations/Custom_game_simulation: Collecting 100 samples in estimated 5.0572 s (288k iterations)
+Benchmarking mixed_operations/Custom_game_simulation: Analyzing
+mixed_operations/Custom_game_simulation
+                        time:   [16.119 µs 16.441 µs 16.811 µs]
+Found 6 outliers among 100 measurements (6.00%)
+  1 (1.00%) low mild
+  4 (4.00%) high mild
+  1 (1.00%) high severe
+Benchmarking mixed_operations/Hecs_game_simulation
+Benchmarking mixed_operations/Hecs_game_simulation: Warming up for 3.0000 s
+Benchmarking mixed_operations/Hecs_game_simulation: Collecting 100 samples in estimated 5.0186 s (879k iterations)
+Benchmarking mixed_operations/Hecs_game_simulation: Analyzing
+mixed_operations/Hecs_game_simulation
+                        time:   [3.7556 µs 3.8058 µs 3.8595 µs]
+Found 8 outliers among 100 measurements (8.00%)
+  1 (1.00%) low mild
+  6 (6.00%) high mild
+  1 (1.00%) high severe
+Benchmarking mixed_operations/Specs_game_simulation
+Benchmarking mixed_operations/Specs_game_simulation: Warming up for 3.0000 s
+
+thread 'main' panicked at C:\Users\XS Studio\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\shred-0.15.0\src\world\mod.rs:418:13:
+Tried to fetch resource of type `Read<EntitiesRes>`[^1] from the `World`, but the resource does not exist.
+
+You may ensure the resource exists through one of the following methods:
+
+* Inserting it when the world is created: `world.insert(..)`.
+* If the resource implements `Default`, include it in a system's `SystemData`, and ensure the system is registered in the dispatcher.
+* If the resource does not implement `Default`, insert it in the world during `System::setup`.
+
+[^1]: Full type name: `shred::world::data::Read<specs::world::entity::EntitiesRes>`
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+error: bench failed, to rerun pass `-p ecs --bench ecs_benchmark`

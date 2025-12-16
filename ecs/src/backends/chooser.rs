@@ -189,7 +189,6 @@ impl DynamicWorld {
             EcsBackendType::Specs => Ok(DynamicWorld::Specs(SpecsBackend::new())),
             #[cfg(feature = "bevy")]
             EcsBackendType::Bevy => Ok(DynamicWorld::Bevy(BevyBackend::new())),
-            _ => Err(EcsError::BackendNotAvailable),
         }
     }
     
