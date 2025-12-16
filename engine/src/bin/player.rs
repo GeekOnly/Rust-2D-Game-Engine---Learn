@@ -186,7 +186,7 @@ fn main() -> Result<()> {
                 // Handle input events
                 match event {
                     WindowEvent::KeyboardInput { event, .. } => {
-                        use winit::keyboard::{PhysicalKey, KeyCode};
+                        use winit::keyboard::PhysicalKey;
                         if let PhysicalKey::Code(keycode) = event.physical_key {
                             if let Some(key) = map_winit_keycode(keycode) {
                                 match event.state {
@@ -261,7 +261,7 @@ fn main() -> Result<()> {
                             egui_renderer.update_texture(&renderer.device, &renderer.queue, *id, image_delta);
                         }
 
-                        let res = renderer.render_with_callback(|device, queue, encoder, view| {
+                        let res = renderer.render_with_callback(|device, queue, encoder, view, _texture_manager, _batch_renderer| {
                             egui_renderer.update_buffers(
                                 device,
                                 queue,
