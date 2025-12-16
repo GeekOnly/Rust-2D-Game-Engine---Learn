@@ -9,7 +9,7 @@ ecs = { path = "../ecs" }
 render = { path = "../render" }
 
 # Math and utilities
-glam = { version = "0.25", features = ["serde"] }
+glam = { workspace = true }
 
 # Serialization
 serde = { workspace = true }
@@ -19,25 +19,25 @@ serde_json = { workspace = true }
 log = { workspace = true }
 
 # Lua scripting
-mlua = { version = "0.9", features = ["lua54", "vendored"] }
-anyhow = "1.0"
+mlua = { workspace = true }
+anyhow = { workspace = true }
 
 # Rendering (optional, for integration with render crate)
-wgpu = { version = "0.19", optional = true }
-bytemuck = { version = "1.14", features = ["derive"], optional = true }
+wgpu = { workspace = true, optional = true }
+bytemuck = { workspace = true, optional = true }
 
 # Binary dependencies (used by hud_migrator)
-walkdir = "2.4"
-clap = { version = "4.4", features = ["derive"] }
+walkdir = { workspace = true }
+clap = { workspace = true }
 
 [features]
 default = ["rendering"]
 rendering = ["wgpu", "bytemuck"]
 
 [dev-dependencies]
-proptest = "1.4"
-tempfile = "3.8"
-criterion = "0.5"
+proptest = { workspace = true }
+tempfile = { workspace = true }
+criterion = { workspace = true }
 
 [[bench]]
 name = "ui_performance"

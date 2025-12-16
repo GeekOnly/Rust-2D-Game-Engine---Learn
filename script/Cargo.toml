@@ -4,8 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-mlua = { version = "0.9", features = ["lua54", "vendored"] }
-anyhow = "1.0"
+mlua = { workspace = true }
+anyhow = { workspace = true }
 ecs = { path = "../ecs" }
 input = { path = "../input" }
-log = "0.4"
+log = { workspace = true }

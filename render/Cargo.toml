@@ -4,12 +4,12 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-winit = "0.29"
-wgpu = "0.19"
-pollster = "0.3"
-env_logger = "0.11"
-log = "0.4"
-anyhow = "1.0"
+winit = { workspace = true }
+wgpu = { workspace = true }
+pollster = { workspace = true }
+env_logger = { workspace = true }
+log = { workspace = true }
+anyhow = { workspace = true }
 image = { workspace = true }
 ecs = { path = "../ecs" }
-bytemuck = { version = "1.14", features = ["derive"] }
+bytemuck = { workspace = true }

@@ -4,16 +4,16 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-tiled = "0.11"
+serde = { workspace = true }
+serde_json = { workspace = true }
+tiled = { workspace = true }
 image = { workspace = true }
-notify = "6.1"
+notify = { workspace = true }
 log = { workspace = true }
 
 [dev-dependencies]
-criterion = { version = "0.5", features = ["html_reports"] }
-proptest = "1.4"
+criterion = { workspace = true }
+proptest = { workspace = true }
 
 [[bench]]
 name = "ecs_benchmark"

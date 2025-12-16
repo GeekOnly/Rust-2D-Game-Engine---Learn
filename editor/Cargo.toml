@@ -16,25 +16,25 @@ sprite_editor = { path = "../sprite_editor" }
 ui = { path = "../ui" }
 
 # Third-party dependencies
-anyhow = "1.0"
-log = "0.4"
-env_logger = "0.11"
-winit = "0.29"
-pollster = "0.3"
-egui = "0.27"
-egui-wgpu = "0.27"
-egui-winit = "0.27"
-arboard = "3.4"
-egui_dock = { version = "0.12", features = ["serde"] }
-egui_extras = { version = "0.27", features = ["image"] }
-image = { version = "0.25", default-features = false, features = ["png"] }
-wgpu = "0.19"
-rfd = "0.14"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-chrono = "0.4"
-glam = { version = "0.30.9", features = ["serde"] }
+anyhow = { workspace = true }
+log = { workspace = true }
+env_logger = { workspace = true }
+winit = { workspace = true }
+pollster = { workspace = true }
+egui = { workspace = true }
+egui-wgpu = { workspace = true }
+egui-winit = { workspace = true }
+arboard = { workspace = true }
+egui_dock = { workspace = true }
+egui_extras = { workspace = true }
+image = { workspace = true }
+wgpu = { workspace = true }
+rfd = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+glam = { workspace = true }
 
-open = "5.0"
-notify = "6.1"
-notify-debouncer-full = "0.3"
+open = { workspace = true }
+notify = { workspace = true }
+notify-debouncer-full = { workspace = true }

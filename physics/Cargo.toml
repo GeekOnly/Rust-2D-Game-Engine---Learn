@@ -5,10 +5,10 @@ edition = "2021"
 
 [dependencies]
 ecs = { path = "../ecs" }
-log = "0.4"
-rapier2d = "0.22"
+log = { workspace = true }
+rapier2d = { workspace = true, optional = true }
 
 [features]
 default = ["rapier"]
-rapier = []
+rapier = ["dep:rapier2d"]
 simple = []
