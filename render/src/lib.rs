@@ -10,6 +10,16 @@ pub use sprite_renderer::SpriteRenderer;
 pub use tilemap_renderer::TilemapRenderer;
 pub mod batch_renderer;
 pub use batch_renderer::BatchRenderer;
+pub mod mesh;
+pub mod camera;
+pub use mesh::{Mesh, ModelVertex};
+pub use camera::{CameraBinding, CameraUniform};
+pub mod lighting;
+pub mod material;
+pub use lighting::{LightBinding, LightUniform};
+pub use material::{PbrMaterial, PbrMaterialUniform, ToonMaterial, ToonMaterialUniform};
+pub mod mesh_renderer;
+pub use mesh_renderer::MeshRenderer;
 
 pub struct RenderModule {
     pub surface: wgpu::Surface<'static>,
@@ -24,6 +34,9 @@ pub struct RenderModule {
     pub sprite_renderer: SpriteRenderer,
     pub tilemap_renderer: TilemapRenderer,
     pub batch_renderer: BatchRenderer,
+    pub mesh_renderer: MeshRenderer,
+    pub camera_binding: CameraBinding,
+    pub light_binding: LightBinding,
 }
 
 impl RenderModule {
@@ -152,6 +165,17 @@ impl RenderModule {
         let tilemap_renderer = TilemapRenderer::new(&device, &config);
         let batch_renderer = BatchRenderer::new(&device, &config);
 
+        // Initialize 3D bindings
+        let camera_binding = CameraBinding::new(&device);
+        let light_binding = LightBinding::new(&device);
+
+        let mesh_renderer = MeshRenderer::new(
+            &device, 
+            &config, 
+            &camera_binding.bind_group_layout,
+            &light_binding.bind_group_layout
+        );
+
         Ok(Self {
             surface,
             device,
@@ -165,6 +189,9 @@ impl RenderModule {
             sprite_renderer,
             tilemap_renderer,
             batch_renderer,
+            mesh_renderer,
+            camera_binding,
+            light_binding,
         })
     }
     
