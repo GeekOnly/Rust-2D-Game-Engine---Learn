@@ -262,7 +262,7 @@ pub fn snap_scale_single(
 pub fn render_snap_grid(
     painter: &egui::Painter,
     rect: egui::Rect,
-    scene_camera: &crate::camera::SceneCamera,
+    scene_camera: &crate::SceneCamera,
     settings: &SnapSettings,
 ) {
     if !settings.show_grid || !settings.enabled {
@@ -360,7 +360,7 @@ pub fn render_snap_grid(
 pub fn render_snap_indicator(
     painter: &egui::Painter,
     world_pos: glam::Vec2,
-    scene_camera: &crate::camera::SceneCamera,
+    scene_camera: &crate::SceneCamera,
     center: egui::Pos2,
     settings: &SnapSettings,
 ) {

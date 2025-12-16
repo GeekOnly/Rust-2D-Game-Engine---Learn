@@ -15,7 +15,7 @@ pub enum SceneViewMode {
 }
 
 /// Projection mode for 3D view (Re-exported from camera)
-pub use crate::camera::SceneProjectionMode;
+pub use crate::SceneProjectionMode;
 
 /// Transform space mode (Local or World)
 #[derive(Debug, Clone, Copy, PartialEq)]

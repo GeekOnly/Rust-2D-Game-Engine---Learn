@@ -405,7 +405,7 @@ pub fn handle_clipboard_shortcuts(
     selected: &[Entity],
     world: &mut World,
     entity_names: &mut HashMap<Entity, String>,
-    undo_stack: &mut crate::undo::UndoStack,
+    undo_stack: &mut crate::systems::undo::UndoStack,
 ) -> ClipboardAction {
     ctx.input(|i| {
         // Ctrl+C: Copy
@@ -423,9 +423,9 @@ pub fn handle_clipboard_shortcuts(
                 
                 if !new_entities.is_empty() {
                     // Create undo command
-                    let mut batch = crate::undo::BatchCommand::new("Paste");
+                    let mut batch = crate::systems::undo::BatchCommand::new("Paste");
                     for &entity in &new_entities {
-                        batch.add(Box::new(crate::undo::CreateEntityCommand::new(entity, world, entity_names)));
+                        batch.add(Box::new(crate::systems::undo::CreateEntityCommand::new(entity, world, entity_names)));
                     }
                     undo_stack.execute(Box::new(batch), world, entity_names);
                     
@@ -441,9 +441,9 @@ pub fn handle_clipboard_shortcuts(
                 
                 if !new_entities.is_empty() {
                     // Create undo command
-                    let mut batch = crate::undo::BatchCommand::new("Duplicate");
+                    let mut batch = crate::systems::undo::BatchCommand::new("Duplicate");
                     for &entity in &new_entities {
-                        batch.add(Box::new(crate::undo::CreateEntityCommand::new(entity, world, entity_names)));
+                        batch.add(Box::new(crate::systems::undo::CreateEntityCommand::new(entity, world, entity_names)));
                     }
                     undo_stack.execute(Box::new(batch), world, entity_names);
                     
@@ -459,9 +459,9 @@ pub fn handle_clipboard_shortcuts(
                 copy_selected(clipboard, selected, world, entity_names);
                 
                 // Then delete with undo
-                let mut batch = crate::undo::BatchCommand::new("Cut");
+                let mut batch = crate::systems::undo::BatchCommand::new("Cut");
                 for &entity in selected {
-                    batch.add(Box::new(crate::undo::DeleteEntityCommand::new(entity, world, entity_names)));
+                    batch.add(Box::new(crate::systems::undo::DeleteEntityCommand::new(entity, world, entity_names)));
                 }
                 undo_stack.execute(Box::new(batch), world, entity_names);
                 

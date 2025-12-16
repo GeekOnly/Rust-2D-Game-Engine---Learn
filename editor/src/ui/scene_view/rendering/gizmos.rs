@@ -98,8 +98,8 @@ pub fn render_scene_gizmo_visual(
     
     // Display projection mode and rotation angles below gizmo
     let projection_mode = match scene_camera.projection_mode {
-        crate::camera::SceneProjectionMode::Perspective => "Persp",
-        crate::camera::SceneProjectionMode::Isometric => "Iso",
+        crate::SceneProjectionMode::Perspective => "Persp",
+        crate::SceneProjectionMode::Isometric => "Iso",
     };
     let rotation_text = format!("{} | Yaw: {:.0}° Pitch: {:.0}°", projection_mode, scene_camera.rotation, scene_camera.pitch);
     painter.text(

@@ -5,7 +5,7 @@
 
 use glam::{Vec2, Vec3, Vec4, Mat4, Vec4Swizzles};
 
-use crate::camera::SceneCamera;
+use crate::SceneCamera;
 
 // ============================================================================
 // TRANSFORM 3D
@@ -563,10 +563,10 @@ pub fn world_to_screen(
 
     // Use camera's projection mode
     let projection = match camera.projection_mode {
-        crate::camera::SceneProjectionMode::Perspective => {
+        crate::SceneProjectionMode::Perspective => {
             ProjectionMatrix::default_perspective(aspect)
         }
-        crate::camera::SceneProjectionMode::Isometric => {
+        crate::SceneProjectionMode::Isometric => {
             ProjectionMatrix::default_orthographic(camera.zoom, aspect)
         }
     };
@@ -595,10 +595,10 @@ pub fn world_to_screen_allow_behind(
 
     // Use camera's projection mode
     let projection = match camera.projection_mode {
-        crate::camera::SceneProjectionMode::Perspective => {
+        crate::SceneProjectionMode::Perspective => {
             ProjectionMatrix::default_perspective(aspect)
         }
-        crate::camera::SceneProjectionMode::Isometric => {
+        crate::SceneProjectionMode::Isometric => {
             ProjectionMatrix::default_orthographic(camera.zoom, aspect)
         }
     };
@@ -668,10 +668,10 @@ pub fn screen_to_ray(
 
     // Use camera's projection mode
     let projection = match camera.projection_mode {
-        crate::camera::SceneProjectionMode::Perspective => {
+        crate::SceneProjectionMode::Perspective => {
             ProjectionMatrix::default_perspective(aspect)
         }
-        crate::camera::SceneProjectionMode::Isometric => {
+        crate::SceneProjectionMode::Isometric => {
             ProjectionMatrix::default_orthographic(camera.zoom, aspect)
         }
     };

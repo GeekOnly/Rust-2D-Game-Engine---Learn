@@ -209,7 +209,7 @@ impl SelectionManager {
     }
     
     /// Finish box selection
-    pub fn finish_box_selection(&mut self, world: &World, scene_camera: &crate::camera::SceneCamera, center: egui::Pos2) -> Vec<Entity> {
+    pub fn finish_box_selection(&mut self, world: &World, scene_camera: &crate::SceneCamera, center: egui::Pos2) -> Vec<Entity> {
         if let Some(box_sel) = self.box_selection.take() {
             let rect = box_sel.get_rect();
             let selected_entities = self.get_entities_in_rect(rect, world, scene_camera, center);
@@ -234,7 +234,7 @@ impl SelectionManager {
         &self,
         rect: egui::Rect,
         world: &World,
-        scene_camera: &crate::camera::SceneCamera,
+        scene_camera: &crate::SceneCamera,
         center: egui::Pos2,
     ) -> Vec<Entity> {
         let mut entities = Vec::new();
@@ -391,7 +391,7 @@ pub fn handle_scene_selection(
     hovered_entity: Option<Entity>,
     all_entities: &[Entity],
     world: &World,
-    scene_camera: &crate::camera::SceneCamera,
+    scene_camera: &crate::SceneCamera,
     center: egui::Pos2,
 ) {
     let modifiers = response.ctx.input(|i| i.modifiers);

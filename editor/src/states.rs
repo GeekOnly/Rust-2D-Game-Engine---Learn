@@ -107,7 +107,7 @@ pub struct EditorState {
     
     // NEW: Unity-like editor features
     pub shortcut_manager: super::shortcuts::ShortcutManager,
-    pub scene_camera: super::camera::SceneCamera,
+    pub scene_camera: super::SceneCamera,
     pub scene_grid: super::grid::SceneGrid,
     pub infinite_grid: super::grid::InfiniteGrid,  // Enhanced infinite grid for 3D mode
     pub camera_state_display: super::ui::camera_settings::CameraStateDisplay,  // Camera state display
@@ -131,10 +131,10 @@ pub struct EditorState {
     pub projection_mode: super::ui::scene_view::SceneProjectionMode, // Isometric or Perspective
     pub transform_space: super::ui::scene_view::TransformSpace, // Local or World space
     pub texture_manager: engine::texture_manager::TextureManager, // Texture manager for sprites
-    pub undo_stack: super::undo::UndoStack,  // Undo/Redo system
-    pub selection: super::selection::SelectionManager,  // Multi-selection system
-    pub clipboard: super::clipboard::Clipboard,  // Copy/Paste/Duplicate system
-    pub snap_settings: super::snapping::SnapSettings,  // Snap to Grid system
+    pub undo_stack: super::UndoStack,  // Undo/Redo system
+    pub selection: super::SelectionManager,  // Multi-selection system
+    pub clipboard: super::Clipboard,  // Copy/Paste/Duplicate system
+    pub snap_settings: super::tools::snapping::SnapSettings,  // Snap to Grid system
     pub sprite_editor_windows: Vec<super::SpriteEditorWindow>,  // Open sprite editor windows
     pub open_sprite_editor_request: Option<PathBuf>,  // Request to open sprite editor for a texture
     pub open_prefab_editor_request: Option<PathBuf>,  // Request to open prefab editor for a UI prefab
@@ -197,7 +197,7 @@ impl EditorState {
             
             // NEW: Initialize Unity-like features
             shortcut_manager: super::shortcuts::ShortcutManager::new(),
-            scene_camera: super::camera::SceneCamera::new(),
+            scene_camera: super::SceneCamera::new(),
             scene_grid: super::grid::SceneGrid::new(),
             infinite_grid: super::grid::InfiniteGrid::new(),
             camera_state_display: super::ui::camera_settings::CameraStateDisplay::new(),
@@ -220,10 +220,10 @@ impl EditorState {
             scene_view_mode: super::ui::scene_view::SceneViewMode::Mode2D,
             projection_mode: super::ui::scene_view::SceneProjectionMode::Isometric, // Unity-style default
             transform_space: super::ui::scene_view::TransformSpace::Local,
-            undo_stack: super::undo::UndoStack::new(),
-            selection: super::selection::SelectionManager::new(),
-            clipboard: super::clipboard::Clipboard::new(),
-            snap_settings: super::snapping::SnapSettings::load().unwrap_or_default(),
+            undo_stack: super::UndoStack::new(),
+            selection: super::SelectionManager::new(),
+            clipboard: super::Clipboard::new(),
+            snap_settings: super::tools::snapping::SnapSettings::load().unwrap_or_default(),
             texture_manager: engine::texture_manager::TextureManager::new(),
             sprite_editor_windows: Vec::new(),
             open_sprite_editor_request: None,

@@ -1,12 +1,15 @@
+pub mod app;
 pub mod theme;
 pub mod shortcuts;
 pub mod console;
-pub mod undo;
-pub mod clipboard;
-pub mod camera;
+pub mod tools;
+pub mod systems;
+// pub mod undo; // Moved to systems
+// pub mod clipboard; // Moved to systems
+// pub mod camera; // Moved to systems
 pub mod grid;
-pub mod snapping;
-pub mod selection;
+// pub mod snapping; // Moved to tools
+// pub mod selection; // Moved to tools
 pub mod rendering_3d;
 pub mod states;
 pub mod toolbar;
@@ -29,15 +32,15 @@ pub use console::Console;
 pub use ui::{EditorUI, TransformTool};
 pub use states::{AppState, LauncherState, EditorState, EditorAction};
 pub use shortcuts::EditorShortcut; // Wait, shortcuts is in root.
-pub use camera::{SceneCamera, SceneProjectionMode};
+pub use systems::camera::{SceneCamera, SceneProjectionMode};
 pub use ui::camera_settings::CameraStateDisplay;
 pub use grid::{SceneGrid, InfiniteGrid, CameraState};
 pub use theme::UnityTheme;
 pub use asset_manager::AssetManager;
 pub use drag_drop::{DragDropState, DraggedAsset};
-pub use undo::{UndoStack, CreateEntityCommand, DeleteEntityCommand, BatchCommand};
-pub use selection::{SelectionManager, SelectionMode};
-pub use clipboard::{Clipboard, copy_selected, paste_from_clipboard, duplicate_selected};
+pub use systems::undo::{UndoStack, CreateEntityCommand, DeleteEntityCommand, BatchCommand};
+pub use tools::selection::{SelectionManager, SelectionMode};
+pub use systems::clipboard::{Clipboard, copy_selected, paste_from_clipboard, duplicate_selected};
 pub use debug_draw::DebugDrawManager;
 pub use map_manager::MapManager;
 pub use tilemap_error::TilemapError;
