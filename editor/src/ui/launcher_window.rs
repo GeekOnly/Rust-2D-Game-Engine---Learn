@@ -215,43 +215,45 @@ impl LauncherWindow {
         launcher_state: &mut LauncherState, 
         editor_state: &mut EditorState,
     ) {
-         // Check if this is Celeste Demo - open existing project
-         if name == "Celeste Demo" {
+         // Check if this is an existing example project (Celeste Demo or FPS 3D Example)
+         if name == "Celeste Demo" || name == "FPS 3D Example" {
             // Try multiple possible paths
             let possible_paths = vec![
-                std::path::PathBuf::from("projects/Celeste Demo"),
-                std::path::PathBuf::from("../projects/Celeste Demo"),
+                std::path::PathBuf::from(format!("projects/{}", name)),
+                std::path::PathBuf::from(format!("../projects/{}", name)),
             ];
             
-            let celeste_path = possible_paths.iter()
+            let project_path = possible_paths.iter()
                 .find(|p| p.exists())
                 .cloned();
             
-            if let Some(celeste_path) = celeste_path {
-                match launcher_state.project_manager.open_project(&celeste_path) {
+            if let Some(project_path) = project_path {
+                match launcher_state.project_manager.open_project(&project_path) {
                     Ok(_) => {
                         *app_state = AppState::Editor;
                         *editor_state = EditorState::new();
-                        editor_state.set_project_path(celeste_path.clone());
+                        editor_state.set_project_path(project_path.clone());
                         
                         // Load the main scene
-                        let scene_path = celeste_path.join("scenes/main.json");
+                        let scene_path = project_path.join("scenes/main.json");
                         log::info!("Attempting to load scene: {:?}", scene_path);
                         if scene_path.exists() {
                             match editor_state.load_scene(&scene_path) {
                                 Ok(_) => {
                                     log::info!("Scene loaded successfully!");
                                     
-                                    // Load and activate HUD prefab
-                                    let hud_path = celeste_path.join("assets/ui/celeste_hud.uiprefab");
-                                    if hud_path.exists() {
-                                        let hud_path_str = hud_path.to_string_lossy().to_string();
-                                        match editor_state.ui_manager.load_prefab(&hud_path_str) {
-                                            Ok(_) => {
-                                                let _ = editor_state.ui_manager.activate_prefab(&hud_path_str, "celeste_hud");
-                                                editor_state.console.info("🎮 Celeste HUD loaded and active".to_string());
+                                    // Special case for Celeste Demo HUD
+                                    if name == "Celeste Demo" {
+                                        let hud_path = project_path.join("assets/ui/celeste_hud.uiprefab");
+                                        if hud_path.exists() {
+                                            let hud_path_str = hud_path.to_string_lossy().to_string();
+                                            match editor_state.ui_manager.load_prefab(&hud_path_str) {
+                                                Ok(_) => {
+                                                    let _ = editor_state.ui_manager.activate_prefab(&hud_path_str, "celeste_hud");
+                                                    editor_state.console.info("🎮 Celeste HUD loaded and active".to_string());
+                                                }
+                                                Err(e) => log::error!("✗ Failed to load HUD prefab: {}", e),
                                             }
-                                            Err(e) => log::error!("✗ Failed to load HUD prefab: {}", e),
                                         }
                                     }
                                 }
@@ -262,11 +264,11 @@ impl LauncherWindow {
                         }
                     }
                     Err(e) => {
-                        launcher_state.error_message = Some(format!("Error opening Celeste Demo: {}", e));
+                        launcher_state.error_message = Some(format!("Error opening {}: {}", name, e));
                     }
                 }
             } else {
-                launcher_state.error_message = Some(format!("Celeste Demo project not found. Tried: {:?}", possible_paths));
+                launcher_state.error_message = Some(format!("{} project not found. Tried: {:?}", name, possible_paths));
             }
         } else {
             // Create example project for other examples

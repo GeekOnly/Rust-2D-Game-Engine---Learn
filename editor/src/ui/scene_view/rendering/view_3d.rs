@@ -5,7 +5,8 @@
 use ecs::{World, Entity, MeshType};
 use egui;
 use glam::{Vec2, Vec3};
-use crate::SceneCamera;
+use crate::{SceneCamera, SceneGrid};
+use crate::grid::InfiniteGrid;
 use super::super::types::*;
 use super::gizmos::{render_camera_gizmo, render_camera_frustum_3d, render_collider_gizmo, render_velocity_gizmo};
 
@@ -41,12 +42,15 @@ use super::sprite_3d::Sprite3DRenderer;
 use super::tilemap_3d::Tilemap3DRenderer;
 use super::render_queue::{RenderQueue, RenderObject};
 use super::projection_3d::{self, Transform3D, ProjectionMatrix};
+use super::grid;
 
 /// Render the scene in 3D mode
 pub fn render_scene_3d(
     painter: &egui::Painter,
     world: &mut World,
     scene_camera: &SceneCamera,
+    scene_grid: &SceneGrid,
+    infinite_grid: &mut InfiniteGrid,
     projection_mode: &SceneProjectionMode,
     center: egui::Pos2,
     selected_entity: &Option<Entity>,
@@ -191,6 +195,19 @@ pub fn render_scene_3d(
             show_velocities,
             hovered_entity,
             response,
+        );
+    }
+
+    // Render Grid (Overlay)
+    // We render this AFTER meshes so it's visible even through the floor (Overlay style)
+    if scene_grid.enabled {
+        grid::render_grid_3d_with_component(
+            painter,
+            viewport_rect,
+            scene_camera,
+            scene_grid,
+            world,
+            *selected_entity,
         );
     }
     

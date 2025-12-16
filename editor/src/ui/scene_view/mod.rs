@@ -119,9 +119,7 @@ pub fn render_scene_view(
         match scene_view_mode {
             SceneViewMode::Mode2D => rendering::grid::render_grid_2d(&painter, rect, scene_camera, scene_grid),
             SceneViewMode::Mode3D => {
-                // ALWAYS render grid with Grid component support (Unity-style)
-                // This renders both the 3D space grid AND Grid component grid when selected
-                rendering::grid::render_grid_3d_with_component(&painter, rect, scene_camera, scene_grid, world, *selected_entity);
+                // Grid is rendered inside render_scene_3d to handle overlay/depth correctly
             }
         }
     }
@@ -205,6 +203,8 @@ pub fn render_scene_view(
                 &painter,
                 world,
                 scene_camera,
+                scene_grid,
+                infinite_grid,
                 projection_mode,
                 center,
                 selected_entity,

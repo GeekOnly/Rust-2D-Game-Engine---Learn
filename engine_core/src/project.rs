@@ -269,6 +269,7 @@ impl ProjectManager {
     pub fn get_example_projects() -> Vec<(&'static str, &'static str)> {
         vec![
             ("Celeste Demo", "Platformer demo with Celeste-style movement (Run, Jump, Dash)"),
+            ("FPS 3D Example", "First Person Shooter 3D Example"),
             ("Item Collection Game", "Simple 2D game with player movement and item collection"),
             ("Empty Project", "Start from scratch with an empty project"),
         ]

@@ -1,0 +1,211 @@
+{
+  "next_entity": 4,
+  "transforms": [
+    [
+      3,
+      {
+        "position": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          2.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      1,
+      {
+        "position": [
+          0.0,
+          5.0,
+          10.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      2,
+      {
+        "position": [
+          0.0,
+          -1.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          3.7,
+          0.06,
+          -4.03
+        ]
+      }
+    ]
+  ],
+  "velocities": [],
+  "sprites": [],
+  "colliders": [],
+  "rigidbodies": [],
+  "cameras": [
+    [
+      1,
+      {
+        "projection": "Perspective",
+        "fov": 60.0,
+        "orthographic_size": 5.0,
+        "near_clip": 0.3,
+        "far_clip": 1000.0,
+        "viewport_rect": [
+          0.0,
+          0.0,
+          1.0,
+          1.0
+        ],
+        "depth": 0,
+        "clear_flags": "SolidColor",
+        "background_color": [
+          0.15,
+          0.16,
+          0.18,
+          1.0
+        ],
+        "pixels_per_unit": 100.0
+      }
+    ]
+  ],
+  "meshes": [
+    [
+      2,
+      {
+        "mesh_type": "Cube",
+        "color": [
+          0.5,
+          0.5,
+          0.5,
+          1.0
+        ]
+      }
+    ],
+    [
+      3,
+      {
+        "mesh_type": "Cube",
+        "color": [
+          1.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      }
+    ]
+  ],
+  "tags": [
+    [
+      3,
+      "Player"
+    ]
+  ],
+  "scripts": [
+    [
+      3,
+      {
+        "script_name": "fps_controller",
+        "enabled": true,
+        "parameters": {
+          "look_sensitivity": {
+            "Float": 2.0
+          },
+          "yaw": {
+            "Float": 0.0
+          },
+          "move_z": {
+            "Float": 0.0
+          },
+          "camera_entity": {
+            "Int": 1
+          },
+          "move_x": {
+            "Float": 0.0
+          },
+          "move_speed": {
+            "Float": 5.0
+          },
+          "pitch": {
+            "Float": 0.0
+          }
+        }
+      }
+    ]
+  ],
+  "active": [
+    [
+      1,
+      true
+    ],
+    [
+      2,
+      true
+    ],
+    [
+      3,
+      true
+    ]
+  ],
+  "layers": [
+    [
+      1,
+      0
+    ],
+    [
+      3,
+      0
+    ],
+    [
+      2,
+      0
+    ]
+  ],
+  "parents": [],
+  "names": [
+    [
+      2,
+      "Floor"
+    ],
+    [
+      1,
+      "Main Camera"
+    ],
+    [
+      3,
+      "Player"
+    ]
+  ],
+  "sprite_sheets": [],
+  "animated_sprites": [],
+  "tilemaps": [],
+  "tilesets": [],
+  "tilemap_renderers": [],
+  "grids": [],
+  "maps": [],
+  "world_uis": []
+}

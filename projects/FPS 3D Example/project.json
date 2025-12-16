@@ -1,0 +1,9 @@
+{
+  "name": "FPS 3D Example",
+  "description": "First Person Shooter 3D Example",
+  "version": "0.1.0",
+  "editor_startup_scene": "scenes/main.json",
+  "game_startup_scene": "scenes/main.json",
+  "last_opened_scene": "scenes/main.json",
+  "startup_scene": null
+}
