@@ -639,18 +639,33 @@ fn render_3d_cube(
         })
         .collect();
     
-    // Define faces (indices)
-    let faces = [
-        [0, 1, 2, 3], // Front
-        [5, 4, 7, 6], // Back
-        [1, 0, 4, 5], // Bottom
-        [3, 2, 6, 7], // Top
-        [0, 3, 7, 4], // Left
-        [2, 1, 5, 6], // Right
+    // Define faces (indices) with their center points for depth sorting
+    let face_data = [
+        ([0, 1, 2, 3], "Front"),   // Front
+        ([5, 4, 7, 6], "Back"),    // Back
+        ([1, 0, 4, 5], "Bottom"),  // Bottom
+        ([3, 2, 6, 7], "Top"),     // Top
+        ([0, 3, 7, 4], "Left"),    // Left
+        ([2, 1, 5, 6], "Right"),   // Right
     ];
     
-    // Render faces
-    for face_indices in faces {
+    // Calculate face centers and sort by depth (back to front for proper rendering)
+    let mut faces_with_depth: Vec<_> = face_data.iter().enumerate().map(|(i, (face, _name))| {
+        // Calculate face center in world space
+        let face_center = face.iter()
+            .map(|&idx| world_pos + vertices[idx])
+            .fold(Vec3::ZERO, |acc, v| acc + v) / 4.0;
+        
+        // Calculate depth from camera
+        let depth = (face_center - Vec3::from(scene_camera.position)).length();
+        (i, face, depth)
+    }).collect();
+    
+    // Sort faces by depth (back to front)
+    faces_with_depth.sort_by(|a, b| b.2.partial_cmp(&a.2).unwrap_or(std::cmp::Ordering::Equal));
+    
+    // Render faces in sorted order (back to front)
+    for (_i, face_indices, _depth) in faces_with_depth {
         let mut points = Vec::new();
         let mut valid = true;
         
