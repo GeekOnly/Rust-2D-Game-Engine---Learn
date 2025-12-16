@@ -42,8 +42,8 @@ pub struct SpriteRenderer {
 impl SpriteRenderer {
     pub fn new(device: &wgpu::Device, config: &wgpu::SurfaceConfiguration) -> Self {
         let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("Sprite Shader"),
-            source: wgpu::ShaderSource::Wgsl(include_str!("sprite_shader.wgsl").into()),
+            label: Some("Simple Sprite Shader"),
+            source: wgpu::ShaderSource::Wgsl(include_str!("simple_sprite_shader.wgsl").into()),
         });
 
         let texture_bind_group_layout = Texture::create_bind_group_layout(device);

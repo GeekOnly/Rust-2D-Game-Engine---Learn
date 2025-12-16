@@ -13,7 +13,7 @@ impl TilemapRenderer {
     pub fn new(device: &wgpu::Device, config: &wgpu::SurfaceConfiguration) -> Self {
         let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some("Tilemap Shader"),
-            source: wgpu::ShaderSource::Wgsl(include_str!("sprite_shader.wgsl").into()), // Reuse sprite shader for now
+            source: wgpu::ShaderSource::Wgsl(include_str!("simple_sprite_shader.wgsl").into()), // Use simple shader
         });
 
         let texture_bind_group_layout = Texture::create_bind_group_layout(device);

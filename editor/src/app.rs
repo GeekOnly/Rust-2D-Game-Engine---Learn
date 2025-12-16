@@ -452,7 +452,7 @@ impl EditorApp {
             self.egui_renderer.update_texture(&self.renderer.device, &self.renderer.queue, *id, image_delta);
         }
 
-        let res = self.renderer.render_with_callback(|device, queue, encoder, view| {
+        let res = self.renderer.render_with_callback(|device, queue, encoder, view, texture_manager, batch_renderer| {
             self.egui_renderer.update_buffers(
                 device,
                 queue,
@@ -475,6 +475,18 @@ impl EditorApp {
                 occlusion_query_set: None,
                 timestamp_writes: None,
             });
+
+            // If in Playing mode, render the game world using BatchRenderer
+            if self.app_state == AppState::Playing {
+                runtime::render_system::render_game_world(
+                    &self.editor_state.world,
+                    batch_renderer,
+                    texture_manager,
+                    queue,
+                    device,
+                    self.window.inner_size(),
+                );
+            }
 
             self.egui_renderer.render(
                 &mut rpass,
