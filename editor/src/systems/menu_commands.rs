@@ -127,6 +127,23 @@ impl MenuCommandSystem {
                  editor_state.is_playing = true;
                  editor_state.console.info("▶ Starting Play Mode...".to_string());
                  
+                 // Load scripts (same as Player binary)
+                 if let Some(scripts_folder) = editor_state.get_scripts_folder() {
+                     if let Err(e) = engine::runtime::script_loader::load_all_scripts(&mut editor_state.world, script_engine, &scripts_folder) {
+                         editor_state.console.error(format!("Failed to load scripts: {}", e));
+                     } else {
+                         editor_state.console.info("Scripts loaded successfully".to_string());
+                         
+                         // Start scripts (call Start() for all entities with scripts)
+                         let entities_with_scripts: Vec<_> = editor_state.world.scripts.keys().copied().collect();
+                         for entity in entities_with_scripts {
+                             if let Err(e) = script_engine.call_start_for_entity(entity, &mut editor_state.world) {
+                                 editor_state.console.error(format!("Script start error for entity {:?}: {}", entity, e));
+                             }
+                         }
+                     }
+                 }
+                 
                  // Initialize physics
                  #[cfg(feature = "rapier")]
                  {

@@ -11,6 +11,7 @@ pub struct PlayModeSystem;
 impl PlayModeSystem {
     pub fn update(
         editor_state: &mut EditorState,
+        ctx: &mut EngineContext,
         script_engine: &mut ScriptEngine,
         physics: &mut dyn std::any::Any,
         physics_accumulator: &mut f32,
@@ -22,7 +23,7 @@ impl PlayModeSystem {
         }
 
         // Update gamepads (but don't clear input yet - scripts need to read it first)
-        editor_state.input_system.update_gamepads();
+        ctx.input.update_gamepads();
         
         // Update debug draw system
         editor_state.debug_draw.update(dt);
@@ -68,26 +69,8 @@ impl PlayModeSystem {
         }
         
         // Run scripts FIRST (before physics) so they can set velocities
-        let entities_with_scripts: Vec<_> = editor_state.world.scripts.keys().cloned().collect();
-        
-        for entity in entities_with_scripts {
-            if let Some(script) = editor_state.world.scripts.get(&entity) {
-                if script.enabled {
-                    let script_name = script.script_name.clone();
-                    if let Some(scripts_folder) = editor_state.get_scripts_folder() {
-                        let script_path = scripts_folder.join(format!("{}.lua", script_name));
-                        if script_path.exists() {
-                            let mut log_callback = |msg: String| {
-                                editor_state.console.info(msg);
-                            };
-                            if let Err(e) = script_engine.run_script(&script_path, entity, &mut editor_state.world, &editor_state.input_system, dt, &mut log_callback) {
-                                editor_state.console.error(format!("Script error for {}: {}", script_name, e));
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        // Use the same script system as Player binary for consistency
+        engine::runtime::script_system::update_scripts(script_engine, &mut editor_state.world, &ctx.input, dt);
 
         // Transfer debug lines from script engine to debug_draw manager
         let script_debug_lines = script_engine.take_debug_lines();
@@ -235,6 +218,6 @@ impl PlayModeSystem {
         }
 
         // Clear per-frame input state AFTER scripts have run
-        editor_state.input_system.begin_frame();
+        ctx.input.begin_frame();
     }
 }

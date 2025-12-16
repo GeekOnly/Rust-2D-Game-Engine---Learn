@@ -196,6 +196,7 @@ impl EditorLogic {
         // Handle Play Mode Logic (Physics, Scripts, Collisions)
         PlayModeSystem::update(
             editor_state,
+            _ctx,
             script_engine,
             physics,
             physics_accumulator,

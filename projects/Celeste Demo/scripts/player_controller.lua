@@ -121,8 +121,8 @@ function handle_jump()
     -- Simple jump test - just check for Space key
     if is_key_just_pressed("Space") then
         log("🎮 SPACE key pressed - JUMPING!")
-        -- Apply jump force (negative Y = up in this coordinate system)
-        velocity_y = -jump_force  -- Try negative for up
+        -- Apply jump force (positive Y = up in this physics engine)
+        velocity_y = jump_force 
         set_velocity(velocity_x, velocity_y)
         log("🎮 Jump applied - velocity set to: " .. velocity_x .. ", " .. velocity_y)
     end
@@ -143,9 +143,9 @@ function handle_dash()
         end
         
         if is_key_down("W") or is_key_down("Up") then
-            dash_y = -1.0
-        elseif is_key_down("S") or is_key_down("Down") then
             dash_y = 1.0
+        elseif is_key_down("S") or is_key_down("Down") then
+            dash_y = -1.0
         end
         
         -- Default to horizontal dash if no direction

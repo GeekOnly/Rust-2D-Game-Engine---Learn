@@ -43,6 +43,68 @@ pub struct EditorApp {
 }
 
 impl EditorApp {
+    // Map winit keycode to our input system key (same as Player binary)
+    fn map_winit_keycode(&self, keycode: winit::keyboard::KeyCode) -> Option<input::Key> {
+        use winit::keyboard::KeyCode;
+        use input::Key;
+        
+        match keycode {
+            KeyCode::KeyA => Some(Key::A),
+            KeyCode::KeyB => Some(Key::B),
+            KeyCode::KeyC => Some(Key::C),
+            KeyCode::KeyD => Some(Key::D),
+            KeyCode::KeyE => Some(Key::E),
+            KeyCode::KeyF => Some(Key::F),
+            KeyCode::KeyG => Some(Key::G),
+            KeyCode::KeyH => Some(Key::H),
+            KeyCode::KeyI => Some(Key::I),
+            KeyCode::KeyJ => Some(Key::J),
+            KeyCode::KeyK => Some(Key::K),
+            KeyCode::KeyL => Some(Key::L),
+            KeyCode::KeyM => Some(Key::M),
+            KeyCode::KeyN => Some(Key::N),
+            KeyCode::KeyO => Some(Key::O),
+            KeyCode::KeyP => Some(Key::P),
+            KeyCode::KeyQ => Some(Key::Q),
+            KeyCode::KeyR => Some(Key::R),
+            KeyCode::KeyS => Some(Key::S),
+            KeyCode::KeyT => Some(Key::T),
+            KeyCode::KeyU => Some(Key::U),
+            KeyCode::KeyV => Some(Key::V),
+            KeyCode::KeyW => Some(Key::W),
+            KeyCode::KeyX => Some(Key::X),
+            KeyCode::KeyY => Some(Key::Y),
+            KeyCode::KeyZ => Some(Key::Z),
+            KeyCode::Digit0 => Some(Key::Num0),
+            KeyCode::Digit1 => Some(Key::Num1),
+            KeyCode::Digit2 => Some(Key::Num2),
+            KeyCode::Digit3 => Some(Key::Num3),
+            KeyCode::Digit4 => Some(Key::Num4),
+            KeyCode::Digit5 => Some(Key::Num5),
+            KeyCode::Digit6 => Some(Key::Num6),
+            KeyCode::Digit7 => Some(Key::Num7),
+            KeyCode::Digit8 => Some(Key::Num8),
+            KeyCode::Digit9 => Some(Key::Num9),
+            KeyCode::ArrowUp => Some(Key::Up),
+            KeyCode::ArrowDown => Some(Key::Down),
+            KeyCode::ArrowLeft => Some(Key::Left),
+            KeyCode::ArrowRight => Some(Key::Right),
+            KeyCode::Space => Some(Key::Space),
+            KeyCode::Enter => Some(Key::Enter),
+            KeyCode::Escape => Some(Key::Escape),
+            KeyCode::Tab => Some(Key::Tab),
+            KeyCode::Backspace => Some(Key::Backspace),
+            KeyCode::Delete => Some(Key::Delete),
+            KeyCode::ShiftLeft => Some(Key::LShift),
+            KeyCode::ShiftRight => Some(Key::RShift),
+            KeyCode::ControlLeft => Some(Key::LCtrl),
+            KeyCode::ControlRight => Some(Key::RCtrl),
+            KeyCode::AltLeft => Some(Key::LAlt),
+            KeyCode::AltRight => Some(Key::RAlt),
+            _ => None,
+        }
+    }
+
     pub fn new(event_loop: &EventLoop<()>) -> Result<Self> {
         let window = WindowBuilder::new()
             .with_title("Rust 2D Game Engine - Launcher")
@@ -195,33 +257,26 @@ impl EditorApp {
         
         // Update InputSystem
         if let winit::keyboard::PhysicalKey::Code(key_code) = key_event.physical_key {
-            let key_str = format!("{:?}", key_code);
-            
-            // Debug: log Space key presses in play mode
-            if self.app_state == AppState::Editor && self.editor_state.is_playing && key_str.contains("Space") && key_event.state == ElementState::Pressed {
-                self.editor_state.console.debug(format!("🔍 Space key detected: key_str={}", key_str));
-            }
-            
-            if let Some(key) = Key::from_str(&key_str) {
+            // Use the same key mapping as Player binary
+            if let Some(key) = self.map_winit_keycode(key_code) {
                 if key_event.state == ElementState::Pressed {
                     self.ctx.input.press_key(key);
-                    // Also update editor input system when in play mode
+                    // Debug: log key press for movement and jump keys when in play mode
                     if self.app_state == AppState::Editor && self.editor_state.is_playing {
-                        self.editor_state.input_system.press_key(key);
-                        // Debug: log key press
-                        if key_str.contains("Space") {
-                            self.editor_state.console.debug(format!("✅ Space key pressed in input_system"));
+                        match key {
+                            input::Key::Space => self.editor_state.console.debug(format!("✅ Space key pressed in ctx.input")),
+                            input::Key::A => self.editor_state.console.debug(format!("✅ A key pressed in ctx.input")),
+                            input::Key::D => self.editor_state.console.debug(format!("✅ D key pressed in ctx.input")),
+                            input::Key::W => self.editor_state.console.debug(format!("✅ W key pressed in ctx.input")),
+                            input::Key::S => self.editor_state.console.debug(format!("✅ S key pressed in ctx.input")),
+                            input::Key::Left => self.editor_state.console.debug(format!("✅ Left key pressed in ctx.input")),
+                            input::Key::Right => self.editor_state.console.debug(format!("✅ Right key pressed in ctx.input")),
+                            _ => {}
                         }
                     }
                 } else {
                     self.ctx.input.release_key(key);
-                    // Also update editor input system when in play mode
-                    if self.app_state == AppState::Editor && self.editor_state.is_playing {
-                        self.editor_state.input_system.release_key(key);
-                    }
                 }
-            } else if self.app_state == AppState::Editor && self.editor_state.is_playing && key_str.contains("Space") {
-                self.editor_state.console.warning(format!("❌ Space key not mapped: key_str={}", key_str));
             }
         }
 
@@ -390,7 +445,7 @@ impl EditorApp {
     fn render(&mut self, target: &EventLoopWindowTarget<()>) {
         let dt = 1.0 / 60.0; // Fixed time step for now
 
-        self.ctx.input.begin_frame();
+        // Don't clear input here - let PlayModeSystem handle it after scripts run
         self.ctx.input.update_gamepads();
 
         // Egui frame setup
@@ -631,5 +686,10 @@ impl EditorApp {
             self.fixed_timestep,
             1.0 / 60.0, // dt
         );
+        
+        // Clear input state if not in play mode (PlayModeSystem handles it when playing)
+        if !self.editor_state.is_playing {
+            self.ctx.input.begin_frame();
+        }
     }
 }

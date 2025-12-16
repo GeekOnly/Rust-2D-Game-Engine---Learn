@@ -219,11 +219,11 @@ fn main() -> Result<()> {
                         let dt = (now - last_frame_time).as_secs_f32();
                         last_frame_time = now;
 
-                        // Clear per-frame input state
-                        ctx.input.begin_frame();
-
-                        // Scripts Update - use proper script system
+                        // Scripts Update - use proper script system (before clearing input)
                         runtime::script_system::update_scripts(&mut script_engine, &mut world, &ctx.input, dt);
+
+                        // Clear per-frame input state AFTER scripts have read it
+                        ctx.input.begin_frame();
 
                         // Physics
                         physics_accumulator += dt;
