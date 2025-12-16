@@ -29,7 +29,7 @@ impl Default for TextureImportSettings {
     fn default() -> Self {
         Self {
             pixels_per_unit: 100.0,
-            filter_mode: FilterMode::Bilinear,
+            filter_mode: FilterMode::Point, // Use Point filtering for crisp pixel art
             wrap_mode: WrapMode::Clamp,
             max_size: 2048,
         }

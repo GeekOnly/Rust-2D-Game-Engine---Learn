@@ -53,7 +53,7 @@ fn render_tilemap_in_scene(
                 // This ensures tilemap aligns perfectly with grid for consistent sizing
                 let tile_world_size = 1.0;  // 1 tile = 1 grid cell = 1 world unit
                 let tile_world_x = tilemap_x + (x as f32 * tile_world_size);
-                let tile_world_y = tilemap_y - (y as f32 * tile_world_size); // Flip Y
+                let tile_world_y = tilemap_y + (y as f32 * tile_world_size); // Standard 2D coordinates (Y+ = up)
                 
                 let world_pos = glam::Vec2::new(tile_world_x, tile_world_y);
                 let screen_pos = scene_camera.world_to_screen(world_pos);
