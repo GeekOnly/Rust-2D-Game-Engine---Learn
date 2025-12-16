@@ -83,15 +83,21 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
 
 // Outline Shader (Inverted Hull)
 
+struct OutlineVertexOutput {
+    @builtin(position) clip_position: vec4<f32>,
+};
+
 @vertex
 fn vs_outline(
     model: VertexInput,
-) -> vec4<f32> {
+) -> OutlineVertexOutput {
     // Extrude vertex along normal
     let outline_width = material.params.x;
     let extruded_pos = model.position + model.normal * outline_width;
     
-    return camera.view_proj * vec4<f32>(extruded_pos, 1.0);
+    var out: OutlineVertexOutput;
+    out.clip_position = camera.view_proj * vec4<f32>(extruded_pos, 1.0);
+    return out;
 }
 
 @fragment

@@ -1,8 +1,7 @@
 // Physics system for runtime
 use ecs::World;
+use physics::PhysicsWorld;
 
-pub fn update_physics(world: &mut World, delta_time: f32) {
-    // TODO: Implement physics update
-    // This would integrate with the physics module
-    let _ = (world, delta_time); // Suppress unused warnings for now
+pub fn update_physics(physics_world: &mut PhysicsWorld, world: &mut World, delta_time: f32) {
+    physics_world.step(delta_time, world);
 }

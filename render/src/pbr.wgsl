@@ -74,7 +74,7 @@ fn vs_main(
 }
 
 // PBR Functions
-let PI = 3.14159265359;
+const PI = 3.14159265359;
 
 fn distribution_ggx(N: vec3<f32>, H: vec3<f32>, roughness: f32) -> f32 {
     let a = roughness * roughness;
