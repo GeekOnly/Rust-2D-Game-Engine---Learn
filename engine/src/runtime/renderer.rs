@@ -6,6 +6,7 @@
 use ecs::{World, Entity, Camera, CameraProjection};
 use egui;
 use crate::texture_manager::TextureManager;
+use glam::{Vec3, Mat4, Quat, EulerRot};
 
 /// Render the game view using the main camera
 pub fn render_game_view(
@@ -213,10 +214,10 @@ fn render_entities(
     // Render based on projection mode
     match camera.projection {
         CameraProjection::Orthographic => {
-            render_orthographic(world, &painter, &ctx, camera, cam_pos, center, texture_manager);
+            render_orthographic(world, &painter, &ctx, camera, camera_transform, center, texture_manager);
         }
         CameraProjection::Perspective => {
-            render_perspective(world, &painter, &ctx, camera, cam_pos, center, texture_manager);
+            render_perspective(world, &painter, &ctx, camera, camera_transform, center, texture_manager);
         }
     }
 }
@@ -344,10 +345,11 @@ fn render_orthographic(
     painter: &egui::Painter,
     ctx: &egui::Context,
     camera: &Camera,
-    cam_pos: [f32; 3],
+    camera_transform: &ecs::Transform,
     center: egui::Pos2,
     texture_manager: &mut TextureManager,
 ) {
+    let cam_pos = camera_transform.position;
     // Calculate zoom based on orthographic_size and screen height
     // orthographic_size = half of the height the camera sees (in world units)
     // zoom = screen_height / (orthographic_size * 2)
@@ -544,7 +546,8 @@ fn render_orthographic(
 
         // Render mesh if exists (simple placeholder for now)
         if let Some(mesh) = world.meshes.get(entity) {
-            let size = 50.0 * zoom;
+            let width = transform.scale[0] * zoom;
+            let height = transform.scale[1] * zoom;
             let color = egui::Color32::from_rgba_unmultiplied(
                 (mesh.color[0] * 255.0) as u8,
                 (mesh.color[1] * 255.0) as u8,
@@ -553,7 +556,7 @@ fn render_orthographic(
             );
 
             painter.rect_filled(
-                egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), egui::vec2(size, size)),
+                egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), egui::vec2(width, height)),
                 2.0,
                 color,
             );
@@ -567,16 +570,49 @@ fn render_perspective(
     painter: &egui::Painter,
     ctx: &egui::Context,
     camera: &Camera,
-    cam_pos: [f32; 3],
+    camera_transform: &ecs::Transform,
     center: egui::Pos2,
     texture_manager: &mut TextureManager,
 ) {
-    // Calculate FOV scale for perspective projection
-    let fov_rad = camera.fov.to_radians();
-    let fov_scale = 1.0 / (fov_rad / 2.0).tan();
+    // 1. Construct View Matrix (Camera World -> View Space)
+    // Camera transform is Local -> World. View Matrix is Inverse(Camera World).
+    
+    // Convert Euler angles (degrees) to Quat
+    // Assuming rotation order YXZ (Yaw, Pitch, Roll) which is standard for game cams
+    let rot_rad = Vec3::new(
+        camera_transform.rotation[0].to_radians(),
+        camera_transform.rotation[1].to_radians(),
+        camera_transform.rotation[2].to_radians(),
+    );
+    
+    let cam_rotation = Quat::from_euler(
+        EulerRot::YXZ, 
+        rot_rad.y, // Yaw 
+        rot_rad.x, // Pitch 
+        rot_rad.z  // Roll
+    );
+    let cam_translation = Vec3::from(camera_transform.position);
+    
+    // View Matrix = Inverse of Camera World Matrix
+    // World Matrix = T * R
+    // View Matrix = (T * R)^-1 = R^-1 * T^-1
+    let view_matrix = Mat4::from_rotation_translation(cam_rotation, cam_translation).inverse();
 
-    // Perspective distance
-    let perspective_distance = 500.0;
+    // 2. Construct Projection Matrix (View Space -> Clip Space)
+    let rect = painter.clip_rect();
+    let aspect_ratio = rect.width() / rect.height();
+    
+    // Use Right-Handed perspective (standard for glam/wgpu)
+    // Z range [0, 1]
+    let proj_matrix = Mat4::perspective_rh(
+        camera.fov.to_radians(), 
+        aspect_ratio, 
+        camera.near_clip, 
+        camera.far_clip
+    );
+
+    // Combined View-Projection Matrix
+    let view_proj = proj_matrix * view_matrix;
 
     // Render all entities
     for (entity, transform) in &world.transforms {
@@ -585,26 +621,42 @@ fn render_perspective(
             continue;
         }
 
-        // Calculate world position relative to camera
-        let world_x = transform.position[0] - cam_pos[0];
-        let world_y = transform.position[1] - cam_pos[1];
-        let world_z = transform.position[2] - cam_pos[2];
+        // Get entity position
+        let world_pos = Vec3::from(transform.position);
 
-        // Calculate perspective depth (Z distance from camera)
-        let depth = world_z + perspective_distance;
+        // Project world position to NDC (Normalized Device Coordinates)
+        let ndc_pos = view_proj.project_point3(world_pos);
 
-        // Skip if behind camera or too close
-        if depth <= camera.near_clip || depth > camera.far_clip {
+        // Check visibility (Frustum Culling)
+        // NDC range: x: [-1, 1], y: [-1, 1], z: [0, 1] (for perspective_rh)
+        if ndc_pos.z < 0.0 || ndc_pos.z > 1.0 || 
+           ndc_pos.x < -1.2 || ndc_pos.x > 1.2 || 
+           ndc_pos.y < -1.2 || ndc_pos.y > 1.2 {
             continue;
         }
 
-        // Apply perspective division
-        let perspective_scale = perspective_distance / depth;
-        let screen_scale = fov_scale * perspective_scale * 100.0;
+        // Convert NDC to Screen Coordinates
+        // NDC Y is up, Screen Y is down (egui) -> flip Y
+        let screen_x = center.x + ndc_pos.x * (rect.width() * 0.5);
+        let screen_y = center.y - ndc_pos.y * (rect.height() * 0.5);
 
-        let screen_x = center.x + world_x * screen_scale;
-        let screen_y = center.y - world_y * screen_scale; // Flip Y axis
+        // Calculate Scale/Size on Screen
+        // Project a second point offset by scale to estimate screen size
+        // Offset by UP vector * scale.y
+        let top_world_pos = world_pos + (cam_rotation * Vec3::Y) * transform.scale[1]; // Use camera up or world up? World up generally.
+        // Let's use camera-facing plane size approximation for simplicity
+        // Or simply: world_size / depth * constant
+        
+        // Better: Project a point at the corner of the object bounds
+        let world_scale = Vec3::from(transform.scale);
+        let corner_world_pos = world_pos + (view_matrix.inverse().transform_vector3(Vec3::X)) * world_scale.x; 
+        // Use camera right vector for width estimation to avoid rotation issues
+        let corner_ndc = view_proj.project_point3(corner_world_pos);
+        let screen_width = (corner_ndc.x - ndc_pos.x).abs() * rect.width() * 0.5 * 2.0;
+        let screen_scale = screen_width / world_scale.x; // approximate pixels per unit at this depth
 
+        // Render contents...
+        
         // Check if entity has animated sprite
         let has_animated_sprite = world.animated_sprites.contains_key(entity);
         
@@ -654,9 +706,13 @@ fn render_perspective(
             let transform_scale = glam::Vec2::new(transform.scale[0], transform.scale[1]);
             // Calculate size based on sprite dimensions and transform scale
             let size = egui::vec2(
-                sprite.width * transform_scale.x * screen_scale,
+                sprite.width * transform_scale.x * screen_scale, // Use calculated screen_scale
                 sprite.height * transform_scale.y * screen_scale
             );
+            
+            // Note: This logic assumes billboard behavior or 2D sprites in 3D world
+            // Ideally, we should check sprite.billboard
+             
             let color = egui::Color32::from_rgba_unmultiplied(
                 (sprite.color[0] * 255.0) as u8,
                 (sprite.color[1] * 255.0) as u8,
@@ -668,45 +724,34 @@ fn render_perspective(
             if !sprite.texture_id.is_empty() {
                 let texture_path = std::path::Path::new(&sprite.texture_id);
                 if let Some(texture) = texture_manager.load_texture(ctx, &sprite.texture_id, texture_path) {
-                    // Render texture with color tint and flipping
                     let mut mesh = egui::Mesh::with_texture(texture.id());
-
                     let rect = egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), size);
 
-                    // Calculate UV coordinates based on sprite_rect (Unity-style)
+                    // UVs and flipping...
                     let (u_min_base, u_max_base, v_min_base, v_max_base) = if let Some(sprite_rect) = sprite.sprite_rect {
-                        // Use sprite rect to calculate UV coordinates
                         let tex_size = texture.size();
                         let tex_width = tex_size[0] as f32;
                         let tex_height = tex_size[1] as f32;
-                        
-                        let u_min = sprite_rect[0] as f32 / tex_width;
-                        let v_min = sprite_rect[1] as f32 / tex_height;
-                        let u_max = (sprite_rect[0] + sprite_rect[2]) as f32 / tex_width;
-                        let v_max = (sprite_rect[1] + sprite_rect[3]) as f32 / tex_height;
-                        
-                        (u_min, u_max, v_min, v_max)
+                        (
+                            sprite_rect[0] as f32 / tex_width,
+                            (sprite_rect[0] + sprite_rect[2]) as f32 / tex_width,
+                            sprite_rect[1] as f32 / tex_height,
+                            (sprite_rect[1] + sprite_rect[3]) as f32 / tex_height
+                        )
                     } else {
-                        // Use full texture
                         (0.0, 1.0, 0.0, 1.0)
                     };
 
-                    // Apply flipping
                     let (u_min, u_max) = if sprite.flip_x { (u_max_base, u_min_base) } else { (u_min_base, u_max_base) };
                     let (v_min, v_max) = if sprite.flip_y { (v_max_base, v_min_base) } else { (v_min_base, v_max_base) };
 
                     mesh.add_rect_with_uv(
                         rect,
-                        egui::Rect::from_min_max(
-                            egui::pos2(u_min, v_min),
-                            egui::pos2(u_max, v_max),
-                        ),
+                        egui::Rect::from_min_max(egui::pos2(u_min, v_min), egui::pos2(u_max, v_max)),
                         color,
                     );
-
                     painter.add(egui::Shape::mesh(mesh));
                 } else {
-                    // Fallback to colored rectangle if texture load fails
                     painter.rect_filled(
                         egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), size),
                         2.0,
@@ -714,7 +759,6 @@ fn render_perspective(
                     );
                 }
             } else {
-                // No texture specified, render colored rectangle
                 painter.rect_filled(
                     egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), size),
                     2.0,
@@ -725,7 +769,8 @@ fn render_perspective(
 
         // Render mesh if exists
         if let Some(mesh) = world.meshes.get(entity) {
-            let size = 50.0 * screen_scale;
+            let width = transform.scale[0] * screen_scale; // Use calculated screen_scale
+            let height = transform.scale[1] * screen_scale;
             let color = egui::Color32::from_rgba_unmultiplied(
                 (mesh.color[0] * 255.0) as u8,
                 (mesh.color[1] * 255.0) as u8,
@@ -734,7 +779,7 @@ fn render_perspective(
             );
 
             painter.rect_filled(
-                egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), egui::vec2(size, size)),
+                egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), egui::vec2(width, height)),
                 2.0,
                 color,
             );
