@@ -6,12 +6,12 @@ use std::collections::HashMap;
 pub fn render_game_world<'a>(
     world: &World,
     batch_renderer: &'a mut BatchRenderer,
-    _mesh_renderer: &mut MeshRenderer,
-    _camera_binding: &CameraBinding,
-    _light_binding: &LightBinding,
+    mesh_renderer: &'a mut MeshRenderer,
+    camera_binding: &'a CameraBinding,
+    light_binding: &'a LightBinding,
     texture_manager: &'a mut TextureManager,
     queue: &wgpu::Queue,
-    _device: &wgpu::Device,
+    device: &wgpu::Device,
     _screen_size: winit::dpi::PhysicalSize<u32>,
     render_pass: &mut wgpu::RenderPass<'a>,
 ) {
@@ -131,11 +131,30 @@ pub fn render_game_world<'a>(
         z_a.partial_cmp(&z_b).unwrap_or(std::cmp::Ordering::Equal)
     });
 
-    // TODO: Implement proper mesh rendering
-    // For now, skip mesh rendering until proper mesh loading is implemented
-    // The ecs::Mesh component needs to be converted to render::Mesh with GPU buffers
-    for (_entity, _mesh) in mesh_entities {
-        // Skip mesh rendering for now
-        // TODO: Load or create render::Mesh from ecs::Mesh and render it
+    // 4. Render Meshes with proper GPU rendering
+    for (entity, ecs_mesh) in mesh_entities {
+        if let Some(transform) = world.transforms.get(entity) {
+            // Generate GPU mesh (TODO: cache these)
+            let gpu_mesh = render::generate_mesh(device, &ecs_mesh.mesh_type);
+            
+            // Create toon material for mesh
+            let toon_material = render::ToonMaterialUniform {
+                color: ecs_mesh.color,
+                outline_color: [0.0, 0.0, 0.0, 1.0], // Black outline
+                params: [0.02, 0.0, 0.0, 0.0], // outline_width = 0.02
+            };
+            
+            // Create material bind group
+            let material_bind_group = mesh_renderer.create_toon_material_bind_group(device, &toon_material);
+            
+            // Render mesh with toon shading
+            mesh_renderer.render_toon(
+                render_pass,
+                &gpu_mesh,
+                &material_bind_group,
+                camera_binding,
+                light_binding,
+            );
+        }
     }
 }
