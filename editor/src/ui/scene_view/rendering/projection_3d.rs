@@ -55,8 +55,8 @@ impl Transform3D {
         let pitch_rad = camera.pitch.to_radians();
         
         let cam_x = camera.position.x + camera.distance * yaw_rad.cos() * pitch_rad.cos();
-        let cam_y = camera.distance * pitch_rad.sin();
-        let cam_z = camera.position.y + camera.distance * yaw_rad.sin() * pitch_rad.cos();
+        let cam_y = camera.position.y + camera.distance * pitch_rad.sin(); // Pivot Y + Height
+        let cam_z = camera.position.z + camera.distance * yaw_rad.sin() * pitch_rad.cos();
         
         let camera_pos = Vec3::new(cam_x, cam_y, cam_z);
         

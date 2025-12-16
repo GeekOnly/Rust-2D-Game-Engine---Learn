@@ -83,7 +83,7 @@ impl RenderQueue {
     /// Get the depth of a render object (static version for sorting)
     fn get_object_depth_static(
         object: &RenderObject,
-        camera_pos: glam::Vec2,
+        camera_pos: glam::Vec3,
         camera_rotation: f32,
         camera_pitch: f32,
     ) -> f32 {
@@ -111,15 +111,15 @@ impl RenderQueue {
     /// Calculate depth of a sprite from camera (static version)
     fn calculate_sprite_depth_static(
         position: &glam::Vec3,
-        camera_pos: glam::Vec2,
+        camera_pos: glam::Vec3,
         camera_rotation: f32,
         camera_pitch: f32,
     ) -> f32 {
         // Transform position relative to camera
         let relative_pos = glam::Vec3::new(
             position.x - camera_pos.x,
-            position.y,
-            position.z - camera_pos.y,
+            position.y - camera_pos.y, // Correctly subtract Y (Height)
+            position.z - camera_pos.z, // Correctly subtract Z
         );
         
         // Apply camera rotation to get depth in camera space

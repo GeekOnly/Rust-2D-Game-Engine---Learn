@@ -225,7 +225,7 @@ pub fn render_scene_view(
         if let Some(entity) = *selected_entity {
             if let Some(transform) = world.transforms.get(&entity) {
                 // Calculate center position of the entity
-                let mut pos = glam::Vec2::new(transform.x(), transform.y());
+                let mut pos = glam::Vec3::new(transform.x(), transform.y(), 0.0);
                 let size = if let Some(sprite) = world.sprites.get(&entity) {
                     sprite.width.max(sprite.height)
                 } else if let Some(tilemap) = world.tilemaps.get(&entity) {
@@ -288,7 +288,7 @@ pub fn render_scene_view(
             let (screen_x, screen_y) = match scene_view_mode {
                 SceneViewMode::Mode2D => {
                     // 2D mode: use simple world_to_screen
-                    let world_pos = glam::Vec2::new(transform.x(), transform.y());
+                    let world_pos = glam::Vec3::new(transform.x(), transform.y(), 0.0);
                     let screen_pos = scene_camera.world_to_screen(world_pos);
                     (center.x + screen_pos.x, center.y + screen_pos.y)
                 }

@@ -983,7 +983,7 @@ pub fn render_camera_viewport_bounds(
     // Get camera component and transform
     if let (Some(camera), Some(transform)) = (world.cameras.get(&camera_entity), world.transforms.get(&camera_entity)) {
         // Get camera position in world space
-        let cam_world_pos = glam::Vec2::new(transform.x(), transform.y());
+        let cam_world_pos = glam::Vec3::new(transform.x(), transform.y(), 0.0);
         
         // Calculate viewport size in world units based on orthographic_size
         // orthographic_size is the half-height of the camera view

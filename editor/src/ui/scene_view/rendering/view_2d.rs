@@ -55,7 +55,7 @@ fn render_tilemap_in_scene(
                 let tile_world_x = tilemap_x + (x as f32 * tile_world_size);
                 let tile_world_y = tilemap_y - (y as f32 * tile_world_size); // Y-Up: rows go down (decrease Y)
                 
-                let world_pos = glam::Vec2::new(tile_world_x, tile_world_y);
+                let world_pos = glam::Vec3::new(tile_world_x, tile_world_y, 0.0);
                 let screen_pos = scene_camera.world_to_screen(world_pos);
                 let screen_x = center.x + screen_pos.x;
                 let screen_y = center.y + screen_pos.y;
@@ -201,7 +201,7 @@ pub fn render_scene_2d(
     // Render selection outline on top
     if let Some(sel_entity) = *selected_entity {
         if let Some(transform) = world.transforms.get(&sel_entity) {
-            let world_pos = glam::Vec2::new(transform.x(), transform.y());
+            let world_pos = glam::Vec3::new(transform.x(), transform.y(), 0.0);
             let screen_pos = scene_camera.world_to_screen(world_pos);
             let screen_x = center.x + screen_pos.x;
             let screen_y = center.y + screen_pos.y;
@@ -242,7 +242,7 @@ pub fn render_scene_2d(
 
     // Render debug lines if enabled
     if *show_debug_lines {
-        let camera_pos = [scene_camera.position.x, scene_camera.position.y, 0.0];
+        let camera_pos = [scene_camera.position.x, scene_camera.position.y, scene_camera.position.z];
         debug_draw.render(painter, camera_pos, scene_camera.zoom, rect);
     }
 }
@@ -258,7 +258,7 @@ pub fn render_transform_gizmo_2d(
     transform_space: &super::super::types::TransformSpace,
 ) {
     if let Some(transform) = world.transforms.get(&entity) {
-        let world_pos = glam::Vec2::new(transform.x(), transform.y());
+        let world_pos = glam::Vec3::new(transform.x(), transform.y(), 0.0);
         let screen_pos = scene_camera.world_to_screen(world_pos);
         let screen_x = center.x + screen_pos.x;
         let screen_y = center.y + screen_pos.y;
@@ -293,7 +293,7 @@ fn render_entity_2d(
     ctx: &egui::Context,
 ) {
     // 2D Projection
-    let world_pos = glam::Vec2::new(transform.x(), transform.y());
+    let world_pos = glam::Vec3::new(transform.x(), transform.y(), 0.0);
     let screen_pos = scene_camera.world_to_screen(world_pos);
     let screen_x = center.x + screen_pos.x;
     let screen_y = center.y + screen_pos.y;

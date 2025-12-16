@@ -109,7 +109,7 @@ impl Default for CameraSettings {
 /// Camera velocity for tracking movement momentum
 #[derive(Debug, Clone)]
 pub struct CameraVelocity {
-    pub pan_velocity: Vec2,
+    pub pan_velocity: Vec3,
     pub rotation_velocity: Vec2,  // (yaw_velocity, pitch_velocity)
     pub zoom_velocity: f32,
 }
@@ -117,7 +117,7 @@ pub struct CameraVelocity {
 impl Default for CameraVelocity {
     fn default() -> Self {
         Self {
-            pan_velocity: Vec2::ZERO,
+            pan_velocity: Vec3::ZERO,
             rotation_velocity: Vec2::ZERO,
             zoom_velocity: 0.0,
         }
@@ -127,7 +127,7 @@ impl Default for CameraVelocity {
 /// Camera state for mode switching
 #[derive(Debug, Clone)]
 pub struct CameraState {
-    pub position: Vec2,
+    pub position: Vec3,
     pub zoom: f32,
     pub rotation: f32,
     pub pitch: f32,
@@ -142,12 +142,12 @@ pub enum SceneProjectionMode {
 
 #[derive(Debug, Clone)]
 pub struct SceneCamera {
-    pub position: Vec2,
+    pub position: Vec3,
     pub zoom: f32,
     pub rotation: f32,    // Horizontal rotation (yaw) in degrees
     pub pitch: f32,       // Vertical rotation in degrees
     pub distance: f32,    // Distance from pivot point (for orbit)
-    pub pivot: Vec2,      // Pivot point for orbit mode
+    pub pivot: Vec3,      // Pivot point for orbit mode
     pub projection_mode: SceneProjectionMode, // Current projection mode
     
     // Camera bounds
@@ -174,7 +174,7 @@ pub struct SceneCamera {
     velocity: CameraVelocity,
     
     // Target values for smooth interpolation
-    target_position: Vec2,
+    target_position: Vec3,
     target_rotation: f32,
     target_pitch: f32,
     target_zoom: f32,
@@ -186,7 +186,7 @@ pub struct SceneCamera {
     saved_3d_state: Option<CameraState>,
     
     // Cursor tracking for zoom
-    last_cursor_world_pos: Option<Vec2>,
+    last_cursor_world_pos: Option<Vec3>,
 }
 
 impl SceneCamera {
@@ -194,12 +194,12 @@ impl SceneCamera {
         let initial_zoom = 2.0;  // 2x zoom for better visibility in editor
         let settings = CameraSettings::default();
         Self {
-            position: Vec2::ZERO,
+            position: Vec3::ZERO,
             zoom: initial_zoom,       // Editor zoom (2x for comfortable editing)
             rotation: 0.0,    // Start in 2D mode (0° rotation)
             pitch: 0.0,       // Start in 2D mode (0° pitch)
             distance: 500.0,  // Default distance for 3D mode
-            pivot: Vec2::ZERO,
+            pivot: Vec3::ZERO,
             projection_mode: SceneProjectionMode::Isometric, // Unity-style default (orthographic Scene View)
             min_zoom: 0.01,   // Min zoom (1% - very zoomed out, see entire level)
             max_zoom: 100.0,  // Max zoom (100x - very zoomed in, pixel-level editing)
@@ -214,7 +214,7 @@ impl SceneCamera {
             pan_speed: 1.0,
             settings,
             velocity: CameraVelocity::default(),
-            target_position: Vec2::ZERO,
+            target_position: Vec3::ZERO,
             target_rotation: 0.0,  // Start in 2D mode
             target_pitch: 0.0,     // Start in 2D mode
             target_zoom: initial_zoom,  // Match initial_zoom
@@ -263,7 +263,7 @@ impl SceneCamera {
                 let world_delta_x = (delta.x * right_x + delta.y * forward_x) * pan_speed;
                 let world_delta_z = (delta.x * right_z + delta.y * forward_z) * pan_speed;
 
-                let world_delta = Vec2::new(world_delta_x, world_delta_z);
+                let world_delta = Vec3::new(world_delta_x, 0.0, world_delta_z);
 
                 // Update both position and pivot
                 self.position += world_delta;
@@ -274,7 +274,8 @@ impl SceneCamera {
                 let pan_speed = self.settings.pan_sensitivity / self.zoom;
 
                 // Direct X/Y movement (inverted to match Unity: drag right = world moves left)
-                let world_delta = Vec2::new(-delta.x, delta.y) * pan_speed;
+                // In 2D mode, we use X and Y components of Vec3
+                let world_delta = Vec3::new(-delta.x, delta.y, 0.0) * pan_speed;
 
                 // Update position immediately for responsive panning
                 self.position += world_delta;
@@ -585,10 +586,10 @@ impl SceneCamera {
             if new_velocity.is_finite() {
                 self.velocity.pan_velocity = new_velocity;
             } else {
-                self.velocity.pan_velocity = Vec2::ZERO;
+                self.velocity.pan_velocity = Vec3::ZERO;
             }
         } else {
-            self.velocity.pan_velocity = Vec2::ZERO;
+            self.velocity.pan_velocity = Vec3::ZERO;
         }
         
         // Apply rotation velocity
@@ -679,7 +680,7 @@ impl SceneCamera {
     }
     
     /// Start orbit (Alt + Left mouse button)
-    pub fn start_orbit(&mut self, mouse_pos: Vec2, pivot_point: Vec2) {
+    pub fn start_orbit(&mut self, mouse_pos: Vec2, pivot_point: Vec3) {
         self.is_orbiting = true;
         self.pivot = pivot_point;
         self.last_mouse_pos = mouse_pos;
@@ -726,12 +727,37 @@ impl SceneCamera {
             let yaw_rad = self.rotation.to_radians();
             let pitch_rad = self.pitch.to_radians();
             
-            // Calculate position in spherical coordinates
-            let horizontal_distance = self.distance * pitch_rad.cos();
-            let offset_x = horizontal_distance * yaw_rad.cos();
-            let offset_z = horizontal_distance * yaw_rad.sin();
+            // In Orbit mode, we only change angles. Pivot (self.position) stays fixed.
+            self.position = self.pivot;
+            self.target_position = self.pivot;
             
-            let new_position = self.pivot + Vec2::new(offset_x, offset_z);
+            // Dummy usage to avoid warnings if needed, or just remove
+            // simplified: orbit just rotates around the current pivot point.
+            
+            // Re-reading get_view_matrix:
+            // let target = Vec3::new(self.position.x, 0.0, self.position.y);
+            // This confirms self.position WAS the target (2D projection).
+            
+            // If we are just rotating around the pivot, we don't need to change the pivot position (self.position).
+            // We just change rotation/pitch.
+            
+            // So... we actually don't need to update self.position here at all?
+            // Unless the pivot moves? No.
+            
+            // Legacy Clean-up: The previous code updated self.position based on pivot+offset,
+            // which contradicts 'position is target'. 
+            // It seems the previous code treated 'position' ambiguously.
+            
+            // Correct Logic: 
+            // In Orbit mode, we only change angles. Pivot (self.position) stays fixed.
+            // But if we want to support 'panning' while orbiting?
+            
+            // Let's keep it simple: Orbiting changes rotation/pitch. Pivot stays.
+            self.position = self.pivot;
+            self.target_position = self.pivot;
+            
+            let new_position = self.pivot; // Dummy for below check to pass
+            let _ = Vec3::new(0.0, 0.0, 0.0); // Dummy consumption replaced with zeros
             
             // Validate and update position
             if new_position.is_finite() {
@@ -754,7 +780,7 @@ impl SceneCamera {
     }
     
     /// Focus on object (F key) - frames entity appropriately in viewport
-    pub fn focus_on(&mut self, target_pos: Vec2, object_size: f32, viewport_size: Vec2) {
+    pub fn focus_on(&mut self, target_pos: Vec3, object_size: f32, viewport_size: Vec2) {
         // Set pivot to target position
         self.pivot = target_pos;
         
@@ -828,8 +854,9 @@ impl SceneCamera {
     pub fn get_view_matrix(&self) -> Mat4 {
         if self.pitch.abs() > 0.1 {
             // 3D view: LookAt matrix calculation for Orbit camera
+            // 3D view: LookAt matrix calculation for Orbit camera
             // Current position is the TARGET/PIVOT point in 3D mode
-            let target = Vec3::new(self.position.x, 0.0, self.position.y);
+            let target = self.position;
             
             let yaw_rad = self.rotation.to_radians();
             let pitch_rad = self.pitch.to_radians();
@@ -852,6 +879,7 @@ impl SceneCamera {
             // 2D view: Orthographic
             // Position is center of screen
             let scale = Mat4::from_scale(Vec3::new(self.zoom, self.zoom, 1.0));
+            // For 2D, we only care about X and Y
             let translation = Mat4::from_translation(Vec3::new(-self.position.x, -self.position.y, 0.0));
             
             scale * translation
@@ -859,7 +887,7 @@ impl SceneCamera {
     }
     
     /// Convert screen point (pixels relative to viewport center) to world point (game units)
-    pub fn screen_to_world(&self, screen_pos: Vec2) -> Vec2 {
+    pub fn screen_to_world(&self, screen_pos: Vec2) -> Vec3 {
         if self.pitch.abs() > 0.1 {
             // 3D mode: Raycasting onto XZ plane (y=0)
             
@@ -870,20 +898,24 @@ impl SceneCamera {
             // Simplification for orbit mode logic check: approximate based on view direction
             // For proper 3D raycasting we need the projection matrix and viewport dimensions.
             // This is a placeholder behavior until we have full 3D picking.
-            self.position + screen_pos / self.zoom
+            // For proper 3D raycasting we need the projection matrix and viewport dimensions.
+            // This is a placeholder behavior until we have full 3D picking.
+            // Return ground projection approximation
+             self.position + Vec3::new(screen_pos.x / self.zoom, 0.0, screen_pos.y / self.zoom)
         } else {
             // 2D mode: Scale and offset (Y-Up Physics Coordinate System)
             // Screen Y is down (positive), World Y is up (positive)
             // Flipping Y axis to match game engine physics
-            glam::Vec2::new(
+            Vec3::new(
                 self.position.x + screen_pos.x / self.zoom,
-                self.position.y - screen_pos.y / self.zoom
+                self.position.y - screen_pos.y / self.zoom,
+                0.0
             )
         }
     }
     
     /// Convert world point to screen point (pixels relative to viewport center)
-    pub fn world_to_screen(&self, world_pos: Vec2) -> Vec2 {
+    pub fn world_to_screen(&self, world_pos: Vec3) -> Vec2 {
         if self.pitch.abs() > 0.1 {
             // 3D mode: Project point onto screen
             let view_proj = self.get_view_matrix(); // Missing projection matrix here
@@ -893,7 +925,10 @@ impl SceneCamera {
             
             // Use basic projection for now (orthographic-like)
             let relative = world_pos - self.position;
-            relative * self.zoom
+            // Project 3D vector to 2D screen
+            // Use X and Z for 3D ground plane projection? Or proper 3D transform?
+            // This is a rough approx for now.
+             Vec2::new(relative.x, relative.z + relative.y) * self.zoom 
         } else {
             // 2D mode: Scale and offset (Y-Up Physics Coordinate System)
             // World Y Up (+), Screen Y Down (+) -> Invert Y difference
@@ -994,15 +1029,15 @@ impl SceneCamera {
 
     /// Reset camera to default state
     pub fn reset(&mut self) {
-        self.position = Vec2::ZERO;
+        self.position = Vec3::ZERO;
         self.zoom = 2.0;
         self.rotation = 0.0;
         self.pitch = 0.0;
         self.distance = 10.0;
-        self.pivot = Vec2::ZERO;
+        self.pivot = Vec3::ZERO;
         self.projection_mode = SceneProjectionMode::Isometric;
         self.velocity = CameraVelocity::default();
-        self.target_position = Vec2::ZERO;
+        self.target_position = Vec3::ZERO;
         self.target_rotation = 0.0;
         self.target_pitch = 0.0;
         self.target_zoom = 2.0;
@@ -1048,7 +1083,7 @@ impl SceneCamera {
     }
 
     /// Frame object in view (F key functionality)
-    pub fn frame_object(&mut self, pos: Vec2, size: f32, viewport: Vec2) {
+    pub fn frame_object(&mut self, pos: Vec3, size: f32, viewport: Vec2) {
         self.focus_on(pos, size, viewport);
     }
 }

@@ -28,7 +28,7 @@ pub fn handle_camera_controls(
                     // Get pivot point from selected entity or use camera position
                     let pivot = if let Some(entity) = selected_entity {
                         if let Some(transform) = world.transforms.get(entity) {
-                            glam::Vec2::new(transform.x(), transform.y())
+                            glam::Vec3::new(transform.x(), transform.y(), 0.0)
                         } else {
                             scene_camera.position
                         }
@@ -124,100 +124,92 @@ pub fn handle_camera_controls(
     // WASD / QE Fly Controls (3D mode)
     // Works when:
     // 1. Right mouse button is held (Unity-style fly mode)
-    // 2. OR when hovering over scene view (easier to use)
     let is_right_mouse_down = response.ctx.input(|i| i.pointer.button_down(egui::PointerButton::Secondary));
     
-    if *scene_view_mode == SceneViewMode::Mode3D && (is_right_mouse_down || response.hovered()) {
-        let fly_speed = response.ctx.input(|i| {
-            let base_speed = 2.0; // Base movement speed
+    // Only allow fly controls when Right Mouse Button is held (Unity Style)
+    if *scene_view_mode == SceneViewMode::Mode3D && is_right_mouse_down {
+        let fly_vector = response.ctx.input(|i| {
+            let base_speed = 0.5; // Base movement speed (units per frame approx)
 
             // Speed modifiers
             let speed_multiplier = if i.modifiers.shift {
-                3.0  // Fast mode (Shift)
+                4.0  // Fast mode (Shift)
             } else if i.modifiers.ctrl {
-                0.3  // Slow mode (Ctrl)
+                0.1  // Slow mode (Ctrl)
             } else {
                 1.0  // Normal speed
             };
 
-            let final_speed = base_speed * speed_multiplier * (scene_camera.distance / 100.0).max(0.5);
+            // Calculate adaptive speed based on distance from pivot (if we were strictly orbiting)
+            // But for Fly mode, we want constant speed usually, or logarithmic.
+            // Let's us a simple speed for now.
+            let final_speed = base_speed * speed_multiplier; // * (scene_camera.distance / 20.0).max(0.1);
 
             let yaw_rad = scene_camera.rotation.to_radians();
             let pitch_rad = scene_camera.pitch.to_radians();
 
-            // Calculate movement vectors
-            let forward = glam::Vec2::new(
-                yaw_rad.cos() * pitch_rad.cos(),
-                yaw_rad.sin() * pitch_rad.cos()
-            );
-            let right = glam::Vec2::new(yaw_rad.sin(), -yaw_rad.cos());
+            // Calculate Camera Direction Vectors using Spherical Coordinates
+            // Looking direction (Forward)
+            // Note: Our coordinate system Y is UP.
+            
+            // Forward vector: Direction camera is looking (Target - Eye)
+            // Derived from View Matrix logic: Eye = Target + Offset
+            // Forward = -Offset direction
+            let forward = glam::Vec3::new(
+                -yaw_rad.cos() * pitch_rad.cos(), // X
+                -pitch_rad.sin(),                 // Y
+                -yaw_rad.sin() * pitch_rad.cos()  // Z
+            ).normalize_or_zero();
+            
+            // Right vector: Perpendicular to Forward and global Up (Y)
+            // Cross(Forward, Up) where Up=(0,1,0)
+            // Right = (sin(yaw), 0, -cos(yaw))
+            let right = glam::Vec3::new(
+                yaw_rad.sin(),
+                0.0,
+                -yaw_rad.cos()
+            ).normalize_or_zero();
+            
+            // Up vector: Global Up
+            let up = glam::Vec3::Y;
 
-            let mut movement = glam::Vec2::ZERO;
+            let mut movement = glam::Vec3::ZERO;
 
-            // Forward/Backward (W/S)
-            // W = forward (away from camera), S = backward (toward camera)
+            // Forward/Backward (W/S) - Moves along VIEW direction
             if i.key_down(egui::Key::W) {
-                movement -= forward;  // Move away from camera
+                movement += forward;
             }
             if i.key_down(egui::Key::S) {
-                movement += forward;  // Move toward camera
+                movement -= forward;
             }
 
-            // Left/Right (A/D)
+            // Left/Right (A/D) - Moves along RIGHT vector
             if i.key_down(egui::Key::A) {
                 movement -= right;
             }
             if i.key_down(egui::Key::D) {
                 movement += right;
             }
+            
+            // Up/Down (Q/E) - Moves along GLOBAL Y axis (Elevator)
+            // Unity uses Q=Down, E=Up
+            if i.key_down(egui::Key::E) {
+                movement += up;
+            }
+            if i.key_down(egui::Key::Q) {
+                movement -= up;
+            }
 
             movement * final_speed
         });
 
-        // Q/E for vertical movement (Z-axis) in 3D mode
-        let vertical_speed: f32 = response.ctx.input(|i| {
-            let base_speed = 2.0; // Base movement speed
-
-            // Speed modifiers
-            let speed_multiplier = if i.modifiers.shift {
-                3.0  // Fast mode (Shift)
-            } else if i.modifiers.ctrl {
-                0.3  // Slow mode (Ctrl)
-            } else {
-                1.0  // Normal speed
-            };
-
-            let final_speed = base_speed * speed_multiplier * (scene_camera.distance / 100.0).max(0.5);
-
-            let mut vertical_movement = 0.0;
-
-            // Up/Down (Q/E) - only when not using tool shortcuts
-            // Check if we're not in tool selection mode (avoid conflicts)
-            if !i.modifiers.ctrl && !i.modifiers.alt {
-                if i.key_down(egui::Key::Q) {
-                    vertical_movement += 1.0;  // Move up
-                }
-                if i.key_down(egui::Key::E) {
-                    vertical_movement -= 1.0;  // Move down
-                }
-            }
-
-            vertical_movement * final_speed
-        });
-
-        if fly_speed.length() > 0.01 {
-            scene_camera.position += fly_speed;
-            scene_camera.pivot += fly_speed;
-            // No need to update target_position - it's managed internally
-        }
-
-        // Apply vertical movement (Q/E for Z-axis)
-        if vertical_speed.abs() > 0.01 {
-            // In 3D mode, vertical movement affects the Y component of position
-            // This moves the camera up/down in world space
-            let vertical_offset = glam::Vec2::new(0.0, vertical_speed);
-            scene_camera.position += vertical_offset;
-            scene_camera.pivot += vertical_offset;
+        if fly_vector.length_squared() > 0.0001 {
+            // Apply movement directly to camera pivot/position
+            scene_camera.position += fly_vector;
+            scene_camera.pivot += fly_vector; // Move pivot with camera to maintain focus distance
+            
+            // Trigger repaint
+            response.ctx.request_repaint();
         }
     }
 }

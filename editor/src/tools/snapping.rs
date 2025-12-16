@@ -301,7 +301,7 @@ pub fn render_snap_grid(
     // Draw vertical lines
     let mut x = min_x;
     while x <= max_x {
-        let screen_pos = scene_camera.world_to_screen(glam::Vec2::new(x, 0.0));
+        let screen_pos = scene_camera.world_to_screen(glam::Vec3::new(x, 0.0, 0.0));
         let screen_x = center.x + screen_pos.x;
         
         painter.line_segment(
@@ -318,7 +318,7 @@ pub fn render_snap_grid(
     // Draw horizontal lines
     let mut y = min_y;
     while y <= max_y {
-        let screen_pos = scene_camera.world_to_screen(glam::Vec2::new(0.0, y));
+        let screen_pos = scene_camera.world_to_screen(glam::Vec3::new(0.0, y, 0.0));
         let screen_y = center.y + screen_pos.y;
         
         painter.line_segment(
@@ -333,7 +333,7 @@ pub fn render_snap_grid(
     }
     
     // Draw origin (thicker lines)
-    let origin_screen = scene_camera.world_to_screen(glam::Vec2::ZERO);
+    let origin_screen = scene_camera.world_to_screen(glam::Vec3::ZERO);
     let origin_x = center.x + origin_screen.x;
     let origin_y = center.y + origin_screen.y;
     
@@ -368,7 +368,7 @@ pub fn render_snap_indicator(
         return;
     }
     
-    let screen_pos = scene_camera.world_to_screen(world_pos);
+    let screen_pos = scene_camera.world_to_screen(glam::Vec3::new(world_pos.x, world_pos.y, 0.0));
     let screen_x = center.x + screen_pos.x;
     let screen_y = center.y + screen_pos.y;
     

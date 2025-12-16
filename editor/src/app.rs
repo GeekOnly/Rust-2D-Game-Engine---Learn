@@ -333,7 +333,7 @@ impl EditorApp {
                         EditorShortcut::FrameSelected => {
                             if let Some(entity) = self.editor_state.selected_entity {
                                 if let Some(transform) = self.editor_state.world.transforms.get(&entity) {
-                                    let pos = glam::Vec2::new(transform.x(), transform.y());
+                                    let pos = glam::Vec3::new(transform.x(), transform.y(), 0.0);
                                     let size = if let Some(sprite) = self.editor_state.world.sprites.get(&entity) {
                                         glam::Vec2::new(sprite.width, sprite.height)
                                     } else {

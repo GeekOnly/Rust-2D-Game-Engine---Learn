@@ -241,7 +241,7 @@ impl SelectionManager {
         
         for (&entity, transform) in &world.transforms {
             let world_pos = glam::Vec2::new(transform.x(), transform.y());
-            let screen_pos = scene_camera.world_to_screen(world_pos);
+            let screen_pos = scene_camera.world_to_screen(glam::Vec3::new(world_pos.x, world_pos.y, 0.0));
             let screen_x = center.x + screen_pos.x;
             let screen_y = center.y + screen_pos.y;
             

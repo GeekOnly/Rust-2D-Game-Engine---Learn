@@ -317,7 +317,7 @@ pub fn render_camera_settings(
             // This will be handled by the caller with world data
             // For now, just reset to a reasonable default view
             scene_camera.set_zoom_level(50.0);
-            scene_camera.position = glam::Vec2::ZERO;
+            scene_camera.position = glam::Vec3::ZERO;
             changed = true;
         }
     });

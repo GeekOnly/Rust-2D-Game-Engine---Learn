@@ -101,8 +101,8 @@ pub fn render_scene_3d(
     // Sort mesh entities by Z position (simple sort, should use distance from camera)
     mesh_entities.sort_by(|a, b| {
         // Calculate distance from camera for better sorting
-        let dist_a = (Vec3::from(a.1.position) - Vec3::new(scene_camera.position.x, 0.0, scene_camera.position.y)).length_squared();
-        let dist_b = (Vec3::from(b.1.position) - Vec3::new(scene_camera.position.x, 0.0, scene_camera.position.y)).length_squared();
+        let dist_a = (Vec3::from(a.1.position) - scene_camera.position).length_squared();
+        let dist_b = (Vec3::from(b.1.position) - scene_camera.position).length_squared();
         dist_b.partial_cmp(&dist_a).unwrap_or(std::cmp::Ordering::Equal)
     });
     
@@ -359,7 +359,7 @@ fn render_entity_3d(
     let screen_y = viewport_rect.min.y + screen_pos.y;
 
     // Calculate scale factor based on distance
-    let dist = (world_pos - Vec3::new(scene_camera.position.x, 0.0, scene_camera.position.y)).length();
+    let dist = (world_pos - scene_camera.position).length();
     let scale_factor = if dist > 0.1 { 500.0 / dist } else { 1.0 };
 
     // Get entity bounds for click detection
