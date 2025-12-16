@@ -83,11 +83,11 @@ impl SpriteRenderer {
             depth_stencil: Some(wgpu::DepthStencilState {
                 format: wgpu::TextureFormat::Depth32Float,
                 depth_write_enabled: true,
-                depth_compare: wgpu::CompareFunction::Less,
+                depth_compare: wgpu::CompareFunction::Greater, // Reverse-Z
                 stencil: wgpu::StencilState::default(),
                 bias: wgpu::DepthBiasState {
-                    constant: 1, // Small bias for sprites
-                    slope_scale: 1.0, // Small slope bias for sprites
+                    constant: -1, // Negative for Reverse-Z // Small bias for sprites
+                    slope_scale: -1.0, // Negative for Reverse-Z // Small slope bias for sprites
                     clamp: 0.0, // Maximum depth bias clamp
                 },
             }),

@@ -39,10 +39,11 @@ pub fn render_game_world<'a>(
         let aspect = 1.777; 
         let half_width = half_height * aspect;
         
+        // Reverse-Z projection (Unreal Engine technique)
         let projection = Mat4::orthographic_rh(
             -half_width, half_width, 
             -half_height, half_height, 
-            -100.0, 100.0 // Near/Far
+            50.0, 0.1 // Reversed: Far=50.0, Near=0.1 for better precision
         );
         
         let eye = Vec3::new(transform.position[0], transform.position[1], 10.0); // Z=10 for camera
@@ -53,8 +54,8 @@ pub fn render_game_world<'a>(
         
         projection * view
     } else {
-        // Fallback default camera
-        let projection = Mat4::orthographic_rh(-8.8, 8.8, -5.0, 5.0, -100.0, 100.0);
+        // Fallback default camera with Reverse-Z
+        let projection = Mat4::orthographic_rh(-8.8, 8.8, -5.0, 5.0, 50.0, 0.1);
         Mat4::IDENTITY * projection
     };
 
@@ -119,14 +120,21 @@ pub fn render_game_world<'a>(
         }
     }
 
-    // 4. Render Meshes
-    // Note: Camera and light uniforms should be updated by the caller before calling this function
-    // since the bindings are immutable references here
+    // 4. Render Meshes with Depth Sorting
+    // Collect and sort meshes by Z position (back to front for transparency, front to back for opaque)
+    let mut mesh_entities: Vec<_> = world.meshes.iter().collect();
+    
+    // Sort by Z position (front to back for better depth testing)
+    mesh_entities.sort_by(|a, b| {
+        let z_a = world.transforms.get(a.0).map(|t| t.position[2]).unwrap_or(0.0);
+        let z_b = world.transforms.get(b.0).map(|t| t.position[2]).unwrap_or(0.0);
+        z_a.partial_cmp(&z_b).unwrap_or(std::cmp::Ordering::Equal)
+    });
 
     // TODO: Implement proper mesh rendering
     // For now, skip mesh rendering until proper mesh loading is implemented
     // The ecs::Mesh component needs to be converted to render::Mesh with GPU buffers
-    for (_entity, _mesh) in &world.meshes {
+    for (_entity, _mesh) in mesh_entities {
         // Skip mesh rendering for now
         // TODO: Load or create render::Mesh from ecs::Mesh and render it
     }

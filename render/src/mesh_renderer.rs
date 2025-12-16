@@ -133,11 +133,11 @@ impl MeshRenderer {
             depth_stencil: Some(wgpu::DepthStencilState {
                 format: wgpu::TextureFormat::Depth32Float,
                 depth_write_enabled: true,
-                depth_compare: wgpu::CompareFunction::Less,
+                depth_compare: wgpu::CompareFunction::Greater, // Reverse-Z
                 stencil: wgpu::StencilState::default(),
                 bias: wgpu::DepthBiasState {
-                    constant: 2, // Constant depth bias (in depth buffer units)
-                    slope_scale: 2.0, // Slope-scaled depth bias
+                    constant: -2, // Negative for Reverse-Z // Constant depth bias (in depth buffer units)
+                    slope_scale: -2.0, // Negative for Reverse-Z // Slope-scaled depth bias
                     clamp: 0.0, // Maximum depth bias clamp
                 },
             }),
@@ -211,11 +211,11 @@ impl MeshRenderer {
             depth_stencil: Some(wgpu::DepthStencilState {
                 format: wgpu::TextureFormat::Depth32Float,
                 depth_write_enabled: true,
-                depth_compare: wgpu::CompareFunction::Less,
+                depth_compare: wgpu::CompareFunction::Greater, // Reverse-Z
                 stencil: wgpu::StencilState::default(),
                 bias: wgpu::DepthBiasState {
-                    constant: 2, // Constant depth bias (in depth buffer units)
-                    slope_scale: 2.0, // Slope-scaled depth bias
+                    constant: -2, // Negative for Reverse-Z // Constant depth bias (in depth buffer units)
+                    slope_scale: -2.0, // Negative for Reverse-Z // Slope-scaled depth bias
                     clamp: 0.0, // Maximum depth bias clamp
                 },
             }),
@@ -260,11 +260,11 @@ impl MeshRenderer {
             depth_stencil: Some(wgpu::DepthStencilState {
                 format: wgpu::TextureFormat::Depth32Float,
                 depth_write_enabled: true,
-                depth_compare: wgpu::CompareFunction::Less, // We want outlines behind or at same depth? Usually slightly extruded.
+                depth_compare: wgpu::CompareFunction::Greater, // Reverse-Z // We want outlines behind or at same depth? Usually slightly extruded.
                 stencil: wgpu::StencilState::default(),
                 bias: wgpu::DepthBiasState {
-                    constant: 4, // Slightly more bias for outlines to render behind
-                    slope_scale: 4.0, // More slope bias for outlines
+                    constant: -4, // More negative for outlines // Slightly more bias for outlines to render behind
+                    slope_scale: -4.0, // More negative for outlines // More slope bias for outlines
                     clamp: 0.0, // Maximum depth bias clamp
                 },
             }),
