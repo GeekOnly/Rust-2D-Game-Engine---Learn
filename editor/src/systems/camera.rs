@@ -872,9 +872,13 @@ impl SceneCamera {
             // This is a placeholder behavior until we have full 3D picking.
             self.position + screen_pos / self.zoom
         } else {
-            // 2D mode: simple offset and scale
-            // World = CameraPosition + Screen / Zoom
-            self.position + screen_pos / self.zoom
+            // 2D mode: Scale and offset (Y-Up Physics Coordinate System)
+            // Screen Y is down (positive), World Y is up (positive)
+            // Flipping Y axis to match game engine physics
+            glam::Vec2::new(
+                self.position.x + screen_pos.x / self.zoom,
+                self.position.y - screen_pos.y / self.zoom
+            )
         }
     }
     
@@ -891,9 +895,12 @@ impl SceneCamera {
             let relative = world_pos - self.position;
             relative * self.zoom
         } else {
-            // 2D mode: Scale and offset
-            // Screen = (World - CameraPosition) * Zoom
-            (world_pos - self.position) * self.zoom
+            // 2D mode: Scale and offset (Y-Up Physics Coordinate System)
+            // World Y Up (+), Screen Y Down (+) -> Invert Y difference
+            glam::Vec2::new(
+                (world_pos.x - self.position.x) * self.zoom,
+                -(world_pos.y - self.position.y) * self.zoom
+            )
         }
     }
     

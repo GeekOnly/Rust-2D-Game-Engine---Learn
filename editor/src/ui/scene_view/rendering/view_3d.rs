@@ -258,7 +258,7 @@ pub fn render_scene_3d(
             if *show_colliders {
                 let world_pos = Vec3::from(transform.position);
                 if let Some(screen_pos) = projection_3d::world_to_screen(world_pos, scene_camera, viewport_size) {
-                    render_collider_gizmo(painter, sel_entity, world, screen_pos.x, screen_pos.y, scene_camera, true);
+                    render_collider_gizmo(painter, sel_entity, world, screen_pos.x, screen_pos.y, scene_camera, true, false);
                 }
             }
         }
@@ -431,7 +431,7 @@ fn render_entity_3d(
 
     // Gizmos
     if *show_colliders && *selected_entity != Some(entity) {
-        render_collider_gizmo(painter, entity, world, screen_x, screen_y, scene_camera, false);
+        render_collider_gizmo(painter, entity, world, screen_x, screen_y, scene_camera, false, false);
     }
     
     if *show_velocities {

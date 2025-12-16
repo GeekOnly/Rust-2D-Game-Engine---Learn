@@ -242,15 +242,19 @@ pub fn render_transform_gizmo(
             match current_tool {
                 TransformTool::View => {}
                 TransformTool::Move => {
+                    // X Axis (Red)
                     let x_dir = (rotation_rad.cos(), rotation_rad.sin());
-                    let x_end = egui::pos2(screen_x + x_dir.0 * gizmo_size, screen_y + x_dir.1 * gizmo_size);
+                    // Invert Y for screen space (World Up = Screen Up/Negative)
+                    let x_end = egui::pos2(screen_x + x_dir.0 * gizmo_size, screen_y - x_dir.1 * gizmo_size);
                     painter.line_segment([egui::pos2(screen_x, screen_y), x_end], egui::Stroke::new(4.0, egui::Color32::from_rgb(255, 0, 0)));
                     painter.circle_filled(x_end, handle_size, egui::Color32::from_rgb(255, 0, 0));
                     painter.text(egui::pos2(x_end.x + 12.0, x_end.y), egui::Align2::LEFT_CENTER, "X", egui::FontId::proportional(14.0), egui::Color32::from_rgb(255, 0, 0));
 
-                    let y_angle = rotation_rad - std::f32::consts::PI / 2.0;
+                    // Y Axis (Green)
+                    let y_angle = rotation_rad + std::f32::consts::PI / 2.0; // +90 degrees for Y axis
                     let y_dir = (y_angle.cos(), y_angle.sin());
-                    let y_end = egui::pos2(screen_x + y_dir.0 * gizmo_size, screen_y + y_dir.1 * gizmo_size);
+                    // Invert Y for screen space
+                    let y_end = egui::pos2(screen_x + y_dir.0 * gizmo_size, screen_y - y_dir.1 * gizmo_size);
                     painter.line_segment([egui::pos2(screen_x, screen_y), y_end], egui::Stroke::new(4.0, egui::Color32::from_rgb(0, 255, 0)));
                     painter.circle_filled(y_end, handle_size, egui::Color32::from_rgb(0, 255, 0));
                     painter.text(egui::pos2(y_end.x, y_end.y - 12.0), egui::Align2::CENTER_BOTTOM, "Y", egui::FontId::proportional(14.0), egui::Color32::from_rgb(0, 255, 0));
@@ -264,19 +268,23 @@ pub fn render_transform_gizmo(
                     for i in 0..4 {
                         let angle = (i as f32) * std::f32::consts::PI / 2.0 + rotation_rad;
                         let dot_x = screen_x + radius * angle.cos();
-                        let dot_y = screen_y + radius * angle.sin();
+                        let dot_y = screen_y - radius * angle.sin(); // Invert Y
                         painter.circle_filled(egui::pos2(dot_x, dot_y), 4.0, egui::Color32::from_rgb(0, 150, 255));
                     }
                 }
                 TransformTool::Scale => {
+                    // X Axis (Red)
                     let x_dir = (rotation_rad.cos(), rotation_rad.sin());
-                    let x_end = egui::pos2(screen_x + x_dir.0 * gizmo_size, screen_y + x_dir.1 * gizmo_size);
+                    // Invert Y
+                    let x_end = egui::pos2(screen_x + x_dir.0 * gizmo_size, screen_y - x_dir.1 * gizmo_size);
                     painter.line_segment([egui::pos2(screen_x, screen_y), x_end], egui::Stroke::new(4.0, egui::Color32::from_rgb(255, 0, 0)));
                     painter.rect_filled(egui::Rect::from_center_size(x_end, egui::vec2(handle_size * 1.8, handle_size * 1.8)), 0.0, egui::Color32::from_rgb(255, 0, 0));
 
-                    let y_angle = rotation_rad - std::f32::consts::PI / 2.0;
+                    // Y Axis (Green)
+                    let y_angle = rotation_rad + std::f32::consts::PI / 2.0;
                     let y_dir = (y_angle.cos(), y_angle.sin());
-                    let y_end = egui::pos2(screen_x + y_dir.0 * gizmo_size, screen_y + y_dir.1 * gizmo_size);
+                    // Invert Y
+                    let y_end = egui::pos2(screen_x + y_dir.0 * gizmo_size, screen_y - y_dir.1 * gizmo_size);
                     painter.line_segment([egui::pos2(screen_x, screen_y), y_end], egui::Stroke::new(4.0, egui::Color32::from_rgb(0, 255, 0)));
                     painter.rect_filled(egui::Rect::from_center_size(y_end, egui::vec2(handle_size * 1.8, handle_size * 1.8)), 0.0, egui::Color32::from_rgb(0, 255, 0));
                     
@@ -296,6 +304,7 @@ pub fn render_collider_gizmo(
     screen_y: f32,
     scene_camera: &SceneCamera,
     _is_selected: bool,
+    is_2d_mode: bool,
 ) {
     if let Some(collider) = world.colliders.get(&entity) {
         // Get entity transform for rotation and scale
@@ -321,7 +330,13 @@ pub fn render_collider_gizmo(
             world_offset[1] * scene_camera.zoom
         );
         let screen_x = screen_x + offset_screen.x;
-        let screen_y = screen_y - offset_screen.y; // Flip Y
+        // Only flip Y in 3D mode because 3D projection usually flips Y
+        // But in our Y-Up 2D mode, +WorldY means -ScreenY (Up), so we subtract offset in both cases
+        let screen_y = if is_2d_mode {
+            screen_y - offset_screen.y  // Y-Up 2D: Subtract offset to go Up on screen
+        } else {
+            screen_y - offset_screen.y  // 3D mode: Subtract offset (already handled by projection?)
+        };
         
         if rotation_rad.abs() < 0.01 {
             // No rotation - use simple rect
