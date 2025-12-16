@@ -1,15 +1,19 @@
 use ecs::World;
-use render::{BatchRenderer, TextureManager};
+use render::{BatchRenderer, MeshRenderer, TextureManager, CameraBinding, LightBinding};
 use glam::{Vec3, Quat, Mat4};
 use std::collections::HashMap;
 
-pub fn render_game_world(
+pub fn render_game_world<'a>(
     world: &World,
-    batch_renderer: &mut BatchRenderer,
-    texture_manager: &mut TextureManager,
+    batch_renderer: &'a mut BatchRenderer,
+    _mesh_renderer: &mut MeshRenderer,
+    _camera_binding: &CameraBinding,
+    _light_binding: &LightBinding,
+    texture_manager: &'a mut TextureManager,
     queue: &wgpu::Queue,
     _device: &wgpu::Device,
     _screen_size: winit::dpi::PhysicalSize<u32>,
+    render_pass: &mut wgpu::RenderPass<'a>,
 ) {
     // 1. Find the active Main Camera
     let mut main_camera = None;
@@ -89,14 +93,17 @@ pub fn render_game_world(
     }
 
     // 3. Render Batches
-    for (texture_id, batch) in commands {
+    // For now, just render the first batch to avoid borrowing issues
+    // TODO: Implement proper multi-texture batching
+    if let Some((texture_id, batch)) = commands.into_iter().next() {
         if let Some(texture) = texture_manager.get_texture(&texture_id) {
             // Clone texture data to avoid borrowing issues
             let tex_w = texture.width as f32;
             let tex_h = texture.height as f32;
             
             // Prepare sprite data
-            let mut sprite_data = Vec::new();
+            batch_renderer.begin_frame(); // Clears instance buffer for this batch
+            
             for cmd in batch {
                 // Calculate UVs
                 let u_min = cmd.rect[0] as f32 / tex_w;
@@ -104,26 +111,23 @@ pub fn render_game_world(
                 let u_scale = cmd.rect[2] as f32 / tex_w;
                 let v_scale = cmd.rect[3] as f32 / tex_h;
 
-                sprite_data.push((
-                    cmd.pos,
-                    cmd.rot,
-                    cmd.scale,
-                    cmd.color,
-                    [u_min, v_min],
-                    [u_scale, v_scale],
-                ));
+                batch_renderer.draw_sprite(cmd.pos, cmd.rot, cmd.scale, cmd.color, [u_min, v_min], [u_scale, v_scale]);
             }
 
-            // Now render the batch
-            batch_renderer.begin_frame(); // Clears instance buffer for this batch
-            
-            for (pos, rot, scale, color, uv_min, uv_scale) in sprite_data {
-                batch_renderer.draw_sprite(pos, rot, scale, color, uv_min, uv_scale);
-            }
-
-            // TODO: The actual rendering to render_pass should be handled by the caller
-            // This function now just prepares the batch data
-            // batch_renderer.end_frame(queue, render_pass, texture);
+            // Draw sprites
+            batch_renderer.end_frame(queue, render_pass, texture);
         }
+    }
+
+    // 4. Render Meshes
+    // Note: Camera and light uniforms should be updated by the caller before calling this function
+    // since the bindings are immutable references here
+
+    // TODO: Implement proper mesh rendering
+    // For now, skip mesh rendering until proper mesh loading is implemented
+    // The ecs::Mesh component needs to be converted to render::Mesh with GPU buffers
+    for (_entity, _mesh) in &world.meshes {
+        // Skip mesh rendering for now
+        // TODO: Load or create render::Mesh from ecs::Mesh and render it
     }
 }

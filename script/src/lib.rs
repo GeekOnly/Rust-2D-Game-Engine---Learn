@@ -108,6 +108,7 @@ impl ScriptEngine {
             
             lua.scope(|scope| {
                 let globals = lua.globals();
+                globals.set("entity", entity)?;
                 
                 // Entity query functions
                 let get_all_entities = scope.create_function(|lua, ()| {
@@ -296,6 +297,7 @@ impl ScriptEngine {
             log::info!("🔍 Entering lua.scope() for entity {}", entity);
             let result = lua.scope(|scope| {
                 let globals = lua.globals();
+                globals.set("entity", entity)?;
                 
                 // Inject essential API functions for Start()
                 let set_velocity = scope.create_function_mut(|_, (vx, vy): (f32, f32)| {
@@ -537,6 +539,7 @@ impl ScriptEngine {
 
         lua.scope(|scope| {
             let globals = lua.globals();
+            globals.set("entity", entity)?;
 
             // ================================================================
             // KEYBOARD INPUT
@@ -1194,6 +1197,7 @@ impl ScriptEngine {
 
         lua.scope(|scope| {
             let globals = lua.globals();
+            globals.set("entity", entity)?;
 
             // ================================================================
             // ENTITY QUERY API (for collision callback)

@@ -1,4 +1,4 @@
-use crate::{World, Entity, Tilemap, TileSet, Grid, Transform, Collider, Rigidbody2D};
+use crate::{World, Entity, Tilemap, TileSet, Transform, Collider, Rigidbody2D};
 use serde_json::Value;
 use std::path::Path;
 use crate::traits::{EcsWorld, ComponentAccess};

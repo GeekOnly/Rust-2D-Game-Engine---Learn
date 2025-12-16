@@ -40,8 +40,8 @@ fn render_default_camera_gizmo(
 }
 use super::sprite_3d::Sprite3DRenderer;
 use super::tilemap_3d::Tilemap3DRenderer;
-use super::render_queue::{RenderQueue, RenderObject};
-use super::projection_3d::{self, Transform3D, ProjectionMatrix};
+use super::render_queue::{RenderQueue, RenderObject, MeshRenderData};
+use super::projection_3d;
 use super::grid;
 
 /// Render the scene in 3D mode
@@ -92,23 +92,22 @@ pub fn render_scene_3d(
         render_queue.push(RenderObject::Tilemap(layer));
     }
     
-    // Collect mesh entities and camera entities (not handled by sprite/tilemap renderers)
-    let mut mesh_entities: Vec<(Entity, &ecs::Transform)> = world.transforms.iter()
+    // Collect mesh entities (meshes only, no sprites)
+    // Cameras are handled separately at the end
+    let mesh_iter = world.transforms.iter()
         .filter(|(entity, _)| {
-            // Include entities with meshes (but not sprites) OR entities with cameras
-            (world.meshes.contains_key(entity) && !world.sprites.contains_key(entity)) ||
-            world.cameras.contains_key(entity)
-        })
-        .map(|(&e, t)| (e, t))
-        .collect();
-    
-    // Sort mesh entities by Z position (simple sort, should use distance from camera)
-    mesh_entities.sort_by(|a, b| {
-        // Calculate distance from camera for better sorting
-        let dist_a = (Vec3::from(a.1.position) - scene_camera.position).length_squared();
-        let dist_b = (Vec3::from(b.1.position) - scene_camera.position).length_squared();
-        dist_b.partial_cmp(&dist_a).unwrap_or(std::cmp::Ordering::Equal)
-    });
+             world.meshes.contains_key(entity) && !world.sprites.contains_key(entity)
+        });
+        
+    for (&entity, transform) in mesh_iter {
+        if let Some(mesh) = world.meshes.get(&entity) {
+            render_queue.push(RenderObject::Mesh(MeshRenderData {
+                entity,
+                transform: transform.clone(),
+                mesh: mesh.clone(),
+            }));
+        }
+    }
     
     // Sort render queue by depth
     render_queue.sort_by_depth(scene_camera);
@@ -167,35 +166,27 @@ pub fn render_scene_3d(
                     }
                 }
             }
+            RenderObject::Mesh(mesh_data) => {
+                render_entity_3d(
+                    painter,
+                    mesh_data.entity,
+                    &mesh_data.transform,
+                    world,
+                    scene_camera,
+                    projection_mode,
+                    viewport_size,
+                    &viewport_rect,
+                    selected_entity,
+                    show_colliders,
+                    show_velocities,
+                    hovered_entity,
+                    response,
+                );
+            }
             RenderObject::Gizmo(_) => {
                 // Gizmos are rendered separately
             }
         }
-    }
-    
-    // Render mesh entities (legacy rendering for non-sprite/tilemap entities)
-    // But skip camera entities - they will be rendered on top later
-    for (entity, transform) in mesh_entities.iter() {
-        // Skip camera entities - render them on top later
-        if world.cameras.contains_key(entity) {
-            continue;
-        }
-        
-        render_entity_3d(
-            painter,
-            *entity,
-            transform,
-            world,
-            scene_camera,
-            projection_mode,
-            viewport_size,
-            &viewport_rect,
-            selected_entity,
-            show_colliders,
-            show_velocities,
-            hovered_entity,
-            response,
-        );
     }
 
     // Render Grid (Overlay)

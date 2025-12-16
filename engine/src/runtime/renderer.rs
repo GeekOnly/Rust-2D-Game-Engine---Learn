@@ -575,10 +575,7 @@ fn render_perspective(
     texture_manager: &mut TextureManager,
 ) {
     // 1. Construct View Matrix (Camera World -> View Space)
-    // Camera transform is Local -> World. View Matrix is Inverse(Camera World).
-    
-    // Convert Euler angles (degrees) to Quat
-    // Assuming rotation order YXZ (Yaw, Pitch, Roll) which is standard for game cams
+    // ... (existing code for view matrix) ...
     let rot_rad = Vec3::new(
         camera_transform.rotation[0].to_radians(),
         camera_transform.rotation[1].to_radians(),
@@ -593,17 +590,12 @@ fn render_perspective(
     );
     let cam_translation = Vec3::from(camera_transform.position);
     
-    // View Matrix = Inverse of Camera World Matrix
-    // World Matrix = T * R
-    // View Matrix = (T * R)^-1 = R^-1 * T^-1
     let view_matrix = Mat4::from_rotation_translation(cam_rotation, cam_translation).inverse();
 
     // 2. Construct Projection Matrix (View Space -> Clip Space)
     let rect = painter.clip_rect();
     let aspect_ratio = rect.width() / rect.height();
     
-    // Use Right-Handed perspective (standard for glam/wgpu)
-    // Z range [0, 1]
     let proj_matrix = Mat4::perspective_rh(
         camera.fov.to_radians(), 
         aspect_ratio, 
@@ -614,12 +606,24 @@ fn render_perspective(
     // Combined View-Projection Matrix
     let view_proj = proj_matrix * view_matrix;
 
+    // Collect and sort entities by depth
+    let mut entities: Vec<_> = world.transforms.iter()
+        .filter(|(entity, _)| world.active.get(entity).copied().unwrap_or(true))
+        .collect();
+
+    // Sort active entities by depth (Painter's Algorithm: Draw farthest first)
+    entities.sort_by(|(_, t1), (_, t2)| {
+        let pos1 = Vec3::from(t1.position);
+        let pos2 = Vec3::from(t2.position);
+        let dist1 = (pos1 - cam_translation).length_squared();
+        let dist2 = (pos2 - cam_translation).length_squared();
+        // Sort descending (farthest first)
+        dist2.partial_cmp(&dist1).unwrap_or(std::cmp::Ordering::Equal)
+    });
+
     // Render all entities
-    for (entity, transform) in &world.transforms {
-        // Skip if not active
-        if !world.active.get(entity).copied().unwrap_or(true) {
-            continue;
-        }
+    for (entity, transform) in entities {
+        // ... (rest of the loop) ...
 
         // Get entity position
         let world_pos = Vec3::from(transform.position);

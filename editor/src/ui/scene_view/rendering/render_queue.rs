@@ -1,9 +1,4 @@
-//! Render Queue Module
-//!
-//! Manages the rendering order of all objects in the scene with proper depth sorting.
-//! Ensures sprites, tilemaps, grid, and gizmos render in the correct order.
-
-use ecs::Entity;
+use ecs::{Entity, Mesh};
 use crate::SceneCamera;
 use super::sprite_3d::SpriteRenderData;
 use super::tilemap_3d::TilemapLayer;
@@ -23,8 +18,18 @@ pub enum RenderObject {
     Sprite(SpriteRenderData),
     /// Tilemap layer with render data
     Tilemap(TilemapLayer),
+    /// Mesh render data
+    Mesh(MeshRenderData),
     /// Gizmo data (always rendered last/closest)
     Gizmo(GizmoData),
+}
+
+/// Mesh render data
+#[derive(Clone, Debug)]
+pub struct MeshRenderData {
+    pub entity: Entity,
+    pub transform: ecs::Transform,
+    pub mesh: Mesh,
 }
 
 /// Gizmo render data
@@ -58,13 +63,8 @@ impl RenderQueue {
     pub fn push(&mut self, object: RenderObject) {
         self.objects.push(object);
     }
-    
+
     /// Sort all objects by depth (back to front for transparency)
-    /// 
-    /// Sorting order:
-    /// 1. Grid (always farthest)
-    /// 2. Sprites and tilemaps sorted by Z depth (farther first)
-    /// 3. Gizmos (always closest)
     pub fn sort_by_depth(&mut self, camera: &SceneCamera) {
         // Clone camera position and rotation to avoid borrowing issues
         let camera_pos = camera.position;
@@ -79,8 +79,7 @@ impl RenderQueue {
             depth_b.partial_cmp(&depth_a).unwrap_or(std::cmp::Ordering::Equal)
         });
     }
-    
-    /// Get the depth of a render object (static version for sorting)
+
     fn get_object_depth_static(
         object: &RenderObject,
         camera_pos: glam::Vec3,
@@ -88,25 +87,20 @@ impl RenderQueue {
         camera_pitch: f32,
     ) -> f32 {
         match object {
-            RenderObject::Grid => {
-                // Grid is always rendered first (farthest)
-                f32::MAX
-            }
+            RenderObject::Grid => f32::MAX,
             RenderObject::Sprite(sprite) => {
-                // Calculate sprite depth from camera
                 Self::calculate_sprite_depth_static(&sprite.position, camera_pos, camera_rotation, camera_pitch)
             }
-            RenderObject::Tilemap(layer) => {
-                // Use layer's Z depth
-                layer.z_depth
+            RenderObject::Tilemap(layer) => layer.z_depth,
+            RenderObject::Mesh(mesh) => {
+                // Calculate mesh depth
+                 let pos = glam::Vec3::from(mesh.transform.position);
+                 Self::calculate_sprite_depth_static(&pos, camera_pos, camera_rotation, camera_pitch)
             }
-            RenderObject::Gizmo(gizmo) => {
-                // Gizmos are always rendered last (closest)
-                // Use negative depth to ensure they're in front
-                -1000.0 - gizmo.depth
-            }
+            RenderObject::Gizmo(gizmo) => -1000.0 - gizmo.depth,
         }
     }
+    // ...
     
     /// Calculate depth of a sprite from camera (static version)
     fn calculate_sprite_depth_static(

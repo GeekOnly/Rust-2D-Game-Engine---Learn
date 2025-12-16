@@ -312,7 +312,7 @@ fn main() -> Result<()> {
                             egui_renderer.update_texture(&renderer.device, &renderer.queue, *id, image_delta);
                         }
 
-                        let res = renderer.render_with_callback(|device, queue, encoder, view, _texture_manager, _batch_renderer| {
+                        let res = renderer.render_with_callback(|device, queue, encoder, view, texture_manager, batch_renderer, mesh_renderer, camera_binding, light_binding| {
                             egui_renderer.update_buffers(
                                 device,
                                 queue,
@@ -327,15 +327,37 @@ fn main() -> Result<()> {
                                     view: view,
                                     resolve_target: None,
                                     ops: wgpu::Operations {
-                                        load: wgpu::LoadOp::Load,
+                                        load: wgpu::LoadOp::Clear(wgpu::Color { r: 0.1, g: 0.1, b: 0.1, a: 1.0 }),
                                         store: wgpu::StoreOp::Store,
                                     },
                                 })],
-                                depth_stencil_attachment: None,
+                                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                                    view: &renderer.depth_view,
+                                    depth_ops: Some(wgpu::Operations {
+                                        load: wgpu::LoadOp::Clear(1.0),
+                                        store: wgpu::StoreOp::Store,
+                                    }),
+                                    stencil_ops: None,
+                                }),
                                 occlusion_query_set: None,
                                 timestamp_writes: None,
                             });
+                            
+                            // Render Game World (3D / WGPU)
+                            runtime::render_system::render_game_world(
+                                &world,
+                                batch_renderer,
+                                mesh_renderer,
+                                camera_binding,
+                                light_binding,
+                                texture_manager,
+                                queue,
+                                device,
+                                window.inner_size(),
+                                &mut rpass,
+                            );
 
+                            // Render UI on top
                             egui_renderer.render(
                                 &mut rpass,
                                 &paint_jobs,

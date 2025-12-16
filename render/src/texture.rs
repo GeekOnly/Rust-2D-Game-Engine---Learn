@@ -2,6 +2,7 @@ use anyhow::*;
 use image::GenericImageView;
 use std::collections::HashMap;
 use std::path::Path;
+use std::result::Result::{Ok, Err};
 
 pub struct Texture {
     pub texture: wgpu::Texture,
@@ -163,5 +164,47 @@ impl TextureManager {
 
     pub fn get_texture(&self, id: &str) -> Option<&Texture> {
         self.textures.get(id)
+    }
+
+    pub fn get_white_texture(&mut self, device: &wgpu::Device, queue: &wgpu::Queue) -> Option<&Texture> {
+        if !self.textures.contains_key("default_white") {
+             if self.bind_group_layout.is_none() {
+                self.bind_group_layout = Some(Texture::create_bind_group_layout(device));
+            }
+            
+            // Create 1x1 white texture
+            let mut buf = image::RgbaImage::new(1, 1);
+            buf.put_pixel(0, 0, image::Rgba([255, 255, 255, 255]));
+            let image = image::DynamicImage::ImageRgba8(buf);
+            
+            match Texture::from_image(device, queue, &image, Some("default_white"), self.bind_group_layout.as_ref()) {
+                Ok(texture) => {
+                    self.textures.insert("default_white".to_string(), texture);
+                }
+                Err(_) => {}
+            }
+        }
+        self.textures.get("default_white")
+    }
+
+    pub fn get_normal_texture(&mut self, device: &wgpu::Device, queue: &wgpu::Queue) -> Option<&Texture> {
+        if !self.textures.contains_key("default_normal") {
+             if self.bind_group_layout.is_none() {
+                self.bind_group_layout = Some(Texture::create_bind_group_layout(device));
+            }
+            
+            // Create 1x1 normal map (0.5, 0.5, 1.0) -> (128, 128, 255)
+            let mut buf = image::RgbaImage::new(1, 1);
+            buf.put_pixel(0, 0, image::Rgba([128, 128, 255, 255]));
+            let image = image::DynamicImage::ImageRgba8(buf);
+            
+            match Texture::from_image(device, queue, &image, Some("default_normal"), self.bind_group_layout.as_ref()) {
+                Ok(texture) => {
+                    self.textures.insert("default_normal".to_string(), texture);
+                }
+                Err(_) => {}
+            }
+        }
+        self.textures.get("default_normal")
     }
 }
