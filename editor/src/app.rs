@@ -560,7 +560,7 @@ impl EditorApp {
                         depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                             view: &self.scene_view_renderer.depth_view,
                             depth_ops: Some(wgpu::Operations {
-                                load: wgpu::LoadOp::Clear(0.0), // Reverse-Z: 0.0 is far
+                                load: wgpu::LoadOp::Clear(1.0), // Standard Z: 1.0 is far
                                 store: wgpu::StoreOp::Store,
                             }),
                             stencil_ops: None,
@@ -607,7 +607,7 @@ impl EditorApp {
                     depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                         view: &self.game_view_renderer.depth_view,
                         depth_ops: Some(wgpu::Operations {
-                            load: wgpu::LoadOp::Clear(0.0), // Use 0.0 for better depth precision
+                            load: wgpu::LoadOp::Clear(1.0), // Standard Z: 1.0 is far
                             store: wgpu::StoreOp::Store,
                         }),
                         stencil_ops: None,

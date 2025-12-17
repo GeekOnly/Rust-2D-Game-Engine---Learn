@@ -140,13 +140,9 @@ impl MeshRenderer {
             depth_stencil: Some(wgpu::DepthStencilState {
                 format: wgpu::TextureFormat::Depth32Float,
                 depth_write_enabled: true,
-                depth_compare: wgpu::CompareFunction::Greater, // Reverse-Z
+                depth_compare: wgpu::CompareFunction::Less, // Standard Z
                 stencil: wgpu::StencilState::default(),
-                bias: wgpu::DepthBiasState {
-                    constant: -2, // Negative for Reverse-Z // Constant depth bias (in depth buffer units)
-                    slope_scale: -2.0, // Negative for Reverse-Z // Slope-scaled depth bias
-                    clamp: 0.0, // Maximum depth bias clamp
-                },
+                bias: wgpu::DepthBiasState::default(),
             }),
             multisample: wgpu::MultisampleState {
                 count: 1,
@@ -235,13 +231,9 @@ impl MeshRenderer {
             depth_stencil: Some(wgpu::DepthStencilState {
                 format: wgpu::TextureFormat::Depth32Float,
                 depth_write_enabled: true,
-                depth_compare: wgpu::CompareFunction::Greater, // Reverse-Z
+                depth_compare: wgpu::CompareFunction::Less, // Standard Z
                 stencil: wgpu::StencilState::default(),
-                bias: wgpu::DepthBiasState {
-                    constant: -2, // Negative for Reverse-Z // Constant depth bias (in depth buffer units)
-                    slope_scale: -2.0, // Negative for Reverse-Z // Slope-scaled depth bias
-                    clamp: 0.0, // Maximum depth bias clamp
-                },
+                bias: wgpu::DepthBiasState::default(),
             }),
             multisample: wgpu::MultisampleState {
                 count: 1,
@@ -284,12 +276,16 @@ impl MeshRenderer {
             depth_stencil: Some(wgpu::DepthStencilState {
                 format: wgpu::TextureFormat::Depth32Float,
                 depth_write_enabled: true,
-                depth_compare: wgpu::CompareFunction::Greater, // Reverse-Z // We want outlines behind or at same depth? Usually slightly extruded.
+                // We want outlines to be BEHIND the object.
+                // Standard Z: Larger value = Further away.
+                // So we want Outline Z > Object Z.
+                // But we still use 'Less' test against the buffer.
+                depth_compare: wgpu::CompareFunction::Less, 
                 stencil: wgpu::StencilState::default(),
                 bias: wgpu::DepthBiasState {
-                    constant: -4, // More negative for outlines // Slightly more bias for outlines to render behind
-                    slope_scale: -4.0, // More negative for outlines // More slope bias for outlines
-                    clamp: 0.0, // Maximum depth bias clamp
+                    constant: 2, // Positive adds to Z -> Pushes it further away
+                    slope_scale: 2.0, 
+                    clamp: 0.0, 
                 },
             }),
             multisample: wgpu::MultisampleState {

@@ -132,20 +132,24 @@ pub fn render_scene_3d(
                     }
                  }
             } else if let Some(_) = world.meshes.get(entity) {
-                // Mesh picking
-                 if let Some(screen_pos) = projection_3d::world_to_screen(Vec3::from(transform.position), scene_camera, viewport_size) {
-                     let dist = (Vec3::from(transform.position) - scene_camera.position).length();
-                     let screen_x = viewport_rect.min.x + screen_pos.x;
-                     let screen_y = viewport_rect.min.y + screen_pos.y;
-                     
-                     let rect = egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), egui::vec2(40.0, 40.0));
-                     if rect.contains(hover_pos) {
-                        if dist < best_depth {
-                            best_depth = dist;
-                            *hovered_entity = Some(*entity);
-                        }
+                // Mesh picking - Use projected 3D bounds for accuracy
+                let scale_vec = glam::Vec3::from(transform.scale);
+                // Use standard unit cube size (1.0) as base, scaled by transform
+                let bounds = calculate_3d_cube_bounds(
+                    0.0, 0.0, 1.0, 
+                    transform, scene_camera, projection_mode, viewport_size, &viewport_rect
+                );
+                
+                // Check if mouse is within projected bounds
+                if bounds.contains(hover_pos) {
+                    // Calculate depth to center for sorting
+                    let dist = (Vec3::from(transform.position) - scene_camera.position).length();
+                    
+                    if dist < best_depth {
+                        best_depth = dist;
+                        *hovered_entity = Some(*entity);
                     }
-                 }
+                }
             } else if let Some(layer) = world.tilemaps.get(entity) {
                 // Tilemap picking (simplified: bounds check)
                 // ... (Omitted for brevity in this initial pass, tilemap picking is complex)
@@ -340,10 +344,10 @@ fn render_entity_3d(
         let size = egui::vec2(transform_scale.x * scale_factor, transform_scale.y * scale_factor);
         egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), size)
     } else if world.meshes.contains_key(&entity) {
-        let scale_vec = glam::Vec3::from(transform.scale);
+        // Fix: Use 1.0 as base size (unit cube), let transform.scale handle the scaling.
+        // Previous code invalidly multiplied size by max scale, causing double scaling.
         let world_size = 1.0;
-        let base_size = world_size * scale_vec.x.max(scale_vec.y).max(scale_vec.z);
-        calculate_3d_cube_bounds(screen_x, screen_y, base_size, transform, scene_camera, projection_mode, viewport_size, viewport_rect)
+        calculate_3d_cube_bounds(screen_x, screen_y, world_size, transform, scene_camera, projection_mode, viewport_size, viewport_rect)
     } else {
         egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), egui::vec2(10.0, 10.0))
     };
@@ -435,8 +439,9 @@ fn render_mesh_entity_3d(
     let scale = glam::Vec3::from(transform.scale);
     let world_size = 1.0;
     
-    // We do NOT use scale_factor for 3D meshes anymore. They should scale naturally with perspective.
-    let base_size = world_size * scale.x.max(scale.y).max(scale.z);
+    // Fix: Do not multiply base_size by scale here, as render_primitive functions (like render_3d_cube)
+    // already apply the full transform matrix (including scale).
+    let base_size = world_size;
     
     match mesh.mesh_type {
         MeshType::Cube => {
