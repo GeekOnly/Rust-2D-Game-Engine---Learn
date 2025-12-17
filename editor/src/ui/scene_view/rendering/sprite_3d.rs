@@ -352,7 +352,7 @@ impl Sprite3DRenderer {
         texture_manager: &mut engine::texture_manager::TextureManager,
         ctx: &egui::Context,
     ) {
-        let viewport_size = Vec2::new(viewport_rect.width(), viewport_rect.height());
+        let _viewport_size = Vec2::new(viewport_rect.width(), viewport_rect.height());
         
         // Project and render each sprite
         for sprite in sprites {

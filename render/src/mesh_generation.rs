@@ -9,6 +9,7 @@ pub fn generate_mesh(device: &wgpu::Device, mesh_type: &ecs::MeshType) -> Mesh {
         ecs::MeshType::Cylinder => generate_cylinder_mesh(device),
         ecs::MeshType::Plane => generate_plane_mesh(device),
         ecs::MeshType::Capsule => generate_capsule_mesh(device),
+        ecs::MeshType::Asset(_) => panic!("Asset meshes cannot be generated procedurally"),
     }
 }
 

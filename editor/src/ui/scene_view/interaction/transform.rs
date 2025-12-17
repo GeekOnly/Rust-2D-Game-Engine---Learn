@@ -345,7 +345,7 @@ pub fn handle_gizmo_interaction_stateful(
                                                 yaw.sin() * pitch.cos()
                                             ).normalize();
                                             let world_up = glam::Vec3::Y;
-                                            let right = forward.cross(world_up).normalize();
+                                            let _right = forward.cross(world_up).normalize();
                                             // Correction: if looking straight up/down, cross layout fails.
                                             // Fallback: simplified
                                             let right_simple = glam::Vec3::new(yaw.sin(), 0.0, -yaw.cos());

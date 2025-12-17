@@ -127,6 +127,7 @@ pub fn render_hierarchy_with_filter(
                 world.meshes.insert(entity, ecs::Mesh {
                     mesh_type: ecs::MeshType::Cube,
                     color: [0.8, 0.8, 0.8, 1.0],
+                    material_id: None,
                 });
                 entity_names.insert(entity, "Cube".to_string());
                 *selected_entity = Some(entity);
@@ -139,6 +140,7 @@ pub fn render_hierarchy_with_filter(
                 world.meshes.insert(entity, ecs::Mesh {
                     mesh_type: ecs::MeshType::Sphere,
                     color: [0.8, 0.8, 0.8, 1.0],
+                    material_id: None,
                 });
                 entity_names.insert(entity, "Sphere".to_string());
                 *selected_entity = Some(entity);
@@ -151,6 +153,7 @@ pub fn render_hierarchy_with_filter(
                 world.meshes.insert(entity, ecs::Mesh {
                     mesh_type: ecs::MeshType::Cylinder,
                     color: [0.8, 0.8, 0.8, 1.0],
+                    material_id: None,
                 });
                 entity_names.insert(entity, "Cylinder".to_string());
                 *selected_entity = Some(entity);
@@ -163,6 +166,7 @@ pub fn render_hierarchy_with_filter(
                 world.meshes.insert(entity, ecs::Mesh {
                     mesh_type: ecs::MeshType::Plane,
                     color: [0.8, 0.8, 0.8, 1.0],
+                    material_id: None,
                 });
                 entity_names.insert(entity, "Plane".to_string());
                 *selected_entity = Some(entity);
@@ -175,6 +179,7 @@ pub fn render_hierarchy_with_filter(
                 world.meshes.insert(entity, ecs::Mesh {
                     mesh_type: ecs::MeshType::Capsule,
                     color: [0.8, 0.8, 0.8, 1.0],
+                    material_id: None,
                 });
                 entity_names.insert(entity, "Capsule".to_string());
                 *selected_entity = Some(entity);

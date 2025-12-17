@@ -496,7 +496,7 @@ pub fn render_scene_view(
                         let fps = if delta_time > 0.0 { 1.0 / delta_time } else { 0.0 };
                         
                         // Get grid size for display
-                        let grid_size = if infinite_grid.enabled {
+                        let _grid_size = if infinite_grid.enabled {
                             infinite_grid.calculate_grid_level(scene_camera.zoom)
                         } else {
                             scene_grid.size

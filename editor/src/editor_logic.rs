@@ -22,8 +22,11 @@ impl EditorLogic {
         dt: f32,
         game_view_renderer: &mut crate::game_view_renderer::GameViewRenderer,
         device: &wgpu::Device,
+        queue: &wgpu::Queue,
         egui_renderer: &mut egui_wgpu::Renderer,
         scene_view_renderer: &mut crate::scene_view_renderer::SceneViewRenderer,
+        mesh_renderer: &render::MeshRenderer,
+        render_texture_manager: &mut render::TextureManager,
     ) {
         let mut save_request = false;
         let mut save_as_request = false;
@@ -104,6 +107,7 @@ impl EditorLogic {
                 &mut editor_state.prefab_editor,
                 &mut editor_state.ui_manager,
                 dt,
+                &mut editor_state.reload_mesh_assets_request,
             );
         } else {
              // Fallback to old layout
@@ -146,6 +150,7 @@ impl EditorLogic {
                 scene_view_renderer,
                 egui_renderer,
                 device,
+                &mut editor_state.reload_mesh_assets_request,
              );
         }
 
@@ -201,7 +206,31 @@ impl EditorLogic {
             &mut play_request,
             &mut stop_request,
             &mut edit_script_request,
+            device,
+            queue,
+            render_texture_manager,
+            mesh_renderer,
         );
+
+        // [SCENE POST-PROCESSING]
+        // If a scene was loaded (via Menu, File, or Stop Play), we must check for Asset Meshes (GLTF)
+        // and load them into the world.
+        // Also reload if requested from Inspector (when mesh type changes to/from Asset)
+        if load_request || load_file_request.is_some() || (stop_request && !editor_state.is_playing) || editor_state.reload_mesh_assets_request {
+             if let Some(project_path) = &editor_state.current_project_path {
+                 use engine::runtime::render_system::post_process_asset_meshes;
+                 post_process_asset_meshes(
+                     project_path,
+                     &mut editor_state.world,
+                     device,
+                     queue,
+                     render_texture_manager,
+                     mesh_renderer,
+                 );
+                 // Reset the request flag
+                 editor_state.reload_mesh_assets_request = false;
+             }
+        }
 
         // Render standalone floating windows (only in non-docking mode)
         EditorLogic::handle_floating_windows(egui_ctx, editor_state, dt);

@@ -171,7 +171,7 @@ fn render_grid_component_3d(
     painter: &egui::Painter,
     rect: egui::Rect,
     scene_camera: &SceneCamera,
-    scene_grid: &SceneGrid,
+    _scene_grid: &SceneGrid,
     grid: &ecs::Grid,
     transform: Option<&ecs::Transform>,
 ) {

@@ -1,13 +1,13 @@
 {
-  "next_entity": 4,
+  "next_entity": 108,
   "transforms": [
     [
-      3,
+      1,
       {
         "position": [
           0.0,
-          2.0,
-          2.0
+          5.0,
+          10.0
         ],
         "rotation": [
           0.0,
@@ -16,18 +16,18 @@
         ],
         "scale": [
           1.0,
-          2.0,
+          1.0,
           1.0
         ]
       }
     ],
     [
-      1,
+      4,
       {
         "position": [
           0.0,
-          5.0,
-          10.0
+          0.0,
+          0.0
         ],
         "rotation": [
           0.0,
@@ -58,6 +58,26 @@
           3.7,
           0.06,
           -4.03
+        ]
+      }
+    ],
+    [
+      3,
+      {
+        "position": [
+          0.0,
+          2.0,
+          2.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          2.0,
+          1.0
         ]
       }
     ]
@@ -95,15 +115,18 @@
   ],
   "meshes": [
     [
-      2,
+      4,
       {
-        "mesh_type": "Cube",
+        "mesh_type": {
+          "Asset": "K:\\XSGameStudio\\2025 Project\\Game Engine\\Rust 2D Game Engine\\projects\\FPS 3D Example\\assets\\sponza-gltf-pbr\\sponza.glb"
+        },
         "color": [
-          0.5,
-          0.5,
-          0.5,
+          1.0,
+          1.0,
+          1.0,
           1.0
-        ]
+        ],
+        "material_id": null
       }
     ],
     [
@@ -115,7 +138,21 @@
           0.0,
           0.0,
           1.0
-        ]
+        ],
+        "material_id": null
+      }
+    ],
+    [
+      2,
+      {
+        "mesh_type": "Cube",
+        "color": [
+          0.5,
+          0.5,
+          0.5,
+          1.0
+        ],
+        "material_id": null
       }
     ]
   ],
@@ -132,25 +169,25 @@
         "script_name": "fps_controller",
         "enabled": true,
         "parameters": {
-          "look_sensitivity": {
-            "Float": 2.0
-          },
-          "yaw": {
-            "Float": 0.0
-          },
-          "move_z": {
-            "Float": 0.0
+          "move_speed": {
+            "Float": 5.0
           },
           "camera_entity": {
             "Int": 1
           },
+          "look_sensitivity": {
+            "Float": 2.0
+          },
+          "pitch": {
+            "Float": 0.0
+          },
+          "yaw": {
+            "Float": 0.0
+          },
           "move_x": {
             "Float": 0.0
           },
-          "move_speed": {
-            "Float": 5.0
-          },
-          "pitch": {
+          "move_z": {
             "Float": 0.0
           }
         }
@@ -159,7 +196,7 @@
   ],
   "active": [
     [
-      1,
+      4,
       true
     ],
     [
@@ -168,12 +205,20 @@
     ],
     [
       3,
+      true
+    ],
+    [
+      1,
       true
     ]
   ],
   "layers": [
     [
-      1,
+      2,
+      0
+    ],
+    [
+      4,
       0
     ],
     [
@@ -181,7 +226,7 @@
       0
     ],
     [
-      2,
+      1,
       0
     ]
   ],
@@ -198,6 +243,10 @@
     [
       3,
       "Player"
+    ],
+    [
+      4,
+      "Sponza"
     ]
   ],
   "sprite_sheets": [],

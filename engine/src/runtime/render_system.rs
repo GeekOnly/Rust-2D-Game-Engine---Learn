@@ -1,11 +1,16 @@
 use ecs::World;
-use render::{BatchRenderer, MeshRenderer, TextureManager, CameraBinding, LightBinding, Mesh, PbrMaterialUniform, ObjectUniform};
+use render::{BatchRenderer, MeshRenderer, TextureManager, CameraBinding, LightBinding, Mesh, PbrMaterialUniform, ObjectUniform, PbrMaterial};
 use glam::{Vec3, Quat, Mat4};
 use std::collections::HashMap;
+use std::sync::Arc;
 use wgpu::util::DeviceExt;
 
 // Simple mesh cache to avoid regenerating meshes every frame
 static mut MESH_CACHE: Option<HashMap<String, Mesh>> = None;
+// Asset caches (Loaded from files)
+static mut MESH_ASSETS: Option<HashMap<String, Arc<Mesh>>> = None;
+static mut MATERIAL_ASSETS: Option<HashMap<String, Arc<PbrMaterial>>> = None;
+
 static mut MATERIAL_CACHE: Option<wgpu::BindGroup> = None;
 
 fn get_mesh_cache() -> &'static mut HashMap<String, Mesh> {
@@ -14,6 +19,167 @@ fn get_mesh_cache() -> &'static mut HashMap<String, Mesh> {
             MESH_CACHE = Some(HashMap::new());
         }
         MESH_CACHE.as_mut().unwrap()
+    }
+}
+
+fn get_mesh_assets() -> &'static mut HashMap<String, Arc<Mesh>> {
+    unsafe {
+        if MESH_ASSETS.is_none() {
+            MESH_ASSETS = Some(HashMap::new());
+        }
+        MESH_ASSETS.as_mut().unwrap()
+    }
+}
+
+fn get_material_assets() -> &'static mut HashMap<String, Arc<PbrMaterial>> {
+    unsafe {
+        if MATERIAL_ASSETS.is_none() {
+            MATERIAL_ASSETS = Some(HashMap::new());
+        }
+        MATERIAL_ASSETS.as_mut().unwrap()
+    }
+}
+
+pub fn register_mesh_asset(name: String, mesh: Arc<Mesh>) {
+    get_mesh_assets().insert(name, mesh);
+}
+
+pub fn register_material_asset(name: String, material: Arc<PbrMaterial>) {
+    get_material_assets().insert(name, material);
+}
+
+pub fn load_gltf_into_world(
+    path: &std::path::Path,
+    world: &mut World,
+    device: &wgpu::Device,
+    queue: &wgpu::Queue,
+    texture_manager: &mut TextureManager,
+    mesh_renderer: &MeshRenderer,
+) -> anyhow::Result<Vec<ecs::Entity>> {
+     use crate::assets::gltf_loader::GltfLoader;
+     
+     let mut loader = GltfLoader::new();
+     let loaded_meshes = loader.load_gltf(device, queue, texture_manager, mesh_renderer, path)?;
+     let mut entities = Vec::new();
+
+     for (i, loaded_mesh) in loaded_meshes.into_iter().enumerate() {
+         // Register Mesh
+         // Assuming name is unique or we make it unique
+         let mesh_id = format!("{}_{}", loaded_mesh.name, i); 
+         register_mesh_asset(mesh_id.clone(), loaded_mesh.mesh);
+         
+         // Register Material
+         // Since loaded_mesh.material has bind group already
+         let mat_id = format!("{}_mat", mesh_id);
+         
+         register_material_asset(mat_id.clone(), loaded_mesh.material);
+         
+         // Spawn Entity
+         let entity = world.spawn();
+         
+         // Add Transform
+         let (scale, rot, pos) = loaded_mesh.transform.to_scale_rotation_translation();
+         let transform = ecs::Transform {
+             position: pos.into(),
+             rotation: rot.to_euler(glam::EulerRot::XYZ).into(), // Check Euler order match ECS
+             scale: scale.into(),
+         };
+         // Note: ECS Transform Rotation is stored in euler degrees?
+         // ECS Transform: `pub rotation: [f32; 3]` (Euler angles in degrees)
+         // `rot.to_euler` returns radians.
+         let rot_euler = rot.to_euler(glam::EulerRot::XYZ);
+         let rot_deg = [rot_euler.0.to_degrees(), rot_euler.1.to_degrees(), rot_euler.2.to_degrees()];
+          
+         // We need ComponentAccess to insert.
+         // But `World` (CustomWorld) exposes `transforms` map directly.
+         // world.transforms.insert(entity, ..);
+         // However, ECS `World` might be `HecsMinimal` or `CustomWorld`.
+         // `render_system.rs` uses `ecs::World` type alias.
+         // If `hecs` feature is off, `World` is `CustomWorld`.
+         // `CustomWorld` has public fields.
+         // If `hecs` is on, we need trait.
+         // `ecs/src/lib.rs` says: `pub use backends::hecs_minimal::HecsMinimal as World;` or `CustomWorld as World`.
+         // We should use `ComponentAccess` trait to be safe/generic.
+         use ecs::traits::ComponentAccess;
+         
+         let _ = ComponentAccess::<ecs::Transform>::insert(world, entity, ecs::Transform {
+             position: pos.into(),
+             rotation: rot_deg,
+             scale: scale.into(),
+         });
+         
+         let _ = ComponentAccess::<ecs::Mesh>::insert(world, entity, ecs::Mesh {
+             mesh_type: ecs::MeshType::Asset(mesh_id),
+             color: [1.0, 1.0, 1.0, 1.0], // Driven by material
+             material_id: Some(mat_id),
+         });
+         
+         entities.push(entity);
+     }
+     
+     Ok(entities)
+}
+
+pub fn post_process_asset_meshes(
+    project_path: &std::path::Path,
+    world: &mut World,
+    device: &wgpu::Device,
+    queue: &wgpu::Queue,
+    texture_manager: &mut TextureManager,
+    mesh_renderer: &MeshRenderer,
+) {
+    // [SCENE POST-PROCESSING] Load External Assets (GLTF)
+    // Iterate over all entities with MeshType::Asset and load the referenced files
+    // Post-process Asset meshes (Load GLTF)
+    // Find entities with MeshType::Asset
+    let mut assets_to_load = Vec::new();
+    for (entity, mesh) in world.meshes.iter() {
+        if let ecs::MeshType::Asset(path) = &mesh.mesh_type {
+            assets_to_load.push((*entity, path.clone()));
+            println!("DEBUG: Found Asset Mesh for entity {:?}: {}", entity, path);
+        }
+    }
+
+    // Load and attach
+    use ecs::traits::ComponentAccess;
+
+    for (parent_entity, asset_rel_path) in assets_to_load {
+        let asset_path = project_path.join(&asset_rel_path);
+        println!("DEBUG: Attempting to load GLTF from: {:?}", asset_path);
+        
+        if asset_path.exists() {
+            println!("DEBUG: File exists! Loading...");
+            match load_gltf_into_world(
+                &asset_path,
+                world,
+                device,
+                queue,
+                texture_manager,
+                mesh_renderer,
+            ) {
+                Ok(loaded_entities) => {
+                    println!("DEBUG: Successfully loaded {} entities from GLTF", loaded_entities.len());
+                    // Parent loaded entities to the container
+                    for child in loaded_entities {
+                        if world.parents.get(&child).is_none() {
+                             world.set_parent(child, Some(parent_entity));
+                        }
+                    }
+                    
+                    // Remove the placeholder Mesh component so it doesn't try to render
+                    // (The container is just a transform holder now)
+                    world.meshes.remove(&parent_entity);
+                    println!("DEBUG: Attached entities to parent {:?}", parent_entity);
+                },
+                Err(e) => {
+                    log::error!("Failed to load GLTF Asset: {:?}", e);
+                    println!("DEBUG: Failed to load GLTF Asset: {:?}", e);
+                },
+            }
+        } else {
+             log::error!("GLTF Asset not found: {:?}", asset_path);
+             println!("DEBUG: GLTF Asset NOT FOUND at: {:?}", asset_path);
+        }
     }
 }
 
@@ -157,21 +323,29 @@ pub fn render_game_world<'a>(
     });
 
     // 4. Render Meshes with proper GPU rendering
-    // Pass 1: Ensure all meshes are in cache (Mutable access)
+    // Pass 1: Ensure Procedural Meshes are in cache (Mutable access)
     let mesh_cache = get_mesh_cache();
 
     for (entity, ecs_mesh) in &mesh_entities {
          if world.transforms.contains_key(*entity) {
-            let cache_key = format!("{:?}", ecs_mesh.mesh_type);
-            if !mesh_cache.contains_key(&cache_key) {
-                let generated_mesh = render::mesh_generation::generate_mesh(device, &ecs_mesh.mesh_type);
-                mesh_cache.insert(cache_key, generated_mesh);
+            match &ecs_mesh.mesh_type {
+                ecs::MeshType::Asset(_) => {
+                    // Assets are pre-loaded, no generation needed here
+                },
+                _ => {
+                    let cache_key = format!("{:?}", ecs_mesh.mesh_type);
+                    if !mesh_cache.contains_key(&cache_key) {
+                        let generated_mesh = render::mesh_generation::generate_mesh(device, &ecs_mesh.mesh_type);
+                        mesh_cache.insert(cache_key, generated_mesh);
+                    }
+                }
             }
          }
     }
 
-    // Pass 2: Render (Immutable access)
-    // We need to create bind groups for each entity
+    // Pass 2: Ensure Bind Groups exist (Mutable access)
+    // We cannot render here because RenderPass needs immutable access to the binds, 
+    // but creation needs mutable access to the cache.
     static mut ENTITY_CACHE: Option<HashMap<u32, (wgpu::Buffer, wgpu::BindGroup)>> = None;
     static mut ENTITY_MATERIAL_CACHE: Option<HashMap<u32, (wgpu::Buffer, wgpu::BindGroup)>> = None;
 
@@ -196,10 +370,40 @@ pub fn render_game_world<'a>(
     // but creation needs mutable access to the cache.
     for (entity, ecs_mesh) in &mesh_entities {
         if let Some(transform) = world.transforms.get(entity) {
-             let cache_key = format!("{:?}", ecs_mesh.mesh_type);
-             if mesh_cache.contains_key(&cache_key) {
-                 // 1. Object Uniform (Model Matrix)
-                if !entity_cache.contains_key(entity) {
+             // 1. Object Uniform (Model Matrix)
+            if !entity_cache.contains_key(entity) {
+                let rot_rad = Vec3::new(
+                    transform.rotation[0].to_radians(),
+                    transform.rotation[1].to_radians(),
+                    transform.rotation[2].to_radians(),
+                );
+                let rotation = Quat::from_euler(glam::EulerRot::XYZ, rot_rad.x, rot_rad.y, rot_rad.z);
+                let translation = Vec3::from(transform.position);
+                let scale = Vec3::from(transform.scale);
+                
+                let model_matrix = Mat4::from_scale_rotation_translation(scale, rotation, translation);
+                let object_uniform = ObjectUniform {
+                    model: model_matrix.to_cols_array_2d(),
+                };
+                
+                 let buffer = device.create_buffer_init(
+                    &wgpu::util::BufferInitDescriptor {
+                        label: Some("Object Uniform Buffer"),
+                        contents: bytemuck::cast_slice(&[object_uniform]),
+                        usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+                    }
+                );
+                let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+                    layout: &mesh_renderer.object_layout,
+                    entries: &[
+                        wgpu::BindGroupEntry { binding: 0, resource: buffer.as_entire_binding() },
+                    ],
+                    label: Some("object_bind_group"),
+                });
+                entity_cache.insert(**entity, (buffer, bind_group));
+            } else {
+                // Update existing buffer
+                if let Some((buffer, _)) = entity_cache.get(entity) {
                     let rot_rad = Vec3::new(
                         transform.rotation[0].to_radians(),
                         transform.rotation[1].to_radians(),
@@ -213,43 +417,21 @@ pub fn render_game_world<'a>(
                     let object_uniform = ObjectUniform {
                         model: model_matrix.to_cols_array_2d(),
                     };
-                    
-                     let buffer = device.create_buffer_init(
-                        &wgpu::util::BufferInitDescriptor {
-                            label: Some("Object Uniform Buffer"),
-                            contents: bytemuck::cast_slice(&[object_uniform]),
-                            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
-                        }
-                    );
-                    let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-                        layout: &mesh_renderer.object_layout,
-                        entries: &[
-                            wgpu::BindGroupEntry { binding: 0, resource: buffer.as_entire_binding() },
-                        ],
-                        label: Some("object_bind_group"),
-                    });
-                    entity_cache.insert(**entity, (buffer, bind_group));
-                } else {
-                    // Update existing buffer
-                    if let Some((buffer, _)) = entity_cache.get(entity) {
-                        let rot_rad = Vec3::new(
-                            transform.rotation[0].to_radians(),
-                            transform.rotation[1].to_radians(),
-                            transform.rotation[2].to_radians(),
-                        );
-                        let rotation = Quat::from_euler(glam::EulerRot::XYZ, rot_rad.x, rot_rad.y, rot_rad.z);
-                        let translation = Vec3::from(transform.position);
-                        let scale = Vec3::from(transform.scale);
-                        
-                        let model_matrix = Mat4::from_scale_rotation_translation(scale, rotation, translation);
-                        let object_uniform = ObjectUniform {
-                            model: model_matrix.to_cols_array_2d(),
-                        };
-                         queue.write_buffer(buffer, 0, bytemuck::cast_slice(&[object_uniform]));
-                    }
+                     queue.write_buffer(buffer, 0, bytemuck::cast_slice(&[object_uniform]));
                 }
+            }
 
-                 // 2. Material Uniform (PBR)
+             // 2. Material Uniform (PBR)
+             // Check if custom material ID is present
+             if let Some(mat_id) = &ecs_mesh.material_id {
+                 // Asset-based materials are pre-created bind groups?
+                 // Wait, PbrMaterial struct has `bind_group: Option<wgpu::BindGroup>`.
+                 // If we have an asset material, we should use its bind group!
+                 // See below in Render pass.
+                 // We don't need to generate a dynamic buffer/bindgroup here if it's an asset.
+                 // But for consistency we might.
+                 // Actually, let's skip generating dynamic material for Asset materials.
+             } else {
                  if !material_cache.contains_key(entity) {
                      let pbr_material = PbrMaterialUniform {
                         albedo_factor: ecs_mesh.color, 
@@ -303,11 +485,43 @@ pub fn render_game_world<'a>(
 
     // Pass 3: Render (Immutable access)
     // Now caches are ready, we can borrow them fully for the render pass
+    // Get asset caches
+    let mesh_assets = get_mesh_assets();
+    let material_assets = get_material_assets();
+
     for (entity, ecs_mesh) in mesh_entities {
          if world.transforms.contains_key(entity) {
-            let cache_key = format!("{:?}", ecs_mesh.mesh_type);
-            if let Some(mesh) = mesh_cache.get(&cache_key) {
-                if let (Some((_, object_bg)), Some((_, material_bg))) = (entity_cache.get(entity), material_cache.get(entity)) {
+            // Find Mesh
+            let mesh_to_render = match &ecs_mesh.mesh_type {
+                ecs::MeshType::Asset(id) => mesh_assets.get(id).map(|m| m.as_ref()),
+                _ => {
+                    let cache_key = format!("{:?}", ecs_mesh.mesh_type);
+                    mesh_cache.get(&cache_key)
+                }
+            };
+
+            if let Some(mesh) = mesh_to_render {
+                // Find Material Bind Group
+                let material_bind_group = if let Some(mat_id) = &ecs_mesh.material_id {
+                    let mat = material_assets.get(mat_id);
+                     // If material loaded successfully, use it
+                     if let Some(mat_asset) = mat {
+                         if mat_asset.bind_group.is_none() {
+                             println!("DEBUG: Material Asset {} found but has NO BindGroup!", mat_id);
+                         }
+                         mat_asset.bind_group.as_ref()
+                     } else {
+                         println!("DEBUG: Material Asset {} NOT FOUND in cache!", mat_id);
+                         None
+                     }
+                } else {
+                     material_cache.get(entity).map(|(_, bg)| bg)
+                };
+                
+                // Fallback to dynamic material if asset material missing/invalid
+                let final_material_bg = material_bind_group.or_else(|| material_cache.get(entity).map(|(_, bg)| bg));
+
+                if let (Some(material_bg), Some((_, object_bg))) = (final_material_bg, entity_cache.get(entity)) {
                      mesh_renderer.render_pbr(
                         render_pass,
                         mesh,

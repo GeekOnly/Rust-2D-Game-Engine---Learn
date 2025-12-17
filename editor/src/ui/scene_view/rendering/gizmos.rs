@@ -38,7 +38,7 @@ pub fn render_scene_gizmo_visual(
     // Extract right, up, and forward vectors from view matrix (inverted for gizmo display)
     let right = glam::Vec3::new(view_matrix.x_axis.x, view_matrix.y_axis.x, view_matrix.z_axis.x);
     let up = glam::Vec3::new(view_matrix.x_axis.y, view_matrix.y_axis.y, view_matrix.z_axis.y);
-    let forward = glam::Vec3::new(view_matrix.x_axis.z, view_matrix.y_axis.z, view_matrix.z_axis.z);
+    let _forward = glam::Vec3::new(view_matrix.x_axis.z, view_matrix.y_axis.z, view_matrix.z_axis.z);
     
     // For scene gizmo, we want to show world axes as they appear from camera view
     // X = Right (Red), Y = Up (Green), Z = Forward (Blue)
@@ -221,7 +221,7 @@ pub fn render_transform_gizmo(
                             }
                             
                             // Draw Axis Label (X/Y/Z) at specific angle
-                            let angle = std::f32::consts::PI / 4.0; // 45 degrees
+                            let _angle = std::f32::consts::PI / 4.0; // 45 degrees
                             let label_offset = axis_u * label_pos_factor.0 * radius_world + axis_v * label_pos_factor.1 * radius_world;
                              if let Some(p) = project(world_pos + label_offset * 1.1) {
                                  painter.text(p, egui::Align2::CENTER_CENTER, label, egui::FontId::proportional(12.0), color);
@@ -448,7 +448,7 @@ pub fn render_camera_gizmo(
     screen_y: f32,
     camera_entity: Entity,
     world: &World,
-    scene_camera: &SceneCamera,
+    _scene_camera: &SceneCamera,
     scene_view_mode: &SceneViewMode,
 ) {
     // Get camera component and transform from entity

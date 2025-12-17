@@ -80,6 +80,7 @@ impl EditorUI {
         scene_view_renderer: &mut crate::scene_view_renderer::SceneViewRenderer,
         egui_renderer: &mut egui_wgpu::Renderer,
         device: &wgpu::Device,
+        reload_mesh_assets_request: &mut bool,
     ) {
         // Top Menu Bar
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
@@ -139,6 +140,7 @@ impl EditorUI {
                 project_path,
                 open_sprite_editor_request,
                 sprite_picker_state,
+                reload_mesh_assets_request,
             );
         });
 
@@ -336,6 +338,7 @@ impl EditorUI {
         prefab_editor: &mut crate::PrefabEditor,
         ui_manager: &mut engine::ui_manager::UIManager,
         dt: f32,
+        reload_mesh_assets_request: &mut bool,
     ) {
         // Handle layout change request (will be processed by caller)
         // Layout changes are handled in main.rs to access EditorState
@@ -420,6 +423,7 @@ impl EditorUI {
                 dt,
                 game_view_renderer,
                 device,
+                reload_mesh_assets_request,
                 egui_renderer,
                 scene_view_renderer,
             };

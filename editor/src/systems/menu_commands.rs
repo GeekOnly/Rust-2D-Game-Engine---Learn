@@ -21,6 +21,10 @@ impl MenuCommandSystem {
         play_request: &mut bool,
         stop_request: &mut bool,
         edit_script_request: &mut Option<String>,
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        texture_manager: &mut render::TextureManager,
+        mesh_renderer: &render::MeshRenderer,
     ) {
          // Edit script request
          if let Some(script_name) = edit_script_request {
@@ -125,7 +129,20 @@ impl MenuCommandSystem {
                  // Start playing
                  editor_state.is_playing = true;
                  editor_state.console.info("▶ Starting Play Mode...".to_string());
-                 
+
+                 // Process GLTF assets (same as scene loading)
+                 if let Some(project_path) = &editor_state.current_project_path {
+                     use engine::runtime::render_system::post_process_asset_meshes;
+                     post_process_asset_meshes(
+                         project_path,
+                         &mut editor_state.world,
+                         device,
+                         queue,
+                         texture_manager,
+                         mesh_renderer,
+                     );
+                 }
+
                  // Load scripts (same as Player binary)
                  if let Some(scripts_folder) = editor_state.get_scripts_folder() {
                      if let Err(e) = engine::runtime::script_loader::load_all_scripts(&mut editor_state.world, script_engine, &scripts_folder) {

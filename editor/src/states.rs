@@ -152,6 +152,7 @@ pub struct EditorState {
     pub game_view_settings: engine::runtime::GameViewSettings,  // Game view resolution and display settings
     pub prefab_editor: super::widget_editor::PrefabEditor,  // Visual UI prefab editor (Unity-style)
     pub ui_manager: engine::ui_manager::UIManager,  // New UI system manager
+    pub reload_mesh_assets_request: bool,  // Flag to request reloading mesh assets
 }
 
 #[allow(dead_code)]
@@ -242,6 +243,7 @@ impl EditorState {
             game_view_settings: engine::runtime::GameViewSettings::default(),
             prefab_editor: super::widget_editor::PrefabEditor::new(),
             ui_manager: engine::ui_manager::UIManager::new(),
+            reload_mesh_assets_request: false,
         }
     }
 

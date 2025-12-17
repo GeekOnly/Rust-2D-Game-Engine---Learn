@@ -696,14 +696,8 @@ impl EditorApp {
     }
 
     fn render_editor_ui(&mut self) {
-        let save_request = false;
-        let save_as_request = false;
-        let load_request = false;
-        let load_file_request: Option<std::path::PathBuf> = None;
-        let new_scene_request = false;
-        let play_request = false;
-        let stop_request = false;
-        let edit_script_request: Option<String> = None;
+        // Local request flags - Moved to EditorLogic::handle_editor_frame
+        // We don't need them here anymore.
 
         // Handle Q/W/E/R keyboard shortcuts for transform tools
         self.egui_ctx.input(|i| {
@@ -819,8 +813,11 @@ impl EditorApp {
             1.0 / 60.0, // dt
             &mut self.game_view_renderer,
             &self.renderer.device,
+            &self.renderer.queue,
             &mut self.egui_renderer,
             &mut self.scene_view_renderer,
+            &self.renderer.mesh_renderer,
+            &mut self.renderer.texture_manager,
         );
         
         // Clear input state if not in play mode (PlayModeSystem handles it when playing)

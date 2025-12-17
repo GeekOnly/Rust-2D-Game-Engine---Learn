@@ -376,7 +376,51 @@ impl ScriptEngine {
                     Ok(())
                 })?;
                 globals.set("set_position", set_position)?;
-                
+
+                // 3D Rotation Support
+                let get_rotation_euler = scope.create_function(|lua, ()| {
+                    if let Some(transform) = world_cell.borrow().transforms.get(&entity) {
+                        let table = lua.create_table()?;
+                        table.set("x", transform.rotation[0])?;
+                        table.set("y", transform.rotation[1])?;
+                        table.set("z", transform.rotation[2])?;
+                        Ok(Some(table))
+                    } else {
+                        Ok(None)
+                    }
+                })?;
+                globals.set("get_rotation_euler", get_rotation_euler)?;
+
+                let set_rotation_euler = scope.create_function_mut(|_, (x, y, z): (f32, f32, f32)| {
+                    if let Some(transform) = world_cell.borrow_mut().transforms.get_mut(&entity) {
+                        transform.rotation = [x, y, z];
+                    }
+                    Ok(())
+                })?;
+                globals.set("set_rotation_euler", set_rotation_euler)?;
+
+                // Rotation of other entities
+                let get_rotation_of = scope.create_function(|lua, query_entity: Entity| {
+                    if let Some(transform) = world_cell.borrow().transforms.get(&query_entity) {
+                        let table = lua.create_table()?;
+                        table.set("x", transform.rotation[0])?;
+                        table.set("y", transform.rotation[1])?;
+                        table.set("z", transform.rotation[2])?;
+                        Ok(Some(table))
+                    } else {
+                        Ok(None)
+                    }
+                })?;
+                globals.set("get_rotation_of", get_rotation_of)?;
+
+                let set_rotation_of = scope.create_function_mut(|_, (query_entity, x, y, z): (Entity, f32, f32, f32)| {
+                    if let Some(transform) = world_cell.borrow_mut().transforms.get_mut(&query_entity) {
+                        transform.rotation = [x, y, z];
+                    }
+                    Ok(())
+                })?;
+                globals.set("set_rotation_of", set_rotation_of)?;
+
                 let get_velocity_of = scope.create_function(|lua, query_entity: Entity| {
                     if let Some(vel) = world_cell.borrow().velocities.get(&query_entity) {
                         let table = lua.create_table()?;

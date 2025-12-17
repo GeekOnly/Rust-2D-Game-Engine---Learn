@@ -106,10 +106,10 @@ pub fn render_scene_3d(
                  if let Some(screen_pos) = projection_3d::world_to_screen(Vec3::from(transform.position), scene_camera, viewport_size) {
                     // Approximate bounds
                     let dist = (Vec3::from(transform.position) - scene_camera.position).length();
-                    let scale_factor = if dist > 0.1 { 500.0 / dist } else { 1.0 }; // Match legacy scale for now
+                    let _scale_factor = if dist > 0.1 { 500.0 / dist } else { 1.0 }; // Match legacy scale for now
                      
                     let transform_scale = glam::Vec2::new(transform.scale[0], transform.scale[1]);
-                    let size = egui::vec2(
+                    let _size = egui::vec2(
                         sprite.width * transform_scale.x * 1.0, // Scale factors might need tuning to match WGPU
                         sprite.height * transform_scale.y * 1.0
                     ) * (50.0 / dist); // Simplified persective scale approximation for picking
@@ -150,7 +150,7 @@ pub fn render_scene_3d(
                         *hovered_entity = Some(*entity);
                     }
                 }
-            } else if let Some(layer) = world.tilemaps.get(entity) {
+            } else if let Some(_layer) = world.tilemaps.get(entity) {
                 // Tilemap picking (simplified: bounds check)
                 // ... (Omitted for brevity in this initial pass, tilemap picking is complex)
             }
@@ -213,7 +213,7 @@ pub fn render_scene_3d(
                     let world_size = 1.0;
                     
                     let base_size = world_size * scale_vec.x.max(scale_vec.y).max(scale_vec.z);
-                    let selection_size = base_size; // Selection bounds matching object size
+                    let _selection_size = base_size; // Selection bounds matching object size
                     
                     // We need to project the bounds properly because 'base_size' is in world units,
                     // but we are drawing a 2D rect here using screen coordinates.

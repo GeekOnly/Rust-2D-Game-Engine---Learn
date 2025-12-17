@@ -1,8 +1,9 @@
 use ecs::{World, Entity, ComponentType, ComponentManager};
 use egui;
 use super::utils::render_component_header;
+use std::path::Path;
 
-pub fn render_mesh_inspector(ui: &mut egui::Ui, world: &mut World, entity: Entity) {
+pub fn render_mesh_inspector(ui: &mut egui::Ui, world: &mut World, entity: Entity, project_path: Option<&Path>, reload_mesh_assets_request: &mut bool) {
     // Mesh Component (3D) - Unity-style
     let has_mesh = world.has_component(entity, ComponentType::Mesh);
     let mut remove_mesh = false;
@@ -23,16 +24,94 @@ pub fn render_mesh_inspector(ui: &mut egui::Ui, world: &mut World, entity: Entit
                         .spacing([10.0, 8.0])
                         .show(ui, |ui| {
                             ui.label("Mesh Type");
-                            egui::ComboBox::from_id_source("mesh_type_picker")
-                                .selected_text(format!("{:?}", mesh.mesh_type))
+
+                            // Get current mesh type display
+                            let current_text = match &mesh.mesh_type {
+                                ecs::MeshType::Cube => "Cube".to_string(),
+                                ecs::MeshType::Sphere => "Sphere".to_string(),
+                                ecs::MeshType::Cylinder => "Cylinder".to_string(),
+                                ecs::MeshType::Plane => "Plane".to_string(),
+                                ecs::MeshType::Capsule => "Capsule".to_string(),
+                                ecs::MeshType::Asset(path) => format!("Asset: {}", path),
+                            };
+
+                            // Track the previous mesh type
+                            let prev_is_asset = matches!(&mesh.mesh_type, ecs::MeshType::Asset(_));
+
+                            let combo_response = egui::ComboBox::from_id_source("mesh_type_picker")
+                                .selected_text(current_text)
                                 .show_ui(ui, |ui| {
                                     ui.selectable_value(&mut mesh.mesh_type, ecs::MeshType::Cube, "Cube");
                                     ui.selectable_value(&mut mesh.mesh_type, ecs::MeshType::Sphere, "Sphere");
                                     ui.selectable_value(&mut mesh.mesh_type, ecs::MeshType::Cylinder, "Cylinder");
                                     ui.selectable_value(&mut mesh.mesh_type, ecs::MeshType::Plane, "Plane");
                                     ui.selectable_value(&mut mesh.mesh_type, ecs::MeshType::Capsule, "Capsule");
+
+                                    // Separator
+                                    ui.separator();
+
+                                    // Asset option - create a placeholder if selected
+                                    if ui.selectable_label(
+                                        matches!(mesh.mesh_type, ecs::MeshType::Asset(_)),
+                                        "Asset (GLTF/GLB)"
+                                    ).clicked() {
+                                        mesh.mesh_type = ecs::MeshType::Asset("assets/model.glb".to_string());
+                                        *reload_mesh_assets_request = true;
+                                    }
                                 });
+
+                            // Check if mesh type changed to non-Asset type (also needs reload to clear old asset)
+                            if combo_response.response.changed() {
+                                let now_is_asset = matches!(&mesh.mesh_type, ecs::MeshType::Asset(_));
+                                if prev_is_asset != now_is_asset {
+                                    *reload_mesh_assets_request = true;
+                                }
+                            }
+
                             ui.end_row();
+
+                            // If Asset type, show text field to edit path
+                            if let ecs::MeshType::Asset(path) = &mut mesh.mesh_type {
+                                ui.label("Asset Path");
+                                ui.horizontal(|ui| {
+                                    ui.text_edit_singleline(path);
+                                    if ui.button("📁").on_hover_text("Browse...").clicked() {
+                                        // Set default directory to project's assets folder if available
+                                        let mut dialog = rfd::FileDialog::new()
+                                            .add_filter("GLTF/GLB", &["gltf", "glb"]);
+
+                                        if let Some(proj_path) = project_path {
+                                            let assets_path = proj_path.join("assets");
+                                            if assets_path.exists() {
+                                                dialog = dialog.set_directory(&assets_path);
+                                            }
+                                        }
+
+                                        if let Some(file_path) = dialog.pick_file() {
+                                            // Try to make path relative to project folder
+                                            if let Some(proj_path) = project_path {
+                                                if let Ok(relative) = file_path.strip_prefix(proj_path) {
+                                                    *path = relative.to_string_lossy().to_string();
+                                                } else {
+                                                    *path = file_path.to_string_lossy().to_string();
+                                                }
+                                            } else {
+                                                *path = file_path.to_string_lossy().to_string();
+                                            }
+                                            // Request reload when path changes
+                                            *reload_mesh_assets_request = true;
+                                        }
+                                    }
+                                });
+                                ui.end_row();
+
+                                ui.label("");
+                                ui.colored_label(
+                                    egui::Color32::from_rgb(150, 150, 150),
+                                    "💡 Path relative to project folder"
+                                );
+                                ui.end_row();
+                            }
                             
                             ui.label("Color");
                             let mut color = egui::Color32::from_rgba_unmultiplied(

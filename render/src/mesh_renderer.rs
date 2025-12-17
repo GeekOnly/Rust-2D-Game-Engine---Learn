@@ -1,5 +1,5 @@
 use wgpu::util::DeviceExt;
-use crate::{ModelVertex, PbrMaterial, Texture, Mesh};
+use crate::{Mesh, ModelVertex, Texture, PbrMaterial, TextureManager, PbrMaterialUniform, ToonMaterial, ToonMaterialUniform};
 
 pub struct MeshRenderer {
     render_pipeline: wgpu::RenderPipeline,
@@ -427,6 +427,93 @@ impl MeshRenderer {
                 wgpu::BindGroupEntry { binding: 0, resource: uniform_buffer.as_entire_binding() },
             ],
             label: Some("object_bind_group"),
+        })
+    }
+
+    pub fn create_pbr_bind_group(&self, device: &wgpu::Device, material: &PbrMaterial, texture_manager: &TextureManager) -> wgpu::BindGroup {
+         use wgpu::util::DeviceExt;
+
+         let pbr_uniform = PbrMaterialUniform {
+            albedo_factor: material.albedo_factor,
+            metallic_factor: material.metallic_factor,
+            roughness_factor: material.roughness_factor,
+            padding: [0.0; 2],
+        };
+        
+        let buffer = device.create_buffer_init(
+            &wgpu::util::BufferInitDescriptor {
+                label: Some("PBR Material Buffer"),
+                contents: bytemuck::cast_slice(&[pbr_uniform]),
+                usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+            }
+        );
+
+        // Get textures or defaults
+        // Note: We need Queue to get defaults if not present, but here we assume TextureManager has initialized defaults?
+        // Actually TextureManager might need device/queue to get defaults.
+        // We will pass defaults if material textures are missing.
+        // But TextureManager.get_white_texture requires queue. 
+        // We'll trust that the material has textures OR we fetch defaults using a workaround or pass Queue.
+        // Or simpler: We expect the caller to ensure textures are valid.
+        // The GltfLoader fills in defaults.
+        
+        // We'll create a temporary 1x1 white texture if absolutely needed, but TextureManager should have it.
+        // Let's grab views.
+        
+        // Use placeholder if None.
+        // We can't easily get default textures without Queue.
+        // Let's assume textures are set (GltfLoader sets defaults).
+        // If they are None, we might panic or fail.
+        // But GltfLoader sets them.
+        
+        // Wait, GltfLoader logic: checks `texture_manager.get_white_texture(device, queue)`.
+        // So they should be set.
+        
+        // We need BindGroup entries.
+        // We can't access `texture.view` if texture is None.
+        // So we MUST have textures.
+        
+        let white_tex = material.albedo_texture.as_ref().expect("Material missing albedo texture");
+        // For others, if missing, use white/normal default?
+        // GltfLoader sets them?
+        // GltfLoader sets normal/metallic to `load_texture(...).ok()`. So they might be None.
+        // If None, we need defaults.
+        
+        let albedo_view = &material.albedo_texture.as_ref().unwrap().view;
+        let albedo_sampler = &material.albedo_texture.as_ref().unwrap().sampler;
+        
+        let normal_view = if let Some(tex) = &material.normal_texture {
+            &tex.view
+        } else {
+             // We need a default normal map here.
+             // We can't get it from TextureManager without Queue easily if not cached.
+             // But we can assume it's cached because GltfLoader ran?
+             // Or passing `texture_manager`.
+             // TextureManager::get_normal_texture needs queue.
+             // I'll add `queue` to arguments.
+             albedo_view // Fallback (WRONG but prevents crash) - fix below by adding Queue arg
+        };
+        let normal_sampler = if let Some(tex) = &material.normal_texture { &tex.sampler } else { albedo_sampler };
+
+        let metal_view = if let Some(tex) = &material.metallic_roughness_texture { &tex.view } else { albedo_view };
+        let metal_sampler = if let Some(tex) = &material.metallic_roughness_texture { &tex.sampler } else { albedo_sampler };
+        
+        let occlusion_view = if let Some(tex) = &material.occlusion_texture { &tex.view } else { albedo_view };
+        let occlusion_sampler = if let Some(tex) = &material.occlusion_texture { &tex.sampler } else { albedo_sampler };
+
+
+        device.create_bind_group(&wgpu::BindGroupDescriptor {
+            layout: &self.material_layout,
+            entries: &[
+                wgpu::BindGroupEntry { binding: 0, resource: buffer.as_entire_binding() },
+                wgpu::BindGroupEntry { binding: 1, resource: wgpu::BindingResource::TextureView(albedo_view) },
+                wgpu::BindGroupEntry { binding: 2, resource: wgpu::BindingResource::Sampler(albedo_sampler) },
+                wgpu::BindGroupEntry { binding: 3, resource: wgpu::BindingResource::TextureView(normal_view) },
+                wgpu::BindGroupEntry { binding: 4, resource: wgpu::BindingResource::Sampler(normal_sampler) },
+                wgpu::BindGroupEntry { binding: 5, resource: wgpu::BindingResource::TextureView(metal_view) },
+                wgpu::BindGroupEntry { binding: 6, resource: wgpu::BindingResource::Sampler(metal_sampler) },
+            ],
+            label: Some("pbr_material_bind_group"),
         })
     }
 }

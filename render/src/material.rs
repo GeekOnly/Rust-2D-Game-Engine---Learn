@@ -1,10 +1,11 @@
+use std::sync::Arc;
 use crate::texture::Texture;
 
 pub struct PbrMaterial {
-    pub albedo_texture: Option<Texture>,
-    pub normal_texture: Option<Texture>,
-    pub metallic_roughness_texture: Option<Texture>,
-    pub occlusion_texture: Option<Texture>,
+    pub albedo_texture: Option<Arc<Texture>>,
+    pub normal_texture: Option<Arc<Texture>>,
+    pub metallic_roughness_texture: Option<Arc<Texture>>,
+    pub occlusion_texture: Option<Arc<Texture>>,
     
     // Factors if textures are missing
     pub albedo_factor: [f32; 4],

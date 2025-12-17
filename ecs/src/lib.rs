@@ -417,6 +417,8 @@ impl Default for Rigidbody2D {
 pub struct Mesh {
     pub mesh_type: MeshType,
     pub color: [f32; 4], // RGBA
+    #[serde(default)]
+    pub material_id: Option<String>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -426,6 +428,7 @@ pub enum MeshType {
     Cylinder,
     Plane,
     Capsule,
+    Asset(String),
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]

@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use std::path::Path;
 use std::result::Result::{Ok, Err};
 
+#[derive(Debug)]
 pub struct Texture {
     pub texture: wgpu::Texture,
     pub view: wgpu::TextureView,

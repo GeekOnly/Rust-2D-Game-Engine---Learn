@@ -131,7 +131,7 @@ impl Tilemap3DRenderer {
                         // We invert Y in 3D view to match 2D Y-Down coordinate system (Visual Fix)
                         let tile_world_x = transform.position[0] + (x as f32 * tile_world_width);
                         let tile_world_y = -(transform.position[1] + (y as f32 * tile_world_height));
-                        let tile_world_z = transform.position[2];
+                        let _tile_world_z = transform.position[2];
                         
                         // Update bounds
                         min_x = min_x.min(tile_world_x);
@@ -253,8 +253,8 @@ impl Tilemap3DRenderer {
     pub fn calculate_depth_from_camera(&self, position: &Vec3, camera: &SceneCamera) -> f32 {
         // Use simple distance for now, or project to view space
         // This is used for sorting
-        let cam_pos = Vec3::new(camera.position.x, 0.0, camera.position.y);
-        let pos_flat = Vec3::new(position.x, 0.0, position.z); // Assuming Y is up in 3D, but here Z is depth?
+        let _cam_pos = Vec3::new(camera.position.x, 0.0, camera.position.y);
+        let _pos_flat = Vec3::new(position.x, 0.0, position.z); // Assuming Y is up in 3D, but here Z is depth?
         // Wait, in this engine:
         // 2D: X, Y are position. Z is depth/layer.
         // 3D View: X, Y are ground plane? Or X, Y are screen plane?
@@ -408,7 +408,7 @@ impl Tilemap3DRenderer {
         texture_manager: &mut engine::texture_manager::TextureManager,
         ctx: &egui::Context,
     ) {
-        let viewport_size = Vec2::new(viewport_rect.width(), viewport_rect.height());
+        let _viewport_size = Vec2::new(viewport_rect.width(), viewport_rect.height());
         
         // Render each layer (already sorted by depth)
         for layer in layers {

@@ -117,22 +117,22 @@ fn main() -> Result<()> {
     let mut egui_renderer = egui_wgpu::Renderer::new(
         &renderer.device,
         renderer.config.format,
-        None,
+        Some(wgpu::TextureFormat::Depth32Float),
         1,
     );
  
     // Load Game Project
     // In a real export, these paths would be relative to the executable
     let mut project_path = std::env::current_dir()?;
-    
-    // If we're in the root directory, look for Celeste Demo project
+
+    // If we're in the root directory, look for FPS 3D Example project
     if !project_path.join("scenes").exists() {
-        let celeste_path = project_path.join("projects/Celeste Demo");
-        if celeste_path.exists() {
-            project_path = celeste_path;
+        let fps_path = project_path.join("projects/FPS 3D Example");
+        if fps_path.exists() {
+            project_path = fps_path;
         }
     }
-    
+
     log::info!("Loading project from: {:?}", project_path);
 
     // Initial World
@@ -171,6 +171,17 @@ fn main() -> Result<()> {
 
     // Set texture base path
     texture_manager.set_base_path(project_path.join("assets"));
+
+    // [SCENE POST-PROCESSING] Load External Assets (GLTF)
+    // Use shared function explicitly
+    runtime::render_system::post_process_asset_meshes(
+        &project_path,
+        &mut world,
+        &renderer.device,
+        &renderer.queue,
+        &mut renderer.texture_manager,
+        &renderer.mesh_renderer,
+    );
 
     let mut last_frame_time = std::time::Instant::now();
     const FIXED_TIMESTEP: f32 = 1.0 / 60.0;

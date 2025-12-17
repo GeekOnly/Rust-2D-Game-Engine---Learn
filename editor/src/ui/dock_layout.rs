@@ -78,6 +78,7 @@ pub struct TabContext<'a> {
     pub dt: f32,
     pub game_view_renderer: &'a mut crate::game_view_renderer::GameViewRenderer,
     pub device: &'a wgpu::Device,
+    pub reload_mesh_assets_request: &'a mut bool,
     pub egui_renderer: &'a mut egui_wgpu::Renderer,
     pub scene_view_renderer: &'a mut crate::scene_view_renderer::SceneViewRenderer,
 }
@@ -238,6 +239,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                         self.context.project_path,
                         self.context.open_sprite_editor_request,
                         self.context.sprite_picker_state,
+                        self.context.reload_mesh_assets_request,
                     );
                 }
             }

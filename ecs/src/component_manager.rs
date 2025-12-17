@@ -141,6 +141,7 @@ impl ComponentManager for crate::CustomWorld {
                 self.meshes.insert(entity, Mesh {
                     mesh_type: crate::MeshType::Cube,
                     color: [1.0, 1.0, 1.0, 1.0],
+                    material_id: None,
                 });
             }
             ComponentType::Camera => {

@@ -52,6 +52,7 @@ impl ModelVertex {
     }
 }
 
+#[derive(Debug)]
 pub struct Mesh {
     pub name: String,
     pub vertex_buffer: wgpu::Buffer,

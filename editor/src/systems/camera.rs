@@ -180,9 +180,11 @@ pub struct SceneCamera {
     target_zoom: f32,
     
     // Smooth interpolation
+    #[allow(dead_code)]
     zoom_interpolation_speed: f32,
     
     // Mode switching state
+    #[allow(dead_code)]
     saved_3d_state: Option<CameraState>,
     
     // Cursor tracking for zoom
@@ -724,8 +726,8 @@ impl SceneCamera {
             self.target_pitch = self.pitch;
             
             // Calculate new camera position maintaining constant distance from pivot
-            let yaw_rad = self.rotation.to_radians();
-            let pitch_rad = self.pitch.to_radians();
+            let _yaw_rad = self.rotation.to_radians();
+            let _pitch_rad = self.pitch.to_radians();
             
             // In Orbit mode, we only change angles. Pivot (self.position) stays fixed.
             self.position = self.pivot;
@@ -814,8 +816,8 @@ impl SceneCamera {
             
             // Update camera position based on new distance and current rotation/pitch
             // In 3D mode, we orbit around the pivot point
-            let yaw_rad = self.rotation.to_radians();
-            let pitch_rad = self.pitch.to_radians();
+            let _yaw_rad = self.rotation.to_radians();
+            let _pitch_rad = self.pitch.to_radians();
             
             // Position camera relative to pivot point
             // In 3D mode, self.position IS the target/pivot point that the camera looks at.
@@ -918,7 +920,7 @@ impl SceneCamera {
     pub fn world_to_screen(&self, world_pos: Vec3) -> Vec2 {
         if self.pitch.abs() > 0.1 {
             // 3D mode: Project point onto screen
-            let view_proj = self.get_view_matrix(); // Missing projection matrix here
+            let _view_proj = self.get_view_matrix(); // Missing projection matrix here
             
             // Simplified projection for now (isometric-like if pitch is small, perspective if large)
             // Real implementation requires View * Projection

@@ -24,6 +24,7 @@ pub fn render_inspector(
     project_path: &Option<std::path::PathBuf>,
     open_sprite_editor_request: &mut Option<std::path::PathBuf>,
     sprite_picker_state: &mut crate::ui::sprite_picker::SpritePickerState,
+    reload_mesh_assets_request: &mut bool,
 ) {
     // Unity-style header
     ui.horizontal(|ui| {
@@ -164,7 +165,7 @@ pub fn render_inspector(
             sprite::render_sprite_inspector(ui, world, entity, sprite_picker_state, open_sprite_editor_request);
             collider::render_collider_inspector(ui, world, entity);
             rigidbody::render_rigidbody_inspector(ui, world, entity);
-            mesh::render_mesh_inspector(ui, world, entity);
+            mesh::render_mesh_inspector(ui, world, entity, project_path.as_deref(), reload_mesh_assets_request);
             camera::render_camera_inspector(ui, world, entity);
             script::render_script_inspector(ui, world, entity, project_path, edit_script_request);
 
