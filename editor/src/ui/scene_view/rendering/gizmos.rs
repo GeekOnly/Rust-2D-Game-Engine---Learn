@@ -27,8 +27,10 @@ pub fn render_scene_gizmo_visual(
     let axis_len = gizmo_size * 0.35;
     
     // Get camera rotation for proper axis calculation
-    let yaw_rad = scene_camera.get_rotation_radians();
-    let pitch_rad = scene_camera.get_pitch_radians();
+    // Get camera rotation for proper axis calculation
+    // yaw_rad and pitch_rad were unused here
+    // let yaw_rad = scene_camera.get_rotation_radians();
+    // let pitch_rad = scene_camera.get_pitch_radians();
     
     // Calculate view matrix to get proper axis directions
     let view_matrix = scene_camera.get_view_matrix();
@@ -200,10 +202,45 @@ pub fn render_transform_gizmo(
                         painter.circle_filled(p_origin, handle_size * 0.8, egui::Color32::YELLOW);
                     }
                     TransformTool::Rotate => {
-                        // For 3D rotation, just a billboard circle for now
-                        let radius = gizmo_size * 0.8;
-                        painter.circle_stroke(p_origin, radius, egui::Stroke::new(3.0, egui::Color32::WHITE));
-                        // TODO: Implement 3-axis rotation rings
+                        // 3D Rotation Gizmo: Render 3 rings
+                        let radius_world = scale * 4.0; // Rough visual size
+                        let segments = 32;
+
+                        // Function to draw a ring in a plane defined by two vectors
+                        let draw_ring = |axis_u: glam::Vec3, axis_v: glam::Vec3, color: egui::Color32, label: &str, label_pos_factor: (f32, f32)| {
+                            let mut points = Vec::with_capacity(segments + 1);
+                            for i in 0..=segments {
+                                let angle = (i as f32 / segments as f32) * std::f32::consts::TAU;
+                                let offset = axis_u * angle.cos() * radius_world + axis_v * angle.sin() * radius_world;
+                                if let Some(p) = project(world_pos + offset) {
+                                    points.push(p);
+                                }
+                            }
+                            if points.len() > 1 {
+                                painter.add(egui::Shape::line(points, egui::Stroke::new(2.5, color)));
+                            }
+                            
+                            // Draw Axis Label (X/Y/Z) at specific angle
+                            let angle = std::f32::consts::PI / 4.0; // 45 degrees
+                            let label_offset = axis_u * label_pos_factor.0 * radius_world + axis_v * label_pos_factor.1 * radius_world;
+                             if let Some(p) = project(world_pos + label_offset * 1.1) {
+                                 painter.text(p, egui::Align2::CENTER_CENTER, label, egui::FontId::proportional(12.0), color);
+                             }
+                        };
+
+                        // X-Axis Ring (Rotates around X -> lies in Y/Z plane) -> Up/Forward
+                        draw_ring(up, forward, egui::Color32::from_rgb(255, 50, 50), "X", (0.0, 1.0));
+
+                        // Y-Axis Ring (Rotates around Y -> lies in X/Z plane) -> Right/Forward
+                        // Note: X/Z plane
+                        draw_ring(right, forward, egui::Color32::from_rgb(50, 255, 50), "Y", (1.0, 0.0));
+
+                        // Z-Axis Ring (Rotates around Z -> lies in X/Y plane) -> Right/Up
+                        draw_ring(right, up, egui::Color32::from_rgb(50, 100, 255), "Z", (0.7, 0.7));
+
+                        // Outer white circle (Screen space Billboarding)
+                        let radius_screen = gizmo_size * 0.8;
+                        painter.circle_stroke(p_origin, radius_screen, egui::Stroke::new(1.0, egui::Color32::from_rgba_premultiplied(255, 255, 255, 100)));
                     }
                     TransformTool::Scale => {
                         // X Axis (Red)
@@ -493,7 +530,7 @@ fn render_rotated_camera_trapezoid(
     screen_y: f32,
     size: f32,
     rotation_rad: f32,
-    camera_color: egui::Color32,
+    _camera_color: egui::Color32,
     camera_component: &ecs::Camera,
 ) {
     // IMPORTANT: This gizmo is drawn in SCREEN SPACE using the camera's WORLD SPACE rotation

@@ -1,6 +1,5 @@
 use ecs::{World, Entity, ComponentType, ComponentManager, ScriptParameter};
 use egui;
-use std::collections::HashMap;
 use super::utils::{render_component_header, parse_lua_script_parameters};
 
 pub fn render_script_inspector(

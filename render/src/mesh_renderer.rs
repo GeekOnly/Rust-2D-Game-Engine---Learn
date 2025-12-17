@@ -101,12 +101,29 @@ impl MeshRenderer {
             label: Some("pbr_material_layout"),
         });
 
+        let object_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            entries: &[
+                wgpu::BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: wgpu::ShaderStages::VERTEX,
+                    ty: wgpu::BindingType::Buffer {
+                        ty: wgpu::BufferBindingType::Uniform,
+                        has_dynamic_offset: false,
+                        min_binding_size: None,
+                    },
+                    count: None,
+                },
+            ],
+            label: Some("object_layout"),
+        });
+
         let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: Some("PBR Pipeline Layout"),
             bind_group_layouts: &[
                 camera_layout,
                 light_layout,
                 &material_layout,
+                &object_layout,
             ],
             push_constant_ranges: &[],
         });
@@ -175,21 +192,7 @@ impl MeshRenderer {
             label: Some("toon_material_layout"),
         });
 
-        let object_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            entries: &[
-                wgpu::BindGroupLayoutEntry {
-                    binding: 0,
-                    visibility: wgpu::ShaderStages::VERTEX,
-                    ty: wgpu::BindingType::Buffer {
-                        ty: wgpu::BufferBindingType::Uniform,
-                        has_dynamic_offset: false,
-                        min_binding_size: None,
-                    },
-                    count: None,
-                },
-            ],
-            label: Some("object_layout"),
-        });
+        // object_layout moved up
 
         let toon_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: Some("Toon Pipeline Layout"),
@@ -313,11 +316,13 @@ impl MeshRenderer {
         material_bind_group: &'a wgpu::BindGroup,
         camera_bind_group: &'a wgpu::BindGroup,
         light_bind_group: &'a wgpu::BindGroup,
+        object_bind_group: &'a wgpu::BindGroup,
     ) {
         render_pass.set_pipeline(&self.render_pipeline);
         render_pass.set_bind_group(0, camera_bind_group, &[]);
         render_pass.set_bind_group(1, light_bind_group, &[]);
         render_pass.set_bind_group(2, material_bind_group, &[]);
+        render_pass.set_bind_group(3, object_bind_group, &[]);
         
         render_pass.set_vertex_buffer(0, mesh.vertex_buffer.slice(..));
         render_pass.set_index_buffer(mesh.index_buffer.slice(..), wgpu::IndexFormat::Uint32);

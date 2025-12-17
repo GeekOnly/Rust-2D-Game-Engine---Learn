@@ -1,5 +1,5 @@
 use ecs::World;
-use render::{BatchRenderer, MeshRenderer, TextureManager, CameraBinding, LightBinding, Mesh, ToonMaterialUniform, ObjectUniform};
+use render::{BatchRenderer, MeshRenderer, TextureManager, CameraBinding, LightBinding, Mesh, PbrMaterialUniform, ObjectUniform};
 use glam::{Vec3, Quat, Mat4};
 use std::collections::HashMap;
 use wgpu::util::DeviceExt;
@@ -114,6 +114,10 @@ pub fn render_game_world<'a>(
         }
     }
 
+    // Ensure default textures exist before any immutable borrows
+    let _ = texture_manager.get_white_texture(device, queue);
+    let _ = texture_manager.get_normal_texture(device, queue);
+
     // 3. Render Batches
     // For now, just render the first batch to avoid borrowing issues
     // TODO: Implement proper multi-texture batching
@@ -185,6 +189,8 @@ pub fn render_game_world<'a>(
         ENTITY_MATERIAL_CACHE.as_mut().unwrap()
     };
 
+
+
     // Pass 2: Ensure Bind Groups exist (Mutable access)
     // We cannot render here because RenderPass needs immutable access to the binds, 
     // but creation needs mutable access to the cache.
@@ -243,37 +249,52 @@ pub fn render_game_world<'a>(
                     }
                 }
 
-                 // 2. Material Uniform (Color)
+                 // 2. Material Uniform (PBR)
                  if !material_cache.contains_key(entity) {
-                     let toon_material = ToonMaterialUniform {
-                        color: ecs_mesh.color, 
-                        outline_color: [0.0, 0.0, 0.0, 1.0], 
-                        params: [0.02, 0.0, 0.0, 0.0], 
+                     let pbr_material = PbrMaterialUniform {
+                        albedo_factor: ecs_mesh.color, 
+                        metallic_factor: 0.0, 
+                        roughness_factor: 0.5, 
+                        padding: [0.0; 2],
                     };
+                    
+                    // We can safely unwrap because we initialized them above
+                    let white = texture_manager.get_texture("default_white").unwrap();
+                    let normal = texture_manager.get_texture("default_normal").unwrap();
+                    
                      let buffer = device.create_buffer_init(
                         &wgpu::util::BufferInitDescriptor {
-                            label: Some("Toon Material Buffer"),
-                            contents: bytemuck::cast_slice(&[toon_material]),
+                            label: Some("PBR Material Buffer"),
+                            contents: bytemuck::cast_slice(&[pbr_material]),
                             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
                         }
                     );
+                    
                     let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-                        layout: &mesh_renderer.toon_material_layout,
+                        layout: &mesh_renderer.material_layout,
                         entries: &[
                             wgpu::BindGroupEntry { binding: 0, resource: buffer.as_entire_binding() },
+                            wgpu::BindGroupEntry { binding: 1, resource: wgpu::BindingResource::TextureView(&white.view) },
+                            wgpu::BindGroupEntry { binding: 2, resource: wgpu::BindingResource::Sampler(&white.sampler) },
+                            wgpu::BindGroupEntry { binding: 3, resource: wgpu::BindingResource::TextureView(&normal.view) },
+                            wgpu::BindGroupEntry { binding: 4, resource: wgpu::BindingResource::Sampler(&normal.sampler) },
+                            wgpu::BindGroupEntry { binding: 5, resource: wgpu::BindingResource::TextureView(&white.view) },
+                            wgpu::BindGroupEntry { binding: 6, resource: wgpu::BindingResource::Sampler(&white.sampler) },
                         ],
-                        label: Some("toon_material_bind_group"),
+                        label: Some("pbr_material_bind_group"),
                     });
+                    
                      material_cache.insert(**entity, (buffer, bind_group));
                  } else {
                      // Update existing material buffer (in case color changes)
                      if let Some((buffer, _)) = material_cache.get(entity) {
-                          let toon_material = ToonMaterialUniform {
-                            color: ecs_mesh.color, 
-                            outline_color: [0.0, 0.0, 0.0, 1.0], 
-                            params: [0.02, 0.0, 0.0, 0.0], 
+                          let pbr_material = PbrMaterialUniform {
+                            albedo_factor: ecs_mesh.color, 
+                            metallic_factor: 0.0, 
+                            roughness_factor: 0.5, 
+                            padding: [0.0; 2],
                         };
-                        queue.write_buffer(buffer, 0, bytemuck::cast_slice(&[toon_material]));
+                        queue.write_buffer(buffer, 0, bytemuck::cast_slice(&[pbr_material]));
                      }
                  }
              }
@@ -287,7 +308,7 @@ pub fn render_game_world<'a>(
             let cache_key = format!("{:?}", ecs_mesh.mesh_type);
             if let Some(mesh) = mesh_cache.get(&cache_key) {
                 if let (Some((_, object_bg)), Some((_, material_bg))) = (entity_cache.get(entity), material_cache.get(entity)) {
-                     mesh_renderer.render_toon(
+                     mesh_renderer.render_pbr(
                         render_pass,
                         mesh,
                         material_bg,

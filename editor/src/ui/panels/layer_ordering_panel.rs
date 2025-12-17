@@ -1,4 +1,4 @@
-use egui::{self, Color32, RichText, Pos2, Rect};
+use egui::{self, Color32, RichText, Pos2};
 use ecs::{World, Entity};
 use crate::map_manager::MapManager;
 use std::path::PathBuf;

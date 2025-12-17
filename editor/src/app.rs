@@ -1,27 +1,20 @@
 use anyhow::Result;
-use engine_core::{EngineContext, EngineModule, project::ProjectManager};
-use ecs::{World, Entity, Transform, Sprite, Collider, EntityTag};
+use engine_core::EngineContext;
 use script::ScriptEngine;
 #[cfg(feature = "rapier")]
 use physics::rapier_backend::RapierPhysicsWorld;
 #[cfg(not(feature = "rapier"))]
 use physics::PhysicsWorld;
 use render::{RenderModule, CameraBinding};
-use crate::ui::{EditorUI, TransformTool};
-use crate::states::{AppState, LauncherState, EditorState, EditorAction};
-use crate::shortcuts::EditorShortcut;
-use crate::console::Console;
+use crate::ui::TransformTool;
+use crate::states::{AppState, LauncherState, EditorState};
 use engine::runtime;
-use engine::texture_manager;
-use engine::ui_manager;
 use crate::theme::UnityTheme;
-use input::Key;
 use winit::{
     event::*,
     event_loop::{ControlFlow, EventLoop, EventLoopWindowTarget},
     window::{Window, WindowBuilder},
 };
-use std::str::FromStr;
 
 pub struct EditorApp {
     pub window: Window,
@@ -703,14 +696,14 @@ impl EditorApp {
     }
 
     fn render_editor_ui(&mut self) {
-        let mut save_request = false;
-        let mut save_as_request = false;
-        let mut load_request = false;
-        let mut load_file_request: Option<std::path::PathBuf> = None;
-        let mut new_scene_request = false;
-        let mut play_request = false;
-        let mut stop_request = false;
-        let mut edit_script_request: Option<String> = None;
+        let save_request = false;
+        let save_as_request = false;
+        let load_request = false;
+        let load_file_request: Option<std::path::PathBuf> = None;
+        let new_scene_request = false;
+        let play_request = false;
+        let stop_request = false;
+        let edit_script_request: Option<String> = None;
 
         // Handle Q/W/E/R keyboard shortcuts for transform tools
         self.egui_ctx.input(|i| {

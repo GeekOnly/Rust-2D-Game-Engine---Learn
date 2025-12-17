@@ -1,7 +1,6 @@
-use ecs::World;
 use egui;
 use std::path::PathBuf;
-use crate::states::{BuildParams, EditorState};
+use crate::states::EditorState;
 use std::sync::mpsc;
 use std::thread;
 use std::process::Command;

@@ -133,7 +133,7 @@ pub fn render_scene_3d(
                  }
             } else if let Some(_) = world.meshes.get(entity) {
                 // Mesh picking - Use projected 3D bounds for accuracy
-                let scale_vec = glam::Vec3::from(transform.scale);
+                // scale_vec was unused here
                 // Use standard unit cube size (1.0) as base, scaled by transform
                 let bounds = calculate_3d_cube_bounds(
                     0.0, 0.0, 1.0, 
@@ -242,7 +242,7 @@ pub fn render_scene_3d(
     
     // Render camera gizmos on top of everything else
     // Collect ALL camera entities (both with and without meshes)
-    let mut camera_entities: Vec<(Entity, &ecs::Transform)> = world.transforms.iter()
+    let camera_entities: Vec<(Entity, &ecs::Transform)> = world.transforms.iter()
         .filter(|(entity, _)| world.cameras.contains_key(entity))
         .map(|(&e, t)| (e, t))
         .collect();
@@ -307,207 +307,11 @@ pub fn render_scene_3d(
     }
 }
 
-fn render_entity_3d(
-    painter: &egui::Painter,
-    entity: Entity,
-    transform: &ecs::Transform,
-    world: &World,
-    scene_camera: &SceneCamera,
-    projection_mode: &SceneProjectionMode,
-    viewport_size: Vec2,
-    viewport_rect: &egui::Rect,
-    selected_entity: &Option<Entity>,
-    show_colliders: &bool,
-    show_velocities: &bool,
-    hovered_entity: &mut Option<Entity>,
-    response: &egui::Response,
-) {
-    let world_pos = Vec3::from(transform.position);
-    
-    // Project to screen (returns position relative to viewport 0,0)
-    let screen_pos = match projection_3d::world_to_screen(world_pos, scene_camera, viewport_size) {
-        Some(pos) => pos,
-        None => return, // Behind camera or invalid
-    };
-    
-    // Convert viewport-relative position to absolute screen position
-    let screen_x = viewport_rect.min.x + screen_pos.x;
-    let screen_y = viewport_rect.min.y + screen_pos.y;
-
-    // Calculate scale factor based on distance
-    let dist = (world_pos - scene_camera.position).length();
-    let scale_factor = if dist > 0.1 { 500.0 / dist } else { 1.0 };
-
-    // Get entity bounds for click detection
-    let entity_rect = if let Some(_sprite) = world.sprites.get(&entity) {
-        let transform_scale = glam::Vec2::new(transform.scale[0], transform.scale[1]);
-        let size = egui::vec2(transform_scale.x * scale_factor, transform_scale.y * scale_factor);
-        egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), size)
-    } else if world.meshes.contains_key(&entity) {
-        // Fix: Use 1.0 as base size (unit cube), let transform.scale handle the scaling.
-        // Previous code invalidly multiplied size by max scale, causing double scaling.
-        let world_size = 1.0;
-        calculate_3d_cube_bounds(screen_x, screen_y, world_size, transform, scene_camera, projection_mode, viewport_size, viewport_rect)
-    } else {
-        egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), egui::vec2(10.0, 10.0))
-    };
-
-    // Check hover
-    if let Some(hover_pos) = response.hover_pos() {
-        if entity_rect.contains(hover_pos) {
-            *hovered_entity = Some(entity);
-        }
-    }
-
-    // Render Sprite
-    if let Some(sprite) = world.sprites.get(&entity) {
-        let transform_scale = glam::Vec2::new(transform.scale[0], transform.scale[1]);
-        let size = egui::vec2(transform_scale.x * scale_factor, transform_scale.y * scale_factor);
-        let color = egui::Color32::from_rgba_unmultiplied(
-            (sprite.color[0] * 255.0) as u8,
-            (sprite.color[1] * 255.0) as u8,
-            (sprite.color[2] * 255.0) as u8,
-            (sprite.color[3] * 255.0) as u8,
-        );
-
-        if sprite.billboard {
-            // Billboard mode
-            painter.rect_filled(
-                egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), size),
-                2.0,
-                color,
-            );
-            painter.rect_stroke(
-                egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), size),
-                2.0,
-                egui::Stroke::new(1.0, egui::Color32::from_rgba_premultiplied(255, 255, 255, 50)),
-            );
-        } else {
-            painter.rect_filled(
-                egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), size),
-                2.0,
-                color,
-            );
-        }
-    } else if let Some(mesh) = world.meshes.get(&entity) {
-        render_mesh_entity_3d(painter, entity, transform, mesh, screen_x, screen_y, scene_camera, projection_mode, viewport_size, viewport_rect);
-    } else {
-         // Default placeholder
-        // Check if entity has Camera component
-        let is_camera = world.cameras.contains_key(&entity);
-        
-        if is_camera {
-            render_camera_gizmo(painter, screen_x, screen_y, entity, world, scene_camera, &SceneViewMode::Mode3D);
-            // Render camera frustum (pyramid showing FOV)
-            render_camera_frustum_3d(painter, entity, world, scene_camera, *viewport_rect, egui::pos2(screen_x, screen_y));
-        } else {
-            painter.circle_filled(egui::pos2(screen_x, screen_y), 5.0 * scale_factor, egui::Color32::from_rgb(150, 150, 150));
-        }
-    }
-
-    // Gizmos
-    if *show_colliders && *selected_entity != Some(entity) {
-        render_collider_gizmo(painter, entity, world, screen_x, screen_y, scene_camera, false, false);
-    }
-    
-    if *show_velocities {
-        render_velocity_gizmo(painter, entity, world, screen_x, screen_y);
-    }
-}
+// render_entity_3d removed (dead code)
 
 
 
-fn render_mesh_entity_3d(
-    painter: &egui::Painter,
-    _entity: Entity,
-    transform: &ecs::Transform,
-    mesh: &ecs::Mesh,
-    screen_x: f32,
-    screen_y: f32,
-    scene_camera: &SceneCamera,
-    projection_mode: &SceneProjectionMode,
-    viewport_size: Vec2,
-    viewport_rect: &egui::Rect,
-) {
-    let color = egui::Color32::from_rgba_unmultiplied(
-        (mesh.color[0] * 255.0) as u8,
-        (mesh.color[1] * 255.0) as u8,
-        (mesh.color[2] * 255.0) as u8,
-        (mesh.color[3] * 255.0) as u8,
-    );
-    
-    let scale = glam::Vec3::from(transform.scale);
-    let world_size = 1.0;
-    
-    // Fix: Do not multiply base_size by scale here, as render_primitive functions (like render_3d_cube)
-    // already apply the full transform matrix (including scale).
-    let base_size = world_size;
-    
-    match mesh.mesh_type {
-        MeshType::Cube => {
-            render_3d_cube(painter, screen_x, screen_y, base_size, transform, color, scene_camera, projection_mode, viewport_size, viewport_rect);
-        }
-        MeshType::Sphere => {
-            painter.circle_filled(egui::pos2(screen_x, screen_y), base_size / 2.0, color);
-            painter.circle_stroke(egui::pos2(screen_x, screen_y), base_size / 2.0, egui::Stroke::new(1.0, egui::Color32::BLACK));
-        }
-        MeshType::Cylinder => {
-            let width = base_size;
-            let height = base_size * 1.5;
-            let ellipse_height = base_size * 0.3;
-            
-            let body_rect = egui::Rect::from_center_size(
-                egui::pos2(screen_x, screen_y),
-                egui::vec2(width, height),
-            );
-            painter.rect_filled(body_rect, 0.0, color);
-            
-            let top_rect = egui::Rect::from_center_size(
-                egui::pos2(screen_x, screen_y - height/2.0),
-                egui::vec2(width, ellipse_height),
-            );
-            painter.rect_filled(top_rect, width/2.0, color);
-            
-            let bottom_color = egui::Color32::from_rgba_unmultiplied(
-                (mesh.color[0] * 200.0) as u8,
-                (mesh.color[1] * 200.0) as u8,
-                (mesh.color[2] * 200.0) as u8,
-                (mesh.color[3] * 255.0) as u8,
-            );
-            let bottom_rect = egui::Rect::from_center_size(
-                egui::pos2(screen_x, screen_y + height/2.0),
-                egui::vec2(width, ellipse_height),
-            );
-            painter.rect_filled(bottom_rect, width/2.0, bottom_color);
-        }
-        MeshType::Plane => {
-            let size = base_size * 1.5;
-            let rect = egui::Rect::from_center_size(
-                egui::pos2(screen_x, screen_y),
-                egui::vec2(size, size * 0.1),
-            );
-            painter.rect_filled(rect, 0.0, color);
-            painter.rect_stroke(rect, 0.0, egui::Stroke::new(1.0, egui::Color32::BLACK));
-        }
-        MeshType::Capsule => {
-            let width = base_size * 0.6;
-            let height = base_size * 1.5;
-            let radius = width / 2.0;
-            
-            let body_rect = egui::Rect::from_center_size(
-                egui::pos2(screen_x, screen_y),
-                egui::vec2(width, height - width),
-            );
-            painter.rect_filled(body_rect, 0.0, color);
-            
-            painter.circle_filled(egui::pos2(screen_x, screen_y - (height - width)/2.0), radius, color);
-            painter.circle_filled(egui::pos2(screen_x, screen_y + (height - width)/2.0), radius, color);
-            
-            painter.circle_stroke(egui::pos2(screen_x, screen_y - (height - width)/2.0), radius, egui::Stroke::new(1.0, egui::Color32::BLACK));
-            painter.circle_stroke(egui::pos2(screen_x, screen_y + (height - width)/2.0), radius, egui::Stroke::new(1.0, egui::Color32::BLACK));
-        }
-    }
-}
+// render_mesh_entity_3d removed (dead code)
 
 // Reuse the cube rendering logic
 fn calculate_3d_cube_bounds(
@@ -535,7 +339,7 @@ fn calculate_3d_cube_bounds(
         Vec3::new(-half * scale[0], half * scale[1], half * scale[2]),
     ];
     
-    let world_pos = Vec3::from(transform.position);
+    // world_pos unused
     
     let rot_rad = Vec3::new(
         transform.rotation[0].to_radians(),
@@ -544,9 +348,7 @@ fn calculate_3d_cube_bounds(
     );
     let rotation = glam::Quat::from_euler(glam::EulerRot::XYZ, rot_rad.x, rot_rad.y, rot_rad.z);
     let translation = Vec3::from(transform.position);
-    let scale_vec = Vec3::from(transform.scale);
-    
-    let model_matrix = glam::Mat4::from_scale_rotation_translation(scale_vec, rotation, translation);
+    // scale_vec and model_matrix removed as they were unused
 
     // Project vertices to screen space
     let projected: Vec<Vec2> = vertices.iter()
@@ -597,107 +399,4 @@ fn calculate_3d_cube_bounds(
     )
 }
 
-fn render_3d_cube(
-    painter: &egui::Painter,
-    screen_x: f32,
-    screen_y: f32,
-    size: f32,
-    transform: &ecs::Transform,
-    base_color: egui::Color32,
-    scene_camera: &SceneCamera,
-    _projection_mode: &SceneProjectionMode,
-    viewport_size: Vec2,
-    viewport_rect: &egui::Rect,
-) {
-    let half = size / 2.0;
-    let scale = transform.scale;
-    
-    // Define vertices in local space
-    let vertices = [
-        Vec3::new(-half * scale[0], -half * scale[1], -half * scale[2]),
-        Vec3::new(half * scale[0], -half * scale[1], -half * scale[2]),
-        Vec3::new(half * scale[0], half * scale[1], -half * scale[2]),
-        Vec3::new(-half * scale[0], half * scale[1], -half * scale[2]),
-        Vec3::new(-half * scale[0], -half * scale[1], half * scale[2]),
-        Vec3::new(half * scale[0], -half * scale[1], half * scale[2]),
-        Vec3::new(half * scale[0], half * scale[1], half * scale[2]),
-        Vec3::new(-half * scale[0], half * scale[1], half * scale[2]),
-    ];
-    
-    let world_pos = Vec3::from(transform.position);
-    
-    let rot_rad = Vec3::new(
-        transform.rotation[0].to_radians(),
-        transform.rotation[1].to_radians(),
-        transform.rotation[2].to_radians(),
-    );
-    let rotation = glam::Quat::from_euler(glam::EulerRot::XYZ, rot_rad.x, rot_rad.y, rot_rad.z);
-    let translation = Vec3::from(transform.position);
-
-    // Project vertices to screen space
-    let projected: Vec<Option<Vec2>> = vertices.iter()
-        .map(|v| {
-            // Vertices already have scale applied (see definition above)
-            // Apply Rotation then Translation: T * R * v
-            let v_rotated = rotation * *v;
-            let v_world = translation + v_rotated;
-            
-            projection_3d::world_to_screen(v_world, scene_camera, viewport_size)
-        })
-        .collect();
-    
-    // Define faces (indices) with their center points for depth sorting
-    let face_data = [
-        ([0, 1, 2, 3], "Front"),   // Front
-        ([5, 4, 7, 6], "Back"),    // Back
-        ([1, 0, 4, 5], "Bottom"),  // Bottom
-        ([3, 2, 6, 7], "Top"),     // Top
-        ([0, 3, 7, 4], "Left"),    // Left
-        ([2, 1, 5, 6], "Right"),   // Right
-    ];
-    
-    // Calculate face centers and sort by depth (back to front for proper rendering)
-    let mut faces_with_depth: Vec<_> = face_data.iter().enumerate().map(|(i, (face, _name))| {
-        // Calculate face center in world space
-        let face_center = face.iter()
-            .map(|&idx| world_pos + vertices[idx])
-            .fold(Vec3::ZERO, |acc, v| acc + v) / 4.0;
-        
-        // Calculate depth from camera
-        let depth = (face_center - Vec3::from(scene_camera.position)).length();
-        (i, face, depth)
-    }).collect();
-    
-    // Sort faces by depth (back to front)
-    faces_with_depth.sort_by(|a, b| b.2.partial_cmp(&a.2).unwrap_or(std::cmp::Ordering::Equal));
-    
-    // Render faces in sorted order (back to front)
-    for (_i, face_indices, _depth) in faces_with_depth {
-        let mut points = Vec::new();
-        let mut valid = true;
-        
-        for &i in face_indices {
-            if let Some(p) = projected[i] {
-                points.push(egui::pos2(p.x + viewport_rect.min.x, p.y + viewport_rect.min.y));
-            } else {
-                valid = false;
-                break;
-            }
-        }
-        
-        if valid && points.len() == 4 {
-            // Simple backface culling (check winding order)
-            let v1 = points[1] - points[0];
-            let v2 = points[2] - points[0];
-            let cross = v1.x * v2.y - v1.y * v2.x;
-            
-            if cross > 0.0 {
-                painter.add(egui::Shape::convex_polygon(
-                    points,
-                    base_color,
-                    egui::Stroke::new(1.5, egui::Color32::from_gray(40)),
-                ));
-            }
-        }
-    }
-}
+// render_3d_cube removed (dead code)

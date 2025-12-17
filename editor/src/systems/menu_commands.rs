@@ -1,6 +1,5 @@
 use crate::states::EditorState;
 use ecs::World;
-use engine_core::EngineContext;
 use script::ScriptEngine;
 #[cfg(feature = "rapier")]
 use physics::rapier_backend::RapierPhysicsWorld;

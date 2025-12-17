@@ -56,19 +56,25 @@ struct VertexOutput {
     @location(4) bitangent: vec3<f32>,
 };
 
+struct ObjectUniform {
+    model: mat4x4<f32>,
+};
+
+@group(3) @binding(0)
+var<uniform> object: ObjectUniform;
+
 @vertex
 fn vs_main(
     model: VertexInput,
 ) -> VertexOutput {
     var out: VertexOutput;
-    // Assume model matrix is identity for now (we need instance support later)
-    let world_pos = vec4<f32>(model.position, 1.0);
+    let world_pos = object.model * vec4<f32>(model.position, 1.0);
     
     out.world_position = world_pos.xyz;
     out.tex_coords = model.tex_coords;
-    out.normal = model.normal;
-    out.tangent = model.tangent;
-    out.bitangent = model.bitangent;
+    out.normal = (object.model * vec4<f32>(model.normal, 0.0)).xyz; // Basic normal transform (ignores non-uniform scale issues)
+    out.tangent = (object.model * vec4<f32>(model.tangent, 0.0)).xyz;
+    out.bitangent = (object.model * vec4<f32>(model.bitangent, 0.0)).xyz;
     out.clip_position = camera.view_proj * world_pos;
     return out;
 }

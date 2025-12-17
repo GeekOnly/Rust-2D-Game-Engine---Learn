@@ -1,4 +1,4 @@
-use ecs::{World, Entity, ScriptParameter, ComponentType};
+use ecs::{World, Entity, ScriptParameter};
 use egui;
 use std::collections::HashMap;
 
