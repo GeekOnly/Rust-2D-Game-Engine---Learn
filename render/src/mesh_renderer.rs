@@ -8,6 +8,13 @@ pub struct MeshRenderer {
     toon_pipeline: wgpu::RenderPipeline,
     outline_pipeline: wgpu::RenderPipeline,
     pub toon_material_layout: wgpu::BindGroupLayout,
+    pub object_layout: wgpu::BindGroupLayout,
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
+pub struct ObjectUniform {
+    pub model: [[f32; 4]; 4],
 }
 
 impl MeshRenderer {
@@ -172,12 +179,29 @@ impl MeshRenderer {
             label: Some("toon_material_layout"),
         });
 
+        let object_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            entries: &[
+                wgpu::BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: wgpu::ShaderStages::VERTEX,
+                    ty: wgpu::BindingType::Buffer {
+                        ty: wgpu::BufferBindingType::Uniform,
+                        has_dynamic_offset: false,
+                        min_binding_size: None,
+                    },
+                    count: None,
+                },
+            ],
+            label: Some("object_layout"),
+        });
+
         let toon_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: Some("Toon Pipeline Layout"),
             bind_group_layouts: &[
                 camera_layout,
                 light_layout,
                 &toon_material_layout,
+                &object_layout,
             ],
             push_constant_ranges: &[],
         });
@@ -282,6 +306,7 @@ impl MeshRenderer {
             toon_pipeline,
             outline_pipeline,
             toon_material_layout,
+            object_layout,
         }
     }
 
@@ -310,18 +335,21 @@ impl MeshRenderer {
         material_bind_group: &'a wgpu::BindGroup,
         camera_bind_group: &'a wgpu::BindGroup,
         light_bind_group: &'a wgpu::BindGroup,
+        object_bind_group: &'a wgpu::BindGroup,
     ) {
         // Outline Pass (1st)
         render_pass.set_pipeline(&self.outline_pipeline);
         render_pass.set_bind_group(0, camera_bind_group, &[]);
         render_pass.set_bind_group(1, light_bind_group, &[]);
         render_pass.set_bind_group(2, material_bind_group, &[]);
+        render_pass.set_bind_group(3, object_bind_group, &[]);
         render_pass.set_vertex_buffer(0, mesh.vertex_buffer.slice(..));
         render_pass.set_index_buffer(mesh.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
         render_pass.draw_indexed(0..mesh.num_elements, 0, 0..1);
 
         // Main Toon Pass (2nd)
         render_pass.set_pipeline(&self.toon_pipeline);
+        render_pass.set_bind_group(3, object_bind_group, &[]);
         render_pass.draw_indexed(0..mesh.num_elements, 0, 0..1);
     }
 
@@ -376,6 +404,28 @@ impl MeshRenderer {
                 wgpu::BindGroupEntry { binding: 0, resource: uniform_buffer.as_entire_binding() },
             ],
             label: Some("toon_material_bind_group"),
+        })
+    }
+
+    pub fn create_object_bind_group(
+        &self,
+        device: &wgpu::Device,
+        object_uniform: &ObjectUniform,
+    ) -> wgpu::BindGroup {
+        let uniform_buffer = device.create_buffer_init(
+            &wgpu::util::BufferInitDescriptor {
+                label: Some("Object Uniform"),
+                contents: bytemuck::cast_slice(&[*object_uniform]),
+                usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+            }
+        );
+
+        device.create_bind_group(&wgpu::BindGroupDescriptor {
+            layout: &self.object_layout,
+            entries: &[
+                wgpu::BindGroupEntry { binding: 0, resource: uniform_buffer.as_entire_binding() },
+            ],
+            label: Some("object_bind_group"),
         })
     }
 }

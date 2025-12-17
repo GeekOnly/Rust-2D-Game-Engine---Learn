@@ -25,6 +25,13 @@ var<uniform> light: LightUniform;
 @group(2) @binding(0)
 var<uniform> material: ToonMaterialUniform;
 
+struct ObjectUniform {
+    model: mat4x4<f32>,
+};
+
+@group(3) @binding(0)
+var<uniform> object: ObjectUniform;
+
 struct VertexInput {
     @location(0) position: vec3<f32>,
     @location(1) tex_coords: vec2<f32>,
@@ -44,9 +51,16 @@ fn vs_main(
     model: VertexInput,
 ) -> VertexOutput {
     var out: VertexOutput;
-    let world_pos = vec4<f32>(model.position, 1.0);
+    let world_pos = object.model * vec4<f32>(model.position, 1.0);
     out.world_position = world_pos.xyz;
-    out.normal = model.normal;
+    // For now assume uniform scaling so allow normal transformation by model matrix rotation
+    // Ideally use inverse transpose of model matrix
+    let normal_matrix = mat3x3<f32>(
+        object.model[0].xyz,
+        object.model[1].xyz,
+        object.model[2].xyz
+    );
+    out.normal = normal_matrix * model.normal;
     out.clip_position = camera.view_proj * world_pos;
     return out;
 }
@@ -96,7 +110,8 @@ fn vs_outline(
     let extruded_pos = model.position + model.normal * outline_width;
     
     var out: OutlineVertexOutput;
-    out.clip_position = camera.view_proj * vec4<f32>(extruded_pos, 1.0);
+    let world_pos = object.model * vec4<f32>(extruded_pos, 1.0);
+    out.clip_position = camera.view_proj * world_pos;
     return out;
 }
 

@@ -16,7 +16,7 @@ pub mod mesh_renderer;
 pub mod camera;
 pub use mesh::{Mesh, ModelVertex};
 pub use mesh_generation::generate_mesh;
-pub use mesh_renderer::MeshRenderer;
+pub use mesh_renderer::{MeshRenderer, ObjectUniform};
 pub use camera::{CameraBinding, CameraUniform};
 pub mod lighting;
 pub mod material;

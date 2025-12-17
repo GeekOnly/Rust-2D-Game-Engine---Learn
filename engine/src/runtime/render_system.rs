@@ -1,7 +1,8 @@
 use ecs::World;
-use render::{BatchRenderer, MeshRenderer, TextureManager, CameraBinding, LightBinding, Mesh, ToonMaterialUniform};
+use render::{BatchRenderer, MeshRenderer, TextureManager, CameraBinding, LightBinding, Mesh, ToonMaterialUniform, ObjectUniform};
 use glam::{Vec3, Quat, Mat4};
 use std::collections::HashMap;
+use wgpu::util::DeviceExt;
 
 // Simple mesh cache to avoid regenerating meshes every frame
 static mut MESH_CACHE: Option<HashMap<String, Mesh>> = None;
@@ -42,29 +43,31 @@ pub fn render_game_world<'a>(
         }
     }
 
-    // Camera View-Projection Matrix
-    let view_proj = if let (Some(_camera), Some(transform)) = (main_camera, camera_transform) {
-        // Simple Orthographic setup for 2D
-        // TODO: Use actual Camera component properties (projection size, fov)
-        let half_height = 5.0; // Fixed size for now (Zoom level)
-        // We'd need accurate aspect ratio here. Passing 16/9 generic for now, 
-        // real implementation should pass actual surface size into this function.
-        let aspect = 1.777; 
-        let half_width = half_height * aspect;
+    let view_proj = if let (Some(camera), Some(transform)) = (main_camera, camera_transform) {
         
-        // Reverse-Z projection (Unreal Engine technique)
-        let projection = Mat4::orthographic_rh(
-            -half_width, half_width, 
-            -half_height, half_height, 
-            50.0, 0.1 // Reversed: Far=50.0, Near=0.1 for better precision
+        let rot_rad = Vec3::new(
+            transform.rotation[0].to_radians(),
+            transform.rotation[1].to_radians(),
+            transform.rotation[2].to_radians(),
         );
+        let cam_rotation = Quat::from_euler(glam::EulerRot::YXZ, rot_rad.y, rot_rad.x, rot_rad.z);
+        let cam_translation = Vec3::from(transform.position);
+
+        let view = Mat4::from_rotation_translation(cam_rotation, cam_translation).inverse();
         
-        let eye = Vec3::new(transform.position[0], transform.position[1], 10.0); // Z=10 for camera
-        let target = Vec3::new(transform.position[0], transform.position[1], 0.0);
-        let up = Vec3::new(0.0, 1.0, 0.0);
-        
-        let view = Mat4::look_at_rh(eye, target, up);
-        
+        let projection = match camera.projection {
+             ecs::CameraProjection::Perspective => {
+                let aspect = 16.0 / 9.0; // TODO: Pass actual screen size
+                Mat4::perspective_rh(camera.fov.to_radians(), aspect, camera.near_clip, camera.far_clip)
+             }
+             ecs::CameraProjection::Orthographic => {
+                 let half_height = camera.orthographic_size;
+                 let aspect = 16.0 / 9.0;
+                 let half_width = half_height * aspect;
+                 Mat4::orthographic_rh(-half_width, half_width, -half_height, half_height, camera.far_clip, camera.near_clip)
+             }
+        };
+
         projection * view
     } else {
         // Fallback default camera with Reverse-Z
@@ -145,11 +148,7 @@ pub fn render_game_world<'a>(
     });
 
     // 4. Render Meshes with proper GPU rendering
-    // For now, skip mesh rendering to avoid lifetime issues
-    // TODO: Implement proper mesh rendering with better lifetime management
     // Pass 1: Ensure all meshes are in cache (Mutable access)
-    // We must do this in a separate loop because we cannot mutate the HashMap 
-    // while holding references to its values (which RenderPass needs).
     let mesh_cache = get_mesh_cache();
 
     for (entity, ecs_mesh) in &mesh_entities {
@@ -163,36 +162,136 @@ pub fn render_game_world<'a>(
     }
 
     // Pass 2: Render (Immutable access)
-    // Now that cache is populated, we can hold immutable references to meshes for the duration of the pass
-    for (entity, ecs_mesh) in mesh_entities {
-        if let Some(_transform) = world.transforms.get(entity) {
-            let cache_key = format!("{:?}", ecs_mesh.mesh_type);
-            
-            if let Some(mesh) = mesh_cache.get(&cache_key) {
-                // Get or create material bind group
-                let material_bind_group = unsafe {
-                    if MATERIAL_CACHE.is_none() {
-                         // Create simple toon material for now
-                        let toon_material = ToonMaterialUniform {
-                            color: [0.8, 0.8, 0.8, 1.0], // Default gray color
-                            outline_color: [0.0, 0.0, 0.0, 1.0], // Black outline
-                            params: [0.02, 0.0, 0.0, 0.0], // outline_width = 0.02
-                        };
-                        let bind_group = mesh_renderer.create_toon_material_bind_group(device, &toon_material);
-                        MATERIAL_CACHE = Some(bind_group);
-                    }
-                    MATERIAL_CACHE.as_ref().unwrap()
-                };
-                
-                // Render mesh with toon shading
-                mesh_renderer.render_toon(
-                    render_pass,
-                    mesh,
-                    material_bind_group,
-                    &camera_binding.bind_group,
-                    &light_binding.bind_group,
-                );
-            }
+    // We need to create bind groups for each entity
+    static mut ENTITY_CACHE: Option<HashMap<u32, (wgpu::Buffer, wgpu::BindGroup)>> = None;
+    static mut ENTITY_MATERIAL_CACHE: Option<HashMap<u32, (wgpu::Buffer, wgpu::BindGroup)>> = None;
+
+    let entity_cache = unsafe {
+        if ENTITY_CACHE.is_none() {
+            ENTITY_CACHE = Some(HashMap::new());
         }
+        ENTITY_CACHE.as_mut().unwrap()
+    };
+    
+    let material_cache = unsafe {
+        if ENTITY_MATERIAL_CACHE.is_none() {
+             ENTITY_MATERIAL_CACHE = Some(HashMap::new());
+        }
+        ENTITY_MATERIAL_CACHE.as_mut().unwrap()
+    };
+
+    // Pass 2: Ensure Bind Groups exist (Mutable access)
+    // We cannot render here because RenderPass needs immutable access to the binds, 
+    // but creation needs mutable access to the cache.
+    for (entity, ecs_mesh) in &mesh_entities {
+        if let Some(transform) = world.transforms.get(entity) {
+             let cache_key = format!("{:?}", ecs_mesh.mesh_type);
+             if mesh_cache.contains_key(&cache_key) {
+                 // 1. Object Uniform (Model Matrix)
+                if !entity_cache.contains_key(entity) {
+                    let rot_rad = Vec3::new(
+                        transform.rotation[0].to_radians(),
+                        transform.rotation[1].to_radians(),
+                        transform.rotation[2].to_radians(),
+                    );
+                    let rotation = Quat::from_euler(glam::EulerRot::XYZ, rot_rad.x, rot_rad.y, rot_rad.z);
+                    let translation = Vec3::from(transform.position);
+                    let scale = Vec3::from(transform.scale);
+                    
+                    let model_matrix = Mat4::from_scale_rotation_translation(scale, rotation, translation);
+                    let object_uniform = ObjectUniform {
+                        model: model_matrix.to_cols_array_2d(),
+                    };
+                    
+                     let buffer = device.create_buffer_init(
+                        &wgpu::util::BufferInitDescriptor {
+                            label: Some("Object Uniform Buffer"),
+                            contents: bytemuck::cast_slice(&[object_uniform]),
+                            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+                        }
+                    );
+                    let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+                        layout: &mesh_renderer.object_layout,
+                        entries: &[
+                            wgpu::BindGroupEntry { binding: 0, resource: buffer.as_entire_binding() },
+                        ],
+                        label: Some("object_bind_group"),
+                    });
+                    entity_cache.insert(**entity, (buffer, bind_group));
+                } else {
+                    // Update existing buffer
+                    if let Some((buffer, _)) = entity_cache.get(entity) {
+                        let rot_rad = Vec3::new(
+                            transform.rotation[0].to_radians(),
+                            transform.rotation[1].to_radians(),
+                            transform.rotation[2].to_radians(),
+                        );
+                        let rotation = Quat::from_euler(glam::EulerRot::XYZ, rot_rad.x, rot_rad.y, rot_rad.z);
+                        let translation = Vec3::from(transform.position);
+                        let scale = Vec3::from(transform.scale);
+                        
+                        let model_matrix = Mat4::from_scale_rotation_translation(scale, rotation, translation);
+                        let object_uniform = ObjectUniform {
+                            model: model_matrix.to_cols_array_2d(),
+                        };
+                         queue.write_buffer(buffer, 0, bytemuck::cast_slice(&[object_uniform]));
+                    }
+                }
+
+                 // 2. Material Uniform (Color)
+                 if !material_cache.contains_key(entity) {
+                     let toon_material = ToonMaterialUniform {
+                        color: ecs_mesh.color, 
+                        outline_color: [0.0, 0.0, 0.0, 1.0], 
+                        params: [0.02, 0.0, 0.0, 0.0], 
+                    };
+                     let buffer = device.create_buffer_init(
+                        &wgpu::util::BufferInitDescriptor {
+                            label: Some("Toon Material Buffer"),
+                            contents: bytemuck::cast_slice(&[toon_material]),
+                            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+                        }
+                    );
+                    let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+                        layout: &mesh_renderer.toon_material_layout,
+                        entries: &[
+                            wgpu::BindGroupEntry { binding: 0, resource: buffer.as_entire_binding() },
+                        ],
+                        label: Some("toon_material_bind_group"),
+                    });
+                     material_cache.insert(**entity, (buffer, bind_group));
+                 } else {
+                     // Update existing material buffer (in case color changes)
+                     if let Some((buffer, _)) = material_cache.get(entity) {
+                          let toon_material = ToonMaterialUniform {
+                            color: ecs_mesh.color, 
+                            outline_color: [0.0, 0.0, 0.0, 1.0], 
+                            params: [0.02, 0.0, 0.0, 0.0], 
+                        };
+                        queue.write_buffer(buffer, 0, bytemuck::cast_slice(&[toon_material]));
+                     }
+                 }
+             }
+        }
+    }
+
+    // Pass 3: Render (Immutable access)
+    // Now caches are ready, we can borrow them fully for the render pass
+    for (entity, ecs_mesh) in mesh_entities {
+         if world.transforms.contains_key(entity) {
+            let cache_key = format!("{:?}", ecs_mesh.mesh_type);
+            if let Some(mesh) = mesh_cache.get(&cache_key) {
+                if let (Some((_, object_bg)), Some((_, material_bg))) = (entity_cache.get(entity), material_cache.get(entity)) {
+                     mesh_renderer.render_toon(
+                        render_pass,
+                        mesh,
+                        material_bg,
+                        &camera_binding.bind_group,
+                        &light_binding.bind_group,
+                        object_bg,
+                    );
+                }
+            }
+         }
     }
 }
