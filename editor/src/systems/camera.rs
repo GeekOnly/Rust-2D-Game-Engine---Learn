@@ -201,7 +201,7 @@ impl SceneCamera {
             distance: 500.0,  // Default distance for 3D mode
             pivot: Vec3::ZERO,
             projection_mode: SceneProjectionMode::Isometric, // Unity-style default (orthographic Scene View)
-            min_zoom: 0.01,   // Min zoom (1% - very zoomed out, see entire level)
+            min_zoom: 0.001,   // Min zoom (0.1% - very zoomed out)
             max_zoom: 100.0,  // Max zoom (100x - very zoomed in, pixel-level editing)
             min_pitch: -89.0,
             max_pitch: 89.0,
@@ -317,7 +317,7 @@ impl SceneCamera {
             };
 
             let new_distance = self.distance * zoom_factor;
-            self.distance = new_distance.clamp(0.5, 10000.0);  // Allow closer zoom
+            self.distance = new_distance.clamp(0.1, 100000.0);  // Allow closer zoom and much further zoom
 
             // In 3D mode, we simply move closer/further from the target (self.position)
             // relative to the current viewing angle.

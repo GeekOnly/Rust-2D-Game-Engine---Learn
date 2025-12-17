@@ -127,41 +127,7 @@ pub fn render_scene_view(
         }
     }
     
-    // Render 3D scene gizmo (top-right corner)
-    if *scene_view_mode == SceneViewMode::Mode3D {
-        let gizmo_size = 80.0;
-        let margin = 20.0;
-        let gizmo_center_x = rect.max.x - margin - gizmo_size / 2.0;
-        let gizmo_center_y = rect.min.y + margin + gizmo_size / 2.0;
 
-        interaction::camera::handle_gizmo_axis_clicks(ui, gizmo_center_x, gizmo_center_y, gizmo_size, scene_camera);
-        rendering::gizmos::render_scene_gizmo_visual(&painter, gizmo_center_x, gizmo_center_y, gizmo_size, scene_camera);
-
-        // Projection mode button
-        let button_y = gizmo_center_y + gizmo_size / 2.0 + 35.0;
-        let button_pos = egui::pos2(gizmo_center_x - 40.0, button_y - 10.0);
-
-        ui.allocate_ui_at_rect(
-            egui::Rect::from_min_size(button_pos, egui::vec2(80.0, 20.0)),
-            |ui| {
-                ui.style_mut().visuals.widgets.inactive.weak_bg_fill = egui::Color32::from_rgba_premultiplied(50, 50, 55, 200);
-                ui.style_mut().visuals.widgets.hovered.weak_bg_fill = egui::Color32::from_rgba_premultiplied(60, 60, 65, 220);
-                ui.style_mut().visuals.widgets.active.weak_bg_fill = egui::Color32::from_rgba_premultiplied(70, 70, 75, 240);
-
-                let button_text = match projection_mode {
-                    SceneProjectionMode::Perspective => "⬜ Persp",
-                    SceneProjectionMode::Isometric => "◇ Iso",
-                };
-
-                if ui.button(button_text).clicked() {
-                    *projection_mode = match projection_mode {
-                        SceneProjectionMode::Perspective => SceneProjectionMode::Isometric,
-                        SceneProjectionMode::Isometric => SceneProjectionMode::Perspective,
-                    };
-                }
-            }
-        );
-    }
 
     // Render entities
     let center = rect.center();
@@ -224,6 +190,42 @@ pub fn render_scene_view(
                 device,
             );
         }
+    }
+
+    // Render 3D scene gizmo (top-right corner) - Rendered AFTER scene to be on top
+    if *scene_view_mode == SceneViewMode::Mode3D {
+        let gizmo_size = 80.0;
+        let margin = 20.0;
+        let gizmo_center_x = rect.max.x - margin - gizmo_size / 2.0;
+        let gizmo_center_y = rect.min.y + margin + gizmo_size / 2.0;
+
+        interaction::camera::handle_gizmo_axis_clicks(ui, gizmo_center_x, gizmo_center_y, gizmo_size, scene_camera);
+        rendering::gizmos::render_scene_gizmo_visual(&painter, gizmo_center_x, gizmo_center_y, gizmo_size, scene_camera);
+
+        // Projection mode button
+        let button_y = gizmo_center_y + gizmo_size / 2.0 + 35.0;
+        let button_pos = egui::pos2(gizmo_center_x - 40.0, button_y - 10.0);
+
+        ui.allocate_ui_at_rect(
+            egui::Rect::from_min_size(button_pos, egui::vec2(80.0, 20.0)),
+            |ui| {
+                ui.style_mut().visuals.widgets.inactive.weak_bg_fill = egui::Color32::from_rgba_premultiplied(50, 50, 55, 200);
+                ui.style_mut().visuals.widgets.hovered.weak_bg_fill = egui::Color32::from_rgba_premultiplied(60, 60, 65, 220);
+                ui.style_mut().visuals.widgets.active.weak_bg_fill = egui::Color32::from_rgba_premultiplied(70, 70, 75, 240);
+
+                let button_text = match projection_mode {
+                    SceneProjectionMode::Perspective => "⬜ Persp",
+                    SceneProjectionMode::Isometric => "◇ Iso",
+                };
+
+                if ui.button(button_text).clicked() {
+                    *projection_mode = match projection_mode {
+                        SceneProjectionMode::Perspective => SceneProjectionMode::Isometric,
+                        SceneProjectionMode::Isometric => SceneProjectionMode::Perspective,
+                    };
+                }
+            }
+        );
     }
 
     // Focus on selected entity (F key)

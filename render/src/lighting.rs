@@ -68,7 +68,7 @@ impl LightBinding {
         }
     }
 
-    pub fn update(&mut self, queue: &wgpu::Queue, position: [f32; 3], color: [f32; 3], intensity: f32) {
+    pub fn update(&self, queue: &wgpu::Queue, position: [f32; 3], color: [f32; 3], intensity: f32) {
         let uniform = LightUniform::new(position, color, intensity);
         queue.write_buffer(&self.buffer, 0, bytemuck::cast_slice(&[uniform]));
     }

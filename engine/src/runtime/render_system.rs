@@ -29,6 +29,11 @@ pub fn render_game_world<'a>(
     _screen_size: winit::dpi::PhysicalSize<u32>,
     render_pass: &mut wgpu::RenderPass<'a>,
 ) {
+    // 0. Update Light (Simple directional light for now)
+    // TODO: Find Light component in world
+    // Default light at (2.0, 5.0, 2.0) with white color
+    light_binding.update(queue, [2.0, 5.0, 2.0], [1.0, 1.0, 1.0], 1.0);
+
     // 1. Find the active Main Camera
     let mut main_camera = None;
     let mut camera_transform = None;

@@ -532,13 +532,40 @@ fn calculate_3d_cube_bounds(
     
     let world_pos = Vec3::from(transform.position);
     
+    let rot_rad = Vec3::new(
+        transform.rotation[0].to_radians(),
+        transform.rotation[1].to_radians(),
+        transform.rotation[2].to_radians(),
+    );
+    let rotation = glam::Quat::from_euler(glam::EulerRot::XYZ, rot_rad.x, rot_rad.y, rot_rad.z);
+    let translation = Vec3::from(transform.position);
+    let scale_vec = Vec3::from(transform.scale);
+    
+    let model_matrix = glam::Mat4::from_scale_rotation_translation(scale_vec, rotation, translation);
+
     // Project vertices to screen space
     let projected: Vec<Vec2> = vertices.iter()
         .filter_map(|v| {
-            // Apply rotation
-            // Note: This is a simplified rotation, ideally we'd use Quaternions or Mat4
-            // For now, just adding to world position
-            let v_world = world_pos + *v;
+            // Vertices are at +/- half * scale already ? No, vertices here are calculated with scale.
+            // But we should probably use unit vertices and let the matrix handle scale?
+            // Existing code: vertices = [ -half * scale ... ]
+            // So if we have scale in vertices, we shouldn't have scale in matrix?
+            // OR we change vertices to be unit size and use matrix for everything.
+            // Let's stick to consistent logic: Matrix handles S*R*T.
+            // So vertex should be local unscaled (half size).
+            // BUT, the `vertices` array definition above uses scale.
+            // Let's rely on the previous logic: if `vertices` has scale, we remove scale from matrix?
+            // No, easier to just remove scale from `vertices` definition below? 
+            // Actually, let's just use transform_point3 with the matrix, but since vertices already have scale applied,
+            // we should construct a matrix with only R * T.
+            
+            // Wait, standard model matrix is T * R * S.
+            // If `vertices` = S * UnitCube.
+            // Then we want T * R * vertices.
+            
+            let v_rotated = rotation * *v;
+            let v_world = translation + v_rotated;
+            
             projection_3d::world_to_screen(v_world, scene_camera, viewport_size)
         })
         .collect();
@@ -594,11 +621,22 @@ fn render_3d_cube(
     
     let world_pos = Vec3::from(transform.position);
     
+    let rot_rad = Vec3::new(
+        transform.rotation[0].to_radians(),
+        transform.rotation[1].to_radians(),
+        transform.rotation[2].to_radians(),
+    );
+    let rotation = glam::Quat::from_euler(glam::EulerRot::XYZ, rot_rad.x, rot_rad.y, rot_rad.z);
+    let translation = Vec3::from(transform.position);
+
     // Project vertices to screen space
     let projected: Vec<Option<Vec2>> = vertices.iter()
         .map(|v| {
-            // Apply rotation (simplified)
-            let v_world = world_pos + *v;
+            // Vertices already have scale applied (see definition above)
+            // Apply Rotation then Translation: T * R * v
+            let v_rotated = rotation * *v;
+            let v_world = translation + v_rotated;
+            
             projection_3d::world_to_screen(v_world, scene_camera, viewport_size)
         })
         .collect();
