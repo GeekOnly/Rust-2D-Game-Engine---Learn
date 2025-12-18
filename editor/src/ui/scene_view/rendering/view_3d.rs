@@ -8,7 +8,7 @@ use glam::{Vec2, Vec3};
 use crate::{SceneCamera, SceneGrid};
 use crate::grid::InfiniteGrid;
 use super::super::types::*;
-use super::gizmos::{render_camera_gizmo, render_camera_frustum_3d, render_collider_gizmo};
+use super::gizmos::{render_camera_gizmo, render_camera_frustum_3d, render_collider_gizmo, render_selection_box_3d};
 
 /// Render a default camera gizmo when no camera component is found
 fn render_default_camera_gizmo(
@@ -205,31 +205,15 @@ pub fn render_scene_3d(
                     );
                 }
             }
-            // Render mesh bounds (legacy)
+            // Render mesh bounds (3D wireframe)
             else if world.meshes.contains_key(&sel_entity) {
-                let world_pos = Vec3::from(transform.position);
-                if let Some(screen_pos) = projection_3d::world_to_screen(world_pos, scene_camera, viewport_size) {
-                    let scale_vec = glam::Vec3::from(transform.scale);
-                    let world_size = 1.0;
-                    
-                    // calculate_3d_cube_bounds applies the transform.scale internally,
-                    // so we should pass the unscaled unit cube size (1.0).
-                    let base_size = world_size;
-                    let _selection_size = base_size;
-                    
-                    // We need to project the bounds properly because 'base_size' is in world units,
-                    // but we are drawing a 2D rect here using screen coordinates.
-                    // Using calculate_3d_cube_bounds is better but we are inside render_scene_3d.
-                    // For now, let's use the calculate_3d_cube_bounds logic which projects vertices.
-                    
-                    let bounds = calculate_3d_cube_bounds(screen_pos.x, screen_pos.y, base_size, transform, scene_camera, projection_mode, viewport_size, &viewport_rect);
-                    
-                    painter.rect_stroke(
-                        bounds,
-                        2.0,
-                        egui::Stroke::new(2.0, egui::Color32::from_rgb(255, 200, 0)),
-                    );
-                }
+                render_selection_box_3d(
+                    painter,
+                    transform,
+                    scene_camera,
+                    &viewport_rect,
+                    1.0, // Default world size for unit cube
+                );
             }
             
             // Draw selected entity's collider gizmo on top
