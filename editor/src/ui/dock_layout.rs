@@ -183,6 +183,9 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
     fn ui(&mut self, ui: &mut egui::Ui, tab: &mut Self::Tab) {
         match tab {
             EditorTab::Hierarchy => {
+                // Store previous selected entity to detect changes
+                let previous_selected = *self.context.selected_entity;
+                
                 if let Some(entity) = hierarchy::render_hierarchy_with_filter(
                     ui,
                     self.context.world,
@@ -198,6 +201,11 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                 ) {
                     // User requested to create prefab from entity
                     self.context.create_prefab_dialog.open(entity, self.context.entity_names);
+                }
+                
+                // Clear texture inspector selection when entity selection changes
+                if previous_selected != *self.context.selected_entity {
+                    self.context.texture_inspector.clear();
                 }
             }
             EditorTab::Inspector => {
@@ -245,6 +253,9 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                 }
             }
             EditorTab::Scene => {
+                // Store previous selected entity to detect changes
+                let previous_selected = *self.context.selected_entity;
+                
                 // Scene view - editor view with gizmos and grid
                 scene_view::render_scene_view(
                     ui,
@@ -277,6 +288,11 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                     self.context.device,
                     self.context.queue,
                 );
+                
+                // Clear texture inspector selection when entity selection changes
+                if previous_selected != *self.context.selected_entity {
+                    self.context.texture_inspector.clear();
+                }
             }
             EditorTab::Game => {
                 // Game view - camera view only (what player sees)

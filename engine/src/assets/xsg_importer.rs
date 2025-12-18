@@ -9,6 +9,13 @@ use crate::assets::xsg::*;
 pub struct XsgImporter;
 
 impl XsgImporter {
+    /// Convert GLTF/GLB file to XSG format and save to disk
+    pub fn convert_gltf_to_xsg<P: AsRef<Path>, Q: AsRef<Path>>(input_path: P, output_path: Q) -> Result<()> {
+        let xsg = Self::import_from_gltf(input_path)?;
+        Self::save_to_file(&xsg, output_path)?;
+        Ok(())
+    }
+
     /// Import a GLTF/GLB file and convert it to XSG format
     pub fn import_from_gltf<P: AsRef<Path>>(path: P) -> Result<XsgFile> {
         let path = path.as_ref();

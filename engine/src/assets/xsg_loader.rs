@@ -30,8 +30,8 @@ impl XsgLoader {
          device: &wgpu::Device,
          queue: &wgpu::Queue,
          path_id: &str,
-    ) -> anyhow::Result<(std::collections::HashMap<u32, String>, std::collections::HashMap<u32, String>)> {
-         let mut mesh_map = std::collections::HashMap::new(); // Index -> Asset ID
+    ) -> anyhow::Result<(std::collections::HashMap<u32, Vec<String>>, std::collections::HashMap<u32, String>)> {
+         let mut mesh_map: std::collections::HashMap<u32, Vec<String>> = std::collections::HashMap::new(); // Index -> List of Asset IDs
          let mut material_map = std::collections::HashMap::new(); // Index -> Asset ID
 
          // 1. Load Textures
@@ -75,13 +75,25 @@ impl XsgLoader {
              let albedo = xsg_mat.base_color_texture.and_then(|idx| texture_map.get(&idx).cloned());
              let normal = xsg_mat.normal_texture.and_then(|idx| texture_map.get(&idx).cloned());
              
+             // Create default white texture if no albedo texture
+             let default_albedo = if albedo.is_none() {
+                 // Create a simple 1x1 white texture
+                 let white_data = vec![255u8, 255u8, 255u8, 255u8]; // RGBA white
+                 let img = image::RgbaImage::from_raw(1, 1, white_data).unwrap();
+                 let dynamic_img = image::DynamicImage::ImageRgba8(img);
+                 Texture::from_image(device, queue, &dynamic_img, Some(&format!("{}_default_white", mat_id)), None).ok()
+                     .map(|tex| Arc::new(tex))
+             } else {
+                 None
+             };
+             
              let material = Arc::new(PbrMaterial {
-                 albedo_texture: albedo,
+                 albedo_texture: albedo.or(default_albedo),
                  normal_texture: normal,
                  albedo_factor: xsg_mat.base_color_factor,
                  metallic_factor: xsg_mat.metallic_factor,
                  roughness_factor: xsg_mat.roughness_factor,
-                 bind_group: None, 
+                 bind_group: None, // Will be created later when needed
                  ..Default::default()
              });
              
@@ -124,12 +136,10 @@ impl XsgLoader {
                 );
                 
                 register_mesh_asset(mesh_id.clone(), Arc::new(mesh));
+                println!("DEBUG: Registered mesh asset: {}", mesh_id);
                 
-                // Store mapping: (MeshIndex, PrimIndex) -> MeshID
-                // For now just storing mapped to MeshIndex assuming 1 primitive
-                if prim_idx == 0 {
-                    mesh_map.insert(i as u32, mesh_id);
-                }
+                // Store mapping: MeshIndex -> List of MeshIDs
+                mesh_map.entry(i as u32).or_default().push(mesh_id);
             }
         }
         
@@ -175,20 +185,57 @@ impl XsgLoader {
             // Initialize GlobalTransform (will be updated by system)
             let _ = ComponentAccess::<ecs::GlobalTransform>::insert(world, entity, ecs::GlobalTransform::default());
             
-            // Mesh
+            // Mesh (Multi-primitive support)
             if let Some(mesh_idx) = node.mesh {
-                if let Some(mesh_id) = mesh_map.get(&mesh_idx) {
-                    // Find material ID
-                    let mat_id = xsg.meshes[mesh_idx as usize].primitives.first()
-                        .and_then(|p| p.material_index)
-                        .and_then(|mi| material_map.get(&mi))
-                        .cloned();
+                if let Some(mesh_ids) = mesh_map.get(&mesh_idx) {
+                    if mesh_ids.is_empty() {
+                         // No mesh data
+                    } else if mesh_ids.len() == 1 {
+                        // Single primitive - attach directly to node entity
+                        let mesh_id = &mesh_ids[0];
+                        
+                        // Find material ID for first primitive
+                        let mat_id = xsg.meshes[mesh_idx as usize].primitives.first()
+                             .and_then(|p| p.material_index)
+                             .and_then(|mi| material_map.get(&mi))
+                             .cloned();
 
-                    let _ = ComponentAccess::<ecs::Mesh>::insert(world, entity, ecs::Mesh {
-                        mesh_type: ecs::MeshType::Asset(mesh_id.clone()),
-                        color: [1.0, 1.0, 1.0, 1.0], 
-                        material_id: mat_id,
-                    });
+                        let _ = ComponentAccess::<ecs::Mesh>::insert(world, entity, ecs::Mesh {
+                             mesh_type: ecs::MeshType::Asset(mesh_id.clone()),
+                             color: [1.0, 1.0, 1.0, 1.0], 
+                             material_id: mat_id,
+                        });
+                    } else {
+                        // Multiple primitives - creating child entities for each part
+                        for (prim_idx, mesh_id) in mesh_ids.iter().enumerate() {
+                            let child_entity = world.spawn();
+                            created_entities.push(child_entity);
+                            
+                            // Name
+                            let part_name = format!("{}_Part_{}", node.name, prim_idx);
+                            let _ = ComponentAccess::<String>::insert(world, child_entity, part_name);
+                            
+                            // Transform (Identity relative to parent node)
+                            let _ = ComponentAccess::<ecs::Transform>::insert(world, child_entity, ecs::Transform::default());
+                            let _ = ComponentAccess::<ecs::GlobalTransform>::insert(world, child_entity, ecs::GlobalTransform::default());
+                            
+                            // Material
+                            let mat_id = xsg.meshes[mesh_idx as usize].primitives.get(prim_idx)
+                                 .and_then(|p| p.material_index)
+                                 .and_then(|mi| material_map.get(&mi))
+                                 .cloned();
+
+                            // Mesh
+                            let _ = ComponentAccess::<ecs::Mesh>::insert(world, child_entity, ecs::Mesh {
+                                 mesh_type: ecs::MeshType::Asset(mesh_id.clone()),
+                                 color: [1.0, 1.0, 1.0, 1.0], 
+                                 material_id: mat_id,
+                            });
+                            
+                            // Parent to main node
+                            world.set_parent(child_entity, Some(entity));
+                        }
+                    }
                 }
             }
         }

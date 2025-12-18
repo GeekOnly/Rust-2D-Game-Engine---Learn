@@ -812,6 +812,7 @@ impl CustomWorld {
             grids: Vec<(CustomEntity, Grid)>,
             maps: Vec<(CustomEntity, Map)>,
             world_uis: Vec<(CustomEntity, WorldUI)>,
+            model_3ds: Vec<(CustomEntity, Model3D)>,
         }
 
         let data = SceneData {
@@ -838,6 +839,7 @@ impl CustomWorld {
             grids: self.grids.iter().map(|(k, v)| (*k, v.clone())).collect(),
             maps: self.maps.iter().map(|(k, v)| (*k, v.clone())).collect(),
             world_uis: self.world_uis.iter().map(|(k, v)| (*k, v.clone())).collect(),
+            model_3ds: self.model_3ds.iter().map(|(k, v)| (*k, v.clone())).collect(),
         };
 
         serde_json::to_string_pretty(&data)
@@ -892,6 +894,8 @@ impl CustomWorld {
             maps: Vec<(CustomEntity, Map)>,
             #[serde(default)]
             world_uis: Vec<(CustomEntity, WorldUI)>,
+            #[serde(default)]
+            model_3ds: Vec<(CustomEntity, Model3D)>,
         }
 
         let data: SceneData = serde_json::from_str(json)?;
@@ -972,6 +976,9 @@ impl CustomWorld {
         }
         for (entity, world_ui) in data.world_uis {
             self.world_uis.insert(entity, world_ui);
+        }
+        for (entity, model_3d) in data.model_3ds {
+            self.model_3ds.insert(entity, model_3d);
         }
         
         // Reconstruct hierarchy

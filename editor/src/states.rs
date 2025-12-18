@@ -262,6 +262,9 @@ impl EditorState {
         self.map_manager.set_project_path(path.clone());
         self.prefab_manager.set_project_path(path.clone());
         self.asset_browser_path = Some(path);
+        
+        // Request asset reload when project changes
+        self.reload_mesh_assets_request = true;
     }
 
     /// Load editor layout from project folder

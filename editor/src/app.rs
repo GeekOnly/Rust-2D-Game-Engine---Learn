@@ -531,6 +531,17 @@ impl EditorApp {
         let res = self.renderer.render_with_callback(|device, queue, encoder, view, depth_view, texture_manager, batch_renderer, mesh_renderer, camera_binding, light_binding| {
             // Render Game World to Offscreen Texture (for Editor Game View)
             if self.app_state == AppState::Editor {
+                // Ensure Asset meshes are loaded (idempotent check)
+                if let Some(ref project_path) = self.editor_state.current_project_path {
+                     runtime::render_system::post_process_asset_meshes(
+                         project_path,
+                         &mut self.editor_state.world,
+                         device,
+                         queue,
+                         texture_manager,
+                         mesh_renderer
+                     );
+                }
                 // ----------------------------------------------------------------
                 // 1. Render Scene View (Editor Camera)
                 // ----------------------------------------------------------------

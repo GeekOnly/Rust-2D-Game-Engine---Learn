@@ -173,7 +173,7 @@ impl GltfLoader {
         }
 
         // Create Bind Group
-        let bind_group = mesh_renderer.create_pbr_bind_group(device, &pbr_material, texture_manager);
+        let bind_group = mesh_renderer.create_pbr_bind_group(device, queue, &pbr_material, texture_manager);
         pbr_material.bind_group = Some(bind_group);
 
         Ok(pbr_material)

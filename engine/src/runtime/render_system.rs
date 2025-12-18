@@ -5,12 +5,14 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use wgpu::util::DeviceExt;
 use crate::assets::model_manager::get_model_manager;
+use anyhow;
 
 // Simple mesh cache to avoid regenerating meshes every frame
 static mut MESH_CACHE: Option<HashMap<String, Mesh>> = None;
 // Asset caches (Loaded from files)
 static mut MESH_ASSETS: Option<HashMap<String, Arc<Mesh>>> = None;
 static mut MATERIAL_ASSETS: Option<HashMap<String, Arc<PbrMaterial>>> = None;
+static mut MATERIAL_BIND_GROUP_CACHE: Option<HashMap<String, wgpu::BindGroup>> = None;
 
 static mut MATERIAL_CACHE: Option<wgpu::BindGroup> = None;
 
@@ -41,6 +43,15 @@ fn get_material_assets() -> &'static mut HashMap<String, Arc<PbrMaterial>> {
     }
 }
 
+fn get_material_bind_group_cache() -> &'static mut HashMap<String, wgpu::BindGroup> {
+    unsafe {
+        if MATERIAL_BIND_GROUP_CACHE.is_none() {
+            MATERIAL_BIND_GROUP_CACHE = Some(HashMap::new());
+        }
+        MATERIAL_BIND_GROUP_CACHE.as_mut().unwrap()
+    }
+}
+
 pub fn register_mesh_asset(name: String, mesh: Arc<Mesh>) {
     get_mesh_assets().insert(name, mesh);
 }
@@ -49,99 +60,38 @@ pub fn register_material_asset(name: String, material: Arc<PbrMaterial>) {
     get_material_assets().insert(name, material);
 }
 
-pub fn load_gltf_into_world(
-    path: &std::path::Path,
-    world: &mut World,
-    device: &wgpu::Device,
-    queue: &wgpu::Queue,
-    texture_manager: &mut TextureManager,
-    mesh_renderer: &MeshRenderer,
-) -> anyhow::Result<Vec<ecs::Entity>> {
-     use crate::assets::gltf_loader::GltfLoader;
-     
-     let mut loader = GltfLoader::new();
-     let loaded_meshes = loader.load_gltf(device, queue, texture_manager, mesh_renderer, path)?;
-     let mut entities = Vec::new();
 
-     for (i, loaded_mesh) in loaded_meshes.into_iter().enumerate() {
-         // Register Mesh
-         // Assuming name is unique or we make it unique
-         let mesh_id = format!("{}_{}", loaded_mesh.name, i); 
-         register_mesh_asset(mesh_id.clone(), loaded_mesh.mesh);
-         
-         // Register Material
-         // Since loaded_mesh.material has bind group already
-         let mat_id = format!("{}_mat", mesh_id);
-         
-         register_material_asset(mat_id.clone(), loaded_mesh.material);
-         
-         // Spawn Entity
-         let entity = world.spawn();
-         
-         // Add Transform
-         let (scale, rot, pos) = loaded_mesh.transform.to_scale_rotation_translation();
-         let transform = ecs::Transform {
-             position: pos.into(),
-             rotation: rot.to_euler(glam::EulerRot::XYZ).into(), // Check Euler order match ECS
-             scale: scale.into(),
-         };
-         // Note: ECS Transform Rotation is stored in euler degrees?
-         // ECS Transform: `pub rotation: [f32; 3]` (Euler angles in degrees)
-         // `rot.to_euler` returns radians.
-         let rot_euler = rot.to_euler(glam::EulerRot::XYZ);
-         let rot_deg = [rot_euler.0.to_degrees(), rot_euler.1.to_degrees(), rot_euler.2.to_degrees()];
-          
-         // We need ComponentAccess to insert.
-         // But `World` (CustomWorld) exposes `transforms` map directly.
-         // world.transforms.insert(entity, ..);
-         // However, ECS `World` might be `HecsMinimal` or `CustomWorld`.
-         // `render_system.rs` uses `ecs::World` type alias.
-         // If `hecs` feature is off, `World` is `CustomWorld`.
-         // `CustomWorld` has public fields.
-         // If `hecs` is on, we need trait.
-         // `ecs/src/lib.rs` says: `pub use backends::hecs_minimal::HecsMinimal as World;` or `CustomWorld as World`.
-         // We should use `ComponentAccess` trait to be safe/generic.
-         use ecs::traits::ComponentAccess;
-         
-         let _ = ComponentAccess::<ecs::Transform>::insert(world, entity, ecs::Transform {
-             position: pos.into(),
-             rotation: rot_deg,
-             scale: scale.into(),
-         });
-         
-         let _ = ComponentAccess::<ecs::Mesh>::insert(world, entity, ecs::Mesh {
-             mesh_type: ecs::MeshType::Asset(mesh_id),
-             color: [1.0, 1.0, 1.0, 1.0], // Driven by material
-             material_id: Some(mat_id),
-         });
-         
-         entities.push(entity);
-     }
-     
-     Ok(entities)
-}
 
 pub fn post_process_asset_meshes(
     project_path: &std::path::Path,
     world: &mut World,
     device: &wgpu::Device,
     queue: &wgpu::Queue,
-    texture_manager: &mut TextureManager,
-    mesh_renderer: &MeshRenderer,
+    _texture_manager: &mut TextureManager,
+    _mesh_renderer: &MeshRenderer,
 ) {
-    // [SCENE POST-PROCESSING] Load External Assets (GLTF)
-    // Iterate over all entities with MeshType::Asset and load the referenced files
-    // Post-process Asset meshes (Load GLTF)
+    // [SCENE POST-PROCESSING] Load External Assets (XSG)
+    // Iterate over all entities with MeshType::Asset and load the referenced XSG files
+    // Post-process Asset meshes (Load XSG)
     // Find entities with MeshType::Asset
     let mut assets_to_load = Vec::new();
     for (entity, mesh) in world.meshes.iter() {
         if let ecs::MeshType::Asset(path) = &mesh.mesh_type {
-            // Only load if it looks like a file path (has extension)
-            // This prevents trying to load internal mesh IDs (like "Unnamed_0") as files
-            if std::path::Path::new(path).extension().is_some() {
+            // Only load supported file formats (.xsg)
+            // This prevents trying to load internal mesh IDs (like "Unnamed_0" or "sponza.xsg_mesh_Mesh_0_0") as files
+            let path_lower = path.to_lowercase();
+            if path_lower.ends_with(".xsg") {
                 assets_to_load.push((*entity, path.clone()));
-                // println!("DEBUG: Found Asset Mesh for entity {:?}: {}", entity, path);
             }
+        }
+    }
+    
+    // Also check Model3D components
+    for (entity, model) in world.model_3ds.iter() {
+        let path = &model.asset_id;
+        let path_lower = path.to_lowercase();
+        if path_lower.ends_with(".xsg") {
+            assets_to_load.push((*entity, path.clone()));
         }
     }
 
@@ -149,32 +99,52 @@ pub fn post_process_asset_meshes(
     use ecs::traits::ComponentAccess;
 
     for (parent_entity, asset_rel_path) in assets_to_load {
-        // First, remove any existing children to prevent duplicates on reload
-        let existing_children: Vec<_> = world.parents.iter()
-            .filter(|(_, &parent)| parent == parent_entity)
-            .map(|(child, _)| *child)
-            .collect();
-
-        for child in existing_children {
-            println!("DEBUG: Removing existing child {:?} before reloading", child);
-            world.despawn(child);
+        // Check if entity already has children (already loaded)
+        let has_children = world.parents.iter().any(|(_, &parent)| parent == parent_entity);
+        if has_children {
+            // Already loaded, skip
+            continue;
         }
 
         let asset_path = project_path.join(&asset_rel_path);
-        println!("DEBUG: Attempting to load GLTF from: {:?}", asset_path);
+        println!("DEBUG: Attempting to load asset from: {:?}", asset_path);
 
         if asset_path.exists() {
             println!("DEBUG: File exists! Loading...");
-            match load_gltf_into_world(
-                &asset_path,
-                world,
-                device,
-                queue,
-                texture_manager,
-                mesh_renderer,
-            ) {
+            
+            // Check file extension to determine loader
+            let extension = asset_path.extension()
+                .and_then(|ext| ext.to_str())
+                .unwrap_or("");
+            
+            let load_result = match extension.to_lowercase().as_str() {
+                "xsg" => {
+                    println!("DEBUG: Loading XSG file");
+                    // Load XSG file
+                    match crate::assets::xsg_importer::XsgImporter::load_from_file(&asset_path) {
+                        Ok(xsg) => {
+                            // Create a dummy texture manager for XSG loader
+                            let mut dummy_texture_manager = crate::texture_manager::TextureManager::new();
+                            crate::assets::xsg_loader::XsgLoader::load_into_world(
+                                &xsg,
+                                world,
+                                device,
+                                queue,
+                                &mut dummy_texture_manager,
+                                &asset_rel_path,
+                            )
+                        }
+                        Err(e) => Err(anyhow::anyhow!("Failed to load XSG file: {}", e))
+                    }
+                }
+                _ => {
+                    Err(anyhow::anyhow!("Unsupported asset format: {}. Only XSG files are supported.", extension))
+                }
+            };
+            
+            match load_result {
                 Ok(loaded_entities) => {
-                    println!("DEBUG: Successfully loaded {} entities from GLTF", loaded_entities.len());
+                    println!("DEBUG: Successfully loaded {} entities from asset", loaded_entities.len());
                     // Parent loaded entities to the container
                     for child in loaded_entities {
                         if world.parents.get(&child).is_none() {
@@ -189,13 +159,13 @@ pub fn post_process_asset_meshes(
                     println!("DEBUG: Attached entities to parent {:?}", parent_entity);
                 },
                 Err(e) => {
-                    log::error!("Failed to load GLTF Asset: {:?}", e);
-                    println!("DEBUG: Failed to load GLTF Asset: {:?}", e);
+                    log::error!("Failed to load Asset: {:?}", e);
+                    println!("DEBUG: Failed to load Asset: {:?}", e);
                 },
             }
         } else {
-             log::error!("GLTF Asset not found: {:?}", asset_path);
-             println!("DEBUG: GLTF Asset NOT FOUND at: {:?}", asset_path);
+             log::error!("Asset not found: {:?}", asset_path);
+             println!("DEBUG: Asset NOT FOUND at: {:?}", asset_path);
         }
     }
 }
@@ -395,6 +365,24 @@ pub fn render_game_world<'a>(
     // Pass 2: Ensure Bind Groups exist (Mutable access)
     // We cannot render here because RenderPass needs immutable access to the binds, 
     // but creation needs mutable access to the cache.
+    
+    // First, create material bind groups for assets that need them
+    {
+        let bind_group_cache = get_material_bind_group_cache();
+        let material_assets = get_material_assets();
+        for (_, ecs_mesh) in &mesh_entities {
+            if let Some(mat_id) = &ecs_mesh.material_id {
+                if let Some(mat_asset) = material_assets.get(mat_id) {
+                    if mat_asset.bind_group.is_none() && !bind_group_cache.contains_key(mat_id) {
+                        // println!("DEBUG: Creating BindGroup for Material Asset {}", mat_id);
+                        let bind_group = mesh_renderer.create_pbr_bind_group(device, queue, mat_asset, texture_manager);
+                        bind_group_cache.insert(mat_id.clone(), bind_group);
+                    }
+                }
+            }
+        }
+    }
+    
     for (entity, ecs_mesh) in &mesh_entities {
         if let Some(transform) = world.transforms.get(entity) {
              // 1. Object Uniform (Model Matrix)
@@ -532,7 +520,21 @@ pub fn render_game_world<'a>(
          if world.transforms.contains_key(entity) {
             // Find Mesh
             let mesh_to_render = match &ecs_mesh.mesh_type {
-                ecs::MeshType::Asset(id) => mesh_assets.get(id).map(|m| m.as_ref()),
+                ecs::MeshType::Asset(id) => {
+                    // Skip rendering parent Asset entities - their children will render the actual meshes
+                    if id.ends_with(".xsg") {
+                        None
+                    } else {
+                        // println!("DEBUG: Looking for mesh asset: {}", id);
+                        if let Some(mesh) = mesh_assets.get(id) {
+                            // println!("DEBUG: Found mesh asset: {}", id);
+                            Some(mesh.as_ref())
+                        } else {
+                            // println!("DEBUG: Available mesh assets: {:?}", mesh_assets.keys().collect::<Vec<_>>());
+                            None
+                        }
+                    }
+                },
                 _ => {
                     let cache_key = format!("{:?}", ecs_mesh.mesh_type);
                     mesh_cache.get(&cache_key)
@@ -545,10 +547,12 @@ pub fn render_game_world<'a>(
                     let mat = material_assets.get(mat_id);
                      // If material loaded successfully, use it
                      if let Some(mat_asset) = mat {
-                         if mat_asset.bind_group.is_none() {
-                             println!("DEBUG: Material Asset {} found but has NO BindGroup!", mat_id);
+                         if let Some(ref bind_group) = mat_asset.bind_group {
+                             Some(bind_group)
+                         } else {
+                             // Get from cache (should exist from Pass 2)
+                             get_material_bind_group_cache().get(mat_id)
                          }
-                         mat_asset.bind_group.as_ref()
                      } else {
                          println!("DEBUG: Material Asset {} NOT FOUND in cache!", mat_id);
                          None
@@ -586,6 +590,25 @@ pub fn render_game_world<'a>(
     };
     
     // Pass A: Update Cache (Mutable access)
+    // First, create material bind groups for Model3D assets that need them
+    {
+        let bind_group_cache = get_material_bind_group_cache();
+        let material_assets = get_material_assets();
+        for (_, model_3d) in &world.model_3ds {
+            if let Some(xsg) = model_manager.get_model(&model_3d.asset_id) {
+                for material in &xsg.materials {
+                    let mat_id = format!("{}_mat_{}_{}", model_3d.asset_id, material.name, 0); // Simplified
+                    if let Some(mat_asset) = material_assets.get(&mat_id) {
+                        if mat_asset.bind_group.is_none() && !bind_group_cache.contains_key(&mat_id) {
+                            let bind_group = mesh_renderer.create_pbr_bind_group(device, queue, mat_asset, texture_manager);
+                            bind_group_cache.insert(mat_id, bind_group);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
     for (entity, model_3d) in &world.model_3ds {
         if let Some(xsg) = model_manager.get_model(&model_3d.asset_id) {
              let root_transform = if let Some(global) = world.global_transforms.get(entity) {
@@ -695,9 +718,18 @@ pub fn render_game_world<'a>(
                                      let mname = &xsg.materials[mi as usize].name;
                                      Some(format!("{}_mat_{}_{}", model_3d.asset_id, mname, mi))
                                 });
-                                let material_bg = mat_id.as_ref()
-                                     .and_then(|id| material_assets.get(id))
-                                     .and_then(|m| m.bind_group.as_ref());
+                                let material_bg = mat_id.as_ref().and_then(|id| {
+                                     if let Some(mat_asset) = material_assets.get(id) {
+                                         if let Some(ref bind_group) = mat_asset.bind_group {
+                                             Some(bind_group)
+                                         } else {
+                                             // Get from cache (should exist from Pass A)
+                                             get_material_bind_group_cache().get(id)
+                                         }
+                                     } else {
+                                         None
+                                     }
+                                 });
 
                                 if let Some(mat_bg) = material_bg {
                                      let cache_key = (*entity, node_idx);
