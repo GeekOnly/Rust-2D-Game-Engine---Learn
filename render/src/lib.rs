@@ -13,13 +13,16 @@ pub use batch_renderer::BatchRenderer;
 pub mod mesh;
 pub mod mesh_generation;
 pub mod mesh_renderer;
+pub mod grid_renderer;
 pub mod camera;
+pub mod lighting;
+pub mod material;
+
 pub use mesh::{Mesh, ModelVertex};
 pub use mesh_generation::generate_mesh;
 pub use mesh_renderer::{MeshRenderer, ObjectUniform};
+pub use grid_renderer::GridRenderer;
 pub use camera::{CameraBinding, CameraUniform};
-pub mod lighting;
-pub mod material;
 pub use lighting::{LightBinding, LightUniform};
 pub use material::{PbrMaterial, PbrMaterialUniform, ToonMaterial, ToonMaterialUniform};
 
