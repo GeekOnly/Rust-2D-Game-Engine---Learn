@@ -810,18 +810,94 @@ fn render_clean_game_view_preview(
 
 
 
-/// Render clean Unity-style camera frustum in 3D
-/// - Perspective: Pyramid shape showing FOV from camera origin
-/// - Orthographic: Rectangular box showing view volume
+// Helper to draw a 3D line with clipping against the camera near plane
+fn draw_line_clipped(
+    painter: &egui::Painter,
+    p1: glam::Vec3,
+    p2: glam::Vec3,
+    view_matrix: glam::Mat4,
+    proj_matrix: glam::Mat4,
+    viewport_rect: egui::Rect,
+    viewport_size: glam::Vec2,
+    stroke: egui::Stroke,
+) {
+    // 1. Transform to View Space
+    // transform_point3 behaves correctly for pos (w=1)
+    let p1_view = view_matrix.transform_point3(p1);
+    let p2_view = view_matrix.transform_point3(p2);
+
+    // 2. Clip against Near Plane
+    // In RH GL, forward is -Z. Near plane is at z = -near.
+    // Visible points have z <= -near (more negative).
+    let near_z = -0.1;
+
+    let p1_behind = p1_view.z > near_z;
+    let p2_behind = p2_view.z > near_z;
+
+    if p1_behind && p2_behind {
+        return; // Both points behind camera
+    }
+
+    let (v1, v2) = if p1_behind {
+        // Clip p1 (behind) to p2 (visible)
+        let t = (near_z - p1_view.z) / (p2_view.z - p1_view.z);
+        (p1_view.lerp(p2_view, t), p2_view)
+    } else if p2_behind {
+        // Clip p2 (behind) to p1 (visible)
+        let t = (near_z - p1_view.z) / (p2_view.z - p1_view.z);
+        (p1_view, p1_view.lerp(p2_view, t))
+    } else {
+        (p1_view, p2_view)
+    };
+
+    // 3. Project to Screen Space
+    let project_view_to_screen = |v: glam::Vec3| -> Option<egui::Pos2> {
+        // Assume w=1.0 since it's a point in View Space
+        // Use proj_matrix
+        let clip = proj_matrix * glam::Vec4::new(v.x, v.y, v.z, 1.0);
+        
+        // After clipping, w should be positive (or close to 0) for visible points
+        // If w <= 0, it means it's still behind/at camera center, even after clipping?
+        // Actually, for clipped points on near plane, w should be roughly near plane distance?
+        if clip.w <= 0.001 { return None; }
+        
+        // Perspective Divide
+        let ndc = clip.truncate() / clip.w;
+        
+        // Check for overflow/NaN (safety)
+        if !ndc.is_finite() { return None; }
+
+        // NDC (-1, 1) -> (0, 0) top-left screen coords
+        // Standard GL NDC: y is up
+        // Egui screen: y is down
+        let x = (ndc.x + 1.0) * 0.5 * viewport_size.x;
+        let y = (1.0 - ndc.y) * 0.5 * viewport_size.y;
+        
+        Some(egui::pos2(viewport_rect.min.x + x, viewport_rect.min.y + y))
+    };
+
+    if let (Some(s1), Some(s2)) = (project_view_to_screen(v1), project_view_to_screen(v2)) {
+        painter.line_segment([s1, s2], stroke);
+    }
+}
+
 pub fn render_camera_frustum_3d(
     painter: &egui::Painter,
     camera_entity: Entity,
     world: &World,
     scene_camera: &SceneCamera,
     viewport_rect: egui::Rect,
-    camera_screen_pos: egui::Pos2,
+    _camera_screen_pos: egui::Pos2, // Unused as we do our own projection
 ) {
     let viewport_size = glam::Vec2::new(viewport_rect.width(), viewport_rect.height());
+    
+    // Obtain View and Projection matrices of the SCENE CAMERA for manual projection/clipping
+    let view_matrix = crate::ui::scene_view::rendering::projection_3d::calculate_view_matrix(scene_camera);
+    let proj_matrix = crate::ui::scene_view::rendering::projection_3d::calculate_projection_matrix(
+        scene_camera, 
+        viewport_size, 
+        matches!(scene_camera.projection_mode, crate::SceneProjectionMode::Perspective)
+    );
 
     // Get camera component and transform
     if let (Some(camera), Some(transform)) = (world.cameras.get(&camera_entity), world.transforms.get(&camera_entity)) {
@@ -837,87 +913,31 @@ pub fn render_camera_frustum_3d(
         let rotation = glam::Quat::from_euler(glam::EulerRot::YXZ, rot_y, rot_x, rot_z);
 
         // Calculate directional vectors from rotation
-        // Calculate directional vectors from rotation
         // Engine convention: Forward is +Z, Up is +Y, Right is +X
-        let forward = rotation * glam::Vec3::Z;  // +Z Forward
-        let up = rotation * glam::Vec3::Y;       // +Y Up
-        let right = rotation * glam::Vec3::X;    // +X Right
+        let forward = rotation * glam::Vec3::Z;
+        let up = rotation * glam::Vec3::Y;
+        let right = rotation * glam::Vec3::X;
 
         // Standard aspect ratio for clean visualization
         let aspect = 16.0 / 9.0;
 
         // Unity-style frustum colors
-        let frustum_color = egui::Color32::from_rgb(255, 255, 0); // Bright yellow like Unity
-        let line_stroke = egui::Stroke::new(2.0, frustum_color); // Thicker lines
-
-        // Use the centralized 3D projection system to ensure the frustum matches the 3D scene view
-        // This correctly handles rotation, zoom, and perspective/orthographic modes of the Scene Camera
-        let project = |point: glam::Vec3| -> Option<egui::Pos2> {
-            projection_3d::world_to_screen_allow_behind(
-                point,
-                scene_camera,
-                viewport_size
-            ).map(|p| egui::pos2(p.x + viewport_rect.min.x, p.y + viewport_rect.min.y))
-        };
-        
-        // Project camera origin to screen space for frustum lines
-        let camera_origin_screen = project(cam_pos);
-        
-        // Debug: Draw camera origin and axis vectors (Unity-style debug)
-        if let Some(origin_screen) = camera_origin_screen {
-            painter.circle_filled(origin_screen, 8.0, egui::Color32::from_rgb(255, 0, 255)); // Magenta circle
-            painter.text(
-                egui::pos2(origin_screen.x + 10.0, origin_screen.y),
-                egui::Align2::LEFT_CENTER,
-                format!("Cam Origin ({:.1}, {:.1}, {:.1})", cam_pos.x, cam_pos.y, cam_pos.z),
-                egui::FontId::proportional(10.0),
-                egui::Color32::from_rgb(255, 0, 255),
-            );
-            
-            // Debug: Draw camera axis vectors
-            let axis_length = 3.0;
-            if let Some(forward_end) = project(cam_pos + forward * axis_length) {
-                painter.line_segment([origin_screen, forward_end], egui::Stroke::new(3.0, egui::Color32::from_rgb(0, 100, 255))); // Blue forward
-                painter.text(egui::pos2(forward_end.x + 5.0, forward_end.y), egui::Align2::LEFT_CENTER, "F", egui::FontId::proportional(12.0), egui::Color32::from_rgb(0, 100, 255));
-            }
-            if let Some(up_end) = project(cam_pos + up * axis_length) {
-                painter.line_segment([origin_screen, up_end], egui::Stroke::new(3.0, egui::Color32::from_rgb(0, 255, 0))); // Green up
-                painter.text(egui::pos2(up_end.x, up_end.y - 12.0), egui::Align2::CENTER_BOTTOM, "U", egui::FontId::proportional(12.0), egui::Color32::from_rgb(0, 255, 0));
-            }
-            if let Some(right_end) = project(cam_pos + right * axis_length) {
-                painter.line_segment([origin_screen, right_end], egui::Stroke::new(3.0, egui::Color32::from_rgb(255, 0, 0))); // Red right
-                painter.text(egui::pos2(right_end.x + 5.0, right_end.y), egui::Align2::LEFT_CENTER, "R", egui::FontId::proportional(12.0), egui::Color32::from_rgb(255, 0, 0));
-            }
-        } else {
-            // If projection fails, draw at fallback position
-            painter.circle_filled(camera_screen_pos, 8.0, egui::Color32::from_rgb(255, 100, 100)); // Red circle
-            painter.text(
-                egui::pos2(camera_screen_pos.x + 10.0, camera_screen_pos.y),
-                egui::Align2::LEFT_CENTER,
-                format!("Cam Fallback ({:.1}, {:.1}, {:.1})", cam_pos.x, cam_pos.y, cam_pos.z),
-                egui::FontId::proportional(10.0),
-                egui::Color32::from_rgb(255, 100, 100),
-            );
-        }
+        let frustum_color = egui::Color32::from_rgb(255, 255, 0); // Bright yellow
+        let stroke = egui::Stroke::new(2.0, frustum_color);
 
         match camera.projection {
             ecs::CameraProjection::Perspective => {
-                // PERSPECTIVE CAMERA: Draw pyramid frustum from camera origin
-                // Using 3D world-space projection for accurate spatial representation
-
-                // Unity-style frustum calculation
-                let fov_y_rad = camera.fov.to_radians(); // Unity uses vertical FOV
+                // PERSPECTIVE CAMERA
+                let fov_y_rad = camera.fov.to_radians();
                 let near_distance = camera.near_clip.max(0.1);
-                let far_distance = 10.0; // Distance to far plane in world units
+                let far_distance = 10.0; // Visualization distance
 
-                // Unity math: height first, then width = height * aspect
                 let near_height = 2.0 * (fov_y_rad * 0.5).tan() * near_distance;
                 let near_width = near_height * aspect;
 
                 let far_height = 2.0 * (fov_y_rad * 0.5).tan() * far_distance;
                 let far_width = far_height * aspect;
 
-                // Unity-style frustum corners calculation
                 let near_center = cam_pos + forward * near_distance;
                 let far_center = cam_pos + forward * far_distance;
                 
@@ -926,166 +946,90 @@ pub fn render_camera_frustum_3d(
                 let fh2 = far_height * 0.5;
                 let fw2 = far_width * 0.5;
                 
-                // Near plane corners (Unity order: TL, TR, BL, BR)
-                let near_tl = near_center + up * nh2 - right * nw2;
-                let near_tr = near_center + up * nh2 + right * nw2;
-                let near_bl = near_center - up * nh2 - right * nw2;
-                let near_br = near_center - up * nh2 + right * nw2;
+                // Near corners
+                let n_tl = near_center + up * nh2 - right * nw2;
+                let n_tr = near_center + up * nh2 + right * nw2;
+                let n_bl = near_center - up * nh2 - right * nw2;
+                let n_br = near_center - up * nh2 + right * nw2;
 
-                // Far plane corners (Unity order: TL, TR, BL, BR)
-                let far_tl = far_center + up * fh2 - right * fw2;
-                let far_tr = far_center + up * fh2 + right * fw2;
-                let far_bl = far_center - up * fh2 - right * fw2;
-                let far_br = far_center - up * fh2 + right * fw2;
+                // Far corners
+                let f_tl = far_center + up * fh2 - right * fw2;
+                let f_tr = far_center + up * fh2 + right * fw2;
+                let f_bl = far_center - up * fh2 - right * fw2;
+                let f_br = far_center - up * fh2 + right * fw2;
 
-                // Project all corners to screen space
-                let near_projections = [
-                    project(near_tl),
-                    project(near_tr),
-                    project(near_br),
-                    project(near_bl)
-                ];
+                // Draw Near Plane
+                draw_line_clipped(painter, n_tl, n_tr, view_matrix, proj_matrix, viewport_rect, viewport_size, stroke);
+                draw_line_clipped(painter, n_tr, n_br, view_matrix, proj_matrix, viewport_rect, viewport_size, stroke);
+                draw_line_clipped(painter, n_br, n_bl, view_matrix, proj_matrix, viewport_rect, viewport_size, stroke);
+                draw_line_clipped(painter, n_bl, n_tl, view_matrix, proj_matrix, viewport_rect, viewport_size, stroke);
 
-                let far_projections = [
-                    project(far_tl),
-                    project(far_tr),
-                    project(far_br),
-                    project(far_bl)
-                ];
+                // Draw Far Plane
+                draw_line_clipped(painter, f_tl, f_tr, view_matrix, proj_matrix, viewport_rect, viewport_size, stroke);
+                draw_line_clipped(painter, f_tr, f_br, view_matrix, proj_matrix, viewport_rect, viewport_size, stroke);
+                draw_line_clipped(painter, f_br, f_bl, view_matrix, proj_matrix, viewport_rect, viewport_size, stroke);
+                draw_line_clipped(painter, f_bl, f_tl, view_matrix, proj_matrix, viewport_rect, viewport_size, stroke);
 
-                // Draw near plane rectangle
-                if near_projections.iter().all(|p| p.is_some()) {
-                    let near_points: Vec<egui::Pos2> = near_projections.into_iter().map(|p| p.unwrap()).collect();
-                    let near_stroke = egui::Stroke::new(1.0, egui::Color32::from_rgb(255, 255, 150));
-                    painter.line_segment([near_points[0], near_points[1]], near_stroke);
-                    painter.line_segment([near_points[1], near_points[2]], near_stroke);
-                    painter.line_segment([near_points[2], near_points[3]], near_stroke);
-                    painter.line_segment([near_points[3], near_points[0]], near_stroke);
-                }
+                // Draw Connecting Edges
+                draw_line_clipped(painter, n_tl, f_tl, view_matrix, proj_matrix, viewport_rect, viewport_size, stroke);
+                draw_line_clipped(painter, n_tr, f_tr, view_matrix, proj_matrix, viewport_rect, viewport_size, stroke);
+                draw_line_clipped(painter, n_br, f_br, view_matrix, proj_matrix, viewport_rect, viewport_size, stroke);
+                draw_line_clipped(painter, n_bl, f_bl, view_matrix, proj_matrix, viewport_rect, viewport_size, stroke);
 
-                // Draw far plane rectangle
-                if far_projections.iter().all(|p| p.is_some()) {
-                    let far_points: Vec<egui::Pos2> = far_projections.into_iter().map(|p| p.unwrap()).collect();
-                    let far_stroke = egui::Stroke::new(2.0, egui::Color32::from_rgb(255, 200, 0));
-                    painter.line_segment([far_points[0], far_points[1]], far_stroke);
-                    painter.line_segment([far_points[1], far_points[2]], far_stroke);
-                    painter.line_segment([far_points[2], far_points[3]], far_stroke);
-                    painter.line_segment([far_points[3], far_points[0]], far_stroke);
-
-                    // Draw pyramid lines from camera origin to far plane corners
-                    let origin_to_use = camera_origin_screen.unwrap_or(camera_screen_pos);
-                    for far_point in far_points.iter() {
-                        painter.line_segment([origin_to_use, *far_point], line_stroke);
-                    }
-                }
-
-                // Draw connecting edges between near and far planes (frustum edges)
-                if near_projections.iter().all(|p| p.is_some()) && far_projections.iter().all(|p| p.is_some()) {
-                    let near_points: Vec<egui::Pos2> = near_projections.into_iter().map(|p| p.unwrap()).collect();
-                    let far_points: Vec<egui::Pos2> = far_projections.into_iter().map(|p| p.unwrap()).collect();
-
-                    for i in 0..4 {
-                        painter.line_segment([near_points[i], far_points[i]], line_stroke);
-                    }
-                }
+                // Draw Pyramid Lines (Origin to Near)
+                draw_line_clipped(painter, cam_pos, n_tl, view_matrix, proj_matrix, viewport_rect, viewport_size, stroke);
+                draw_line_clipped(painter, cam_pos, n_tr, view_matrix, proj_matrix, viewport_rect, viewport_size, stroke);
+                draw_line_clipped(painter, cam_pos, n_br, view_matrix, proj_matrix, viewport_rect, viewport_size, stroke);
+                draw_line_clipped(painter, cam_pos, n_bl, view_matrix, proj_matrix, viewport_rect, viewport_size, stroke);
             }
             ecs::CameraProjection::Orthographic => {
-                // ORTHOGRAPHIC CAMERA: Draw rectangular frustum box in world space
-                // Using 3D projection for accurate spatial representation
-
+                // ORTHOGRAPHIC CAMERA
                 let near_distance = camera.near_clip.max(0.1);
-                // For cameras at Z=0, ensure we have a reasonable far distance
-                let far_distance = if cam_pos.z.abs() < 0.1 {
-                    5.0 // Default distance when camera is at origin
-                } else {
-                    (cam_pos.z.abs() + 2.0).min(camera.far_clip)
-                };
+                let far_distance = if cam_pos.z.abs() < 0.1 { 5.0 } else { (cam_pos.z.abs() + 2.0).min(camera.far_clip) };
 
-                // Calculate view volume dimensions based on orthographic size
                 let view_height = camera.orthographic_size * 2.0;
                 let view_width = view_height * aspect;
 
-                // Unity-style orthographic frustum corners
                 let near_center = cam_pos + forward * near_distance;
                 let far_center = cam_pos + forward * far_distance;
                 
-                let vh2 = view_height * 0.5;
-                let vw2 = view_width * 0.5;
+                let h2 = view_height * 0.5;
+                let w2 = view_width * 0.5;
                 
-                // Near plane corners (Unity order: TL, TR, BL, BR)
-                let near_tl = near_center + up * vh2 - right * vw2;
-                let near_tr = near_center + up * vh2 + right * vw2;
-                let near_bl = near_center - up * vh2 - right * vw2;
-                let near_br = near_center - up * vh2 + right * vw2;
+                let n_tl = near_center + up * h2 - right * w2;
+                let n_tr = near_center + up * h2 + right * w2;
+                let n_bl = near_center - up * h2 - right * w2;
+                let n_br = near_center - up * h2 + right * w2;
 
-                // Far plane corners (Unity order: TL, TR, BL, BR)
-                let far_tl = far_center + up * vh2 - right * vw2;
-                let far_tr = far_center + up * vh2 + right * vw2;
-                let far_bl = far_center - up * vh2 - right * vw2;
-                let far_br = far_center - up * vh2 + right * vw2;
+                let f_tl = far_center + up * h2 - right * w2;
+                let f_tr = far_center + up * h2 + right * w2;
+                let f_bl = far_center - up * h2 - right * w2;
+                let f_br = far_center - up * h2 + right * w2;
 
-                // Project all corners to screen space
-                let near_corners = [project(near_tl), project(near_tr), project(near_br), project(near_bl)];
-                let far_corners = [project(far_tl), project(far_tr), project(far_br), project(far_bl)];
+                // Draw Near Plane
+                draw_line_clipped(painter, n_tl, n_tr, view_matrix, proj_matrix, viewport_rect, viewport_size, stroke);
+                draw_line_clipped(painter, n_tr, n_br, view_matrix, proj_matrix, viewport_rect, viewport_size, stroke);
+                draw_line_clipped(painter, n_br, n_bl, view_matrix, proj_matrix, viewport_rect, viewport_size, stroke);
+                draw_line_clipped(painter, n_bl, n_tl, view_matrix, proj_matrix, viewport_rect, viewport_size, stroke);
 
-                // Draw near plane (Unity-style)
-                if near_corners.iter().all(|p| p.is_some()) {
-                    let near_points: Vec<egui::Pos2> = near_corners.into_iter().map(|p| p.unwrap()).collect();
-                    let near_stroke = egui::Stroke::new(2.0, egui::Color32::from_rgb(255, 255, 0)); // Bright yellow
-                    painter.line_segment([near_points[0], near_points[1]], near_stroke);
-                    painter.line_segment([near_points[1], near_points[2]], near_stroke);
-                    painter.line_segment([near_points[2], near_points[3]], near_stroke);
-                    painter.line_segment([near_points[3], near_points[0]], near_stroke);
-                }
+                // Draw Far Plane
+                draw_line_clipped(painter, f_tl, f_tr, view_matrix, proj_matrix, viewport_rect, viewport_size, stroke);
+                draw_line_clipped(painter, f_tr, f_br, view_matrix, proj_matrix, viewport_rect, viewport_size, stroke);
+                draw_line_clipped(painter, f_br, f_bl, view_matrix, proj_matrix, viewport_rect, viewport_size, stroke);
+                draw_line_clipped(painter, f_bl, f_tl, view_matrix, proj_matrix, viewport_rect, viewport_size, stroke);
 
-                // Draw far plane (Unity-style)
-                if far_corners.iter().all(|p| p.is_some()) {
-                    let far_points: Vec<egui::Pos2> = far_corners.into_iter().map(|p| p.unwrap()).collect();
-                    let far_stroke = egui::Stroke::new(2.0, egui::Color32::from_rgb(255, 255, 0)); // Bright yellow
-                    painter.line_segment([far_points[0], far_points[1]], far_stroke);
-                    painter.line_segment([far_points[1], far_points[2]], far_stroke);
-                    painter.line_segment([far_points[2], far_points[3]], far_stroke);
-                    painter.line_segment([far_points[3], far_points[0]], far_stroke);
-                }
-
-                // Draw connecting edges (parallel lines between near and far planes)
-                if near_corners.iter().all(|p| p.is_some()) && far_corners.iter().all(|p| p.is_some()) {
-                    let near_points: Vec<egui::Pos2> = near_corners.into_iter().map(|p| p.unwrap()).collect();
-                    let far_points: Vec<egui::Pos2> = far_corners.into_iter().map(|p| p.unwrap()).collect();
-
-                    for i in 0..4 {
-                        painter.line_segment([near_points[i], far_points[i]], line_stroke);
-                    }
-                }
-
-                // Draw lines from camera origin to near plane corners (Unity-style)
-                let origin_to_use = camera_origin_screen.unwrap_or(camera_screen_pos);
-                if near_corners.iter().all(|p| p.is_some()) {
-                    let near_points: Vec<egui::Pos2> = near_corners.into_iter().map(|p| p.unwrap()).collect();
-                    for (i, near_point) in near_points.iter().enumerate() {
-                        // Draw Unity-style yellow lines from camera origin to near plane corners
-                        painter.line_segment([origin_to_use, *near_point], egui::Stroke::new(3.0, egui::Color32::from_rgb(255, 255, 0)));
-                        
-                        // Debug: Draw small circles at near plane corners
-                        painter.circle_filled(*near_point, 4.0, egui::Color32::from_rgb(100, 255, 100));
-                        painter.text(
-                            egui::pos2(near_point.x + 5.0, near_point.y),
-                            egui::Align2::LEFT_CENTER,
-                            format!("N{}", i),
-                            egui::FontId::proportional(8.0),
-                            egui::Color32::from_rgb(100, 255, 100),
-                        );
-                    }
-                } else {
-                    // Debug: Show which corners failed to project
-                    painter.text(
-                        egui::pos2(origin_to_use.x, origin_to_use.y - 20.0),
-                        egui::Align2::CENTER_BOTTOM,
-                        "Near corners projection failed",
-                        egui::FontId::proportional(10.0),
-                        egui::Color32::from_rgb(255, 100, 100),
-                    );
-                }
+                // Draw Connecting Edges
+                draw_line_clipped(painter, n_tl, f_tl, view_matrix, proj_matrix, viewport_rect, viewport_size, stroke);
+                draw_line_clipped(painter, n_tr, f_tr, view_matrix, proj_matrix, viewport_rect, viewport_size, stroke);
+                draw_line_clipped(painter, n_br, f_br, view_matrix, proj_matrix, viewport_rect, viewport_size, stroke);
+                draw_line_clipped(painter, n_bl, f_bl, view_matrix, proj_matrix, viewport_rect, viewport_size, stroke);
+                
+                // Draw lines from origin to near (for visual link)
+                let stroke_thin = egui::Stroke::new(1.0, stroke.color);
+                draw_line_clipped(painter, cam_pos, n_tl, view_matrix, proj_matrix, viewport_rect, viewport_size, stroke_thin);
+                draw_line_clipped(painter, cam_pos, n_tr, view_matrix, proj_matrix, viewport_rect, viewport_size, stroke_thin);
+                draw_line_clipped(painter, cam_pos, n_br, view_matrix, proj_matrix, viewport_rect, viewport_size, stroke_thin);
+                draw_line_clipped(painter, cam_pos, n_bl, view_matrix, proj_matrix, viewport_rect, viewport_size, stroke_thin);
             }
         }
     }
