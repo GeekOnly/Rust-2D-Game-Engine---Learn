@@ -499,6 +499,18 @@ pub fn render_scene_view(
                                 }
                             };
 
+                            // Resolve base path for resources (textures)
+                            // We attempt to canonicalize to ensure we have an absolute path to the directory containing the XSG file.
+                            let base_path = if asset.path.is_absolute() {
+                                asset.path.parent().unwrap_or(std::path::Path::new(".")).to_path_buf()
+                            } else {
+                                // If relative, try to canonicalize from CWD. 
+                                // If that fails, fallback to parent of path.
+                                std::fs::canonicalize(&asset.path)
+                                    .map(|p| p.parent().unwrap_or(std::path::Path::new(".")).to_path_buf())
+                                    .unwrap_or_else(|_| asset.path.parent().unwrap_or(std::path::Path::new(".")).to_path_buf())
+                            };
+
                             let path_id = asset.path.to_string_lossy().to_string();
                             match engine::assets::xsg_loader::XsgLoader::load_into_world(
                                 &xsg,
@@ -507,6 +519,7 @@ pub fn render_scene_view(
                                 queue, 
                                 texture_manager,
                                 &path_id,
+                                &base_path,
                             ) {
                                 Ok(entities) => {
                                     if !entities.is_empty() {

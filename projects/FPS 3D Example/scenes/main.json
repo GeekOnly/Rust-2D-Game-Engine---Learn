@@ -1,6 +1,486 @@
 {
-  "next_entity": 318,
+  "next_entity": 422,
   "transforms": [
+    [
+      391,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      405,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      375,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      409,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      373,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      410,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      414,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      415,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      366,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      331,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      324,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      330,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      338,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      370,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      376,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      394,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      361,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      369,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      329,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      367,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      335,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      341,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      332,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      381,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
     [
       1,
       {
@@ -8,6 +488,186 @@
           0.0,
           1.173532,
           -9.573372
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      346,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      393,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      406,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      388,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      416,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      360,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      362,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      411,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      417,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
         ],
         "rotation": [
           0.0,
@@ -62,12 +722,1432 @@
       }
     ],
     [
+      377,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      402,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      419,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      395,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      379,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      413,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      380,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      420,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      421,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      384,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      342,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      339,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      368,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      399,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      401,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      340,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
       314,
       {
         "position": [
           0.0,
           0.20449278,
           0.22617558
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      319,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      345,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      349,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      390,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      398,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      333,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      325,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      336,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      347,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      378,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      392,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      400,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      358,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      355,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      363,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      371,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      356,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      403,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      408,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      364,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      404,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      321,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      318,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          -0.0,
+          0.0,
+          -0.0
+        ],
+        "scale": [
+          0.008,
+          0.008,
+          0.008
+        ]
+      }
+    ],
+    [
+      326,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      350,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      343,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      374,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      396,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      407,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      351,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      359,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      412,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      418,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      328,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      389,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      353,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      322,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      337,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      365,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      397,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      327,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      372,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      323,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      354,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      344,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      383,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      386,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      387,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      320,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      334,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      357,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      385,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      352,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      348,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      382,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
         ],
         "rotation": [
           0.0,
@@ -133,6 +2213,36 @@
   ],
   "meshes": [
     [
+      322,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_3"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_5"
+      }
+    ],
+    [
+      344,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_25"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_8"
+      }
+    ],
+    [
       314,
       {
         "mesh_type": "Cube",
@@ -146,6 +2256,801 @@
       }
     ],
     [
+      359,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_40"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_12"
+      }
+    ],
+    [
+      410,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_91"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_4"
+      }
+    ],
+    [
+      418,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_99"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_5"
+      }
+    ],
+    [
+      370,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_51"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_6"
+      }
+    ],
+    [
+      324,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_5"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_7"
+      }
+    ],
+    [
+      333,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_14"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_8"
+      }
+    ],
+    [
+      420,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_101"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_25"
+      }
+    ],
+    [
+      384,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_65"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_20"
+      }
+    ],
+    [
+      346,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_27"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_8"
+      }
+    ],
+    [
+      353,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_34"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_7"
+      }
+    ],
+    [
+      373,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_54"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_15"
+      }
+    ],
+    [
+      375,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_56"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_17"
+      }
+    ],
+    [
+      394,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_75"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_21"
+      }
+    ],
+    [
+      400,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_81"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_4"
+      }
+    ],
+    [
+      401,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_82"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_1"
+      }
+    ],
+    [
+      386,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_67"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_20"
+      }
+    ],
+    [
+      376,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_57"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_15"
+      }
+    ],
+    [
+      415,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_96"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_24"
+      }
+    ],
+    [
+      374,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_55"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_16"
+      }
+    ],
+    [
+      387,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_68"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_19"
+      }
+    ],
+    [
+      392,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_73"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_21"
+      }
+    ],
+    [
+      354,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_35"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_6"
+      }
+    ],
+    [
+      416,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_97"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_5"
+      }
+    ],
+    [
+      335,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_16"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_7"
+      }
+    ],
+    [
+      362,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_43"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_6"
+      }
+    ],
+    [
+      372,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_53"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_0"
+      }
+    ],
+    [
+      378,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_59"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_15"
+      }
+    ],
+    [
+      390,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_71"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_19"
+      }
+    ],
+    [
+      334,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_15"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_6"
+      }
+    ],
+    [
+      326,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_7"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_9"
+      }
+    ],
+    [
+      421,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_102"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_6"
+      }
+    ],
+    [
+      404,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_85"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_4"
+      }
+    ],
+    [
+      320,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_1"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_4"
+      }
+    ],
+    [
+      345,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_26"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_7"
+      }
+    ],
+    [
+      321,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_2"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_1"
+      }
+    ],
+    [
+      325,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_6"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_8"
+      }
+    ],
+    [
+      377,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_58"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_16"
+      }
+    ],
+    [
+      368,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_49"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_13"
+      }
+    ],
+    [
+      331,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_12"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_11"
+      }
+    ],
+    [
+      380,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_61"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_16"
+      }
+    ],
+    [
+      332,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_13"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_6"
+      }
+    ],
+    [
+      382,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_63"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_18"
+      }
+    ],
+    [
+      393,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_74"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_22"
+      }
+    ],
+    [
+      367,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_48"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_7"
+      }
+    ],
+    [
+      342,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_23"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_8"
+      }
+    ],
+    [
+      365,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_46"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_10"
+      }
+    ],
+    [
+      411,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_92"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_1"
+      }
+    ],
+    [
+      355,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_36"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_7"
+      }
+    ],
+    [
+      341,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_22"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_7"
+      }
+    ],
+    [
+      323,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_4"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_6"
+      }
+    ],
+    [
+      356,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_37"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_6"
+      }
+    ],
+    [
+      360,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_41"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_6"
+      }
+    ],
+    [
+      397,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_78"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_22"
+      }
+    ],
+    [
       2,
       {
         "mesh_type": "Cube",
@@ -156,6 +3061,726 @@
           1.0
         ],
         "material_id": null
+      }
+    ],
+    [
+      403,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_84"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_1"
+      }
+    ],
+    [
+      338,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_19"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_8"
+      }
+    ],
+    [
+      405,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_86"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_1"
+      }
+    ],
+    [
+      414,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_95"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_23"
+      }
+    ],
+    [
+      336,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_17"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_8"
+      }
+    ],
+    [
+      363,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_44"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_11"
+      }
+    ],
+    [
+      357,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_38"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_12"
+      }
+    ],
+    [
+      371,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_52"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_14"
+      }
+    ],
+    [
+      328,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_9"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_10"
+      }
+    ],
+    [
+      385,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_66"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_19"
+      }
+    ],
+    [
+      395,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_76"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_22"
+      }
+    ],
+    [
+      396,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_77"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_21"
+      }
+    ],
+    [
+      319,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_0"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_0"
+      }
+    ],
+    [
+      347,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_28"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_7"
+      }
+    ],
+    [
+      402,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_83"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_4"
+      }
+    ],
+    [
+      399,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_80"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_22"
+      }
+    ],
+    [
+      408,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_89"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_4"
+      }
+    ],
+    [
+      349,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_30"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_7"
+      }
+    ],
+    [
+      343,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_24"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_7"
+      }
+    ],
+    [
+      379,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_60"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_17"
+      }
+    ],
+    [
+      407,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_88"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_1"
+      }
+    ],
+    [
+      330,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_11"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_7"
+      }
+    ],
+    [
+      350,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_31"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_8"
+      }
+    ],
+    [
+      381,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_62"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_14"
+      }
+    ],
+    [
+      329,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_10"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_8"
+      }
+    ],
+    [
+      389,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_70"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_20"
+      }
+    ],
+    [
+      366,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_47"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_9"
+      }
+    ],
+    [
+      339,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_20"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_7"
+      }
+    ],
+    [
+      409,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_90"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_1"
+      }
+    ],
+    [
+      398,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_79"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_21"
+      }
+    ],
+    [
+      351,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_32"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_7"
+      }
+    ],
+    [
+      364,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_45"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_6"
+      }
+    ],
+    [
+      383,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_64"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_19"
+      }
+    ],
+    [
+      327,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_8"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_7"
+      }
+    ],
+    [
+      340,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_21"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_8"
+      }
+    ],
+    [
+      413,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_94"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_1"
+      }
+    ],
+    [
+      358,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_39"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_6"
+      }
+    ],
+    [
+      369,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_50"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_2"
+      }
+    ],
+    [
+      417,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_98"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_24"
+      }
+    ],
+    [
+      419,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_100"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_6"
+      }
+    ],
+    [
+      388,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_69"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_18"
+      }
+    ],
+    [
+      361,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_42"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_12"
+      }
+    ],
+    [
+      337,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_18"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_7"
+      }
+    ],
+    [
+      412,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_93"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_4"
+      }
+    ],
+    [
+      348,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_29"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_8"
+      }
+    ],
+    [
+      406,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_87"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_4"
+      }
+    ],
+    [
+      352,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_33"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_8"
+      }
+    ],
+    [
+      391,
+      {
+        "mesh_type": {
+          "Asset": "assets/sponza-gltf-pbr/sponza.xsg_mesh_Mesh_0_72"
+        },
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "material_id": "assets/sponza-gltf-pbr/sponza.xsg_mat_Material_18"
       }
     ]
   ],
@@ -172,7 +3797,243 @@
   ],
   "active": [
     [
+      360,
+      true
+    ],
+    [
+      358,
+      true
+    ],
+    [
+      362,
+      true
+    ],
+    [
+      372,
+      true
+    ],
+    [
+      383,
+      true
+    ],
+    [
+      321,
+      true
+    ],
+    [
+      320,
+      true
+    ],
+    [
+      398,
+      true
+    ],
+    [
+      408,
+      true
+    ],
+    [
+      327,
+      true
+    ],
+    [
+      376,
+      true
+    ],
+    [
+      414,
+      true
+    ],
+    [
+      415,
+      true
+    ],
+    [
+      359,
+      true
+    ],
+    [
+      354,
+      true
+    ],
+    [
+      366,
+      true
+    ],
+    [
+      386,
+      true
+    ],
+    [
+      410,
+      true
+    ],
+    [
+      319,
+      true
+    ],
+    [
+      420,
+      true
+    ],
+    [
+      350,
+      true
+    ],
+    [
+      378,
+      true
+    ],
+    [
+      392,
+      true
+    ],
+    [
+      400,
+      true
+    ],
+    [
+      406,
+      true
+    ],
+    [
+      409,
+      true
+    ],
+    [
+      353,
+      true
+    ],
+    [
+      369,
+      true
+    ],
+    [
+      318,
+      true
+    ],
+    [
+      416,
+      true
+    ],
+    [
+      418,
+      true
+    ],
+    [
+      374,
+      true
+    ],
+    [
+      390,
+      true
+    ],
+    [
+      328,
+      true
+    ],
+    [
+      347,
+      true
+    ],
+    [
+      345,
+      true
+    ],
+    [
+      364,
+      true
+    ],
+    [
+      365,
+      true
+    ],
+    [
+      343,
+      true
+    ],
+    [
+      375,
+      true
+    ],
+    [
+      373,
+      true
+    ],
+    [
+      314,
+      true
+    ],
+    [
+      403,
+      true
+    ],
+    [
+      397,
+      true
+    ],
+    [
+      333,
+      true
+    ],
+    [
+      379,
+      true
+    ],
+    [
+      337,
+      true
+    ],
+    [
+      341,
+      true
+    ],
+    [
+      363,
+      true
+    ],
+    [
+      389,
+      true
+    ],
+    [
+      368,
+      true
+    ],
+    [
+      396,
+      true
+    ],
+    [
+      344,
+      true
+    ],
+    [
+      394,
+      true
+    ],
+    [
       317,
+      true
+    ],
+    [
+      407,
+      true
+    ],
+    [
+      413,
+      true
+    ],
+    [
+      393,
+      true
+    ],
+    [
+      335,
+      true
+    ],
+    [
+      332,
       true
     ],
     [
@@ -180,21 +4041,525 @@
       true
     ],
     [
+      326,
+      true
+    ],
+    [
+      329,
+      true
+    ],
+    [
+      346,
+      true
+    ],
+    [
+      349,
+      true
+    ],
+    [
+      352,
+      true
+    ],
+    [
+      357,
+      true
+    ],
+    [
+      370,
+      true
+    ],
+    [
+      381,
+      true
+    ],
+    [
+      385,
+      true
+    ],
+    [
+      419,
+      true
+    ],
+    [
+      421,
+      true
+    ],
+    [
+      339,
+      true
+    ],
+    [
+      338,
+      true
+    ],
+    [
+      324,
+      true
+    ],
+    [
+      331,
+      true
+    ],
+    [
+      348,
+      true
+    ],
+    [
+      382,
+      true
+    ],
+    [
+      384,
+      true
+    ],
+    [
+      395,
+      true
+    ],
+    [
+      361,
+      true
+    ],
+    [
+      391,
+      true
+    ],
+    [
+      399,
+      true
+    ],
+    [
+      367,
+      true
+    ],
+    [
       1,
       true
     ],
     [
-      314,
+      334,
+      true
+    ],
+    [
+      325,
+      true
+    ],
+    [
+      404,
+      true
+    ],
+    [
+      387,
+      true
+    ],
+    [
+      340,
+      true
+    ],
+    [
+      371,
+      true
+    ],
+    [
+      355,
+      true
+    ],
+    [
+      405,
+      true
+    ],
+    [
+      330,
+      true
+    ],
+    [
+      380,
+      true
+    ],
+    [
+      402,
+      true
+    ],
+    [
+      336,
+      true
+    ],
+    [
+      377,
+      true
+    ],
+    [
+      356,
+      true
+    ],
+    [
+      412,
+      true
+    ],
+    [
+      388,
+      true
+    ],
+    [
+      322,
+      true
+    ],
+    [
+      417,
+      true
+    ],
+    [
+      401,
+      true
+    ],
+    [
+      323,
+      true
+    ],
+    [
+      351,
+      true
+    ],
+    [
+      411,
+      true
+    ],
+    [
+      342,
       true
     ]
   ],
   "layers": [
     [
+      336,
+      0
+    ],
+    [
+      397,
+      0
+    ],
+    [
+      385,
+      0
+    ],
+    [
+      366,
+      0
+    ],
+    [
+      399,
+      0
+    ],
+    [
+      413,
+      0
+    ],
+    [
+      378,
+      0
+    ],
+    [
+      407,
+      0
+    ],
+    [
+      323,
+      0
+    ],
+    [
+      406,
+      0
+    ],
+    [
+      415,
+      0
+    ],
+    [
+      408,
+      0
+    ],
+    [
+      319,
+      0
+    ],
+    [
+      395,
+      0
+    ],
+    [
+      384,
+      0
+    ],
+    [
+      420,
+      0
+    ],
+    [
+      354,
+      0
+    ],
+    [
+      340,
+      0
+    ],
+    [
+      381,
+      0
+    ],
+    [
+      351,
+      0
+    ],
+    [
+      321,
+      0
+    ],
+    [
+      324,
+      0
+    ],
+    [
+      342,
+      0
+    ],
+    [
+      403,
+      0
+    ],
+    [
+      412,
+      0
+    ],
+    [
+      363,
+      0
+    ],
+    [
+      344,
+      0
+    ],
+    [
+      373,
+      0
+    ],
+    [
+      370,
+      0
+    ],
+    [
+      409,
+      0
+    ],
+    [
+      414,
+      0
+    ],
+    [
+      355,
+      0
+    ],
+    [
+      416,
+      0
+    ],
+    [
+      349,
+      0
+    ],
+    [
+      359,
+      0
+    ],
+    [
+      380,
+      0
+    ],
+    [
+      392,
+      0
+    ],
+    [
+      357,
+      0
+    ],
+    [
+      417,
+      0
+    ],
+    [
+      377,
+      0
+    ],
+    [
+      361,
+      0
+    ],
+    [
+      371,
+      0
+    ],
+    [
+      402,
+      0
+    ],
+    [
+      353,
+      0
+    ],
+    [
+      345,
+      0
+    ],
+    [
+      343,
+      0
+    ],
+    [
+      372,
+      0
+    ],
+    [
+      405,
+      0
+    ],
+    [
+      401,
+      0
+    ],
+    [
+      358,
+      0
+    ],
+    [
+      388,
+      0
+    ],
+    [
+      419,
+      0
+    ],
+    [
+      346,
+      0
+    ],
+    [
+      367,
+      0
+    ],
+    [
+      337,
+      0
+    ],
+    [
+      350,
+      0
+    ],
+    [
+      326,
+      0
+    ],
+    [
+      396,
+      0
+    ],
+    [
       2,
       0
     ],
     [
-      314,
+      322,
+      0
+    ],
+    [
+      390,
+      0
+    ],
+    [
+      356,
+      0
+    ],
+    [
+      341,
+      0
+    ],
+    [
+      389,
+      0
+    ],
+    [
+      398,
+      0
+    ],
+    [
+      391,
+      0
+    ],
+    [
+      333,
+      0
+    ],
+    [
+      318,
+      0
+    ],
+    [
+      327,
+      0
+    ],
+    [
+      348,
+      0
+    ],
+    [
+      382,
+      0
+    ],
+    [
+      368,
+      0
+    ],
+    [
+      394,
+      0
+    ],
+    [
+      400,
+      0
+    ],
+    [
+      404,
+      0
+    ],
+    [
+      411,
+      0
+    ],
+    [
+      421,
+      0
+    ],
+    [
+      418,
+      0
+    ],
+    [
+      332,
+      0
+    ],
+    [
+      347,
+      0
+    ],
+    [
+      325,
+      0
+    ],
+    [
+      339,
+      0
+    ],
+    [
+      328,
       0
     ],
     [
@@ -202,27 +4567,952 @@
       0
     ],
     [
+      379,
+      0
+    ],
+    [
+      386,
+      0
+    ],
+    [
+      410,
+      0
+    ],
+    [
+      376,
+      0
+    ],
+    [
+      329,
+      0
+    ],
+    [
+      365,
+      0
+    ],
+    [
+      383,
+      0
+    ],
+    [
+      362,
+      0
+    ],
+    [
+      369,
+      0
+    ],
+    [
+      335,
+      0
+    ],
+    [
+      338,
+      0
+    ],
+    [
+      320,
+      0
+    ],
+    [
+      330,
+      0
+    ],
+    [
+      334,
+      0
+    ],
+    [
+      364,
+      0
+    ],
+    [
+      352,
+      0
+    ],
+    [
+      360,
+      0
+    ],
+    [
+      387,
+      0
+    ],
+    [
+      393,
+      0
+    ],
+    [
       317,
+      0
+    ],
+    [
+      314,
+      0
+    ],
+    [
+      374,
+      0
+    ],
+    [
+      375,
+      0
+    ],
+    [
+      331,
       0
     ]
   ],
-  "parents": [],
+  "parents": [
+    [
+      405,
+      318
+    ],
+    [
+      352,
+      318
+    ],
+    [
+      415,
+      318
+    ],
+    [
+      333,
+      318
+    ],
+    [
+      384,
+      318
+    ],
+    [
+      407,
+      318
+    ],
+    [
+      321,
+      318
+    ],
+    [
+      377,
+      318
+    ],
+    [
+      320,
+      318
+    ],
+    [
+      326,
+      318
+    ],
+    [
+      374,
+      318
+    ],
+    [
+      369,
+      318
+    ],
+    [
+      338,
+      318
+    ],
+    [
+      355,
+      318
+    ],
+    [
+      357,
+      318
+    ],
+    [
+      381,
+      318
+    ],
+    [
+      410,
+      318
+    ],
+    [
+      386,
+      318
+    ],
+    [
+      323,
+      318
+    ],
+    [
+      354,
+      318
+    ],
+    [
+      346,
+      318
+    ],
+    [
+      330,
+      318
+    ],
+    [
+      356,
+      318
+    ],
+    [
+      334,
+      318
+    ],
+    [
+      376,
+      318
+    ],
+    [
+      402,
+      318
+    ],
+    [
+      416,
+      318
+    ],
+    [
+      400,
+      318
+    ],
+    [
+      378,
+      318
+    ],
+    [
+      341,
+      318
+    ],
+    [
+      393,
+      318
+    ],
+    [
+      404,
+      318
+    ],
+    [
+      394,
+      318
+    ],
+    [
+      418,
+      318
+    ],
+    [
+      395,
+      318
+    ],
+    [
+      340,
+      318
+    ],
+    [
+      401,
+      318
+    ],
+    [
+      389,
+      318
+    ],
+    [
+      388,
+      318
+    ],
+    [
+      392,
+      318
+    ],
+    [
+      396,
+      318
+    ],
+    [
+      397,
+      318
+    ],
+    [
+      322,
+      318
+    ],
+    [
+      414,
+      318
+    ],
+    [
+      382,
+      318
+    ],
+    [
+      353,
+      318
+    ],
+    [
+      417,
+      318
+    ],
+    [
+      421,
+      318
+    ],
+    [
+      318,
+      317
+    ],
+    [
+      383,
+      318
+    ],
+    [
+      364,
+      318
+    ],
+    [
+      332,
+      318
+    ],
+    [
+      351,
+      318
+    ],
+    [
+      372,
+      318
+    ],
+    [
+      329,
+      318
+    ],
+    [
+      325,
+      318
+    ],
+    [
+      344,
+      318
+    ],
+    [
+      359,
+      318
+    ],
+    [
+      373,
+      318
+    ],
+    [
+      387,
+      318
+    ],
+    [
+      391,
+      318
+    ],
+    [
+      347,
+      318
+    ],
+    [
+      360,
+      318
+    ],
+    [
+      399,
+      318
+    ],
+    [
+      328,
+      318
+    ],
+    [
+      370,
+      318
+    ],
+    [
+      406,
+      318
+    ],
+    [
+      361,
+      318
+    ],
+    [
+      380,
+      318
+    ],
+    [
+      403,
+      318
+    ],
+    [
+      366,
+      318
+    ],
+    [
+      398,
+      318
+    ],
+    [
+      348,
+      318
+    ],
+    [
+      337,
+      318
+    ],
+    [
+      408,
+      318
+    ],
+    [
+      411,
+      318
+    ],
+    [
+      413,
+      318
+    ],
+    [
+      331,
+      318
+    ],
+    [
+      367,
+      318
+    ],
+    [
+      324,
+      318
+    ],
+    [
+      345,
+      318
+    ],
+    [
+      375,
+      318
+    ],
+    [
+      327,
+      318
+    ],
+    [
+      358,
+      318
+    ],
+    [
+      419,
+      318
+    ],
+    [
+      336,
+      318
+    ],
+    [
+      349,
+      318
+    ],
+    [
+      390,
+      318
+    ],
+    [
+      343,
+      318
+    ],
+    [
+      368,
+      318
+    ],
+    [
+      319,
+      318
+    ],
+    [
+      335,
+      318
+    ],
+    [
+      362,
+      318
+    ],
+    [
+      365,
+      318
+    ],
+    [
+      420,
+      318
+    ],
+    [
+      342,
+      318
+    ],
+    [
+      412,
+      318
+    ],
+    [
+      409,
+      318
+    ],
+    [
+      363,
+      318
+    ],
+    [
+      379,
+      318
+    ],
+    [
+      339,
+      318
+    ],
+    [
+      350,
+      318
+    ],
+    [
+      371,
+      318
+    ],
+    [
+      385,
+      318
+    ]
+  ],
   "names": [
+    [
+      402,
+      "Node_Part_83"
+    ],
     [
       2,
       "Floor"
+    ],
+    [
+      339,
+      "Node_Part_20"
+    ],
+    [
+      344,
+      "Node_Part_25"
+    ],
+    [
+      322,
+      "Node_Part_3"
+    ],
+    [
+      352,
+      "Node_Part_33"
+    ],
+    [
+      343,
+      "Node_Part_24"
+    ],
+    [
+      320,
+      "Node_Part_1"
+    ],
+    [
+      329,
+      "Node_Part_10"
+    ],
+    [
+      389,
+      "Node_Part_70"
     ],
     [
       317,
       "GameObject"
     ],
     [
-      314,
-      "Cube"
+      361,
+      "Node_Part_42"
+    ],
+    [
+      372,
+      "Node_Part_53"
+    ],
+    [
+      349,
+      "Node_Part_30"
+    ],
+    [
+      377,
+      "Node_Part_58"
+    ],
+    [
+      326,
+      "Node_Part_7"
+    ],
+    [
+      365,
+      "Node_Part_46"
+    ],
+    [
+      390,
+      "Node_Part_71"
+    ],
+    [
+      351,
+      "Node_Part_32"
+    ],
+    [
+      379,
+      "Node_Part_60"
+    ],
+    [
+      381,
+      "Node_Part_62"
+    ],
+    [
+      393,
+      "Node_Part_74"
+    ],
+    [
+      395,
+      "Node_Part_76"
+    ],
+    [
+      359,
+      "Node_Part_40"
+    ],
+    [
+      355,
+      "Node_Part_36"
+    ],
+    [
+      366,
+      "Node_Part_47"
+    ],
+    [
+      386,
+      "Node_Part_67"
+    ],
+    [
+      360,
+      "Node_Part_41"
+    ],
+    [
+      388,
+      "Node_Part_69"
+    ],
+    [
+      335,
+      "Node_Part_16"
+    ],
+    [
+      396,
+      "Node_Part_77"
+    ],
+    [
+      397,
+      "Node_Part_78"
+    ],
+    [
+      398,
+      "Node_Part_79"
+    ],
+    [
+      399,
+      "Node_Part_80"
+    ],
+    [
+      401,
+      "Node_Part_82"
+    ],
+    [
+      354,
+      "Node_Part_35"
+    ],
+    [
+      383,
+      "Node_Part_64"
+    ],
+    [
+      385,
+      "Node_Part_66"
+    ],
+    [
+      403,
+      "Node_Part_84"
+    ],
+    [
+      406,
+      "Node_Part_87"
+    ],
+    [
+      328,
+      "Node_Part_9"
+    ],
+    [
+      362,
+      "Node_Part_43"
+    ],
+    [
+      321,
+      "Node_Part_2"
+    ],
+    [
+      367,
+      "Node_Part_48"
+    ],
+    [
+      374,
+      "Node_Part_55"
+    ],
+    [
+      319,
+      "Node_Part_0"
+    ],
+    [
+      358,
+      "Node_Part_39"
+    ],
+    [
+      336,
+      "Node_Part_17"
+    ],
+    [
+      332,
+      "Node_Part_13"
+    ],
+    [
+      363,
+      "Node_Part_44"
     ],
     [
       1,
       "Main Camera"
+    ],
+    [
+      384,
+      "Node_Part_65"
+    ],
+    [
+      407,
+      "Node_Part_88"
+    ],
+    [
+      408,
+      "Node_Part_89"
+    ],
+    [
+      412,
+      "Node_Part_93"
+    ],
+    [
+      330,
+      "Node_Part_11"
+    ],
+    [
+      413,
+      "Node_Part_94"
+    ],
+    [
+      414,
+      "Node_Part_95"
+    ],
+    [
+      357,
+      "Node_Part_38"
+    ],
+    [
+      376,
+      "Node_Part_57"
+    ],
+    [
+      333,
+      "Node_Part_14"
+    ],
+    [
+      353,
+      "Node_Part_34"
+    ],
+    [
+      375,
+      "Node_Part_56"
+    ],
+    [
+      356,
+      "Node_Part_37"
+    ],
+    [
+      394,
+      "Node_Part_75"
+    ],
+    [
+      314,
+      "Cube"
+    ],
+    [
+      391,
+      "Node_Part_72"
+    ],
+    [
+      411,
+      "Node_Part_92"
+    ],
+    [
+      334,
+      "Node_Part_15"
+    ],
+    [
+      331,
+      "Node_Part_12"
+    ],
+    [
+      417,
+      "Node_Part_98"
+    ],
+    [
+      421,
+      "Node_Part_102"
+    ],
+    [
+      323,
+      "Node_Part_4"
+    ],
+    [
+      340,
+      "Node_Part_21"
+    ],
+    [
+      341,
+      "Node_Part_22"
+    ],
+    [
+      387,
+      "Node_Part_68"
+    ],
+    [
+      371,
+      "Node_Part_52"
+    ],
+    [
+      382,
+      "Node_Part_63"
+    ],
+    [
+      415,
+      "Node_Part_96"
+    ],
+    [
+      348,
+      "Node_Part_29"
+    ],
+    [
+      337,
+      "Node_Part_18"
+    ],
+    [
+      369,
+      "Node_Part_50"
+    ],
+    [
+      416,
+      "Node_Part_97"
+    ],
+    [
+      419,
+      "Node_Part_100"
+    ],
+    [
+      410,
+      "Node_Part_91"
+    ],
+    [
+      345,
+      "Node_Part_26"
+    ],
+    [
+      392,
+      "Node_Part_73"
+    ],
+    [
+      327,
+      "Node_Part_8"
+    ],
+    [
+      318,
+      "Node"
+    ],
+    [
+      368,
+      "Node_Part_49"
+    ],
+    [
+      418,
+      "Node_Part_99"
+    ],
+    [
+      350,
+      "Node_Part_31"
+    ],
+    [
+      347,
+      "Node_Part_28"
+    ],
+    [
+      373,
+      "Node_Part_54"
+    ],
+    [
+      370,
+      "Node_Part_51"
+    ],
+    [
+      338,
+      "Node_Part_19"
+    ],
+    [
+      380,
+      "Node_Part_61"
+    ],
+    [
+      342,
+      "Node_Part_23"
+    ],
+    [
+      364,
+      "Node_Part_45"
+    ],
+    [
+      346,
+      "Node_Part_27"
+    ],
+    [
+      325,
+      "Node_Part_6"
+    ],
+    [
+      404,
+      "Node_Part_85"
+    ],
+    [
+      409,
+      "Node_Part_90"
+    ],
+    [
+      405,
+      "Node_Part_86"
+    ],
+    [
+      400,
+      "Node_Part_81"
+    ],
+    [
+      420,
+      "Node_Part_101"
+    ],
+    [
+      324,
+      "Node_Part_5"
+    ],
+    [
+      378,
+      "Node_Part_59"
     ]
   ],
   "sprite_sheets": [],
@@ -232,5 +5522,13 @@
   "tilemap_renderers": [],
   "grids": [],
   "maps": [],
-  "world_uis": []
+  "world_uis": [],
+  "model_3ds": [
+    [
+      317,
+      {
+        "asset_id": "assets/sponza-gltf-pbr/sponza.xsg"
+      }
+    ]
+  ]
 }

@@ -19,8 +19,9 @@ impl XsgLoader {
         device: &wgpu::Device,
         queue: &wgpu::Queue,
         path_id: &str,
+        base_path: &std::path::Path,
     ) -> anyhow::Result<()> {
-        Self::load_resources(&xsg, device, queue, path_id)?;
+        Self::load_resources(&xsg, device, queue, path_id, base_path)?;
         get_model_manager().add_model(path_id.to_string(), xsg);
         Ok(())
     }
@@ -30,6 +31,7 @@ impl XsgLoader {
          device: &wgpu::Device,
          queue: &wgpu::Queue,
          path_id: &str,
+         base_path: &std::path::Path,
     ) -> anyhow::Result<(std::collections::HashMap<u32, Vec<String>>, std::collections::HashMap<u32, String>)> {
          let mut mesh_map: std::collections::HashMap<u32, Vec<String>> = std::collections::HashMap::new(); // Index -> List of Asset IDs
          let mut material_map = std::collections::HashMap::new(); // Index -> Asset ID
@@ -41,10 +43,7 @@ impl XsgLoader {
             let mut loaded_texture = None;
             
             if let Some(uri) = &xsg_tex.uri {
-                 let xsg_path = std::path::Path::new(path_id);
-                 // If path_id is just a name, parent might be empty.
-                 let parent = xsg_path.parent().unwrap_or(std::path::Path::new("."));
-                 let full_path = parent.join(uri);
+                 let full_path = base_path.join(uri);
                  
                  if let Ok(img) = image::open(&full_path) {
                      // Use Texture directly as it is imported
@@ -153,8 +152,9 @@ impl XsgLoader {
         queue: &wgpu::Queue,
         _texture_manager: &mut TextureManager, // Unused now
         path_id: &str,
+        base_path: &std::path::Path,
     ) -> anyhow::Result<Vec<Entity>> {
-        let (mesh_map, material_map) = Self::load_resources(xsg, device, queue, path_id)?;
+        let (mesh_map, material_map) = Self::load_resources(xsg, device, queue, path_id, base_path)?;
         let mut created_entities = Vec::new();
         
         // 4. Create Entities (Nodes)

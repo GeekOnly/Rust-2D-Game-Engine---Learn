@@ -125,6 +125,8 @@ pub fn post_process_asset_meshes(
                         Ok(xsg) => {
                             // Create a dummy texture manager for XSG loader
                             let mut dummy_texture_manager = crate::texture_manager::TextureManager::new();
+                            let base_path = asset_path.parent().unwrap_or(std::path::Path::new("."));
+                            
                             crate::assets::xsg_loader::XsgLoader::load_into_world(
                                 &xsg,
                                 world,
@@ -132,6 +134,7 @@ pub fn post_process_asset_meshes(
                                 queue,
                                 &mut dummy_texture_manager,
                                 &asset_rel_path,
+                                base_path,
                             )
                         }
                         Err(e) => Err(anyhow::anyhow!("Failed to load XSG file: {}", e))
