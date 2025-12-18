@@ -231,6 +231,32 @@ impl Transform {
     }
 }
 
+/// Computed Global Transform (World Matrix)
+/// This is derived from the hierarchy chain (Parent * Child)
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct GlobalTransform {
+    pub matrix: [f32; 16], // 4x4 matrix column-major
+}
+
+impl Default for GlobalTransform {
+    fn default() -> Self {
+        Self {
+            matrix: [
+                1.0, 0.0, 0.0, 0.0, // Col 1
+                0.0, 1.0, 0.0, 0.0, // Col 2
+                0.0, 0.0, 1.0, 0.0, // Col 3
+                0.0, 0.0, 0.0, 1.0, // Col 4
+            ],
+        }
+    }
+}
+
+impl GlobalTransform {
+    pub fn identity() -> Self {
+        Self::default()
+    }
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Sprite {
     pub texture_id: String,
@@ -600,6 +626,7 @@ pub type CustomEntity = u32;
 pub struct CustomWorld {
     next_entity: CustomEntity,
     pub transforms: HashMap<CustomEntity, Transform>,
+    pub global_transforms: HashMap<CustomEntity, GlobalTransform>, // Computed world transform
     pub velocities: HashMap<CustomEntity, (f32, f32)>,  // Legacy - kept for backward compatibility
     pub rigidbodies: HashMap<CustomEntity, Rigidbody2D>, // New Rigidbody2D component
     pub sprites: HashMap<CustomEntity, Sprite>,
@@ -662,6 +689,7 @@ impl CustomWorld {
         }
 
         self.transforms.remove(&e);
+        self.global_transforms.remove(&e);
         self.velocities.remove(&e);
         self.rigidbodies.remove(&e);
         self.sprites.remove(&e);
@@ -689,6 +717,7 @@ impl CustomWorld {
 
     pub fn clear(&mut self) {
         self.transforms.clear();
+        self.global_transforms.clear();
         self.velocities.clear();
         self.rigidbodies.clear();
         self.sprites.clear();

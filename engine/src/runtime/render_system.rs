@@ -398,16 +398,22 @@ pub fn render_game_world<'a>(
         if let Some(transform) = world.transforms.get(entity) {
              // 1. Object Uniform (Model Matrix)
             if !entity_cache.contains_key(entity) {
-                let rot_rad = Vec3::new(
-                    transform.rotation[0].to_radians(),
-                    transform.rotation[1].to_radians(),
-                    transform.rotation[2].to_radians(),
-                );
-                let rotation = Quat::from_euler(glam::EulerRot::XYZ, rot_rad.x, rot_rad.y, rot_rad.z);
-                let translation = Vec3::from(transform.position);
-                let scale = Vec3::from(transform.scale);
-                
-                let model_matrix = Mat4::from_scale_rotation_translation(scale, rotation, translation);
+                let model_matrix = if let Some(global) = world.global_transforms.get(entity) {
+                    Mat4::from_cols_array(&global.matrix)
+                } else {
+                    // Fallback to local transform
+                    let rot_rad = Vec3::new(
+                        transform.rotation[0].to_radians(),
+                        transform.rotation[1].to_radians(),
+                        transform.rotation[2].to_radians(),
+                    );
+                    let rotation = Quat::from_euler(glam::EulerRot::XYZ, rot_rad.x, rot_rad.y, rot_rad.z);
+                    let translation = Vec3::from(transform.position);
+                    let scale = Vec3::from(transform.scale);
+                    
+                    Mat4::from_scale_rotation_translation(scale, rotation, translation)
+                };
+
                 let object_uniform = ObjectUniform {
                     model: model_matrix.to_cols_array_2d(),
                 };
@@ -430,16 +436,22 @@ pub fn render_game_world<'a>(
             } else {
                 // Update existing buffer
                 if let Some((buffer, _)) = entity_cache.get(entity) {
-                    let rot_rad = Vec3::new(
-                        transform.rotation[0].to_radians(),
-                        transform.rotation[1].to_radians(),
-                        transform.rotation[2].to_radians(),
-                    );
-                    let rotation = Quat::from_euler(glam::EulerRot::XYZ, rot_rad.x, rot_rad.y, rot_rad.z);
-                    let translation = Vec3::from(transform.position);
-                    let scale = Vec3::from(transform.scale);
-                    
-                    let model_matrix = Mat4::from_scale_rotation_translation(scale, rotation, translation);
+                    let model_matrix = if let Some(global) = world.global_transforms.get(entity) {
+                        Mat4::from_cols_array(&global.matrix)
+                    } else {
+                        // Fallback to local transform
+                        let rot_rad = Vec3::new(
+                            transform.rotation[0].to_radians(),
+                            transform.rotation[1].to_radians(),
+                            transform.rotation[2].to_radians(),
+                        );
+                        let rotation = Quat::from_euler(glam::EulerRot::XYZ, rot_rad.x, rot_rad.y, rot_rad.z);
+                        let translation = Vec3::from(transform.position);
+                        let scale = Vec3::from(transform.scale);
+                        
+                        Mat4::from_scale_rotation_translation(scale, rotation, translation)
+                    };
+
                     let object_uniform = ObjectUniform {
                         model: model_matrix.to_cols_array_2d(),
                     };

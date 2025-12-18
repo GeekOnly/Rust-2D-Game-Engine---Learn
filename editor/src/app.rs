@@ -522,6 +522,12 @@ impl EditorApp {
             self.egui_renderer.update_texture(&self.renderer.device, &self.renderer.queue, *id, image_delta);
         }
 
+        // Update Global Transforms (Hierarchy)
+        // This ensures child entities follow their parents
+        if self.app_state == AppState::Editor {
+             runtime::transform_system::update_global_transforms(&mut self.editor_state.world);
+        }
+
         let res = self.renderer.render_with_callback(|device, queue, encoder, view, depth_view, texture_manager, batch_renderer, mesh_renderer, camera_binding, light_binding| {
             // Render Game World to Offscreen Texture (for Editor Game View)
             if self.app_state == AppState::Editor {

@@ -7,6 +7,7 @@ pub mod script_system;
 pub mod systems;
 pub mod ldtk_runtime;
 pub mod game_view_settings;
+pub mod transform_system;
 
 // Re-exports for convenience
 pub use renderer::render_game_view;
