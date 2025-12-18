@@ -8,23 +8,33 @@ use std::sync::Arc;
 use ecs::traits::ComponentAccess;
 use log::{info, warn};
 use image;
+use crate::assets::model_manager::get_model_manager;
 
 pub struct XsgLoader;
 
 impl XsgLoader {
-    pub fn load_into_world(
-        xsg: &XsgFile,
-        world: &mut World,
+
+    pub fn load_to_manager(
+        xsg: XsgFile,
         device: &wgpu::Device,
         queue: &wgpu::Queue,
-        texture_manager: &mut TextureManager,
-        path_id: &str, // Unique identifier for this asset instance (e.g. file path)
-    ) -> anyhow::Result<Vec<Entity>> {
-        let mut created_entities = Vec::new();
-        let mut mesh_map = std::collections::HashMap::new(); // Index -> Asset ID
-        let mut material_map = std::collections::HashMap::new(); // Index -> Asset ID
+        path_id: &str,
+    ) -> anyhow::Result<()> {
+        Self::load_resources(&xsg, device, queue, path_id)?;
+        get_model_manager().add_model(path_id.to_string(), xsg);
+        Ok(())
+    }
 
-        // 1. Load Textures
+    pub fn load_resources(
+         xsg: &XsgFile,
+         device: &wgpu::Device,
+         queue: &wgpu::Queue,
+         path_id: &str,
+    ) -> anyhow::Result<(std::collections::HashMap<u32, String>, std::collections::HashMap<u32, String>)> {
+         let mut mesh_map = std::collections::HashMap::new(); // Index -> Asset ID
+         let mut material_map = std::collections::HashMap::new(); // Index -> Asset ID
+
+         // 1. Load Textures
         let mut texture_map = std::collections::HashMap::new();
         for (i, xsg_tex) in xsg.textures.iter().enumerate() {
             let tex_id = format!("{}_tex_{}_{}", path_id, xsg_tex.name, i);
@@ -122,6 +132,20 @@ impl XsgLoader {
                 }
             }
         }
+        
+        Ok((mesh_map, material_map))
+    }
+
+    pub fn load_into_world(
+        xsg: &XsgFile,
+        world: &mut World,
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        _texture_manager: &mut TextureManager, // Unused now
+        path_id: &str,
+    ) -> anyhow::Result<Vec<Entity>> {
+        let (mesh_map, material_map) = Self::load_resources(xsg, device, queue, path_id)?;
+        let mut created_entities = Vec::new();
         
         // 4. Create Entities (Nodes)
         // We map XSG Node Index -> ECS Entity

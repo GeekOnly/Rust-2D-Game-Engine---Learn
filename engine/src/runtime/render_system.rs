@@ -4,6 +4,7 @@ use glam::{Vec3, Quat, Mat4};
 use std::collections::HashMap;
 use std::sync::Arc;
 use wgpu::util::DeviceExt;
+use crate::assets::model_manager::get_model_manager;
 
 // Simple mesh cache to avoid regenerating meshes every frame
 static mut MESH_CACHE: Option<HashMap<String, Mesh>> = None;
@@ -571,5 +572,154 @@ pub fn render_game_world<'a>(
                 }
             }
          }
+    }
+
+    // 5. Render Model3D Components
+    let model_manager = get_model_manager();
+    
+    static mut MODEL_NODE_CACHE: Option<HashMap<(u32, u32), (wgpu::Buffer, wgpu::BindGroup)>> = None;
+    let model_node_cache = unsafe {
+        if MODEL_NODE_CACHE.is_none() {
+            MODEL_NODE_CACHE = Some(HashMap::new());
+        }
+        MODEL_NODE_CACHE.as_mut().unwrap()
+    };
+    
+    // Pass A: Update Cache (Mutable access)
+    for (entity, model_3d) in &world.model_3ds {
+        if let Some(xsg) = model_manager.get_model(&model_3d.asset_id) {
+             let root_transform = if let Some(global) = world.global_transforms.get(entity) {
+                 Mat4::from_cols_array(&global.matrix)
+             } else if let Some(transform) = world.transforms.get(entity) {
+                  let rot_rad = Vec3::new(
+                        transform.rotation[0].to_radians(),
+                        transform.rotation[1].to_radians(),
+                        transform.rotation[2].to_radians(),
+                  );
+                  let rotation = Quat::from_euler(glam::EulerRot::XYZ, rot_rad.x, rot_rad.y, rot_rad.z);
+                  let translation = Vec3::from(transform.position);
+                  let scale = Vec3::from(transform.scale);
+                  Mat4::from_scale_rotation_translation(scale, rotation, translation)
+             } else {
+                  Mat4::IDENTITY
+             };
+
+             let mut stack = Vec::new();
+             for root_idx in &xsg.root_nodes {
+                 stack.push((*root_idx, root_transform));
+             }
+
+             while let Some((node_idx, parent_mat)) = stack.pop() {
+                 let node = &xsg.nodes[node_idx as usize];
+                 let q = glam::Quat::from_array(node.transform.rotation);
+                 let t = glam::Vec3::from(node.transform.position);
+                 let s = glam::Vec3::from(node.transform.scale);
+                 let local_mat = Mat4::from_scale_rotation_translation(s, q, t);
+                 let global_mat = parent_mat * local_mat;
+
+                 if let Some(_) = node.mesh {
+                      // We only care about updating buffer here
+                      let cache_key = (*entity, node_idx);
+                      let object_uniform = ObjectUniform { model: global_mat.to_cols_array_2d() };
+                      
+                      if !model_node_cache.contains_key(&cache_key) {
+                            let buffer = device.create_buffer_init(
+                            &wgpu::util::BufferInitDescriptor {
+                                label: Some(&format!("Model3D Node Buffer {}-{}", entity, node_idx)),
+                                contents: bytemuck::cast_slice(&[object_uniform]),
+                                usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+                            }
+                            );
+                            
+                            let bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
+                                layout: &mesh_renderer.object_layout,
+                                entries: &[
+                                    wgpu::BindGroupEntry { binding: 0, resource: buffer.as_entire_binding() },
+                                ],
+                                label: Some("model_node_bind_group"),
+                            });
+                            
+                            model_node_cache.insert(cache_key, (buffer, bg));
+                      } else {
+                            let (buffer, _) = model_node_cache.get(&cache_key).unwrap();
+                            queue.write_buffer(buffer, 0, bytemuck::cast_slice(&[object_uniform]));
+                      }
+                 }
+
+                 for child_idx in &node.children {
+                     stack.push((*child_idx, global_mat));
+                 }
+             }
+        }
+    }
+
+    // Pass B: Render (Immutable access)
+    // We traverse again to submit draw calls
+    for (entity, model_3d) in &world.model_3ds {
+        if let Some(xsg) = model_manager.get_model(&model_3d.asset_id) {
+             let root_transform = if let Some(global) = world.global_transforms.get(entity) {
+                 Mat4::from_cols_array(&global.matrix)
+             } else if let Some(transform) = world.transforms.get(entity) {
+                  let rot_rad = Vec3::new(
+                        transform.rotation[0].to_radians(),
+                        transform.rotation[1].to_radians(),
+                        transform.rotation[2].to_radians(),
+                  );
+                  let rotation = Quat::from_euler(glam::EulerRot::XYZ, rot_rad.x, rot_rad.y, rot_rad.z);
+                  let translation = Vec3::from(transform.position);
+                  let scale = Vec3::from(transform.scale);
+                  Mat4::from_scale_rotation_translation(scale, rotation, translation)
+             } else {
+                  Mat4::IDENTITY
+             };
+
+             let mut stack = Vec::new();
+             for root_idx in &xsg.root_nodes {
+                 stack.push((*root_idx, root_transform));
+             }
+
+             while let Some((node_idx, parent_mat)) = stack.pop() {
+                 let node = &xsg.nodes[node_idx as usize];
+                 let q = glam::Quat::from_array(node.transform.rotation);
+                 let t = glam::Vec3::from(node.transform.position);
+                 let s = glam::Vec3::from(node.transform.scale);
+                 let local_mat = Mat4::from_scale_rotation_translation(s, q, t);
+                 let global_mat = parent_mat * local_mat;
+
+                 if let Some(mesh_idx) = node.mesh {
+                      let mesh_name = &xsg.meshes[mesh_idx as usize].name;
+                      for (prim_idx, prim) in xsg.meshes[mesh_idx as usize].primitives.iter().enumerate() {
+                           let mesh_id = format!("{}_mesh_{}_{}_{}", model_3d.asset_id, mesh_name, mesh_idx, prim_idx);
+                           if let Some(mesh) = mesh_assets.get(&mesh_id) {
+                                let mat_id = prim.material_index.and_then(|mi| {
+                                     let mname = &xsg.materials[mi as usize].name;
+                                     Some(format!("{}_mat_{}_{}", model_3d.asset_id, mname, mi))
+                                });
+                                let material_bg = mat_id.as_ref()
+                                     .and_then(|id| material_assets.get(id))
+                                     .and_then(|m| m.bind_group.as_ref());
+
+                                if let Some(mat_bg) = material_bg {
+                                     let cache_key = (*entity, node_idx);
+                                     if let Some((_, object_bg)) = model_node_cache.get(&cache_key) {
+                                         mesh_renderer.render_pbr(
+                                             render_pass,
+                                             mesh,
+                                             mat_bg,
+                                             &camera_binding.bind_group,
+                                             &light_binding.bind_group,
+                                             object_bg
+                                         );
+                                     }
+                                }
+                           }
+                      }
+                 }
+
+                 for child_idx in &node.children {
+                     stack.push((*child_idx, global_mat));
+                 }
+             }
+        }
     }
 }

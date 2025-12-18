@@ -439,6 +439,19 @@ impl Default for Rigidbody2D {
 }
 
 /// 3D Mesh component
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Model3D {
+    pub asset_id: String,
+}
+
+impl Default for Model3D {
+    fn default() -> Self {
+        Self {
+            asset_id: "".to_string(),
+        }
+    }
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Mesh {
     pub mesh_type: MeshType,
@@ -658,6 +671,8 @@ pub struct CustomWorld {
     // Tilemap Collider components
     pub tilemap_colliders: HashMap<CustomEntity, TilemapCollider>,
     pub ldtk_intgrid_colliders: HashMap<CustomEntity, LdtkIntGridCollider>,
+    // 3D Model component (Static Props)
+    pub model_3ds: HashMap<CustomEntity, Model3D>,
 }
 
 impl CustomWorld {
@@ -713,6 +728,7 @@ impl CustomWorld {
         self.ldtk_maps.remove(&e);
         self.tilemap_colliders.remove(&e);
         self.ldtk_intgrid_colliders.remove(&e);
+        self.model_3ds.remove(&e);
     }
 
     pub fn clear(&mut self) {
@@ -743,6 +759,7 @@ impl CustomWorld {
         self.ldtk_maps.clear();
         self.tilemap_colliders.clear();
         self.ldtk_intgrid_colliders.clear();
+        self.model_3ds.clear();
         self.next_entity = 0;
     }
 
@@ -1074,6 +1091,7 @@ mod custom_world_impls {
     impl_component_access!(CustomWorld, LdtkMap, ldtk_maps, CustomEntity);
     impl_component_access!(CustomWorld, TilemapCollider, tilemap_colliders, CustomEntity);
     impl_component_access!(CustomWorld, LdtkIntGridCollider, ldtk_intgrid_colliders, CustomEntity);
+    impl_component_access!(CustomWorld, Model3D, model_3ds, CustomEntity);
 }
 
 // Manual implementations for tuple and primitive types
