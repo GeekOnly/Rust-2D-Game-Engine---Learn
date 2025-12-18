@@ -34,6 +34,7 @@ pub struct EditorApp {
     pub game_view_renderer: crate::game_view_renderer::GameViewRenderer,
     pub scene_view_renderer: crate::scene_view_renderer::SceneViewRenderer,
     pub scene_camera_binding: CameraBinding,
+    pub grid_renderer: render::GridRenderer,
     pub physics_accumulator: f32,
     pub fixed_timestep: f32,
 }
@@ -163,6 +164,13 @@ impl EditorApp {
 
         let scene_camera_binding = CameraBinding::new(&renderer.device);
 
+        // Initialize Grid Renderer
+        let grid_renderer = render::GridRenderer::new(
+            &renderer.device,
+            &renderer.config,
+            &scene_camera_binding.bind_group_layout,
+        );
+
         Ok(Self {
             window,
             app_state,
@@ -178,6 +186,7 @@ impl EditorApp {
             game_view_renderer,
             scene_view_renderer,
             scene_camera_binding,
+            grid_renderer,
             physics_accumulator: 0.0,
             fixed_timestep: 1.0 / 60.0,
         })
@@ -597,6 +606,12 @@ impl EditorApp {
                         device,
                         screen_size,
                         &mut rpass,
+                    );
+                    
+                    // Render Grid overlay (using same camera binding)
+                    self.grid_renderer.render(
+                        &mut rpass,
+                        &self.scene_camera_binding.bind_group,
                     );
                 }
 

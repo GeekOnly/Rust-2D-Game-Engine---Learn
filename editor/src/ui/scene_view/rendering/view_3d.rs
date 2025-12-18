@@ -157,8 +157,8 @@ pub fn render_scene_3d(
         }
     }
 
-    // Render Grid (Overlay)
-    // We render this AFTER meshes so it's visible even through the floor (Overlay style)
+    // Render Grid (Overlay) - DISABLED: Now using WGPU GridRenderer for proper depth testing
+    /*
     if scene_grid.enabled {
         grid::render_grid_3d_with_component(
             painter,
@@ -169,6 +169,7 @@ pub fn render_scene_3d(
             *selected_entity,
         );
     }
+    */
     
     // Render selection outline and bounds on top
     if let Some(sel_entity) = *selected_entity {
