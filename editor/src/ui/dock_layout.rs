@@ -78,6 +78,7 @@ pub struct TabContext<'a> {
     pub dt: f32,
     pub game_view_renderer: &'a mut crate::game_view_renderer::GameViewRenderer,
     pub device: &'a wgpu::Device,
+    pub queue: &'a wgpu::Queue,
     pub reload_mesh_assets_request: &'a mut bool,
     pub egui_renderer: &'a mut egui_wgpu::Renderer,
     pub scene_view_renderer: &'a mut crate::scene_view_renderer::SceneViewRenderer,
@@ -274,6 +275,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                     self.context.scene_view_renderer,
                     self.context.egui_renderer,
                     self.context.device,
+                    self.context.queue,
                 );
             }
             EditorTab::Game => {
@@ -384,8 +386,21 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                                 self.context.texture_inspector.set_texture(path);
                             }
                             asset_browser::AssetBrowserAction::OpenUIPrefabEditor(path) => {
-                                // Set request to open prefab editor (handled in main.rs)
                                 *self.context.open_prefab_editor_request = Some(path);
+                            }
+                            asset_browser::AssetBrowserAction::ConvertGltfToXsg(path) => {
+                                self.context.console.info(format!("Converting {:?} to .xsg...", path));
+                                match engine::assets::xsg_importer::XsgImporter::import_from_gltf(&path) {
+                                    Ok(xsg) => {
+                                        let mut new_path = path.clone();
+                                        new_path.set_extension("xsg");
+                                        match engine::assets::xsg_importer::XsgImporter::save_to_file(&xsg, &new_path) {
+                                            Ok(_) => self.context.console.info(format!("Successfully converted to {:?}", new_path)),
+                                            Err(e) => self.context.console.error(format!("Failed to save XSG: {}", e)),
+                                        }
+                                    },
+                                    Err(e) => self.context.console.error(format!("Failed to import GLTF: {}", e)),
+                                }
                             }
                         }
                     }

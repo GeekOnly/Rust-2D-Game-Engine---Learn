@@ -57,6 +57,7 @@ pub fn render_scene_view(
     scene_view_renderer: &mut crate::scene_view_renderer::SceneViewRenderer,
     egui_renderer: &mut egui_wgpu::Renderer,
     device: &wgpu::Device,
+    queue: &wgpu::Queue,
 ) {
     // Sync camera projection mode with editor state
     scene_camera.projection_mode = *projection_mode;
@@ -467,6 +468,65 @@ pub fn render_scene_view(
                         }
                     } else {
                         log::error!("Failed to load sprite metadata from {:?}", asset.path);
+                    }
+                } 
+                // Handle XSG files
+                else if asset.path.extension().and_then(|s| s.to_str()) == Some("xsg") {
+                    if let Ok(xsg) = engine::assets::xsg_importer::XsgImporter::load_from_file(&asset.path) {
+                         if let Some(screen_pos) = drag_drop.drop_position {
+                            let center = rect.center();
+                            let relative_x = screen_pos.x - center.x;
+                            let relative_y = screen_pos.y - center.y;
+                            
+                             // Determine world position based on mode
+                            let world_pos = match scene_view_mode {
+                                SceneViewMode::Mode2D => {
+                                     let p = scene_camera.screen_to_world(glam::Vec2::new(relative_x, relative_y));
+                                     glam::Vec3::new(p.x, p.y, 0.0)
+                                },
+                                SceneViewMode::Mode3D => {
+                                    // For 3D, we raycast against the grid plane (Y=0 usually, or Z=0?)
+                                    // Our engine seems to use Y-up?
+                                    // scene_camera typically looks at 0,0,0.
+                                    // Let's assume we drop at Z=0 for now or raycast to ground plane.
+                                    // Simple approximation: Unproject to a point at some distance or intersection with plane.
+                                    // For now, let's just spawn at (0,0,0) offset by camera look?
+                                    // Or better, use `screen_to_world` logic if available for 3D.
+                                    // `scene_camera.screen_to_ray` would be ideal.
+                                    // Let's spawn at (0,0,0) + some offset for now, or just (0,0,0).
+                                    // Or try to interpret 2D screen pos on the grid.
+                                    glam::Vec3::new(0.0, 0.0, 0.0) 
+                                }
+                            };
+
+                            let path_id = asset.path.to_string_lossy().to_string();
+                            match engine::assets::xsg_loader::XsgLoader::load_into_world(
+                                &xsg,
+                                world,
+                                device,
+                                queue, 
+                                texture_manager,
+                                &path_id,
+                            ) {
+                                Ok(entities) => {
+                                    if !entities.is_empty() {
+                                        // Select the first root
+                                        if let Some(root_idx) = xsg.root_nodes.first() {
+                                            if let Some(root_entity) = entities.get(*root_idx as usize) {
+                                                *selected_entity = Some(*root_entity);
+                                                
+                                                // Move root(s) to drop position logic could go here
+                                                // For now, they spawn at their XSG defined position (which might be 0,0,0)
+                                            }
+                                        }
+                                        log::info!("Loaded XSG asset: {}", asset.name);
+                                    }
+                                },
+                                Err(e) => log::error!("Failed to load XSG: {}", e),
+                            }
+                         }
+                    } else {
+                        log::error!("Failed to parse XSG file: {:?}", asset.path);
                     }
                 }
                 

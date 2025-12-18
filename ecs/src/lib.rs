@@ -1055,6 +1055,7 @@ impl Serializable for CustomWorld {
 mod custom_world_impls {
     use super::*;
     impl_component_access!(CustomWorld, Transform, transforms, CustomEntity);
+    impl_component_access!(CustomWorld, GlobalTransform, global_transforms, CustomEntity);
     impl_component_access!(CustomWorld, Sprite, sprites, CustomEntity);
     impl_component_access!(CustomWorld, Collider, colliders, CustomEntity);
     impl_component_access!(CustomWorld, Rigidbody2D, rigidbodies, CustomEntity);

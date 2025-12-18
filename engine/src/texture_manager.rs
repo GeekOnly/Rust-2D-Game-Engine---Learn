@@ -119,8 +119,18 @@ impl TextureManager {
         }
 
         // Resolve full path
-        let full_path = if let Some(base) = &self.base_path {
-            base.join(path)
+        let mut full_path = if let Some(base) = &self.base_path {
+            let joined = base.join(path);
+            // Check for common "assets/assets" duplication error
+            let joined_str = joined.to_string_lossy();
+            if joined_str.contains("assets\\assets") || joined_str.contains("assets/assets") {
+                // Try to fix it by removing one "assets"
+                let fixed_str = joined_str.replace("assets\\assets", "assets")
+                                         .replace("assets/assets", "assets");
+                PathBuf::from(fixed_str)
+            } else {
+                joined
+            }
         } else {
             path.to_path_buf()
         };

@@ -598,10 +598,21 @@ impl AssetBrowser {
         
         ui.separator();
         
-        if ui.button("🗑 Delete").clicked() {
-            // TODO: Delete with confirmation
-            ui.close_menu();
-        }
+            // Add "Convert to XSG" for GLTF files
+            if let Some(ext) = asset.path.extension() {
+                if ext == "gltf" || ext == "glb" {
+                    if ui.button("⚡ Convert to XSG").clicked() {
+                        action = Some(AssetBrowserAction::ConvertGltfToXsg(asset.path.clone()));
+                        ui.close_menu();
+                    }
+                    ui.separator();
+                }
+            }
+        
+            if ui.button("🗑 Delete").clicked() {
+                // TODO: Delete with confirmation
+                ui.close_menu();
+            }
         
         action
     }
@@ -613,4 +624,5 @@ pub enum AssetBrowserAction {
     OpenSpriteEditor(PathBuf),
     SelectTexture(PathBuf),  // Select texture to show import settings
     OpenUIPrefabEditor(PathBuf),  // Open UI Prefab Editor
+    ConvertGltfToXsg(PathBuf),    // Convert GLTF/GLB to XSG
 }

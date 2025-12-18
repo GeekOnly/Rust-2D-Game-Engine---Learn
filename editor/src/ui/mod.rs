@@ -80,6 +80,7 @@ impl EditorUI {
         scene_view_renderer: &mut crate::scene_view_renderer::SceneViewRenderer,
         egui_renderer: &mut egui_wgpu::Renderer,
         device: &wgpu::Device,
+        queue: &wgpu::Queue,
         reload_mesh_assets_request: &mut bool,
     ) {
         // Top Menu Bar
@@ -188,6 +189,7 @@ impl EditorUI {
                 scene_view_renderer,
                 egui_renderer,
                 device,
+                queue,
             );
         });
 
@@ -316,6 +318,7 @@ impl EditorUI {
         transform_space: &mut scene_view::TransformSpace,
         game_view_renderer: &mut crate::game_view_renderer::GameViewRenderer,
         device: &wgpu::Device,
+        queue: &wgpu::Queue,
         egui_renderer: &mut egui_wgpu::Renderer,
         scene_view_renderer: &mut crate::scene_view_renderer::SceneViewRenderer,
         texture_manager: &mut engine::texture_manager::TextureManager,
@@ -423,6 +426,7 @@ impl EditorUI {
                 dt,
                 game_view_renderer,
                 device,
+                queue,
                 reload_mesh_assets_request,
                 egui_renderer,
                 scene_view_renderer,

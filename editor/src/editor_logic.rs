@@ -85,6 +85,7 @@ impl EditorLogic {
                 &mut editor_state.transform_space,
                 game_view_renderer,
                 device,
+                queue,
                 egui_renderer,
                 scene_view_renderer,
                 &mut editor_state.texture_manager,
@@ -150,6 +151,7 @@ impl EditorLogic {
                 scene_view_renderer,
                 egui_renderer,
                 device,
+                queue,
                 &mut editor_state.reload_mesh_assets_request,
              );
         }

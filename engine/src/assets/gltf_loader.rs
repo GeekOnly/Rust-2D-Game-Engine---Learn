@@ -315,8 +315,42 @@ impl GltfLoader {
                 image::load_from_memory(data)?
             }
              gltf::image::Source::Uri { uri, mime_type: _ } => {
-                 let path = self.base_path.join(uri);
-                 let data = std::fs::read(&path)?;
+                 // Convert URI to path and normalize separators
+                 let uri_path = std::path::Path::new(uri);
+
+                 // Try to resolve path, handling potential duplicate base path components
+                 let mut resolved_path = self.base_path.join(uri_path);
+
+                 // If the file doesn't exist, try alternative path resolutions
+                 if !resolved_path.exists() {
+                     log::debug!("Texture not found at {:?}, trying alternative paths", resolved_path);
+
+                     // Check if URI starts with a component that's already in base_path
+                     // For example: base = "projects/game/assets", uri = "assets/textures/foo.png"
+                     // Should resolve to "projects/game/assets/textures/foo.png", not "projects/game/assets/assets/textures/foo.png"
+
+                     if let Some(first_component) = uri_path.components().next() {
+                         if let Some(base_last) = self.base_path.components().last() {
+                             // Compare components as strings to handle potential encoding/separator differences
+                             let first_str = first_component.as_os_str().to_string_lossy();
+                             let base_last_str = base_last.as_os_str().to_string_lossy();
+                             
+                             if first_str == base_last_str || 
+                                (base_last_str == "assets" && first_str == "assets") {
+                                 // Skip the first component of URI since it duplicates the last base path component
+                                 let uri_without_first: std::path::PathBuf = uri_path.components()
+                                     .skip(1)
+                                     .collect();
+                                 let alternative_path = self.base_path.join(uri_without_first);
+                                 log::info!("Resolved duplicate path component: {:?} -> {:?}", resolved_path, alternative_path);
+                                 resolved_path = alternative_path;
+                             }
+                         }
+                     }
+                 }
+
+                 let data = std::fs::read(&resolved_path)
+                     .with_context(|| format!("Failed to read texture at {:?} (from URI: {})", resolved_path, uri))?;
                  image::load_from_memory(&data)?
             }
         };
