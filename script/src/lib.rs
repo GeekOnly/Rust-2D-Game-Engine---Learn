@@ -366,6 +366,16 @@ impl ScriptEngine {
                     }
                 })?;
                 globals.set("get_position_of", get_position_of)?;
+
+                let set_position_of = scope.create_function_mut(|_, (query_entity, x, y, z): (Entity, f32, f32, f32)| {
+                    if let Some(transform) = world_cell.borrow_mut().transforms.get_mut(&query_entity) {
+                        transform.position[0] = x;
+                        transform.position[1] = y;
+                        transform.position[2] = z;
+                    }
+                    Ok(())
+                })?;
+                globals.set("set_position_of", set_position_of)?;
                 
                 let set_position = scope.create_function_mut(|_, (x, y, z): (f32, f32, f32)| {
                     if let Some(transform) = world_cell.borrow_mut().transforms.get_mut(&entity) {

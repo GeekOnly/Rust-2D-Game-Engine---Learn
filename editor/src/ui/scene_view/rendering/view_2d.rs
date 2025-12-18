@@ -273,6 +273,7 @@ pub fn render_transform_gizmo_2d(
             transform_space,
             transform,
             None, // No viewport_rect needed for 2D mode
+            None,
         );
     }
 }

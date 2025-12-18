@@ -545,7 +545,7 @@ impl EditorApp {
                             resolve_target: None,
                             ops: wgpu::Operations {
                                 load: wgpu::LoadOp::Clear(wgpu::Color {
-                                    r: 0.15, g: 0.15, b: 0.20, a: 1.0, // Unity-like dark gray/blue
+                                    r: 0.0, g: 0.0, b: 0.0, a: 1.0,
                                 }),
                                 store: wgpu::StoreOp::Store,
                             },
@@ -585,6 +585,49 @@ impl EditorApp {
                 // 2. Render Game View (Game Camera)
                 // ----------------------------------------------------------------
 
+                // Update camera binding for Game Camera (find main camera from world)
+                if let Some(main_camera) = self.editor_state.world.cameras.iter()
+                    .filter(|(entity, _)| self.editor_state.world.active.get(entity).copied().unwrap_or(true))
+                    .min_by_key(|(_, camera)| camera.depth)
+                {
+                    let (entity, camera) = main_camera;
+                    if let Some(transform) = self.editor_state.world.transforms.get(entity) {
+                        use glam::{Vec3, Quat, Mat4, EulerRot};
+
+                        // Convert Euler angles to radians
+                        let rot_rad = Vec3::new(
+                            transform.rotation[0].to_radians(),
+                            transform.rotation[1].to_radians(),
+                            transform.rotation[2].to_radians(),
+                        );
+
+                        // Reconstruct rotation quaternion (YXZ order)
+                        let cam_rotation = Quat::from_euler(EulerRot::YXZ, rot_rad.y, rot_rad.x, rot_rad.z);
+                        let cam_pos = Vec3::from(transform.position);
+
+                        // Calculate view matrix
+                        let forward = cam_rotation * Vec3::Z; // +Z Forward
+                        let up = cam_rotation * Vec3::Y;      // +Y Up
+                        let view = Mat4::look_at_rh(cam_pos, cam_pos + forward, up);
+
+                        // Calculate projection matrix
+                        let aspect = self.game_view_renderer.width as f32 / self.game_view_renderer.height as f32;
+                        let projection = match camera.projection {
+                            ecs::CameraProjection::Perspective => {
+                                Mat4::perspective_rh(camera.fov.to_radians(), aspect, camera.near_clip, camera.far_clip)
+                            }
+                            ecs::CameraProjection::Orthographic => {
+                                let half_height = camera.orthographic_size;
+                                let half_width = half_height * aspect;
+                                Mat4::orthographic_rh(-half_width, half_width, -half_height, half_height, camera.far_clip, camera.near_clip)
+                            }
+                        };
+
+                        // Update camera binding
+                        camera_binding.update(queue, view, projection, cam_pos);
+                    }
+                }
+
                 let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                     label: Some("Game View Render Pass"),
                     color_attachments: &[Some(wgpu::RenderPassColorAttachment {
@@ -592,7 +635,7 @@ impl EditorApp {
                         resolve_target: None,
                         ops: wgpu::Operations {
                             load: wgpu::LoadOp::Clear(wgpu::Color {
-                                r: 0.1, g: 0.1, b: 0.1, a: 1.0,
+                                r: 0.0, g: 0.0, b: 0.0, a: 1.0,
                             }),
                             store: wgpu::StoreOp::Store,
                         },
@@ -615,7 +658,7 @@ impl EditorApp {
                 } else {
                      self.editor_state.game_view_settings.resolution.get_size()
                 };
-                
+
                 // Use actual texture size for now to fill the view
                 let (w, h) = (self.game_view_renderer.width, self.game_view_renderer.height);
 

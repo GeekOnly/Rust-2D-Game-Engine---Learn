@@ -25,7 +25,8 @@
       "Bash(wait:*)",
       "Bash(taskkill:*)",
       "Bash(dir:*)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(cargo check:*)"
     ],
     "deny": [],
     "ask": []

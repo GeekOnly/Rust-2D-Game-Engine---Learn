@@ -124,6 +124,7 @@ pub fn render_transform_gizmo(
     transform_space: &TransformSpace,
     transform: &ecs::Transform,
     viewport_rect: Option<egui::Rect>,
+    highlight_axis: Option<u8>,
 ) {
     let gizmo_size = 80.0;
     let handle_size = 10.0;
@@ -178,28 +179,36 @@ pub fn render_transform_gizmo(
                 let p_up = project(world_pos + up * scale);
                 let p_fwd = project(world_pos + forward * scale);
 
+                let is_highlighted = |axis: u8| -> bool {
+                    highlight_axis == Some(axis) || highlight_axis == Some(3) // 3 usually implies all/free/uniform for Move
+                };
+
                 match current_tool {
                     TransformTool::Move => {
                         // X Axis (Red)
+                        let col_x = if is_highlighted(0) { egui::Color32::YELLOW } else { egui::Color32::from_rgb(255, 50, 50) };
                         if let Some(end) = p_right {
-                            painter.line_segment([p_origin, end], egui::Stroke::new(4.0, egui::Color32::from_rgb(255, 50, 50)));
-                            painter.circle_filled(end, handle_size, egui::Color32::from_rgb(255, 50, 50));
-                            painter.text(egui::pos2(end.x + 5.0, end.y), egui::Align2::LEFT_CENTER, "X", egui::FontId::proportional(14.0), egui::Color32::from_rgb(255, 50, 50));
+                            painter.line_segment([p_origin, end], egui::Stroke::new(4.0, col_x));
+                            painter.circle_filled(end, handle_size, col_x);
+                            painter.text(egui::pos2(end.x + 5.0, end.y), egui::Align2::LEFT_CENTER, "X", egui::FontId::proportional(14.0), col_x);
                         }
                         // Y Axis (Green)
+                        let col_y = if is_highlighted(1) { egui::Color32::YELLOW } else { egui::Color32::from_rgb(50, 255, 50) };
                         if let Some(end) = p_up {
-                            painter.line_segment([p_origin, end], egui::Stroke::new(4.0, egui::Color32::from_rgb(50, 255, 50)));
-                            painter.circle_filled(end, handle_size, egui::Color32::from_rgb(50, 255, 50));
-                            painter.text(egui::pos2(end.x, end.y - 12.0), egui::Align2::CENTER_BOTTOM, "Y", egui::FontId::proportional(14.0), egui::Color32::from_rgb(50, 255, 50));
+                            painter.line_segment([p_origin, end], egui::Stroke::new(4.0, col_y));
+                            painter.circle_filled(end, handle_size, col_y);
+                            painter.text(egui::pos2(end.x, end.y - 12.0), egui::Align2::CENTER_BOTTOM, "Y", egui::FontId::proportional(14.0), col_y);
                         }
                         // Z Axis (Blue)
+                        let col_z = if is_highlighted(2) { egui::Color32::YELLOW } else { egui::Color32::from_rgb(50, 100, 255) };
                         if let Some(end) = p_fwd {
-                            painter.line_segment([p_origin, end], egui::Stroke::new(4.0, egui::Color32::from_rgb(50, 100, 255)));
-                            painter.circle_filled(end, handle_size, egui::Color32::from_rgb(50, 100, 255));
-                            painter.text(egui::pos2(end.x - 5.0, end.y), egui::Align2::RIGHT_CENTER, "Z", egui::FontId::proportional(14.0), egui::Color32::from_rgb(50, 100, 255));
+                            painter.line_segment([p_origin, end], egui::Stroke::new(4.0, col_z));
+                            painter.circle_filled(end, handle_size, col_z);
+                            painter.text(egui::pos2(end.x - 5.0, end.y), egui::Align2::RIGHT_CENTER, "Z", egui::FontId::proportional(14.0), col_z);
                         }
-                        // Center
-                        painter.circle_filled(p_origin, handle_size * 0.8, egui::Color32::YELLOW);
+                        // Center (Free Move)
+                        let col_c = if highlight_axis == Some(3) { egui::Color32::WHITE } else { egui::Color32::YELLOW };
+                        painter.circle_filled(p_origin, handle_size * 0.8, col_c);
                     }
                     TransformTool::Rotate => {
                         // 3D Rotation Gizmo: Render 3 rings
@@ -229,14 +238,17 @@ pub fn render_transform_gizmo(
                         };
 
                         // X-Axis Ring (Rotates around X -> lies in Y/Z plane) -> Up/Forward
-                        draw_ring(up, forward, egui::Color32::from_rgb(255, 50, 50), "X", (0.0, 1.0));
+                        let col_x = if highlight_axis == Some(0) { egui::Color32::YELLOW } else { egui::Color32::from_rgb(255, 50, 50) };
+                        draw_ring(up, forward, col_x, "X", (0.0, 1.0));
 
                         // Y-Axis Ring (Rotates around Y -> lies in X/Z plane) -> Right/Forward
                         // Note: X/Z plane
-                        draw_ring(right, forward, egui::Color32::from_rgb(50, 255, 50), "Y", (1.0, 0.0));
+                        let col_y = if highlight_axis == Some(1) { egui::Color32::YELLOW } else { egui::Color32::from_rgb(50, 255, 50) };
+                        draw_ring(right, forward, col_y, "Y", (1.0, 0.0));
 
                         // Z-Axis Ring (Rotates around Z -> lies in X/Y plane) -> Right/Up
-                        draw_ring(right, up, egui::Color32::from_rgb(50, 100, 255), "Z", (0.7, 0.7));
+                        let col_z = if highlight_axis == Some(2) { egui::Color32::YELLOW } else { egui::Color32::from_rgb(50, 100, 255) };
+                        draw_ring(right, up, col_z, "Z", (0.7, 0.7));
 
                         // Outer white circle (Screen space Billboarding)
                         let radius_screen = gizmo_size * 0.8;
@@ -244,22 +256,26 @@ pub fn render_transform_gizmo(
                     }
                     TransformTool::Scale => {
                         // X Axis (Red)
+                        let col_x = if highlight_axis == Some(0) { egui::Color32::YELLOW } else { egui::Color32::from_rgb(255, 50, 50) };
                         if let Some(end) = p_right {
-                            painter.line_segment([p_origin, end], egui::Stroke::new(4.0, egui::Color32::from_rgb(255, 50, 50)));
-                            painter.rect_filled(egui::Rect::from_center_size(end, egui::vec2(handle_size*1.5, handle_size*1.5)), 0.0, egui::Color32::from_rgb(255, 50, 50));
+                            painter.line_segment([p_origin, end], egui::Stroke::new(4.0, col_x));
+                            painter.rect_filled(egui::Rect::from_center_size(end, egui::vec2(handle_size*1.5, handle_size*1.5)), 0.0, col_x);
                         }
                         // Y Axis (Green)
+                        let col_y = if highlight_axis == Some(1) { egui::Color32::YELLOW } else { egui::Color32::from_rgb(50, 255, 50) };
                         if let Some(end) = p_up {
-                            painter.line_segment([p_origin, end], egui::Stroke::new(4.0, egui::Color32::from_rgb(50, 255, 50)));
-                            painter.rect_filled(egui::Rect::from_center_size(end, egui::vec2(handle_size*1.5, handle_size*1.5)), 0.0, egui::Color32::from_rgb(50, 255, 50));
+                            painter.line_segment([p_origin, end], egui::Stroke::new(4.0, col_y));
+                            painter.rect_filled(egui::Rect::from_center_size(end, egui::vec2(handle_size*1.5, handle_size*1.5)), 0.0, col_y);
                         }
                         // Z Axis (Blue)
+                        let col_z = if highlight_axis == Some(2) { egui::Color32::YELLOW } else { egui::Color32::from_rgb(50, 100, 255) };
                         if let Some(end) = p_fwd {
-                            painter.line_segment([p_origin, end], egui::Stroke::new(4.0, egui::Color32::from_rgb(50, 100, 255)));
-                            painter.rect_filled(egui::Rect::from_center_size(end, egui::vec2(handle_size*1.5, handle_size*1.5)), 0.0, egui::Color32::from_rgb(50, 100, 255));
+                            painter.line_segment([p_origin, end], egui::Stroke::new(4.0, col_z));
+                            painter.rect_filled(egui::Rect::from_center_size(end, egui::vec2(handle_size*1.5, handle_size*1.5)), 0.0, col_z);
                         }
                         // Center
-                        painter.rect_filled(egui::Rect::from_center_size(p_origin, egui::vec2(handle_size*1.5, handle_size*1.5)), 0.0, egui::Color32::WHITE);
+                        let col_c = if highlight_axis == Some(3) { egui::Color32::YELLOW } else { egui::Color32::WHITE };
+                        painter.rect_filled(egui::Rect::from_center_size(p_origin, egui::vec2(handle_size*1.5, handle_size*1.5)), 0.0, col_c);
                     }
                     _ => {}
                 }
@@ -741,25 +757,18 @@ pub fn render_camera_frustum_3d(
         // Camera position in world space
         let cam_pos = glam::Vec3::new(transform.position[0], transform.position[1], transform.position[2]);
 
-        // Use camera's actual rotation from transform
-        let camera_rotation_rad = transform.rotation[2].to_radians();
+        // Use full 3D rotation for accurate frustum orientation
+        let rot_x = transform.rotation[0].to_radians();
+        let rot_y = transform.rotation[1].to_radians();
+        let rot_z = transform.rotation[2].to_radians();
 
-        // Unity-style camera vectors calculation (absolute world space)
-        // These vectors represent the camera's actual orientation in world space
-        // They should NOT be affected by scene camera rotation
-        
-        // Camera's rotation in world space (from transform)
-        let cos_r = camera_rotation_rad.cos();
-        let sin_r = camera_rotation_rad.sin();
+        // Match Render System's rotation order (YXZ)
+        let rotation = glam::Quat::from_euler(glam::EulerRot::YXZ, rot_y, rot_x, rot_z);
 
-        // Unity convention: forward = +Z (into the scene) - absolute world direction
-        let forward = glam::Vec3::new(0.0, 0.0, 1.0);
-        
-        // Unity convention: up = rotated Y based on camera's world rotation
-        let up = glam::Vec3::new(-sin_r, cos_r, 0.0);
-        
-        // Unity convention: right = forward.cross(up).normalize()
-        let right = forward.cross(up).normalize();
+        // Calculate directional vectors from rotation
+        let forward = rotation * glam::Vec3::Z; // +Z Forward
+        let up = rotation * glam::Vec3::Y;      // +Y Up
+        let right = rotation * glam::Vec3::X;   // +X Right
 
         // Standard aspect ratio for clean visualization
         let aspect = 16.0 / 9.0;

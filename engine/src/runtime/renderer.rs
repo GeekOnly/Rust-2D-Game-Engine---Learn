@@ -46,6 +46,8 @@ pub fn render_game_view(
 
     if let Some((camera_entity, camera, transform)) = main_camera {
         // Clear background
+        // Clear background - DISABLED (Let WGPU render pass clear it)
+        /*
         painter.rect_filled(
             rect,
             0.0,
@@ -56,9 +58,11 @@ pub fn render_game_view(
                 (camera.background_color[3] * 255.0) as u8,
             ),
         );
+        */
 
         // Render all entities
-        render_entities(ui, world, camera, transform, rect, texture_manager);
+        // Render all entities - DISABLED (Let WGPU render them)
+        // render_entities(ui, world, camera, transform, rect, texture_manager);
         
         // Render UI system on top
         if let Some(ui_mgr) = ui_manager {

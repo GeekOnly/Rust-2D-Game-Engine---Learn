@@ -123,4 +123,16 @@ function Update(dt)
             set_position(new_x, current_y, new_z)
         end
     end
+
+
+    -- 3. Sync Camera Position (Manual Parent)
+    -- This ensures the camera follows the player even if the scene hierarchy isn't set up to propagate transforms
+    if camera_entity then
+        local current_pos = get_position()
+        if current_pos then
+            -- Offset camera to head height (approx 1.6 units up)
+            -- We just copy X and Z, and add offset to Y
+            set_position_of(camera_entity, current_pos.x, current_pos.y + 1.6, current_pos.z)
+        end
+    end
 end

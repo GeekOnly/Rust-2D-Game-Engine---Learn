@@ -319,6 +319,24 @@ pub fn render_scene_view(
 
             let transform_copy = transform.clone();
             
+            let hovered_axis = if let Some(hover_pos) = response.hover_pos() {
+                interaction::transform::hit_test_gizmo(
+                    screen_x,
+                    screen_y,
+                    hover_pos,
+                    current_tool,
+                    scene_camera,
+                    scene_view_mode,
+                    transform_space,
+                    &transform_copy,
+                    Some(rect),
+                )
+            } else {
+                None
+            };
+            
+            let highlight_axis = drag_axis.or(hovered_axis);
+
             rendering::gizmos::render_transform_gizmo(
                 &painter,
                 screen_x,
@@ -329,6 +347,7 @@ pub fn render_scene_view(
                 transform_space,
                 &transform_copy,
                 Some(rect),
+                highlight_axis,
             );
             
             if !is_camera_control {

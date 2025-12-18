@@ -31,226 +31,22 @@ pub fn handle_gizmo_interaction_stateful(
     }
 
     // Start dragging - determine which handle
+    // Start dragging - determine which handle
     if response.drag_started() {
         if let Some(hover_pos) = response.hover_pos() {
-            let gizmo_size = 80.0; // Match rendering size base (was 60, should be 80)
-            let handle_size = 10.0; // Match rendering size
-            let center = egui::pos2(screen_x, screen_y);
-            
-            // Check based on mode
-            match scene_view_mode {
-                SceneViewMode::Mode3D => {
-                    if let Some(rect) = viewport_rect {
-                        let viewport_size = glam::Vec2::new(rect.width(), rect.height());
-                        let world_pos = glam::Vec3::from(transform.position);
-
-                        // Calculate visual scale (same as rendering)
-                        let transform3d_temp = projection_3d::Transform3D::new(world_pos, 0.0, glam::Vec2::ONE);
-                        let cam_dist = transform3d_temp.depth_from_camera(scene_camera);
-                        let safe_dist = cam_dist.max(0.1);
-                        let scale = safe_dist * 0.15; // Tuned constant matching rendering
-
-                        // Projection helper
-                        let project = |pos: glam::Vec3| -> Option<egui::Pos2> {
-                            projection_3d::world_to_screen(pos, scene_camera, viewport_size)
-                                .map(|p| egui::pos2(rect.min.x + p.x, rect.min.y + p.y))
-                        };
-
-                        // Calculate Basis Vectors
-                        let (right, up, forward) = match transform_space {
-                            TransformSpace::Local => {
-                                let rot = glam::Quat::from_euler(
-                                    glam::EulerRot::XYZ, 
-                                    transform.rotation[0].to_radians(), 
-                                    transform.rotation[1].to_radians(), 
-                                    transform.rotation[2].to_radians()
-                                );
-                                (rot * glam::Vec3::X, rot * glam::Vec3::Y, rot * -glam::Vec3::Z) 
-                            },
-                            TransformSpace::World => (glam::Vec3::X, glam::Vec3::Y, -glam::Vec3::Z),
-                        };
-
-                        // Project handles
-                        // Note origin might be slightly different than screen_x/y due to re-projection, use projected one
-                        let p_origin = project(world_pos).unwrap_or(center);
-                        let p_right = project(world_pos + right * scale);
-                        let p_up = project(world_pos + up * scale);
-                        let p_fwd = project(world_pos + forward * scale);
-
-                        // Debug: Print coordinates for troubleshooting
-                        println!("3D Gizmo Debug - Hover: {:?}, Origin: {:?}, Scale: {:.3}", hover_pos, p_origin, scale);
-                        if let Some(pr) = p_right { println!("  Right handle: {:?}", pr); }
-                        if let Some(pu) = p_up { println!("  Up handle: {:?}", pu); }
-                        if let Some(pf) = p_fwd { println!("  Forward handle: {:?}", pf); }
-
-                        let dist_center = hover_pos.distance(p_origin);
-
-                        match current_tool {
-                            TransformTool::Move => {
-                                let dist_x = p_right.map_or(f32::MAX, |p| hover_pos.distance(p));
-                                let dist_y = p_up.map_or(f32::MAX, |p| hover_pos.distance(p));
-                                let dist_z = p_fwd.map_or(f32::MAX, |p| hover_pos.distance(p));
-
-                                // Much larger hit radius for easier clicking in 3D
-                                let hit_radius = handle_size * 3.0;
-
-                                if dist_center < hit_radius {
-                                    *dragging_entity = Some(entity);
-                                    *drag_axis = Some(3); // All axes (free movement)
-                                } else if dist_x < hit_radius {
-                                    *dragging_entity = Some(entity);
-                                    *drag_axis = Some(0); // X only
-                                } else if dist_y < hit_radius {
-                                    *dragging_entity = Some(entity);
-                                    *drag_axis = Some(1); // Y only
-                                } else if dist_z < hit_radius {
-                                    *dragging_entity = Some(entity);
-                                    *drag_axis = Some(2); // Z only
-                                }
-                            }
-                            TransformTool::Rotate => {
-                                // For 3D rotation, check if mouse is near any of the rotation rings
-                                let radius = scale * 4.0; // Match the radius_world from rendering
-                                let dist = hover_pos.distance(p_origin);
-                                // Much more generous hit detection for rotation rings
-                                if dist < radius * 1.5 || (dist - radius).abs() < 30.0 {
-                                     *dragging_entity = Some(entity);
-                                     *drag_axis = Some(0); // TODO: improved 3D rotation axes
-                                }
-                            }
-                            TransformTool::Scale => {
-                                let dist_x = p_right.map_or(f32::MAX, |p| hover_pos.distance(p));
-                                let dist_y = p_up.map_or(f32::MAX, |p| hover_pos.distance(p));
-                                let dist_z = p_fwd.map_or(f32::MAX, |p| hover_pos.distance(p));
-                                let hit_radius = handle_size * 4.0; // Much larger hit radius for 3D
-
-                                if dist_center < hit_radius {
-                                    *dragging_entity = Some(entity);
-                                    *drag_axis = Some(3); // Uniform (Move logic uses 3 for free, Scale uses 2 usually, check logic below)
-                                    // Logic below uses 2 for uniform scale
-                                    *drag_axis = Some(2); 
-                                } else if dist_x < hit_radius {
-                                    *dragging_entity = Some(entity);
-                                    *drag_axis = Some(0); // X only
-                                } else if dist_y < hit_radius {
-                                    *dragging_entity = Some(entity);
-                                    *drag_axis = Some(1); // Y only
-                                } else if dist_z < hit_radius {
-                                    *dragging_entity = Some(entity);
-                                    // Logic below didn't distinguish Z scale well, reusing Z handle for Z scale
-                                    // But wait, the existing code for scale maps 2 to uniform.
-                                    // I should probably map 3 to Z scale if supported, but existing logic might not support it.
-                                    // Let's check existing logic: TransformTool::Scale...
-                                    // axis 2 => Uniform.
-                                    // So Z axis handle currently likely maps to uniform or nothing.
-                                    // Let's map Z handle to axis 4 (Z scale) if we implement it, or keep consistent.
-                                    // Existing code only handles 0, 1, 2 (Uniform).
-                                    // Let's interpret Z handle as Uniform for now to avoid breaking things, or add Z support.
-                                    // Adding Z support requires updating the drag logic below too.
-                                    // For now, let's map Z handle to Uniform scaling as well to be safe, or just ignore it if unsupported.
-                                    // Actually, let's modify the drag logic to support Z scale (index 4) or just map to uniform for now.
-                                    *drag_axis = Some(2); // Uniform
-                                }
-                            }
-                            _ => {}
-                        }
-                    }
-                }
-                SceneViewMode::Mode2D => {
-                     // Calculate rotation for gizmo handles (must match rendering)
-                    let rotation_rad = match transform_space {
-                        TransformSpace::Local => {
-                            // Local space: rotate with object (Z rotation only in 2D)
-                            transform.rotation[2].to_radians()
-                        }
-                        TransformSpace::World => {
-                            // World space: no rotation (aligned with world axes)
-                            0.0
-                        }
-                    };
-
-                    match current_tool {
-                        TransformTool::Move => {
-                            // Calculate rotated handle positions (MUST MATCH RENDERING)
-                            // X axis direction (inverted Y for screen space)
-                            let x_dir = glam::Vec2::new(rotation_rad.cos(), -rotation_rad.sin());
-                            // Y axis direction (perpendicular to X, inverted Y for screen space)
-                            let y_dir = glam::Vec2::new(-rotation_rad.sin(), -rotation_rad.cos());
-                            
-                            let x_handle = egui::pos2(
-                                screen_x + x_dir.x * gizmo_size,
-                                screen_y + x_dir.y * gizmo_size
-                            );
-                            let y_handle = egui::pos2(
-                                screen_x + y_dir.x * gizmo_size,
-                                screen_y + y_dir.y * gizmo_size
-                            );
-                            
-                            let dist_x = hover_pos.distance(x_handle);
-                            let dist_y = hover_pos.distance(y_handle);
-                            let dist_center = hover_pos.distance(center);
-                            
-                            // Increased hit detection radius for easier clicking
-                            if dist_center < handle_size * 1.8 {
-                                *dragging_entity = Some(entity);
-                                *drag_axis = Some(3); // All axes (free movement)
-                            } else if dist_x < handle_size * 1.8 {
-                                *dragging_entity = Some(entity);
-                                *drag_axis = Some(0); // X only
-                            } else if dist_y < handle_size * 1.8 {
-                                *dragging_entity = Some(entity);
-                                *drag_axis = Some(1); // Y only
-                            }
-                        }
-                        TransformTool::Rotate => {
-                            // Check if mouse is near the rotation circle
-                            let radius = gizmo_size * 0.8;
-                            let dist_from_center = hover_pos.distance(center);
-                            let dist_from_circle = (dist_from_center - radius).abs();
-                            
-                            // If mouse is near the circle (within 30 pixels for easier clicking)
-                            // OR if mouse is anywhere inside the gizmo area
-                            if dist_from_circle < 30.0 || dist_from_center < radius {
-                                *dragging_entity = Some(entity);
-                                *drag_axis = Some(0); // Use axis 0 for rotation
-                            }
-                        }
-                        TransformTool::Scale => {
-                            // Calculate handle positions (MUST MATCH RENDERING)
-                            let axis_length = gizmo_size;
-                            // X axis direction (inverted Y for screen space)
-                            let x_dir = glam::Vec2::new(rotation_rad.cos(), -rotation_rad.sin());
-                            // Y axis direction (perpendicular to X, inverted Y for screen space)
-                            let y_dir = glam::Vec2::new(-rotation_rad.sin(), -rotation_rad.cos());
-                            
-                            let x_handle = egui::pos2(
-                                screen_x + x_dir.x * axis_length,
-                                screen_y + x_dir.y * axis_length
-                            );
-                            let y_handle = egui::pos2(
-                                screen_x + y_dir.x * axis_length,
-                                screen_y + y_dir.y * axis_length
-                            );
-                            
-                            let dist_x = hover_pos.distance(x_handle);
-                            let dist_y = hover_pos.distance(y_handle);
-                            let dist_center = hover_pos.distance(center);
-                            
-                            // Increased hit detection radius for easier clicking
-                            if dist_center < handle_size * 2.5 {
-                                *dragging_entity = Some(entity);
-                                *drag_axis = Some(2); // Uniform scale
-                            } else if dist_x < handle_size * 2.5 {
-                                *dragging_entity = Some(entity);
-                                *drag_axis = Some(0); // X axis scale
-                            } else if dist_y < handle_size * 2.5 {
-                                *dragging_entity = Some(entity);
-                                *drag_axis = Some(1); // Y axis scale
-                            }
-                        }
-                        _ => {}
-                    }
-                }
+             if let Some(axis) = hit_test_gizmo(
+                screen_x,
+                screen_y,
+                hover_pos,
+                current_tool,
+                scene_camera,
+                scene_view_mode,
+                transform_space,
+                transform,
+                viewport_rect,
+            ) {
+                *dragging_entity = Some(entity);
+                *drag_axis = Some(axis);
             }
         }
     }
@@ -333,25 +129,14 @@ pub fn handle_gizmo_interaction_stateful(
                                             // Move parallel to camera view plane
                                             let pixel_conv = safe_dist * 0.001; // Approximate units per pixel
                                             
-                                            // Camera Basis
+                                            // Camera Basis Correction
                                             let yaw = scene_camera.rotation.to_radians();
-                                            let pitch = scene_camera.pitch.to_radians();
-
-                                            // Construct Right and Up relative to camera view
-                                            // Right is perpendicular to Forward and World Up
-                                            let forward = glam::Vec3::new(
-                                                yaw.cos() * pitch.cos(),
-                                                pitch.sin(),
-                                                yaw.sin() * pitch.cos()
-                                            ).normalize();
-                                            let world_up = glam::Vec3::Y;
-                                            let _right = forward.cross(world_up).normalize();
-                                            // Correction: if looking straight up/down, cross layout fails.
-                                            // Fallback: simplified
-                                            let right_simple = glam::Vec3::new(yaw.sin(), 0.0, -yaw.cos());
+                                            // Use simple camera basis for movement relative to screen
+                                            let cam_right = glam::Vec3::new(yaw.sin(), 0.0, -yaw.cos());
+                                            let cam_up = glam::Vec3::Y; // Simplified
                                             
                                             // Screen Y is inverted, so -delta.y moves Up
-                                            let displacement = right_simple * delta.x * pixel_conv + glam::Vec3::Y * -delta.y * pixel_conv;
+                                            let displacement = cam_right * delta.x * pixel_conv + cam_up * -delta.y * pixel_conv;
                                             
                                             transform_mut.position[0] += displacement.x;
                                             transform_mut.position[1] += displacement.y;
@@ -360,28 +145,60 @@ pub fn handle_gizmo_interaction_stateful(
                                     }
                                 }
                                 TransformTool::Rotate => {
-                                    if let Some(mouse_pos) = response.interact_pointer_pos() {
-                                        // Use projected center
-                                        let center = egui::pos2(p_origin.x, p_origin.y);
-                                        let current_pos = mouse_pos;
-                                        let prev_pos = current_pos - delta;
+                                    if let Some(axis) = *drag_axis {
+                                        let mouse_delta = glam::Vec2::new(delta.x, delta.y);
+                                        let sensitivity = 0.5; // Degrees per pixel
                                         
-                                        let current_angle = (current_pos.y - center.y).atan2(current_pos.x - center.x);
-                                        let prev_angle = (prev_pos.y - center.y).atan2(prev_pos.x - center.x);
+                                        // Determine rotation axis vector
+                                        let (rot_axis, _tangent_guess) = match axis {
+                                            0 => (right, up),   // Rotate X
+                                            1 => (up, right),   // Rotate Y
+                                            2 => (forward, right), // Rotate Z
+                                            _ => (glam::Vec3::Z, glam::Vec3::X),
+                                        };
+
+                                        // Project rotation axis to screen to see alignment
+                                        // Rotation happens perpendicular to this screen vector.
+                                        let p_axis_end = project(world_pos + rot_axis * world_scale);
                                         
-                                        let mut angle_delta = current_angle - prev_angle;
+                                        let rot_amount = if let Some(pe) = p_axis_end {
+                                            let axis_screen = pe - p_origin;
+                                            if axis_screen.length() < 5.0 {
+                                                // Axis matches view direction -> Roll behavior
+                                                delta.x * sensitivity
+                                            } else {
+                                                // Mouse movement perpendicular to axis vector on screen drives rotation
+                                                let axis_dir = axis_screen.normalize();
+                                                let perp_dir = glam::Vec2::new(-axis_dir.y, axis_dir.x); // CCW perpendicular
+                                                
+                                                // Dot product
+                                                let val = mouse_delta.dot(perp_dir);
+                                                val * sensitivity
+                                            }
+                                        } else {
+                                            delta.x * sensitivity
+                                        };
                                         
-                                        // Wrap logic
-                                        if angle_delta > std::f32::consts::PI { angle_delta -= 2.0 * std::f32::consts::PI; }
-                                        else if angle_delta < -std::f32::consts::PI { angle_delta += 2.0 * std::f32::consts::PI; }
+                                        // Apply Rotation
+                                        let current_quat = glam::Quat::from_euler(
+                                            glam::EulerRot::XYZ, 
+                                            transform_mut.rotation[0].to_radians(), 
+                                            transform_mut.rotation[1].to_radians(), 
+                                            transform_mut.rotation[2].to_radians()
+                                        );
                                         
-                                        // Rotate Z axis (Roll/2D Spin) is standard for this tool currently
-                                        transform_mut.rotation[2] += angle_delta.to_degrees();
+                                        let delta_quat = glam::Quat::from_axis_angle(rot_axis, rot_amount.to_radians());
+                                        let new_quat = delta_quat * current_quat; // Apply delta
+                                        
+                                        // Convert back to Euler
+                                        let (rx, ry, rz) = new_quat.to_euler(glam::EulerRot::XYZ);
+                                        transform_mut.rotation = [rx.to_degrees(), ry.to_degrees(), rz.to_degrees()];
                                     }
                                 }
                                 TransformTool::Scale => {
                                     if let Some(axis) = *drag_axis {
                                         let mouse_delta = glam::Vec2::new(delta.x, delta.y);
+                                        let scale_sensitivity = 0.01;
                                         
                                         match axis {
                                             0 => { // X Axis
@@ -389,7 +206,7 @@ pub fn handle_gizmo_interaction_stateful(
                                                     let axis_vec = p_end - p_origin;
                                                     if axis_vec.length_squared() > 0.001 {
                                                         let t = mouse_delta.dot(axis_vec) / axis_vec.length_squared();
-                                                        transform_mut.scale[0] = (transform_mut.scale[0] + t).max(0.1);
+                                                        transform_mut.scale[0] = (transform_mut.scale[0] + t).max(0.01);
                                                     }
                                                 }
                                             }
@@ -398,15 +215,30 @@ pub fn handle_gizmo_interaction_stateful(
                                                     let axis_vec = p_end - p_origin;
                                                     if axis_vec.length_squared() > 0.001 {
                                                         let t = mouse_delta.dot(axis_vec) / axis_vec.length_squared();
-                                                        transform_mut.scale[1] = (transform_mut.scale[1] + t).max(0.1);
+                                                        transform_mut.scale[1] = (transform_mut.scale[1] + t).max(0.01);
                                                     }
                                                 }
                                             }
-                                            2 => { // Uniform (Center Handle or Z Handle)
+                                            2 => { // Z Axis
+                                                if let Some(p_end) = project(world_pos + forward * world_scale) {
+                                                    let axis_vec = p_end - p_origin;
+                                                    if axis_vec.length_squared() > 0.001 {
+                                                        let t = mouse_delta.dot(axis_vec) / axis_vec.length_squared();
+                                                        // Safety check for Vec3 scale
+                                                        if transform_mut.scale.len() > 2 {
+                                                            transform_mut.scale[2] = (transform_mut.scale[2] + t).max(0.01); 
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            3 => { // Uniform (Center)
                                                 // Simple uniform scaling by dragging right/up
-                                                let scale_delta = (delta.x - delta.y) * 0.01;
-                                                transform_mut.scale[0] = (transform_mut.scale[0] + scale_delta).max(0.1);
-                                                transform_mut.scale[1] = (transform_mut.scale[1] + scale_delta).max(0.1);
+                                                let scale_delta = (delta.x - delta.y) * scale_sensitivity;
+                                                transform_mut.scale[0] = (transform_mut.scale[0] + scale_delta).max(0.01);
+                                                transform_mut.scale[1] = (transform_mut.scale[1] + scale_delta).max(0.01);
+                                                if transform_mut.scale.len() > 2 {
+                                                     transform_mut.scale[2] = (transform_mut.scale[2] + scale_delta).max(0.01);
+                                                }
                                             }
                                             _ => {}
                                         }
@@ -525,6 +357,208 @@ pub fn handle_gizmo_interaction_stateful(
                         _ => {}
                     }
                 }
+            }
+        }
+    }
+}
+
+/// Check which gizmo axis is under the cursor
+pub fn hit_test_gizmo(
+    screen_x: f32,
+    screen_y: f32,
+    hover_pos: egui::Pos2,
+    current_tool: &TransformTool,
+    scene_camera: &SceneCamera,
+    scene_view_mode: &SceneViewMode,
+    transform_space: &TransformSpace,
+    transform: &ecs::Transform,
+    viewport_rect: Option<egui::Rect>,
+) -> Option<u8> {
+    let gizmo_size = 80.0;
+    let handle_size = 10.0;
+    let center = egui::pos2(screen_x, screen_y);
+
+    match scene_view_mode {
+        SceneViewMode::Mode3D => {
+            if let Some(rect) = viewport_rect {
+                let viewport_size = glam::Vec2::new(rect.width(), rect.height());
+                let world_pos = glam::Vec3::from(transform.position);
+
+                let transform3d_temp = projection_3d::Transform3D::new(world_pos, 0.0, glam::Vec2::ONE);
+                let cam_dist = transform3d_temp.depth_from_camera(scene_camera);
+                let safe_dist = cam_dist.max(0.1);
+                let scale = safe_dist * 0.15;
+
+                let project = |pos: glam::Vec3| -> Option<egui::Pos2> {
+                    projection_3d::world_to_screen(pos, scene_camera, viewport_size)
+                        .map(|p| egui::pos2(rect.min.x + p.x, rect.min.y + p.y))
+                };
+
+                let (right, up, forward) = match transform_space {
+                    TransformSpace::Local => {
+                        let rot = glam::Quat::from_euler(
+                            glam::EulerRot::XYZ, 
+                            transform.rotation[0].to_radians(), 
+                            transform.rotation[1].to_radians(), 
+                            transform.rotation[2].to_radians()
+                        );
+                        (rot * glam::Vec3::X, rot * glam::Vec3::Y, rot * -glam::Vec3::Z) 
+                    },
+                    TransformSpace::World => (glam::Vec3::X, glam::Vec3::Y, -glam::Vec3::Z),
+                };
+
+                let p_origin = project(world_pos).unwrap_or(center);
+                let p_right = project(world_pos + right * scale);
+                let p_up = project(world_pos + up * scale);
+                let p_fwd = project(world_pos + forward * scale);
+
+                let dist_center = hover_pos.distance(p_origin);
+
+                match current_tool {
+                    TransformTool::Move => {
+                        let dist_x = p_right.map_or(f32::MAX, |p| hover_pos.distance(p));
+                        let dist_y = p_up.map_or(f32::MAX, |p| hover_pos.distance(p));
+                        let dist_z = p_fwd.map_or(f32::MAX, |p| hover_pos.distance(p));
+
+                        let hit_radius = handle_size * 2.5;
+
+                        if dist_center < hit_radius {
+                            Some(3) // All/Free
+                        } else if dist_x < hit_radius {
+                            Some(0) // X
+                        } else if dist_y < hit_radius {
+                            Some(1) // Y
+                        } else if dist_z < hit_radius {
+                            Some(2) // Z
+                        } else {
+                            None
+                        }
+                    }
+                    TransformTool::Rotate => {
+                        let radius_world = scale * 4.0;
+                        let hit_threshold = 10.0;
+                        
+                        let get_ring_dist = |axis_u: glam::Vec3, axis_v: glam::Vec3| -> f32 {
+                            let segments = 32;
+                            let mut min_dist = f32::MAX;
+                            for i in 0..segments {
+                                let a1 = (i as f32 / segments as f32) * std::f32::consts::TAU;
+                                let a2 = ((i + 1) as f32 / segments as f32) * std::f32::consts::TAU;
+                                let p1 = world_pos + (axis_u * a1.cos() + axis_v * a1.sin()) * radius_world;
+                                let p2 = world_pos + (axis_u * a2.cos() + axis_v * a2.sin()) * radius_world;
+                                
+                                if let (Some(s1), Some(s2)) = (project(p1), project(p2)) {
+                                    let pa = hover_pos - s1;
+                                    let ba = s2 - s1;
+                                    let h = (pa.x * ba.x + pa.y * ba.y) / (ba.x * ba.x + ba.y * ba.y);
+                                    let h = h.clamp(0.0, 1.0);
+                                    let closest = s1 + ba * h;
+                                    let d = hover_pos.distance(closest);
+                                    if d < min_dist { min_dist = d; }
+                                }
+                            }
+                            min_dist
+                        };
+                        
+                        let dist_x = get_ring_dist(up, forward);
+                        let dist_y = get_ring_dist(right, forward);
+                        let dist_z = get_ring_dist(right, up);
+                        
+                        let mut best_dist = hit_threshold;
+                        let mut best_axis = None;
+                        
+                        if dist_x < best_dist { best_dist = dist_x; best_axis = Some(0); }
+                        if dist_y < best_dist { best_dist = dist_y; best_axis = Some(1); }
+                        if dist_z < best_dist { best_dist = dist_z; best_axis = Some(2); }
+                        
+                        best_axis
+                    }
+                    TransformTool::Scale => {
+                        let dist_x = p_right.map_or(f32::MAX, |p| hover_pos.distance(p));
+                        let dist_y = p_up.map_or(f32::MAX, |p| hover_pos.distance(p));
+                        let dist_z = p_fwd.map_or(f32::MAX, |p| hover_pos.distance(p));
+                        let hit_radius = handle_size * 2.5;
+
+                        if dist_center < hit_radius {
+                            Some(3) // Uniform
+                        } else if dist_x < hit_radius {
+                            Some(0) // X
+                        } else if dist_y < hit_radius {
+                            Some(1) // Y
+                        } else if dist_z < hit_radius {
+                            Some(2) // Z
+                        } else {
+                            None
+                        }
+                    }
+                    _ => None,
+                }
+            } else {
+                None
+            }
+        }
+        SceneViewMode::Mode2D => {
+            let rotation_rad = match transform_space {
+                TransformSpace::Local => transform.rotation[2].to_radians(),
+                TransformSpace::World => 0.0,
+            };
+
+            match current_tool {
+                TransformTool::Move => {
+                    let x_dir = glam::Vec2::new(rotation_rad.cos(), -rotation_rad.sin());
+                    let y_dir = glam::Vec2::new(-rotation_rad.sin(), -rotation_rad.cos());
+                    
+                    let x_handle = egui::pos2(screen_x + x_dir.x * gizmo_size, screen_y + x_dir.y * gizmo_size);
+                    let y_handle = egui::pos2(screen_x + y_dir.x * gizmo_size, screen_y + y_dir.y * gizmo_size);
+                    
+                    let dist_x = hover_pos.distance(x_handle);
+                    let dist_y = hover_pos.distance(y_handle);
+                    let dist_center = hover_pos.distance(center);
+                    
+                    if dist_center < handle_size * 1.8 {
+                        Some(3)
+                    } else if dist_x < handle_size * 1.8 {
+                        Some(0)
+                    } else if dist_y < handle_size * 1.8 {
+                        Some(1)
+                    } else {
+                        None
+                    }
+                }
+                TransformTool::Rotate => {
+                    let radius = gizmo_size * 0.8;
+                    let dist_from_center = hover_pos.distance(center);
+                    let dist_from_circle = (dist_from_center - radius).abs();
+                    
+                    if dist_from_circle < 30.0 || dist_from_center < radius {
+                        Some(0)
+                    } else {
+                        None
+                    }
+                }
+                TransformTool::Scale => {
+                    let axis_length = gizmo_size;
+                    let x_dir = glam::Vec2::new(rotation_rad.cos(), -rotation_rad.sin());
+                    let y_dir = glam::Vec2::new(-rotation_rad.sin(), -rotation_rad.cos());
+                    
+                    let x_handle = egui::pos2(screen_x + x_dir.x * axis_length, screen_y + x_dir.y * axis_length);
+                    let y_handle = egui::pos2(screen_x + y_dir.x * axis_length, screen_y + y_dir.y * axis_length);
+                    
+                    let dist_x = hover_pos.distance(x_handle);
+                    let dist_y = hover_pos.distance(y_handle);
+                    let dist_center = hover_pos.distance(center);
+                    
+                    if dist_center < handle_size * 2.5 {
+                        Some(2) // Uniform
+                    } else if dist_x < handle_size * 2.5 {
+                        Some(0)
+                    } else if dist_y < handle_size * 2.5 {
+                        Some(1)
+                    } else {
+                        None
+                    }
+                }
+                _ => None,
             }
         }
     }

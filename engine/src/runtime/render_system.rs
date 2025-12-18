@@ -135,8 +135,12 @@ pub fn post_process_asset_meshes(
     let mut assets_to_load = Vec::new();
     for (entity, mesh) in world.meshes.iter() {
         if let ecs::MeshType::Asset(path) = &mesh.mesh_type {
-            assets_to_load.push((*entity, path.clone()));
-            println!("DEBUG: Found Asset Mesh for entity {:?}: {}", entity, path);
+            // Only load if it looks like a file path (has extension)
+            // This prevents trying to load internal mesh IDs (like "Unnamed_0") as files
+            if std::path::Path::new(path).extension().is_some() {
+                assets_to_load.push((*entity, path.clone()));
+                // println!("DEBUG: Found Asset Mesh for entity {:?}: {}", entity, path);
+            }
         }
     }
 
@@ -144,9 +148,20 @@ pub fn post_process_asset_meshes(
     use ecs::traits::ComponentAccess;
 
     for (parent_entity, asset_rel_path) in assets_to_load {
+        // First, remove any existing children to prevent duplicates on reload
+        let existing_children: Vec<_> = world.parents.iter()
+            .filter(|(_, &parent)| parent == parent_entity)
+            .map(|(child, _)| *child)
+            .collect();
+
+        for child in existing_children {
+            println!("DEBUG: Removing existing child {:?} before reloading", child);
+            world.despawn(child);
+        }
+
         let asset_path = project_path.join(&asset_rel_path);
         println!("DEBUG: Attempting to load GLTF from: {:?}", asset_path);
-        
+
         if asset_path.exists() {
             println!("DEBUG: File exists! Loading...");
             match load_gltf_into_world(
@@ -165,10 +180,11 @@ pub fn post_process_asset_meshes(
                              world.set_parent(child, Some(parent_entity));
                         }
                     }
-                    
-                    // Remove the placeholder Mesh component so it doesn't try to render
-                    // (The container is just a transform holder now)
-                    world.meshes.remove(&parent_entity);
+
+                    // NOTE: We keep the Mesh component with MeshType::Asset so it can be serialized
+                    // and reloaded. The rendering system will skip it since the asset path won't
+                    // match any mesh in the asset cache (child entities do the actual rendering).
+                    // world.meshes.remove(&parent_entity);  // <-- DO NOT REMOVE
                     println!("DEBUG: Attached entities to parent {:?}", parent_entity);
                 },
                 Err(e) => {
@@ -216,15 +232,25 @@ pub fn render_game_world<'a>(
 
     let view_proj = if let (Some(camera), Some(transform)) = (main_camera, camera_transform) {
         
+        // Convert Euler angles (Degrees) to Radians
         let rot_rad = Vec3::new(
             transform.rotation[0].to_radians(),
             transform.rotation[1].to_radians(),
             transform.rotation[2].to_radians(),
         );
+        
+        // Reconstruct rotation quaternion (YXZ order: Yaw -> Pitch -> Roll)
         let cam_rotation = Quat::from_euler(glam::EulerRot::YXZ, rot_rad.y, rot_rad.x, rot_rad.z);
-        let cam_translation = Vec3::from(transform.position);
+        let cam_pos = Vec3::from(transform.position);
 
-        let view = Mat4::from_rotation_translation(cam_rotation, cam_translation).inverse();
+        // Calculate Forward and Up vectors
+        // NOTE: We assume +Z is Forward to match the Editor/Gizmo convention 
+        // (where Camera at -Z looks at Origin).
+        // Standard View Projection (RH) expects -Z forward, so `look_at_rh` handles the conversion.
+        let forward = cam_rotation * Vec3::Z; // +Z Forward
+        let up = cam_rotation * Vec3::Y;      // +Y Up
+
+        let view = Mat4::look_at_rh(cam_pos, cam_pos + forward, up);
         
         let projection = match camera.projection {
              ecs::CameraProjection::Perspective => {
