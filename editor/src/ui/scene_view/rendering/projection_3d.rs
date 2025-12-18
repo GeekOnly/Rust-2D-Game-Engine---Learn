@@ -100,10 +100,10 @@ impl ProjectionMatrix {
     /// Create default perspective projection
     pub fn default_perspective(aspect: f32) -> Self {
         Self::perspective(
-            60.0_f32.to_radians(),  // 60 degree FOV
+            45.0_f32.to_radians(),  // 45 degree FOV (Matches SceneCamera)
             aspect,
             0.1,                     // Near plane
-            10000.0,                 // Far plane
+            1000.0,                  // Far plane (Matches SceneCamera)
         )
     }
     

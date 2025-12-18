@@ -533,7 +533,9 @@ impl EditorApp {
                 self.scene_camera_binding.update(
                     queue,
                     self.editor_state.scene_camera.get_view_matrix(),
-                    self.editor_state.scene_camera.get_projection_matrix(16.0 / 9.0), // TODO: Use actual aspect ratio
+                    self.editor_state.scene_camera.get_projection_matrix(
+                        self.scene_view_renderer.width as f32 / self.scene_view_renderer.height as f32
+                    ),
                     self.editor_state.scene_camera.position
                 );
 

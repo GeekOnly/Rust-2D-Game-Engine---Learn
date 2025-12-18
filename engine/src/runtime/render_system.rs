@@ -208,7 +208,7 @@ pub fn render_game_world<'a>(
     texture_manager: &'a mut TextureManager,
     queue: &wgpu::Queue,
     device: &wgpu::Device,
-    _screen_size: winit::dpi::PhysicalSize<u32>,
+    screen_size: winit::dpi::PhysicalSize<u32>,
     render_pass: &mut wgpu::RenderPass<'a>,
 ) {
     // 0. Update Light (Simple directional light for now)
@@ -254,12 +254,12 @@ pub fn render_game_world<'a>(
         
         let projection = match camera.projection {
              ecs::CameraProjection::Perspective => {
-                let aspect = 16.0 / 9.0; // TODO: Pass actual screen size
+                let aspect = screen_size.width as f32 / screen_size.height.max(1) as f32;
                 Mat4::perspective_rh(camera.fov.to_radians(), aspect, camera.near_clip, camera.far_clip)
              }
              ecs::CameraProjection::Orthographic => {
                  let half_height = camera.orthographic_size;
-                 let aspect = 16.0 / 9.0;
+                 let aspect = screen_size.width as f32 / screen_size.height.max(1) as f32;
                  let half_width = half_height * aspect;
                  Mat4::orthographic_rh(-half_width, half_width, -half_height, half_height, camera.far_clip, camera.near_clip)
              }
