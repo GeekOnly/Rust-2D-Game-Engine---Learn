@@ -3,6 +3,10 @@ name = "editor"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+default = ["rapier"]
+rapier = []
+
 [dependencies]
 # Dependencies needed for Editor UI and Tools
 engine = { path = "../engine" }

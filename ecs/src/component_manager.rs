@@ -6,7 +6,7 @@
 /// - GetComponent<T>() - ดึงข้อมูล Component
 /// - HasComponent<T>() - ตรวจสอบว่ามี Component หรือไม่
 
-use crate::{Entity, Transform, Sprite, Collider, Mesh, Camera, Script, ScriptLifecycleState, EntityTag, LdtkMap, TilemapCollider, LdtkIntGridCollider};
+use crate::{Entity, Transform, Sprite, Collider, Collider3D, Mesh, Camera, Script, ScriptLifecycleState, EntityTag, LdtkMap, TilemapCollider, LdtkIntGridCollider};
 use std::collections::HashMap;
 
 /// Component Type Enum สำหรับระบุประเภท Component
@@ -25,6 +25,7 @@ pub enum ComponentType {
     LdtkMap,
     TilemapCollider,
     LdtkIntGridCollider,
+    Collider3D,
 }
 
 impl ComponentType {
@@ -44,6 +45,7 @@ impl ComponentType {
             ComponentType::LdtkMap,
             ComponentType::TilemapCollider,
             ComponentType::LdtkIntGridCollider,
+            ComponentType::Collider3D,
         ]
     }
 
@@ -63,6 +65,7 @@ impl ComponentType {
             ComponentType::LdtkMap => "LDTK Map",
             ComponentType::TilemapCollider => "Tilemap Collider",
             ComponentType::LdtkIntGridCollider => "LDTK IntGrid Collider",
+            ComponentType::Collider3D => "Collider 3D",
         }
     }
 
@@ -170,6 +173,9 @@ impl ComponentManager for crate::CustomWorld {
             ComponentType::LdtkIntGridCollider => {
                 self.ldtk_intgrid_colliders.insert(entity, LdtkIntGridCollider::default());
             }
+            ComponentType::Collider3D => {
+                self.colliders_3d.insert(entity, Collider3D::default());
+            }
         }
 
         Ok(())
@@ -229,6 +235,9 @@ impl ComponentManager for crate::CustomWorld {
             ComponentType::LdtkIntGridCollider => {
                 self.ldtk_intgrid_colliders.remove(&entity);
             }
+            ComponentType::Collider3D => {
+                self.colliders_3d.remove(&entity);
+            }
         }
 
         Ok(())
@@ -249,6 +258,7 @@ impl ComponentManager for crate::CustomWorld {
             ComponentType::LdtkMap => self.ldtk_maps.contains_key(&entity),
             ComponentType::TilemapCollider => self.tilemap_colliders.contains_key(&entity),
             ComponentType::LdtkIntGridCollider => self.ldtk_intgrid_colliders.contains_key(&entity),
+            ComponentType::Collider3D => self.colliders_3d.contains_key(&entity),
         }
     }
 

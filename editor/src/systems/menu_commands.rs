@@ -164,7 +164,7 @@ impl MenuCommandSystem {
                  #[cfg(feature = "rapier")]
                  {
                      if let Some(rapier_world) = physics.downcast_mut::<RapierPhysicsWorld>() {
-                         rapier_world.register_colliders(&editor_state.world);
+                         rapier_world.sync_from_ecs(&editor_state.world);
                          editor_state.console.info("Physics (Rapier) initialized".to_string());
                      }
                  }

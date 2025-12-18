@@ -2,13 +2,13 @@
 //!
 //! Handles rendering of the scene in 3D mode (meshes, billboards, grid, gizmos).
 
-use ecs::{World, Entity, MeshType};
+use ecs::{World, Entity};
 use egui;
 use glam::{Vec2, Vec3};
 use crate::{SceneCamera, SceneGrid};
 use crate::grid::InfiniteGrid;
 use super::super::types::*;
-use super::gizmos::{render_camera_gizmo, render_camera_frustum_3d, render_collider_gizmo, render_velocity_gizmo};
+use super::gizmos::{render_camera_gizmo, render_camera_frustum_3d, render_collider_gizmo};
 
 /// Render a default camera gizmo when no camera component is found
 fn render_default_camera_gizmo(
@@ -212,8 +212,10 @@ pub fn render_scene_3d(
                     let scale_vec = glam::Vec3::from(transform.scale);
                     let world_size = 1.0;
                     
-                    let base_size = world_size * scale_vec.x.max(scale_vec.y).max(scale_vec.z);
-                    let _selection_size = base_size; // Selection bounds matching object size
+                    // calculate_3d_cube_bounds applies the transform.scale internally,
+                    // so we should pass the unscaled unit cube size (1.0).
+                    let base_size = world_size;
+                    let _selection_size = base_size;
                     
                     // We need to project the bounds properly because 'base_size' is in world units,
                     // but we are drawing a 2D rect here using screen coordinates.
@@ -234,7 +236,7 @@ pub fn render_scene_3d(
             if *show_colliders {
                 let world_pos = Vec3::from(transform.position);
                 if let Some(screen_pos) = projection_3d::world_to_screen(world_pos, scene_camera, viewport_size) {
-                    render_collider_gizmo(painter, sel_entity, world, screen_pos.x, screen_pos.y, scene_camera, true, false);
+                    render_collider_gizmo(painter, sel_entity, world, screen_pos.x, screen_pos.y, scene_camera, Some(viewport_rect), true, false);
                 }
             }
         }

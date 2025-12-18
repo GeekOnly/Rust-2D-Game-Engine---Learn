@@ -604,6 +604,7 @@ pub struct CustomWorld {
     pub rigidbodies: HashMap<CustomEntity, Rigidbody2D>, // New Rigidbody2D component
     pub sprites: HashMap<CustomEntity, Sprite>,
     pub colliders: HashMap<CustomEntity, Collider>,
+    pub colliders_3d: HashMap<CustomEntity, Collider3D>, // 3D colliders
     pub meshes: HashMap<CustomEntity, Mesh>,      // 3D meshes
     pub cameras: HashMap<CustomEntity, Camera>,   // Camera components
     pub tags: HashMap<CustomEntity, EntityTag>,
@@ -665,6 +666,7 @@ impl CustomWorld {
         self.rigidbodies.remove(&e);
         self.sprites.remove(&e);
         self.colliders.remove(&e);
+        self.colliders_3d.remove(&e);
         self.meshes.remove(&e);
         self.cameras.remove(&e);
         self.tags.remove(&e);
@@ -691,6 +693,7 @@ impl CustomWorld {
         self.rigidbodies.clear();
         self.sprites.clear();
         self.colliders.clear();
+        self.colliders_3d.clear();
         self.meshes.clear();
         self.cameras.clear();
         self.tags.clear();
@@ -745,6 +748,7 @@ impl CustomWorld {
             velocities: Vec<(CustomEntity, (f32, f32))>,
             sprites: Vec<(CustomEntity, Sprite)>,
             colliders: Vec<(CustomEntity, Collider)>,
+            colliders_3d: Vec<(CustomEntity, Collider3D)>,
             rigidbodies: Vec<(CustomEntity, Rigidbody2D)>,  // Added rigidbody serialization
             cameras: Vec<(CustomEntity, Camera)>,
             meshes: Vec<(CustomEntity, Mesh)>,
@@ -770,6 +774,7 @@ impl CustomWorld {
             velocities: self.velocities.iter().map(|(k, v)| (*k, *v)).collect(),
             sprites: self.sprites.iter().map(|(k, v)| (*k, v.clone())).collect(),
             colliders: self.colliders.iter().map(|(k, v)| (*k, v.clone())).collect(),
+            colliders_3d: self.colliders_3d.iter().map(|(k, v)| (*k, v.clone())).collect(),
             rigidbodies: self.rigidbodies.iter().map(|(k, v)| (*k, v.clone())).collect(),
             cameras: self.cameras.iter().map(|(k, v)| (*k, v.clone())).collect(),
             meshes: self.meshes.iter().map(|(k, v)| (*k, v.clone())).collect(),
@@ -805,6 +810,8 @@ impl CustomWorld {
             sprites: Vec<(CustomEntity, Sprite)>,
             #[serde(default)]
             colliders: Vec<(CustomEntity, Collider)>,
+            #[serde(default)]
+            colliders_3d: Vec<(CustomEntity, Collider3D)>,
             #[serde(default)]
             rigidbodies: Vec<(CustomEntity, Rigidbody2D)>,  // Added rigidbody deserialization
             #[serde(default)]
@@ -868,6 +875,9 @@ impl CustomWorld {
         }
         for (entity, collider) in data.colliders {
             self.colliders.insert(entity, collider);
+        }
+        for (entity, collider) in data.colliders_3d {
+            self.colliders_3d.insert(entity, collider);
         }
         for (entity, rigidbody) in data.rigidbodies {
             self.rigidbodies.insert(entity, rigidbody);

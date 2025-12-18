@@ -235,7 +235,7 @@ pub fn render_scene_2d(
 
             // Draw selected entity's collider gizmo on top
             if *show_colliders {
-                render_collider_gizmo(painter, sel_entity, world, screen_x, screen_y, scene_camera, true, true);
+                render_collider_gizmo(painter, sel_entity, world, screen_x, screen_y, scene_camera, None, true, true);
             }
         }
     }
@@ -584,7 +584,7 @@ fn render_entity_2d(
 
     // Gizmos
     if *show_colliders && *selected_entity != Some(entity) {
-        render_collider_gizmo(painter, entity, world, screen_x, screen_y, scene_camera, false, true);
+        render_collider_gizmo(painter, entity, world, screen_x, screen_y, scene_camera, None, false, true);
     }
     
     if *show_velocities {

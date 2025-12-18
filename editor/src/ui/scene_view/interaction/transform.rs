@@ -467,9 +467,9 @@ pub fn hit_test_gizmo(
                         let mut best_dist = hit_threshold;
                         let mut best_axis = None;
                         
-                        if dist_x < best_dist { best_dist = dist_x; best_axis = Some(0); }
-                        if dist_y < best_dist { best_dist = dist_y; best_axis = Some(1); }
-                        if dist_z < best_dist { best_dist = dist_z; best_axis = Some(2); }
+                        if dist_x < best_dist { best_dist = dist_x; best_axis = Some(0u8); }
+                        if dist_y < best_dist { best_dist = dist_y; best_axis = Some(1u8); }
+                        if dist_z < best_dist { best_dist = dist_z; best_axis = Some(2u8); }
                         
                         best_axis
                     }
@@ -480,13 +480,13 @@ pub fn hit_test_gizmo(
                         let hit_radius = handle_size * 2.5;
 
                         if dist_center < hit_radius {
-                            Some(3) // Uniform
+                            Some(3u8) // Uniform
                         } else if dist_x < hit_radius {
-                            Some(0) // X
+                            Some(0u8) // X
                         } else if dist_y < hit_radius {
-                            Some(1) // Y
+                            Some(1u8) // Y
                         } else if dist_z < hit_radius {
-                            Some(2) // Z
+                            Some(2u8) // Z
                         } else {
                             None
                         }

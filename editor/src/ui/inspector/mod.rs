@@ -2,6 +2,7 @@ pub mod utils;
 pub mod transform;
 pub mod sprite;
 pub mod collider;
+pub mod collider_3d;
 pub mod rigidbody;
 pub mod mesh;
 pub mod camera;
@@ -164,6 +165,7 @@ pub fn render_inspector(
             transform::render_transform_inspector(ui, world, entity);
             sprite::render_sprite_inspector(ui, world, entity, sprite_picker_state, open_sprite_editor_request);
             collider::render_collider_inspector(ui, world, entity);
+            collider_3d::render_collider_3d_inspector(ui, world, entity);
             rigidbody::render_rigidbody_inspector(ui, world, entity);
             mesh::render_mesh_inspector(ui, world, entity, project_path.as_deref(), reload_mesh_assets_request);
             camera::render_camera_inspector(ui, world, entity);
@@ -202,7 +204,7 @@ pub fn render_inspector(
                             };
 
                             render_component_category(ui, "🎨 Rendering", &[ComponentType::Sprite, ComponentType::Mesh]);
-                            render_component_category(ui, "⚙️ Physics", &[ComponentType::BoxCollider, ComponentType::Rigidbody, ComponentType::TilemapCollider, ComponentType::LdtkIntGridCollider]);
+                            render_component_category(ui, "⚙️ Physics", &[ComponentType::BoxCollider, ComponentType::Collider3D, ComponentType::Rigidbody, ComponentType::TilemapCollider, ComponentType::LdtkIntGridCollider]);
                             render_component_category(ui, "🗺️ Tilemap", &[ComponentType::LdtkMap]);
                             render_component_category(ui, "📜 Other", &[ComponentType::Camera, ComponentType::Script, ComponentType::Tag, ComponentType::Map]);
                     }

@@ -356,6 +356,7 @@ pub fn render_collider_gizmo(
     screen_x: f32,
     screen_y: f32,
     scene_camera: &SceneCamera,
+    viewport_rect: Option<egui::Rect>,
     _is_selected: bool,
     is_2d_mode: bool,
 ) {
@@ -430,6 +431,76 @@ pub fn render_collider_gizmo(
                 corners.to_vec(),
                 egui::Stroke::new(1.5, egui::Color32::from_rgb(0, 255, 100)),
             ));
+        }
+    } else if let Some(collider_3d) = world.colliders_3d.get(&entity) {
+        // 3D Collider rendering
+        if !is_2d_mode {
+            if let (Some(transform), Some(rect)) = (world.transforms.get(&entity), viewport_rect) {
+                 let viewport_size = glam::Vec2::new(rect.width(), rect.height());
+                 
+                 // Project vertices of the box
+                 let half = glam::Vec3::from(collider_3d.size) * 0.5;
+                 let offset = glam::Vec3::from(collider_3d.offset);
+                 let scale = glam::Vec3::from(transform.scale);
+                 
+                 // Vertices of unit cube centered at origin
+                 // We will apply offset later
+                 let base_vertices = [
+                    glam::Vec3::new(-half.x, -half.y, -half.z),
+                    glam::Vec3::new(half.x, -half.y, -half.z),
+                    glam::Vec3::new(half.x, half.y, -half.z),
+                    glam::Vec3::new(-half.x, half.y, -half.z),
+                    glam::Vec3::new(-half.x, -half.y, half.z),
+                    glam::Vec3::new(half.x, -half.y, half.z),
+                    glam::Vec3::new(half.x, half.y, half.z),
+                    glam::Vec3::new(-half.x, half.y, half.z),
+                 ];
+                 
+                 let rot_rad = glam::Vec3::new(
+                    transform.rotation[0].to_radians(),
+                    transform.rotation[1].to_radians(),
+                    transform.rotation[2].to_radians(),
+                 );
+                 let rotation = glam::Quat::from_euler(glam::EulerRot::XYZ, rot_rad.x, rot_rad.y, rot_rad.z);
+                 let translation = glam::Vec3::from(transform.position);
+
+                 let projected: Vec<Option<egui::Pos2>> = base_vertices.iter().map(|v| {
+                     // 1. Apply Size/Extent (local scaling)
+                     // 2. Apply Offset (still local)
+                     // 3. Apply Transform Scale (Global scale)
+                     // 4. Rotate
+                     // 5. Translate
+                     
+                     // Typically: Transform * (Vertex + Offset)
+                     // But offset is usually "center offset".
+                     // And Collider.size usually accounts for local scale.
+                     
+                     // Let's assume:
+                     // LocalPos = (v + offset)
+                     // WorldPos = Translate * Rotate * Scale * LocalPos
+                     
+                     let local_pos = *v + offset;
+                     let v_scaled = local_pos * scale;
+                     let v_rotated = rotation * v_scaled;
+                     let v_world = translation + v_rotated;
+                     
+                     projection_3d::world_to_screen(v_world, scene_camera, viewport_size)
+                        .map(|p| egui::pos2(rect.min.x + p.x, rect.min.y + p.y))
+                 }).collect();
+                 
+                 // Define edges index pairs (0-3: front face, 4-7: back face)
+                 let edges = [
+                    (0, 1), (1, 2), (2, 3), (3, 0), // Front face
+                    (4, 5), (5, 6), (6, 7), (7, 4), // Back face
+                    (0, 4), (1, 5), (2, 6), (3, 7), // Connecting lines
+                 ];
+                 
+                 for (start, end) in edges {
+                     if let (Some(Some(p1)), Some(Some(p2))) = (projected.get(start), projected.get(end)) {
+                         painter.line_segment([*p1, *p2], egui::Stroke::new(1.5, egui::Color32::from_rgb(0, 255, 100)));
+                     }
+                 }
+            }
         }
     }
 }
@@ -766,9 +837,11 @@ pub fn render_camera_frustum_3d(
         let rotation = glam::Quat::from_euler(glam::EulerRot::YXZ, rot_y, rot_x, rot_z);
 
         // Calculate directional vectors from rotation
-        let forward = rotation * glam::Vec3::Z; // +Z Forward
-        let up = rotation * glam::Vec3::Y;      // +Y Up
-        let right = rotation * glam::Vec3::X;   // +X Right
+        // Calculate directional vectors from rotation
+        // Engine convention: Forward is +Z, Up is +Y, Right is +X
+        let forward = rotation * glam::Vec3::Z;  // +Z Forward
+        let up = rotation * glam::Vec3::Y;       // +Y Up
+        let right = rotation * glam::Vec3::X;    // +X Right
 
         // Standard aspect ratio for clean visualization
         let aspect = 16.0 / 9.0;

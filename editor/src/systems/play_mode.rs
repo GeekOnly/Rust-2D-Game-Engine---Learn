@@ -1,4 +1,5 @@
 use engine_core::EngineContext;
+use physics::PhysicsWorld;
 use crate::states::EditorState;
 use script::ScriptEngine;
 #[cfg(feature = "rapier")]
