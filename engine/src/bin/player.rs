@@ -323,7 +323,7 @@ fn main() -> Result<()> {
                             egui_renderer.update_texture(&renderer.device, &renderer.queue, *id, image_delta);
                         }
 
-                        let res = renderer.render_with_callback(|device, queue, encoder, view, depth_view, texture_manager, batch_renderer, mesh_renderer, camera_binding, light_binding| {
+                        let res = renderer.render_with_callback(|device, queue, encoder, view, depth_view, texture_manager, batch_renderer, mesh_renderer, tilemap_renderer, camera_binding, light_binding| {
                             egui_renderer.update_buffers(
                                 device,
                                 queue,
@@ -359,6 +359,7 @@ fn main() -> Result<()> {
                                 &world,
                                 batch_renderer,
                                 mesh_renderer,
+                                tilemap_renderer,
                                 camera_binding,
                                 light_binding,
                                 texture_manager,

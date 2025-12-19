@@ -10,6 +10,7 @@ pub mod map;
 pub mod grid;
 pub mod world_ui;
 pub mod collider_3d;
+pub mod unified_rendering;
 
 // Re-export all components
 pub use sprite_sheet::{SpriteSheet, SpriteFrame, AnimatedSprite, AnimationMode};
@@ -24,3 +25,7 @@ pub use map::{Map, MapType};
 pub use grid::{Grid, GridLayout, HexagonOrientation, CellSwizzle, GridPlane};
 pub use world_ui::{WorldUI, WorldUIType, QuestMarkerType};
 pub use collider_3d::{Collider3D, ColliderShape3D};
+pub use unified_rendering::{
+    ViewMode, FilterMode, PerfectPixelSettings, UnifiedCamera, UnifiedSprite, 
+    UnifiedTilemap, Viewport, PixelPerfectTransform
+};

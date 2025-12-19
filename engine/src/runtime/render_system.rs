@@ -1,5 +1,5 @@
 use ecs::World;
-use render::{BatchRenderer, MeshRenderer, TextureManager, CameraBinding, LightBinding, Mesh, PbrMaterialUniform, ObjectUniform, PbrMaterial};
+use render::{BatchRenderer, MeshRenderer, TextureManager, CameraBinding, LightBinding, Mesh, PbrMaterialUniform, ObjectUniform, PbrMaterial, TilemapGpuResources};
 use glam::{Vec3, Quat, Mat4};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -177,6 +177,7 @@ pub fn render_game_world<'a>(
     world: &World,
     batch_renderer: &'a mut BatchRenderer,
     mesh_renderer: &'a mut MeshRenderer,
+    tilemap_renderer: &'a mut render::TilemapRenderer,
     camera_binding: &'a CameraBinding,
     light_binding: &'a LightBinding,
     texture_manager: &'a mut TextureManager,
@@ -284,34 +285,11 @@ pub fn render_game_world<'a>(
     let _ = texture_manager.get_white_texture(device, queue);
     let _ = texture_manager.get_normal_texture(device, queue);
 
-    // 3. Render Batches
-    // For now, just render the first batch to avoid borrowing issues
-    // TODO: Implement proper multi-texture batching
-    if let Some((texture_id, batch)) = commands.into_iter().next() {
-        if let Some(texture) = texture_manager.get_texture(&texture_id) {
-            // Clone texture data to avoid borrowing issues
-            let tex_w = texture.width as f32;
-            let tex_h = texture.height as f32;
-            
-            // Prepare sprite data
-            batch_renderer.begin_frame(); // Clears instance buffer for this batch
-            
-            for cmd in batch {
-                // Calculate UVs
-                let u_min = cmd.rect[0] as f32 / tex_w;
-                let v_min = cmd.rect[1] as f32 / tex_h;
-                let u_scale = cmd.rect[2] as f32 / tex_w;
-                let v_scale = cmd.rect[3] as f32 / tex_h;
 
-                batch_renderer.draw_sprite(cmd.pos, cmd.rot, cmd.scale, cmd.color, [u_min, v_min], [u_scale, v_scale]);
-            }
 
-            // Draw sprites
-            batch_renderer.end_frame(queue, render_pass, texture);
-        }
-    }
 
-    // 4. Render Meshes with Depth Sorting
+
+    // 4. Render Meshes FIRST (Opaque, writes depth)
     // Collect and sort meshes by Z position (back to front for transparency, front to back for opaque)
     let mut mesh_entities: Vec<_> = world.meshes.iter().collect();
     
@@ -755,6 +733,81 @@ pub fn render_game_world<'a>(
                      stack.push((*child_idx, global_mat));
                  }
              }
+        }
+    }
+
+
+
+    // 6. Render Tilemaps (Transparent, background usually)
+    // Add logic to render tilemaps
+    // 6. Render Tilemaps (Transparent, background usually)
+    // Add logic to render tilemaps
+    static mut TILEMAP_CACHE: Option<HashMap<u32, TilemapGpuResources>> = None;
+    let tilemap_cache = unsafe {
+        if TILEMAP_CACHE.is_none() {
+            TILEMAP_CACHE = Some(HashMap::new());
+        }
+        TILEMAP_CACHE.as_mut().unwrap()
+    };
+
+    // Pass A: Update Cache
+    for (entity, tilemap) in &world.tilemaps {
+        if world.transforms.contains_key(entity) {
+             if !tilemap_cache.contains_key(entity) {
+                // Generate GPU resources
+                let tileset = world.tilesets.values().next(); // Hack: Just take first tileset
+                
+                if let Some(tileset) = tileset {
+                    // We need the texture to be loaded
+                    if let Some(texture) = texture_manager.get_texture(&tileset.texture_path) {
+                        if let Some(resources) = tilemap_renderer.prepare_gpu_data(device, queue, tilemap, tileset, texture) {
+                            tilemap_cache.insert(*entity, resources);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Pass B: Render
+    for (entity, _tilemap) in &world.tilemaps {
+        if world.transforms.contains_key(entity) {
+            // Render
+            if let Some(resources) = tilemap_cache.get(entity) {
+                tilemap_renderer.render(
+                    render_pass,
+                    resources,
+                    &camera_binding.bind_group
+                );
+            }
+        }
+    }
+
+
+    // 7. Render Sprites (Transparent, Drawn LAST to blend correctly over meshes)
+    // For now, just render the first batch to avoid borrowing issues
+    // TODO: Implement proper multi-texture batching
+    if let Some((texture_id, batch)) = commands.into_iter().next() {
+        if let Some(texture) = texture_manager.get_texture(&texture_id) {
+            // Clone texture data to avoid borrowing issues
+            let tex_w = texture.width as f32;
+            let tex_h = texture.height as f32;
+            
+            // Prepare sprite data
+            batch_renderer.begin_frame(); // Clears instance buffer for this batch
+            
+            for cmd in batch {
+                // Calculate UVs
+                let u_min = cmd.rect[0] as f32 / tex_w;
+                let v_min = cmd.rect[1] as f32 / tex_h;
+                let u_scale = cmd.rect[2] as f32 / tex_w;
+                let v_scale = cmd.rect[3] as f32 / tex_h;
+
+                batch_renderer.draw_sprite(cmd.pos, cmd.rot, cmd.scale, cmd.color, [u_min, v_min], [u_scale, v_scale]);
+            }
+
+            // Draw sprites
+            batch_renderer.end_frame(queue, render_pass, texture);
         }
     }
 }

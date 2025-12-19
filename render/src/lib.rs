@@ -7,7 +7,7 @@ pub mod tilemap_renderer;
 
 pub use texture::{Texture, TextureManager};
 pub use sprite_renderer::SpriteRenderer;
-pub use tilemap_renderer::TilemapRenderer;
+pub use tilemap_renderer::{TilemapRenderer, TilemapGpuResources};
 pub mod batch_renderer;
 pub use batch_renderer::BatchRenderer;
 pub mod mesh;
@@ -17,6 +17,7 @@ pub mod grid_renderer;
 pub mod camera;
 pub mod lighting;
 pub mod material;
+pub mod unified_renderer;
 
 pub use mesh::{Mesh, ModelVertex};
 pub use mesh_generation::generate_mesh;
@@ -25,6 +26,11 @@ pub use grid_renderer::GridRenderer;
 pub use camera::{CameraBinding, CameraUniform};
 pub use lighting::{LightBinding, LightUniform};
 pub use material::{PbrMaterial, PbrMaterialUniform, ToonMaterial, ToonMaterialUniform};
+pub use unified_renderer::{
+    UnifiedCameraUniform, UnifiedCameraBinding, UnifiedRenderContext, 
+    ViewModeManager, PerfectPixelRenderer, UnifiedRenderPipeline,
+    PerfectPixelUtils, UnifiedRenderer
+};
 
 
 pub struct RenderModule {
@@ -43,6 +49,7 @@ pub struct RenderModule {
     pub mesh_renderer: MeshRenderer,
     pub camera_binding: CameraBinding,
     pub light_binding: LightBinding,
+    pub unified_renderer: UnifiedRenderer,
 }
 
 impl RenderModule {
@@ -171,13 +178,16 @@ impl RenderModule {
         });
 
         let texture_manager = TextureManager::new(Some(&device));
-        let sprite_renderer = SpriteRenderer::new(&device, &config);
-        let tilemap_renderer = TilemapRenderer::new(&device, &config);
-        let batch_renderer = BatchRenderer::new(&device, &config);
 
-        // Initialize 3D bindings
+        
+        // Initialize 3D bindings first
         let camera_binding = CameraBinding::new(&device);
+
+        let sprite_renderer = SpriteRenderer::new(&device, &config, &camera_binding.bind_group_layout);
+        let batch_renderer = BatchRenderer::new(&device, &config);
         let light_binding = LightBinding::new(&device);
+
+        let tilemap_renderer = TilemapRenderer::new(&device, &config, &camera_binding.bind_group_layout);
 
         let mesh_renderer = MeshRenderer::new(
             &device, 
@@ -185,6 +195,8 @@ impl RenderModule {
             &camera_binding.bind_group_layout,
             &light_binding.bind_group_layout
         );
+
+        let unified_renderer = UnifiedRenderer::new(&device);
 
         Ok(Self {
             surface,
@@ -202,6 +214,7 @@ impl RenderModule {
             mesh_renderer,
             camera_binding,
             light_binding,
+            unified_renderer,
         })
     }
     
@@ -233,11 +246,11 @@ impl RenderModule {
     }
 
     pub fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
-        self.render_with_callback(|_, _, _, _, _, _, _, _, _, _| {})
+        self.render_with_callback(|_, _, _, _, _, _, _, _, _, _, _| {})
     }
 
     pub fn render_with_callback<F>(&mut self, callback: F) -> Result<(), wgpu::SurfaceError>
-    where F: FnOnce(&wgpu::Device, &wgpu::Queue, &mut wgpu::CommandEncoder, &wgpu::TextureView, &wgpu::TextureView, &mut TextureManager, &mut BatchRenderer, &mut MeshRenderer, &mut CameraBinding, &LightBinding)
+    where F: FnOnce(&wgpu::Device, &wgpu::Queue, &mut wgpu::CommandEncoder, &wgpu::TextureView, &wgpu::TextureView, &mut TextureManager, &mut BatchRenderer, &mut MeshRenderer, &mut TilemapRenderer, &mut CameraBinding, &LightBinding, &mut UnifiedRenderer)
     {
         let output = self.surface.get_current_texture()?;
         let view = output.texture.create_view(&wgpu::TextureViewDescriptor::default());
@@ -276,7 +289,7 @@ impl RenderModule {
         }
 
         // Callback for overlay (egui) and game render
-        callback(&self.device, &self.queue, &mut encoder, &view, &self.depth_view, &mut self.texture_manager, &mut self.batch_renderer, &mut self.mesh_renderer, &mut self.camera_binding, &self.light_binding);
+        callback(&self.device, &self.queue, &mut encoder, &view, &self.depth_view, &mut self.texture_manager, &mut self.batch_renderer, &mut self.mesh_renderer, &mut self.tilemap_renderer, &mut self.camera_binding, &self.light_binding, &mut self.unified_renderer);
         
         self.queue.submit(std::iter::once(encoder.finish()));
         output.present();
