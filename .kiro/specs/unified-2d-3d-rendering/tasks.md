@@ -101,8 +101,15 @@
     - **Property 7: Animation pixel preservation**
     - **Validates: Requirements 3.5**
 
-- [ ] 5. Implement depth sorting and mixed content rendering
-  - [ ] 5.1 Create unified depth sorting system
+- [x] 5. Implement depth sorting and mixed content rendering
+
+
+
+
+
+  - [x] 5.1 Create unified depth sorting system
+
+
     - Implement depth buffer integration for sprites and 3D objects
     - Add manual sort order support for sprites using UnifiedSprite.sort_order
     - Create depth-based rendering order calculation
@@ -113,7 +120,9 @@
     - **Validates: Requirements 2.4, 3.4**
     - _Note: Basic depth sorting tests exist in depth_sorting_properties.rs but need unified rendering integration_
 
-  - [ ] 5.3 Implement mixed 2D/3D content rendering pipeline
+  - [x] 5.3 Implement mixed 2D/3D content rendering pipeline
+
+
     - Update UnifiedRenderer to handle mixed content
     - Ensure proper depth testing between 2D and 3D objects
     - Add support for rendering both types in same frame

@@ -4,6 +4,8 @@ use winit::window::Window;
 pub mod texture;
 pub mod sprite_renderer;
 pub mod tilemap_renderer;
+pub mod depth_sorting;
+pub mod mixed_content_renderer;
 
 pub use texture::{Texture, TextureManager};
 pub use sprite_renderer::SpriteRenderer;
@@ -30,6 +32,10 @@ pub use unified_renderer::{
     UnifiedCameraUniform, UnifiedCameraBinding, UnifiedRenderContext, 
     ViewModeManager, PerfectPixelRenderer, UnifiedRenderPipeline,
     PerfectPixelUtils, UnifiedRenderer
+};
+pub use depth_sorting::{DepthSortingSystem, RenderableItem, RenderableType};
+pub use mixed_content_renderer::{
+    MixedContentRenderer, MixedContentRenderContext, MixedContentRenderError, MixedContentRenderStats
 };
 
 

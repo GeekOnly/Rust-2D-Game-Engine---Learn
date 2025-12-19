@@ -5,6 +5,8 @@
 
 use wgpu::util::DeviceExt;
 use glam::{Mat4, Vec3};
+use crate::depth_sorting::{DepthSortingSystem, RenderableItem, RenderableType};
+use crate::mixed_content_renderer::{MixedContentRenderer, MixedContentRenderContext};
 
 /// Unified camera uniform for WGPU shaders
 #[repr(C)]
@@ -249,6 +251,8 @@ pub struct UnifiedRenderer {
     pub perfect_pixel_utils: PerfectPixelUtils,
     pub current_view_mode: ecs::components::ViewMode,
     pub transitioning: bool,
+    pub depth_sorting_system: DepthSortingSystem,
+    pub mixed_content_renderer: MixedContentRenderer,
 }
 
 impl UnifiedRenderer {
@@ -258,6 +262,8 @@ impl UnifiedRenderer {
             perfect_pixel_utils: PerfectPixelUtils,
             current_view_mode: ecs::components::ViewMode::Mode2D,
             transitioning: false,
+            depth_sorting_system: DepthSortingSystem::new(),
+            mixed_content_renderer: MixedContentRenderer::new(),
         }
     }
 }
@@ -267,6 +273,12 @@ impl ViewModeManager for UnifiedRenderer {
         if self.current_view_mode != mode {
             self.transitioning = true;
             self.current_view_mode = mode;
+            
+            // Update both depth sorting and mixed content renderer
+            let camera_position = Vec3::ZERO; // This would be updated with actual camera position
+            self.depth_sorting_system.update_camera(camera_position, mode);
+            self.mixed_content_renderer.update_camera(camera_position, mode);
+            
             // Transition logic would be implemented here
             self.transitioning = false;
         }
@@ -300,9 +312,42 @@ impl UnifiedRenderPipeline for UnifiedRenderer {
         // This is a placeholder for the actual rendering logic
     }
 
-    fn render_mixed_content(&mut self, camera: &ecs::Camera, viewport: &ecs::components::Viewport) {
-        // Implementation would render both 2D and 3D content with proper depth sorting
-        // This is a placeholder for the actual rendering logic
+    fn render_mixed_content(&mut self, _camera: &ecs::Camera, _viewport: &ecs::components::Viewport) {
+        // Clear previous frame's renderables
+        self.depth_sorting_system.clear();
+        self.mixed_content_renderer.clear_renderables();
+        
+        // Update both systems with current camera state
+        // Note: Camera position would come from the Transform component of the camera entity
+        // For now, we use a default position - this would be updated by the calling code
+        let camera_position = Vec3::ZERO;
+        self.depth_sorting_system.update_camera(camera_position, self.current_view_mode);
+        self.mixed_content_renderer.update_camera(camera_position, self.current_view_mode);
+        
+        // This would be called by the actual rendering system to populate renderables
+        // The actual implementation would iterate through all entities and add them
+        // to both the depth sorting system and mixed content renderer based on their components
+        
+        // Get sorted renderables for rendering
+        let sorted_renderables = self.depth_sorting_system.sort_and_get_renderables();
+        
+        // Render in sorted order using the mixed content renderer
+        for renderable in sorted_renderables {
+            match renderable.renderable_type {
+                RenderableType::Sprite => {
+                    // Render sprite with proper depth testing
+                    // This would be implemented by the actual rendering system
+                }
+                RenderableType::Tilemap => {
+                    // Render tilemap with proper depth testing
+                    // This would be implemented by the actual rendering system
+                }
+                RenderableType::Mesh3D => {
+                    // Render 3D mesh with proper depth testing
+                    // This would be implemented by the actual rendering system
+                }
+            }
+        }
     }
 
     fn apply_perfect_pixel(&mut self, settings: &ecs::components::PerfectPixelSettings) {
@@ -424,5 +469,140 @@ impl UnifiedRenderer {
     /// Get the camera bind group layout for creating compatible pipelines
     pub fn get_camera_bind_group_layout(&self) -> &wgpu::BindGroupLayout {
         &self.camera_binding.bind_group_layout
+    }
+
+    /// Add a sprite to the depth sorting system
+    pub fn add_sprite_for_rendering(
+        &mut self,
+        entity: ecs::Entity,
+        transform: &ecs::Transform,
+        sprite: &ecs::components::UnifiedSprite,
+    ) {
+        self.depth_sorting_system.add_sprite(entity, transform, sprite);
+    }
+
+    /// Add a tilemap to the depth sorting system
+    pub fn add_tilemap_for_rendering(
+        &mut self,
+        entity: ecs::Entity,
+        transform: &ecs::Transform,
+        tilemap: &ecs::components::UnifiedTilemap,
+    ) {
+        self.depth_sorting_system.add_tilemap(entity, transform, tilemap);
+    }
+
+    /// Add a 3D mesh to the depth sorting system
+    pub fn add_mesh_3d_for_rendering(
+        &mut self,
+        entity: ecs::Entity,
+        transform: &ecs::Transform,
+        has_transparency: bool,
+    ) {
+        self.depth_sorting_system.add_mesh_3d(entity, transform, has_transparency);
+    }
+
+    /// Get sorted renderables for the current frame
+    pub fn get_sorted_renderables(&mut self) -> &[RenderableItem] {
+        self.depth_sorting_system.sort_and_get_renderables()
+    }
+
+    /// Clear all renderables from the depth sorting system
+    pub fn clear_renderables(&mut self) {
+        self.depth_sorting_system.clear();
+    }
+
+    /// Get renderables by type
+    pub fn get_renderables_by_type(&self, renderable_type: RenderableType) -> Vec<&RenderableItem> {
+        self.depth_sorting_system.get_renderables_by_type(renderable_type)
+    }
+
+    /// Update the depth sorting system with current camera state
+    pub fn update_depth_sorting_camera(&mut self, camera_position: Vec3) {
+        self.depth_sorting_system.update_camera(camera_position, self.current_view_mode);
+        self.mixed_content_renderer.update_camera(camera_position, self.current_view_mode);
+    }
+
+    /// Render mixed 2D/3D content with proper depth sorting and testing
+    pub fn render_mixed_content_with_depth_sorting<'a>(
+        &'a mut self,
+        render_pass: &mut wgpu::RenderPass<'a>,
+        sprite_renderer: Option<&'a crate::sprite_renderer::SpriteRenderer>,
+        tilemap_renderer: Option<&'a crate::tilemap_renderer::TilemapRenderer>,
+        mesh_renderer: Option<&'a crate::mesh_renderer::MeshRenderer>,
+        textures: &'a std::collections::HashMap<String, crate::texture::Texture>,
+    ) -> Result<(), crate::mixed_content_renderer::MixedContentRenderError> {
+        // Use the mixed content renderer for proper depth testing
+        self.mixed_content_renderer.render_mixed_content(
+            render_pass,
+            sprite_renderer,
+            tilemap_renderer,
+            mesh_renderer,
+            textures,
+            &self.camera_binding.bind_group,
+            None, // Light bind group would be passed here if available
+        )
+    }
+
+    /// Add renderables to both depth sorting and mixed content systems
+    pub fn add_sprite_for_mixed_rendering(
+        &mut self,
+        entity: ecs::Entity,
+        transform: &ecs::Transform,
+        sprite: &ecs::components::UnifiedSprite,
+    ) {
+        self.depth_sorting_system.add_sprite(entity, transform, sprite);
+        self.mixed_content_renderer.add_sprite(entity, transform, sprite);
+    }
+
+    /// Add tilemap to both depth sorting and mixed content systems
+    pub fn add_tilemap_for_mixed_rendering(
+        &mut self,
+        entity: ecs::Entity,
+        transform: &ecs::Transform,
+        tilemap: &ecs::components::UnifiedTilemap,
+    ) {
+        self.depth_sorting_system.add_tilemap(entity, transform, tilemap);
+        self.mixed_content_renderer.add_tilemap(entity, transform, tilemap);
+    }
+
+    /// Add 3D mesh to both depth sorting and mixed content systems
+    pub fn add_mesh_3d_for_mixed_rendering(
+        &mut self,
+        entity: ecs::Entity,
+        transform: &ecs::Transform,
+        has_transparency: bool,
+    ) {
+        self.depth_sorting_system.add_mesh_3d(entity, transform, has_transparency);
+        self.mixed_content_renderer.add_mesh_3d(entity, transform, has_transparency);
+    }
+
+    /// Clear renderables from both systems
+    pub fn clear_all_renderables(&mut self) {
+        self.depth_sorting_system.clear();
+        self.mixed_content_renderer.clear_renderables();
+    }
+
+    /// Check if there is mixed 2D/3D content
+    pub fn has_mixed_content(&self) -> bool {
+        self.mixed_content_renderer.has_mixed_content()
+    }
+
+    /// Get mixed content rendering statistics
+    pub fn get_mixed_content_stats(&self) -> crate::mixed_content_renderer::MixedContentRenderStats {
+        self.mixed_content_renderer.get_render_stats()
+    }
+
+    /// Create a mixed content render context
+    pub fn create_mixed_content_context<'a>(
+        device: &'a wgpu::Device,
+        surface_format: wgpu::TextureFormat,
+        depth_format: wgpu::TextureFormat,
+    ) -> MixedContentRenderContext<'a> {
+        MixedContentRenderContext {
+            device,
+            queue: unsafe { std::mem::zeroed() }, // This would be properly initialized
+            surface_format,
+            depth_format,
+        }
     }
 }

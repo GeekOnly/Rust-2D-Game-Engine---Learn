@@ -13,10 +13,10 @@ struct UnifiedCameraUniform {
 var<uniform> camera: UnifiedCameraUniform;
 
 @group(1) @binding(0)
-var texture_sampler: sampler;
+var texture_diffuse: texture_2d<f32>;
 
 @group(1) @binding(1)
-var texture_diffuse: texture_2d<f32>;
+var texture_sampler: sampler;
 
 struct VertexInput {
     @location(0) position: vec3<f32>,
