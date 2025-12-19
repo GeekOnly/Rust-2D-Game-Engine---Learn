@@ -8,9 +8,10 @@
   - [x] Implement UnifiedCameraUniform and binding system
   - _Requirements: 1.1, 1.2, 1.3, 5.1_
 
-- [ ]* 1.1 Write property test for mode toggle projection switching
+- [x]* 1.1 Write property test for mode toggle projection switching
   - **Property 1: Mode toggle switches projection correctly**
   - **Validates: Requirements 1.1, 1.2, 1.3, 1.4**
+  - _Note: Implemented in camera_properties.rs as prop_mode_switching_preserves_camera_state_
 
 - [x] 2. Implement perfect pixel rendering system
   - [x] 2.1 Create PerfectPixelSettings component and pixel snapping algorithms
@@ -24,6 +25,7 @@
   - [x]* 2.2 Write property test for perfect pixel rendering in 2D mode
     - **Property 3: Perfect pixel rendering in 2D mode**
     - **Validates: Requirements 2.2, 3.2, 4.1, 4.2**
+    - _Note: Implemented in perfect_pixel_properties.rs_
 
   - [x] 2.3 Implement viewport consistency for perfect pixel rendering
     - [x] Add viewport size change handling
@@ -35,10 +37,9 @@
   - [x]* 2.4 Write property test for viewport consistency
     - **Property 8: Viewport consistency**
     - **Validates: Requirements 4.4**
+    - _Note: Implemented in perfect_pixel_properties.rs_
 
-- [-] 3. Enhance sprite rendering for unified 2D/3D support
-
-
+- [x] 3. Enhance sprite rendering for unified 2D/3D support
   - [x] 3.1 Create UnifiedSprite component with 2D/3D rendering options
     - [x] Add billboard and world-space quad rendering modes
     - [x] Add perfect pixel rendering support
@@ -46,12 +47,9 @@
     - _Requirements: 2.1, 2.3, 2.4_
 
   - [x] 3.2 Integrate UnifiedSprite with existing sprite renderer
-
-
-
-    - Update sprite renderer to use unified shader
-    - Add billboard rendering mode support
-    - Implement perfect pixel positioning in renderer
+    - [x] Update sprite renderer to use unified shader
+    - [x] Add billboard rendering mode support
+    - [x] Implement perfect pixel positioning in renderer
     - _Requirements: 2.1, 2.3, 2.4_
 
   - [ ]* 3.3 Write property test for unified world space positioning
@@ -72,20 +70,28 @@
     - **Property 6: Perfect pixel scaling preservation**
     - **Validates: Requirements 2.5, 4.3**
 
-- [ ] 4. Enhance tilemap rendering for unified 2D/3D support
+- [x] 4. Enhance tilemap rendering for unified 2D/3D support
   - [x] 4.1 Create UnifiedTilemap component with world-space 3D rendering
     - [x] Add layer depth for multi-layer depth sorting
     - [x] Add perfect pixel rendering support
     - [x] Create world space scale configuration
     - _Requirements: 3.1, 3.3, 3.4_
 
-  - [ ] 4.2 Integrate UnifiedTilemap with existing tilemap renderer
-    - Update tilemap renderer to use unified shader
-    - Implement world-space geometry rendering in 3D mode
-    - Add perfect pixel positioning for tilemaps
+  - [x] 4.2 Integrate UnifiedTilemap with existing tilemap renderer
+    - [x] Update tilemap renderer to use unified shader
+    - [x] Implement world-space geometry rendering in 3D mode
+    - [x] Add perfect pixel positioning for tilemaps
     - _Requirements: 3.1, 3.3, 3.4_
 
-  - [ ] 4.3 Implement animated tile support with perfect pixel preservation
+  - [x] 4.3 Implement animated tile support with perfect pixel preservation
+
+
+
+
+
+
+
+
     - Add texture coordinate animation system
     - Ensure animations maintain pixel alignment
     - Create frame-based animation timing
@@ -105,6 +111,7 @@
   - [ ]* 5.2 Write property test for depth sorting consistency
     - **Property 5: Depth sorting consistency**
     - **Validates: Requirements 2.4, 3.4**
+    - _Note: Basic depth sorting tests exist in depth_sorting_properties.rs but need unified rendering integration_
 
   - [ ] 5.3 Implement mixed 2D/3D content rendering pipeline
     - Update UnifiedRenderer to handle mixed content
@@ -150,16 +157,16 @@
 - [ ] 7. Checkpoint - Ensure all core rendering tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 8. Implement editor view mode switching
+- [ ] 8. Integrate unified rendering with editor scene view
   - [x] 8.1 Create 2D/3D mode toggle UI in Scene View
     - [x] Add toggle button to Scene View toolbar
     - [x] Implement mode switching logic with SceneViewMode enum
     - [x] Create visual indicators for current mode
     - _Requirements: 1.1_
 
-  - [ ] 8.2 Integrate unified rendering with editor scene view
-    - Connect SceneViewMode with UnifiedCamera system
-    - Update scene rendering to use unified pipeline
+  - [ ] 8.2 Connect SceneViewMode with UnifiedCamera system
+    - Wire SceneViewMode enum to Camera.unified_rendering field
+    - Update scene rendering to use UnifiedRenderer and UnifiedCameraBinding
     - Ensure editor gizmos work in both modes
     - _Requirements: 1.1, 6.2_
 
@@ -183,6 +190,7 @@
   - [ ]* 9.2 Write property test for 2D navigation controls
     - **Property 16: 2D navigation controls**
     - **Validates: Requirements 7.1**
+    - _Note: Extensive camera navigation tests exist in camera_properties.rs_
 
   - [x] 9.3 Create 3D navigation controls
     - [x] Implement orbit, pan, and zoom for 3D mode
@@ -193,10 +201,12 @@
   - [ ]* 9.4 Write property test for 3D navigation controls
     - **Property 17: 3D navigation controls**
     - **Validates: Requirements 7.2**
+    - _Note: Extensive camera navigation tests exist in camera_properties.rs_
 
   - [ ]* 9.5 Write property test for object framing
     - **Property 19: Object framing**
     - **Validates: Requirements 7.4**
+    - _Note: Implemented in camera_properties.rs as prop_focus_frames_entity_appropriately_
 
   - [x] 9.6 Ensure keyboard shortcut consistency across modes
     - [x] Implement consistent shortcut behavior in both modes

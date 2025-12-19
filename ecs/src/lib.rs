@@ -8,6 +8,7 @@ pub mod loaders;
 pub mod backends;
 pub mod benchmark_runner;
 pub mod unified_rendering_helpers;
+pub mod systems;
 
 // Re-export สำหรับใช้งานง่าย
 pub use component_manager::{ComponentType, ComponentManager};
@@ -15,6 +16,7 @@ pub use components::*;
 pub use backends::{EcsBackendType, DynamicWorld, BackendPerformanceInfo, PerformanceLevel};
 pub use benchmark_runner::{BenchmarkRunner, BenchmarkSuite, BenchmarkResult};
 pub use unified_rendering_helpers::UnifiedRenderingHelpers;
+pub use systems::*;
 
 // ----------------------------------------------------------------------------
 // Backend Selection
@@ -739,6 +741,8 @@ pub struct CustomWorld {
     pub ldtk_intgrid_colliders: HashMap<CustomEntity, LdtkIntGridCollider>,
     // 3D Model component (Static Props)
     pub model_3ds: HashMap<CustomEntity, Model3D>,
+    // Unified rendering components
+    pub unified_tilemaps: HashMap<CustomEntity, UnifiedTilemap>,
 }
 
 impl CustomWorld {
@@ -795,6 +799,7 @@ impl CustomWorld {
         self.tilemap_colliders.remove(&e);
         self.ldtk_intgrid_colliders.remove(&e);
         self.model_3ds.remove(&e);
+        self.unified_tilemaps.remove(&e);
     }
 
     pub fn clear(&mut self) {
@@ -826,6 +831,7 @@ impl CustomWorld {
         self.tilemap_colliders.clear();
         self.ldtk_intgrid_colliders.clear();
         self.model_3ds.clear();
+        self.unified_tilemaps.clear();
         self.next_entity = 0;
     }
 
@@ -879,6 +885,7 @@ impl CustomWorld {
             maps: Vec<(CustomEntity, Map)>,
             world_uis: Vec<(CustomEntity, WorldUI)>,
             model_3ds: Vec<(CustomEntity, Model3D)>,
+            unified_tilemaps: Vec<(CustomEntity, UnifiedTilemap)>,
         }
 
         let data = SceneData {
@@ -906,6 +913,7 @@ impl CustomWorld {
             maps: self.maps.iter().map(|(k, v)| (*k, v.clone())).collect(),
             world_uis: self.world_uis.iter().map(|(k, v)| (*k, v.clone())).collect(),
             model_3ds: self.model_3ds.iter().map(|(k, v)| (*k, v.clone())).collect(),
+            unified_tilemaps: self.unified_tilemaps.iter().map(|(k, v)| (*k, v.clone())).collect(),
         };
 
         serde_json::to_string_pretty(&data)
@@ -962,6 +970,8 @@ impl CustomWorld {
             world_uis: Vec<(CustomEntity, WorldUI)>,
             #[serde(default)]
             model_3ds: Vec<(CustomEntity, Model3D)>,
+            #[serde(default)]
+            unified_tilemaps: Vec<(CustomEntity, UnifiedTilemap)>,
         }
 
         let data: SceneData = serde_json::from_str(json)?;
@@ -1045,6 +1055,9 @@ impl CustomWorld {
         }
         for (entity, model_3d) in data.model_3ds {
             self.model_3ds.insert(entity, model_3d);
+        }
+        for (entity, unified_tilemap) in data.unified_tilemaps {
+            self.unified_tilemaps.insert(entity, unified_tilemap);
         }
         
         // Reconstruct hierarchy
@@ -1165,6 +1178,7 @@ mod custom_world_impls {
     impl_component_access!(CustomWorld, TilemapCollider, tilemap_colliders, CustomEntity);
     impl_component_access!(CustomWorld, LdtkIntGridCollider, ldtk_intgrid_colliders, CustomEntity);
     impl_component_access!(CustomWorld, Model3D, model_3ds, CustomEntity);
+    impl_component_access!(CustomWorld, UnifiedTilemap, unified_tilemaps, CustomEntity);
 }
 
 // Manual implementations for tuple and primitive types

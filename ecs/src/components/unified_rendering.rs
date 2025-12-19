@@ -4,6 +4,7 @@
 //! that allows seamless integration of 2D sprites and tilemaps with 3D content.
 
 use serde::{Deserialize, Serialize};
+use super::sprite_sheet::AnimationMode;
 
 /// Pixel-perfect transform utilities for unified 2D/3D rendering
 pub mod pixel_perfect_utils {
@@ -373,6 +374,138 @@ impl Default for UnifiedSprite {
     }
 }
 
+/// Animated tile data for frame-based tile animations
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AnimatedTileData {
+    /// Base tile ID (first frame)
+    pub base_tile_id: u32,
+    /// Animation frame sequence (tile IDs)
+    pub frame_sequence: Vec<u32>,
+    /// Duration per frame in seconds
+    pub frame_duration: f32,
+    /// Current frame index
+    #[serde(skip)]
+    pub current_frame: usize,
+    /// Accumulated time for current frame
+    #[serde(skip)]
+    pub elapsed_time: f32,
+    /// Animation mode
+    pub animation_mode: AnimationMode,
+    /// Is the animation playing?
+    pub playing: bool,
+    /// Animation direction (1 = forward, -1 = backward for ping-pong)
+    #[serde(skip)]
+    pub direction: i32,
+}
+
+impl Default for AnimatedTileData {
+    fn default() -> Self {
+        Self {
+            base_tile_id: 0,
+            frame_sequence: Vec::new(),
+            frame_duration: 0.1, // 10 FPS by default
+            current_frame: 0,
+            elapsed_time: 0.0,
+            animation_mode: AnimationMode::Loop,
+            playing: true,
+            direction: 1,
+        }
+    }
+}
+
+impl AnimatedTileData {
+    /// Create a new animated tile
+    pub fn new(base_tile_id: u32, frame_sequence: Vec<u32>, frame_duration: f32) -> Self {
+        Self {
+            base_tile_id,
+            frame_sequence,
+            frame_duration,
+            ..Default::default()
+        }
+    }
+
+    /// Update the animation with perfect pixel timing
+    pub fn update(&mut self, delta_time: f32, perfect_pixel_enabled: bool) {
+        if !self.playing || self.frame_sequence.is_empty() {
+            return;
+        }
+
+        // For perfect pixel rendering, ensure frame timing aligns with pixel boundaries
+        let effective_frame_duration = if perfect_pixel_enabled {
+            // Round frame duration to ensure consistent timing
+            (self.frame_duration * 60.0).round() / 60.0 // Align to 60 FPS timing
+        } else {
+            self.frame_duration
+        };
+
+        self.elapsed_time += delta_time;
+
+        if self.elapsed_time >= effective_frame_duration {
+            self.elapsed_time -= effective_frame_duration;
+            
+            let frame_count = self.frame_sequence.len();
+
+            match self.animation_mode {
+                AnimationMode::Once => {
+                    if self.current_frame < frame_count - 1 {
+                        self.current_frame += 1;
+                    } else {
+                        self.playing = false;
+                    }
+                }
+                AnimationMode::Loop => {
+                    self.current_frame = (self.current_frame + 1) % frame_count;
+                }
+                AnimationMode::PingPong => {
+                    let next_frame = self.current_frame as i32 + self.direction;
+                    
+                    if next_frame >= frame_count as i32 {
+                        self.direction = -1;
+                        self.current_frame = frame_count.saturating_sub(2);
+                    } else if next_frame < 0 {
+                        self.direction = 1;
+                        self.current_frame = 1.min(frame_count - 1);
+                    } else {
+                        self.current_frame = next_frame as usize;
+                    }
+                }
+            }
+        }
+    }
+
+    /// Get the current tile ID to render
+    pub fn get_current_tile_id(&self) -> u32 {
+        if self.frame_sequence.is_empty() {
+            return self.base_tile_id;
+        }
+        
+        self.frame_sequence.get(self.current_frame).copied().unwrap_or(self.base_tile_id)
+    }
+
+    /// Reset animation to first frame
+    pub fn reset(&mut self) {
+        self.current_frame = 0;
+        self.elapsed_time = 0.0;
+        self.direction = 1;
+    }
+
+    /// Play the animation
+    pub fn play(&mut self) {
+        self.playing = true;
+    }
+
+    /// Pause the animation
+    pub fn pause(&mut self) {
+        self.playing = false;
+    }
+
+    /// Stop and reset the animation
+    pub fn stop(&mut self) {
+        self.playing = false;
+        self.reset();
+    }
+}
+
 /// Enhanced tilemap component for unified 2D/3D rendering
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UnifiedTilemap {
@@ -380,6 +513,8 @@ pub struct UnifiedTilemap {
     pub tileset_id: String,
     /// Tile data storage (grid coordinates to tile IDs)
     pub tiles: std::collections::HashMap<(i32, i32), u32>,
+    /// Animated tile data (grid coordinates to animation data)
+    pub animated_tiles: std::collections::HashMap<(i32, i32), AnimatedTileData>,
     /// Chunk size for efficient rendering
     pub chunk_size: (u32, u32),
     
@@ -396,6 +531,12 @@ pub struct UnifiedTilemap {
     pub pixels_per_unit: Option<f32>,
     /// Size of each tile in pixels
     pub tile_size: (u32, u32),
+    
+    // Animation Settings
+    /// Global animation speed multiplier for this tilemap
+    pub animation_speed: f32,
+    /// Whether animations should preserve pixel alignment
+    pub preserve_pixel_alignment: bool,
 }
 
 impl Default for UnifiedTilemap {
@@ -403,12 +544,15 @@ impl Default for UnifiedTilemap {
         Self {
             tileset_id: String::new(),
             tiles: std::collections::HashMap::new(),
+            animated_tiles: std::collections::HashMap::new(),
             chunk_size: (16, 16), // 16x16 tile chunks
             layer_depth: 0.0,
             pixel_perfect: true,
             world_space_scale: 1.0,
             pixels_per_unit: None,
             tile_size: (32, 32), // 32x32 pixel tiles
+            animation_speed: 1.0,
+            preserve_pixel_alignment: true,
         }
     }
 }
@@ -743,5 +887,151 @@ impl PixelPerfectTransform {
     /// Get the effective scale for rendering
     pub fn get_render_scale(&self) -> glam::Vec3 {
         self.pixel_scale
+    }
+}
+
+impl UnifiedTilemap {
+    /// Create a new unified tilemap
+    pub fn new(tileset_id: impl Into<String>) -> Self {
+        Self {
+            tileset_id: tileset_id.into(),
+            ..Default::default()
+        }
+    }
+
+    /// Set a tile at the given coordinates
+    pub fn set_tile(&mut self, x: i32, y: i32, tile_id: u32) {
+        if tile_id == 0 {
+            self.tiles.remove(&(x, y));
+        } else {
+            self.tiles.insert((x, y), tile_id);
+        }
+    }
+
+    /// Get a tile at the given coordinates
+    pub fn get_tile(&self, x: i32, y: i32) -> u32 {
+        self.tiles.get(&(x, y)).copied().unwrap_or(0)
+    }
+
+    /// Add an animated tile at the given coordinates
+    pub fn add_animated_tile(&mut self, x: i32, y: i32, animated_tile: AnimatedTileData) {
+        // Set the base tile in the regular tiles map
+        self.set_tile(x, y, animated_tile.base_tile_id);
+        // Add the animation data
+        self.animated_tiles.insert((x, y), animated_tile);
+    }
+
+    /// Remove an animated tile at the given coordinates
+    pub fn remove_animated_tile(&mut self, x: i32, y: i32) {
+        self.animated_tiles.remove(&(x, y));
+    }
+
+    /// Get the current tile ID for rendering (handles animations)
+    pub fn get_render_tile_id(&self, x: i32, y: i32) -> u32 {
+        // Check if this tile is animated
+        if let Some(animated_tile) = self.animated_tiles.get(&(x, y)) {
+            animated_tile.get_current_tile_id()
+        } else {
+            self.get_tile(x, y)
+        }
+    }
+
+    /// Update all animated tiles
+    pub fn update_animations(&mut self, delta_time: f32) {
+        let effective_delta = delta_time * self.animation_speed;
+        
+        for animated_tile in self.animated_tiles.values_mut() {
+            animated_tile.update(effective_delta, self.preserve_pixel_alignment && self.pixel_perfect);
+        }
+    }
+
+    /// Get all animated tile positions
+    pub fn get_animated_positions(&self) -> Vec<(i32, i32)> {
+        self.animated_tiles.keys().copied().collect()
+    }
+
+    /// Check if a tile at the given coordinates is animated
+    pub fn is_tile_animated(&self, x: i32, y: i32) -> bool {
+        self.animated_tiles.contains_key(&(x, y))
+    }
+
+    /// Pause all animations
+    pub fn pause_all_animations(&mut self) {
+        for animated_tile in self.animated_tiles.values_mut() {
+            animated_tile.pause();
+        }
+    }
+
+    /// Resume all animations
+    pub fn resume_all_animations(&mut self) {
+        for animated_tile in self.animated_tiles.values_mut() {
+            animated_tile.play();
+        }
+    }
+
+    /// Stop and reset all animations
+    pub fn stop_all_animations(&mut self) {
+        for animated_tile in self.animated_tiles.values_mut() {
+            animated_tile.stop();
+        }
+    }
+
+    /// Create a simple animated tile with frame sequence
+    pub fn create_animated_tile(
+        base_tile_id: u32,
+        frame_sequence: Vec<u32>,
+        frame_duration: f32,
+        animation_mode: AnimationMode,
+    ) -> AnimatedTileData {
+        AnimatedTileData {
+            base_tile_id,
+            frame_sequence,
+            frame_duration,
+            animation_mode,
+            ..Default::default()
+        }
+    }
+
+    /// Calculate frame-based animation timing that preserves pixel alignment
+    pub fn calculate_pixel_perfect_frame_duration(fps: f32, perfect_pixel_enabled: bool) -> f32 {
+        if !perfect_pixel_enabled {
+            return 1.0 / fps;
+        }
+
+        // Align frame timing to common refresh rates for pixel-perfect animation
+        let target_duration = 1.0 / fps;
+        let common_frame_rates = [60.0, 30.0, 20.0, 15.0, 12.0, 10.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0];
+        
+        // Find the closest frame rate that maintains pixel alignment
+        for &rate in &common_frame_rates {
+            let duration = 1.0 / rate;
+            if duration >= target_duration {
+                return duration;
+            }
+        }
+        
+        // Fallback to 1 FPS if nothing matches
+        1.0
+    }
+
+    /// Get bounds of the tilemap (min/max coordinates)
+    pub fn get_bounds(&self) -> Option<((i32, i32), (i32, i32))> {
+        if self.tiles.is_empty() {
+            return None;
+        }
+
+        let mut min_x = i32::MAX;
+        let mut max_x = i32::MIN;
+        let mut min_y = i32::MAX;
+        let mut max_y = i32::MIN;
+
+        for &(x, y) in self.tiles.keys() {
+            min_x = min_x.min(x);
+            max_x = max_x.max(x);
+            min_y = min_y.min(y);
+            max_y = max_y.max(y);
+        }
+
+        Some(((min_x, min_y), (max_x, max_y)))
     }
 }
