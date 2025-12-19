@@ -7,12 +7,14 @@ pub mod components;
 pub mod loaders;
 pub mod backends;
 pub mod benchmark_runner;
+pub mod unified_rendering_helpers;
 
 // Re-export สำหรับใช้งานง่าย
 pub use component_manager::{ComponentType, ComponentManager};
 pub use components::*;
 pub use backends::{EcsBackendType, DynamicWorld, BackendPerformanceInfo, PerformanceLevel};
 pub use benchmark_runner::{BenchmarkRunner, BenchmarkSuite, BenchmarkResult};
+pub use unified_rendering_helpers::UnifiedRenderingHelpers;
 
 // ----------------------------------------------------------------------------
 // Backend Selection
@@ -542,6 +544,9 @@ pub struct Camera {
     // Set to 1.0 for 1:1 pixel mapping (1 world unit = 1 pixel)
     #[serde(default = "default_camera_pixels_per_unit")]
     pub pixels_per_unit: f32,
+    
+    // Unified rendering support - when present, enables 2D/3D mode switching
+    pub unified_rendering: Option<components::UnifiedCamera>,
 }
 
 fn default_camera_pixels_per_unit() -> f32 {
@@ -562,6 +567,66 @@ pub enum CameraClearFlags {
     DontClear,
 }
 
+impl Camera {
+    /// Enable unified 2D/3D rendering for this camera
+    pub fn enable_unified_rendering(&mut self) {
+        if self.unified_rendering.is_none() {
+            self.unified_rendering = Some(components::UnifiedCamera::default());
+        }
+    }
+    
+    /// Disable unified 2D/3D rendering for this camera
+    pub fn disable_unified_rendering(&mut self) {
+        self.unified_rendering = None;
+    }
+    
+    /// Check if unified rendering is enabled
+    pub fn has_unified_rendering(&self) -> bool {
+        self.unified_rendering.is_some()
+    }
+    
+    /// Get the current view mode (if unified rendering is enabled)
+    pub fn get_view_mode(&self) -> Option<components::ViewMode> {
+        self.unified_rendering.as_ref().map(|ur| ur.view_mode)
+    }
+    
+    /// Set the view mode (if unified rendering is enabled)
+    pub fn set_view_mode(&mut self, mode: components::ViewMode) {
+        if let Some(ref mut unified) = self.unified_rendering {
+            unified.view_mode = mode;
+            // Update projection based on mode
+            match mode {
+                components::ViewMode::Mode2D => {
+                    self.projection = CameraProjection::Orthographic;
+                }
+                components::ViewMode::Mode3D => {
+                    self.projection = CameraProjection::Perspective;
+                }
+            }
+        }
+    }
+    
+    /// Toggle between 2D and 3D modes (if unified rendering is enabled)
+    pub fn toggle_view_mode(&mut self) {
+        if let Some(current_mode) = self.get_view_mode() {
+            let new_mode = match current_mode {
+                components::ViewMode::Mode2D => components::ViewMode::Mode3D,
+                components::ViewMode::Mode3D => components::ViewMode::Mode2D,
+            };
+            self.set_view_mode(new_mode);
+        }
+    }
+    
+    /// Get effective pixels per unit (considering unified rendering overrides)
+    pub fn get_effective_pixels_per_unit(&self) -> f32 {
+        if let Some(ref unified) = self.unified_rendering {
+            unified.pixels_per_unit.unwrap_or(self.pixels_per_unit)
+        } else {
+            self.pixels_per_unit
+        }
+    }
+}
+
 impl Default for Camera {
     fn default() -> Self {
         Self {
@@ -575,6 +640,7 @@ impl Default for Camera {
             clear_flags: CameraClearFlags::SolidColor,
             background_color: [0.15, 0.16, 0.18, 1.0], // Dark gray (Unity default)
             pixels_per_unit: 100.0,  // Unity standard
+            unified_rendering: None, // Disabled by default
         }
     }
 }

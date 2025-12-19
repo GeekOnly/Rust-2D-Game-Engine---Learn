@@ -40,7 +40,7 @@ pub struct SpriteRenderer {
 }
 
 impl SpriteRenderer {
-    pub fn new(device: &wgpu::Device, config: &wgpu::SurfaceConfiguration) -> Self {
+    pub fn new(device: &wgpu::Device, config: &wgpu::SurfaceConfiguration, camera_bind_group_layout: &wgpu::BindGroupLayout) -> Self {
         let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some("Simple Sprite Shader"),
             source: wgpu::ShaderSource::Wgsl(include_str!("simple_sprite_shader.wgsl").into()),
@@ -50,7 +50,7 @@ impl SpriteRenderer {
 
         let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: Some("Sprite Render Pipeline Layout"),
-            bind_group_layouts: &[&texture_bind_group_layout],
+            bind_group_layouts: &[&texture_bind_group_layout, camera_bind_group_layout],
             push_constant_ranges: &[],
         });
 
@@ -139,10 +139,12 @@ impl SpriteRenderer {
         render_pass: &mut wgpu::RenderPass<'a>,
         texture: &'a Texture,
         _device: &wgpu::Device,
+        camera_bind_group: &'a wgpu::BindGroup,
     ) {
         if let Some(bind_group) = &texture.bind_group {
             render_pass.set_pipeline(&self.render_pipeline);
             render_pass.set_bind_group(0, bind_group, &[]);
+            render_pass.set_bind_group(1, camera_bind_group, &[]);
             render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
             render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
             render_pass.draw_indexed(0..self.num_indices, 0, 0..1);
@@ -159,6 +161,7 @@ impl SpriteRenderer {
         device: &wgpu::Device,
         sprite_rect: [u32; 4],
         texture_size: [u32; 2],
+        camera_bind_group: &'a wgpu::BindGroup,
     ) {
         if let Some(bind_group) = &texture.bind_group {
             // Calculate UV coordinates from sprite rect
@@ -185,6 +188,7 @@ impl SpriteRenderer {
 
             render_pass.set_pipeline(&self.render_pipeline);
             render_pass.set_bind_group(0, bind_group, &[]);
+            render_pass.set_bind_group(1, camera_bind_group, &[]);
             render_pass.set_vertex_buffer(0, self.custom_vertex_buffer.as_ref().unwrap().slice(..));
             render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
             render_pass.draw_indexed(0..self.num_indices, 0, 0..1);

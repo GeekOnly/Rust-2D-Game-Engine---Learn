@@ -537,7 +537,7 @@ impl EditorApp {
              runtime::transform_system::update_global_transforms(&mut self.editor_state.world);
         }
 
-        let res = self.renderer.render_with_callback(|device, queue, encoder, view, depth_view, texture_manager, batch_renderer, mesh_renderer, camera_binding, light_binding| {
+        let res = self.renderer.render_with_callback(|device, queue, encoder, view, depth_view, texture_manager, batch_renderer, mesh_renderer, tilemap_renderer, camera_binding, light_binding| {
             // Render Game World to Offscreen Texture (for Editor Game View)
             if self.app_state == AppState::Editor {
                 // Ensure Asset meshes are loaded (idempotent check)
@@ -599,6 +599,7 @@ impl EditorApp {
                         &self.editor_state.world,
                         batch_renderer,
                         mesh_renderer,
+                        tilemap_renderer,
                         &self.scene_camera_binding, // Use scene camera
                         light_binding,
                         texture_manager,
@@ -702,6 +703,7 @@ impl EditorApp {
                     &self.editor_state.world,
                     batch_renderer,
                     mesh_renderer,
+                    tilemap_renderer,
                     camera_binding,
                     light_binding,
                     texture_manager,
@@ -742,6 +744,7 @@ impl EditorApp {
                     &self.editor_state.world,
                     batch_renderer,
                     mesh_renderer,
+                    tilemap_renderer,
                     camera_binding,
                     light_binding,
                     texture_manager,
