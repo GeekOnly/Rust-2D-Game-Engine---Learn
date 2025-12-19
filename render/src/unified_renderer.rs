@@ -310,3 +310,119 @@ impl UnifiedRenderPipeline for UnifiedRenderer {
         // This is a placeholder for the actual perfect pixel logic
     }
 }
+
+impl UnifiedRenderer {
+    /// Render a UnifiedSprite using the integrated sprite renderer
+    pub fn render_unified_sprite<'a>(
+        &'a self,
+        render_pass: &mut wgpu::RenderPass<'a>,
+        sprite_renderer: &'a crate::sprite_renderer::SpriteRenderer,
+        texture: &'a crate::texture::Texture,
+        vertex_buffer: &'a wgpu::Buffer,
+    ) {
+        sprite_renderer.render_unified_sprite(
+            render_pass,
+            texture,
+            vertex_buffer,
+            &self.camera_binding.bind_group,
+        );
+    }
+
+    /// Create vertex buffer for UnifiedSprite
+    pub fn create_unified_sprite_buffer(
+        &self,
+        sprite_renderer: &crate::sprite_renderer::SpriteRenderer,
+        device: &wgpu::Device,
+        sprite: &ecs::components::UnifiedSprite,
+        transform: &ecs::Transform,
+        camera_position: Vec3,
+        perfect_pixel_settings: &ecs::components::PerfectPixelSettings,
+    ) -> wgpu::Buffer {
+        sprite_renderer.create_unified_sprite_buffer(
+            device,
+            sprite,
+            transform,
+            self.current_view_mode,
+            perfect_pixel_settings,
+            camera_position,
+        )
+    }
+
+    /// Create vertex buffer for UnifiedSprite with custom sprite rect
+    pub fn create_unified_sprite_buffer_with_rect(
+        &self,
+        sprite_renderer: &crate::sprite_renderer::SpriteRenderer,
+        device: &wgpu::Device,
+        sprite_rect: [u32; 4],
+        texture_size: [u32; 2],
+        sprite: &ecs::components::UnifiedSprite,
+        transform: &ecs::Transform,
+        camera_position: Vec3,
+        perfect_pixel_settings: &ecs::components::PerfectPixelSettings,
+    ) -> wgpu::Buffer {
+        sprite_renderer.create_unified_sprite_buffer_with_rect(
+            device,
+            sprite_rect,
+            texture_size,
+            sprite,
+            transform,
+            self.current_view_mode,
+            perfect_pixel_settings,
+            camera_position,
+        )
+    }
+
+    /// Update camera for 2D mode with perfect pixel settings
+    pub fn update_camera_2d(
+        &mut self,
+        queue: &wgpu::Queue,
+        view_matrix: Mat4,
+        projection_matrix: Mat4,
+        camera_pos: Vec3,
+        perfect_pixel_settings: &ecs::components::PerfectPixelSettings,
+        viewport_size: (u32, u32),
+        scale_factor: f32,
+    ) {
+        self.camera_binding.update_2d(
+            queue,
+            view_matrix,
+            projection_matrix,
+            camera_pos,
+            perfect_pixel_settings.pixels_per_unit,
+            perfect_pixel_settings.snap_threshold,
+            perfect_pixel_settings.enabled,
+            viewport_size,
+            scale_factor,
+        );
+    }
+
+    /// Update camera for 3D mode
+    pub fn update_camera_3d(
+        &mut self,
+        queue: &wgpu::Queue,
+        view_matrix: Mat4,
+        projection_matrix: Mat4,
+        camera_pos: Vec3,
+        viewport_size: (u32, u32),
+        scale_factor: f32,
+    ) {
+        self.camera_binding.update_3d(
+            queue,
+            view_matrix,
+            projection_matrix,
+            camera_pos,
+            viewport_size,
+            scale_factor,
+        );
+    }
+
+    /// Get the camera bind group for use with other renderers
+    pub fn get_camera_bind_group(&self) -> &wgpu::BindGroup {
+        &self.camera_binding.bind_group
+    }
+
+    /// Get the camera bind group layout for creating compatible pipelines
+    pub fn get_camera_bind_group_layout(&self) -> &wgpu::BindGroupLayout {
+        &self.camera_binding.bind_group_layout
+    }
+}

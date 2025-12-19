@@ -246,7 +246,7 @@ impl RenderModule {
     }
 
     pub fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
-        self.render_with_callback(|_, _, _, _, _, _, _, _, _, _, _| {})
+        self.render_with_callback(|_, _, _, _, _, _, _, _, _, _, _, _| {})
     }
 
     pub fn render_with_callback<F>(&mut self, callback: F) -> Result<(), wgpu::SurfaceError>

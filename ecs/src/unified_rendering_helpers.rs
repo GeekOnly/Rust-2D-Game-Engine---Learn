@@ -4,6 +4,7 @@
 
 use crate::{Camera, CameraProjection};
 use crate::components::{ViewMode, PerfectPixelSettings};
+use crate::components::unified_rendering::PixelSnapMode;
 
 /// Helper functions for unified rendering
 pub struct UnifiedRenderingHelpers;
@@ -95,6 +96,9 @@ impl UnifiedRenderingHelpers {
             filter_mode: crate::components::FilterMode::Nearest,
             pixels_per_unit,
             reference_resolution: (1920, 1080),
+            snap_threshold: 0.01,
+            maintain_aspect_ratio: true,
+            snap_mode: PixelSnapMode::Always,
         }
     }
     
@@ -106,6 +110,9 @@ impl UnifiedRenderingHelpers {
             filter_mode: crate::components::FilterMode::Linear,
             pixels_per_unit,
             reference_resolution: (1920, 1080),
+            snap_threshold: 0.01,
+            maintain_aspect_ratio: true,
+            snap_mode: PixelSnapMode::Never,
         }
     }
     

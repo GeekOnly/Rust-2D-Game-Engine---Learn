@@ -36,14 +36,19 @@
     - **Property 8: Viewport consistency**
     - **Validates: Requirements 4.4**
 
-- [ ] 3. Enhance sprite rendering for unified 2D/3D support
+- [-] 3. Enhance sprite rendering for unified 2D/3D support
+
+
   - [x] 3.1 Create UnifiedSprite component with 2D/3D rendering options
     - [x] Add billboard and world-space quad rendering modes
     - [x] Add perfect pixel rendering support
     - [x] Create sort order for manual depth sorting
     - _Requirements: 2.1, 2.3, 2.4_
 
-  - [ ] 3.2 Integrate UnifiedSprite with existing sprite renderer
+  - [x] 3.2 Integrate UnifiedSprite with existing sprite renderer
+
+
+
     - Update sprite renderer to use unified shader
     - Add billboard rendering mode support
     - Implement perfect pixel positioning in renderer
