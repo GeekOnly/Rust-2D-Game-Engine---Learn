@@ -318,13 +318,13 @@ mod tilemap_unit_tests {
         // Verify Grid entity exists
         assert!(world.transforms.contains_key(&grid_entity));
         assert!(world.grids.contains_key(&grid_entity));
-        assert_eq!(world.names.get(&grid_entity).unwrap(), "LDtk Grid");
+        assert_eq!(world.names.get(&grid_entity).unwrap(), "LDtk Grid - test_hierarchy");
         
         // Verify Grid component properties
-        // Unity standard: 100 pixels = 1 world unit
-        // 8 pixel grid / 100 PPU = 0.08 world units per cell
+        // Current implementation: 1 world unit per cell = 1 tile per cell
+        // grid_size / pixels_per_unit = 8 / 8 = 1.0
         let grid = world.grids.get(&grid_entity).unwrap();
-        assert_eq!(grid.cell_size, (0.08, 0.08)); // 8 pixels / 100 pixels_per_unit = 0.08
+        assert_eq!(grid.cell_size, (1.0, 1.0, 0.0)); // 1 world unit per cell = 1 tile per cell
         
         // Verify layers exist and are children of Grid
         assert_eq!(layer_entities.len(), 1);

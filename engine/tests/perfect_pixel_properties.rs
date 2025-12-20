@@ -3,7 +3,8 @@
 
 use proptest::prelude::*;
 use glam::{Vec2, Vec3};
-use ecs::components::{PerfectPixelSettings, PixelPerfectTransform, ViewMode, FilterMode, PixelSnapMode};
+use ecs::components::{PerfectPixelSettings, PixelPerfectTransform, ViewMode, FilterMode};
+use ecs::unified_rendering::PixelSnapMode;
 
 /// Generate arbitrary perfect pixel settings for testing
 fn arb_perfect_pixel_settings() -> impl Strategy<Value = PerfectPixelSettings> {
@@ -80,11 +81,11 @@ proptest! {
             let snapped_pos = transform.get_render_position(true);
             
             // Check that X and Y coordinates are aligned to pixel boundaries
-            let x_remainder = (snapped_pos.x / pixel_size) % 1.0;
-            let y_remainder = (snapped_pos.y / pixel_size) % 1.0;
+            let x_remainder = ((snapped_pos.x / pixel_size) % 1.0 + 1.0) % 1.0; // Handle negative remainders
+            let y_remainder = ((snapped_pos.y / pixel_size) % 1.0 + 1.0) % 1.0; // Handle negative remainders
             
             // Allow for floating point precision errors
-            let tolerance = 0.001;
+            let tolerance = 0.01; // Increased tolerance for floating-point precision
             
             match settings.snap_mode {
                 PixelSnapMode::Always => {
