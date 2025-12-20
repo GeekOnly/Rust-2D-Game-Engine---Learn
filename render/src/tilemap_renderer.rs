@@ -44,6 +44,7 @@ pub struct TilemapGpuResources {
     pub index_count: u32, // Always 6 vertices (1 quad)
 }
 
+#[derive(Debug)]
 pub struct UnifiedTilemapGpuResources {
     pub group1: wgpu::BindGroup,
     pub group2: wgpu::BindGroup,

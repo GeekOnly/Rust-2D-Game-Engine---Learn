@@ -132,7 +132,16 @@
     - **Property 9: Mixed content rendering**
     - **Validates: Requirements 4.5**
 
-- [ ] 6. Optimize WGPU rendering pipeline
+- [x] 6. Optimize WGPU rendering pipeline
+
+
+
+
+
+
+
+
+
   - [x] 6.1 Implement unified shader system
     - [x] Create unified shader with 2D/3D mode support
     - [x] Add optimized shader variants (vs_sprite_2d, vs_mesh_3d, etc.)
@@ -143,7 +152,9 @@
     - **Property 10: Appropriate shader usage**
     - **Validates: Requirements 5.2, 5.3**
 
-  - [ ] 6.3 Implement draw call batching optimization
+  - [x] 6.3 Implement draw call batching optimization
+
+
     - Group similar objects to minimize WGPU state changes
     - Create batching system for sprites and tilemaps
     - Add performance monitoring for batch efficiency
@@ -153,7 +164,12 @@
     - **Property 11: Draw call batching**
     - **Validates: Requirements 5.4**
 
-  - [ ] 6.5 Unify texture management system
+  - [x] 6.5 Unify texture management system
+
+
+
+
+
     - Ensure sprites and tilemaps use same WGPU texture management
     - Create consistent texture update pipeline
     - Add texture streaming and memory management

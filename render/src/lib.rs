@@ -6,6 +6,9 @@ pub mod sprite_renderer;
 pub mod tilemap_renderer;
 pub mod depth_sorting;
 pub mod mixed_content_renderer;
+pub mod batch_optimization;
+pub mod unified_texture_manager;
+pub mod unified_texture_integration;
 
 pub use texture::{Texture, TextureManager};
 pub use sprite_renderer::SpriteRenderer;
@@ -37,6 +40,17 @@ pub use depth_sorting::{DepthSortingSystem, RenderableItem, RenderableType};
 pub use mixed_content_renderer::{
     MixedContentRenderer, MixedContentRenderContext, MixedContentRenderError, MixedContentRenderStats
 };
+pub use batch_optimization::{
+    BatchOptimizationSystem, BatchKey, PipelineType, ViewModeKey, SpriteBatch, TilemapBatch, 
+    BatchPerformanceStats
+};
+pub use unified_texture_manager::{
+    UnifiedTextureManager, UnifiedTexture, UnifiedTextureDescriptor, UnifiedTextureFormat,
+    UnifiedTextureFilter, TextureUsagePattern, TextureStreamingConfig, TextureManagerStats
+};
+pub use unified_texture_integration::{
+    UnifiedTextureIntegration, UnifiedTextureConfig, UnifiedTextureRef, TextureLoadingStrategy
+};
 
 
 pub struct RenderModule {
@@ -49,9 +63,12 @@ pub struct RenderModule {
     pub depth_texture: wgpu::Texture,
     pub depth_view: wgpu::TextureView,
     pub texture_manager: TextureManager,
+    pub unified_texture_manager: unified_texture_manager::UnifiedTextureManager,
+    pub texture_integration: unified_texture_integration::UnifiedTextureIntegration,
     pub sprite_renderer: SpriteRenderer,
     pub tilemap_renderer: TilemapRenderer,
     pub batch_renderer: BatchRenderer,
+    pub batch_optimization: batch_optimization::BatchOptimizationSystem,
     pub mesh_renderer: MeshRenderer,
     pub camera_binding: CameraBinding,
     pub light_binding: LightBinding,
@@ -184,6 +201,8 @@ impl RenderModule {
         });
 
         let texture_manager = TextureManager::new(Some(&device));
+        let unified_texture_manager = unified_texture_manager::UnifiedTextureManager::new(&device, None);
+        let texture_integration = unified_texture_integration::UnifiedTextureIntegration::new(None);
 
         
         // Initialize 3D bindings first
@@ -203,6 +222,7 @@ impl RenderModule {
         );
 
         let unified_renderer = UnifiedRenderer::new(&device);
+        let batch_optimization = batch_optimization::BatchOptimizationSystem::new();
 
         Ok(Self {
             surface,
@@ -214,9 +234,12 @@ impl RenderModule {
             depth_texture,
             depth_view,
             texture_manager,
+            unified_texture_manager,
+            texture_integration,
             sprite_renderer,
             tilemap_renderer,
             batch_renderer,
+            batch_optimization,
             mesh_renderer,
             camera_binding,
             light_binding,
@@ -252,11 +275,11 @@ impl RenderModule {
     }
 
     pub fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
-        self.render_with_callback(|_, _, _, _, _, _, _, _, _, _, _, _| {})
+        self.render_with_callback(|_, _, _, _, _, _, _, _, _, _, _, _, _, _, _| {})
     }
 
     pub fn render_with_callback<F>(&mut self, callback: F) -> Result<(), wgpu::SurfaceError>
-    where F: FnOnce(&wgpu::Device, &wgpu::Queue, &mut wgpu::CommandEncoder, &wgpu::TextureView, &wgpu::TextureView, &mut TextureManager, &mut BatchRenderer, &mut MeshRenderer, &mut TilemapRenderer, &mut CameraBinding, &LightBinding, &mut UnifiedRenderer)
+    where F: FnOnce(&wgpu::Device, &wgpu::Queue, &mut wgpu::CommandEncoder, &wgpu::TextureView, &wgpu::TextureView, &mut TextureManager, &mut UnifiedTextureManager, &mut UnifiedTextureIntegration, &mut BatchRenderer, &mut batch_optimization::BatchOptimizationSystem, &mut MeshRenderer, &mut TilemapRenderer, &mut CameraBinding, &LightBinding, &mut UnifiedRenderer)
     {
         let output = self.surface.get_current_texture()?;
         let view = output.texture.create_view(&wgpu::TextureViewDescriptor::default());
@@ -295,7 +318,7 @@ impl RenderModule {
         }
 
         // Callback for overlay (egui) and game render
-        callback(&self.device, &self.queue, &mut encoder, &view, &self.depth_view, &mut self.texture_manager, &mut self.batch_renderer, &mut self.mesh_renderer, &mut self.tilemap_renderer, &mut self.camera_binding, &self.light_binding, &mut self.unified_renderer);
+        callback(&self.device, &self.queue, &mut encoder, &view, &self.depth_view, &mut self.texture_manager, &mut self.unified_texture_manager, &mut self.texture_integration, &mut self.batch_renderer, &mut self.batch_optimization, &mut self.mesh_renderer, &mut self.tilemap_renderer, &mut self.camera_binding, &self.light_binding, &mut self.unified_renderer);
         
         self.queue.submit(std::iter::once(encoder.finish()));
         output.present();

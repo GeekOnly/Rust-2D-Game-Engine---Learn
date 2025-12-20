@@ -82,9 +82,9 @@ impl Vertex {
 
 pub struct SpriteRenderer {
     // Unified rendering pipeline
-    unified_render_pipeline: wgpu::RenderPipeline,
+    pub unified_render_pipeline: wgpu::RenderPipeline,
     // Legacy pipeline for backward compatibility
-    legacy_render_pipeline: wgpu::RenderPipeline,
+    pub legacy_render_pipeline: wgpu::RenderPipeline,
     vertex_buffer: wgpu::Buffer,
     unified_vertex_buffer: wgpu::Buffer,
     index_buffer: wgpu::Buffer,
@@ -562,6 +562,24 @@ impl SpriteRenderer {
             contents: bytemuck::cast_slice(&vertices),
             usage: wgpu::BufferUsages::VERTEX,
         })
+    }
+
+    /// Render UnifiedSprite with unified texture integration
+    pub fn render_unified_sprite_integrated<'a>(
+        &'a self,
+        render_pass: &mut wgpu::RenderPass<'a>,
+        texture_ref: &'a crate::unified_texture_integration::UnifiedTextureRef,
+        vertex_buffer: &'a wgpu::Buffer,
+        camera_bind_group: &'a wgpu::BindGroup,
+    ) {
+        if let Some(bind_group) = texture_ref.get_bind_group() {
+            render_pass.set_pipeline(&self.unified_render_pipeline);
+            render_pass.set_bind_group(0, camera_bind_group, &[]);
+            render_pass.set_bind_group(1, bind_group, &[]);
+            render_pass.set_vertex_buffer(0, vertex_buffer.slice(..));
+            render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
+            render_pass.draw_indexed(0..self.num_indices, 0, 0..1);
+        }
     }
 
     /// Get the bind group layout for texture binding
