@@ -184,8 +184,15 @@ pub struct SceneCamera {
     zoom_interpolation_speed: f32,
     
     // Mode switching state
-    #[allow(dead_code)]
     saved_3d_state: Option<CameraState>,
+    saved_2d_state: Option<CameraState>,
+    
+    // Smooth transition state
+    is_transitioning: bool,
+    transition_start_time: f32,
+    transition_duration: f32,
+    transition_start_state: Option<CameraState>,
+    transition_target_state: Option<CameraState>,
     
     // Cursor tracking for zoom
     last_cursor_world_pos: Option<Vec3>,
@@ -222,6 +229,12 @@ impl SceneCamera {
             target_zoom: initial_zoom,  // Match initial_zoom
             zoom_interpolation_speed: 10.0,
             saved_3d_state: None,
+            saved_2d_state: None,
+            is_transitioning: false,
+            transition_start_time: 0.0,
+            transition_duration: 1.0, // 1 second transition
+            transition_start_state: None,
+            transition_target_state: None,
             last_cursor_world_pos: None,
         }
     }
@@ -485,6 +498,9 @@ impl SceneCamera {
     
     /// Update camera state (call each frame for smooth interpolation)
     pub fn update(&mut self, delta_time: f32) {
+        // Update smooth transitions first
+        self.update_transition(delta_time);
+        
         // Apply damping to smooth out movements
         self.apply_damping(delta_time);
         
@@ -852,6 +868,16 @@ impl SceneCamera {
         self.is_panning || self.is_rotating || self.is_orbiting
     }
     
+    /// Check if camera is currently transitioning between modes
+    pub fn is_transitioning(&self) -> bool {
+        self.is_transitioning
+    }
+    
+    /// Set transition duration (in seconds)
+    pub fn set_transition_duration(&mut self, duration: f32) {
+        self.transition_duration = duration.max(0.1); // Minimum 0.1 seconds
+    }
+    
     /// Get view matrix (for rendering)
     pub fn get_view_matrix(&self) -> Mat4 {
         if self.pitch.abs() > 0.1 {
@@ -1043,6 +1069,14 @@ impl SceneCamera {
         self.target_rotation = 0.0;
         self.target_pitch = 0.0;
         self.target_zoom = 2.0;
+        
+        // Reset transition state
+        self.is_transitioning = false;
+        self.transition_start_time = 0.0;
+        self.transition_start_state = None;
+        self.transition_target_state = None;
+        self.saved_2d_state = None;
+        self.saved_3d_state = None;
     }
 
     /// Set zoom level
@@ -1070,18 +1104,138 @@ impl SceneCamera {
         self.zoom_sensitivity = self.settings.zoom_sensitivity;
     }
 
-    /// Switch to 2D mode
+    /// Switch to 2D mode with smooth transition
     pub fn switch_to_2d(&mut self) {
-        self.projection_mode = SceneProjectionMode::Isometric;
-        self.rotation = 0.0;
-        self.pitch = 0.0;
+        self.switch_to_2d_smooth();
     }
 
-    /// Switch to 3D mode
+    /// Switch to 3D mode with smooth transition
     pub fn switch_to_3d(&mut self) {
-        self.projection_mode = SceneProjectionMode::Perspective;
-        self.rotation = 45.0;
-        self.pitch = 30.0;
+        self.switch_to_3d_smooth();
+    }
+
+    /// Switch to 2D mode with smooth transition
+    pub fn switch_to_2d_smooth(&mut self) {
+        // Save current 3D state if we're in 3D mode
+        if self.pitch.abs() > 0.1 || self.projection_mode == SceneProjectionMode::Perspective {
+            self.saved_3d_state = Some(CameraState {
+                position: self.position,
+                zoom: self.zoom,
+                rotation: self.rotation,
+                pitch: self.pitch,
+            });
+        }
+        
+        // Set up transition to 2D
+        let target_state = if let Some(saved_2d) = &self.saved_2d_state {
+            // Restore saved 2D state
+            saved_2d.clone()
+        } else {
+            // Default 2D state - maintain current position but reset rotation/pitch
+            CameraState {
+                position: self.position,
+                zoom: self.zoom.max(1.0), // Ensure reasonable zoom for 2D
+                rotation: 0.0,
+                pitch: 0.0,
+            }
+        };
+        
+        self.start_transition(target_state, SceneProjectionMode::Isometric);
+    }
+
+    /// Switch to 3D mode with smooth transition
+    pub fn switch_to_3d_smooth(&mut self) {
+        // Save current 2D state if we're in 2D mode
+        if self.pitch.abs() <= 0.1 && self.projection_mode == SceneProjectionMode::Isometric {
+            self.saved_2d_state = Some(CameraState {
+                position: self.position,
+                zoom: self.zoom,
+                rotation: self.rotation,
+                pitch: self.pitch,
+            });
+        }
+        
+        // Set up transition to 3D
+        let target_state = if let Some(saved_3d) = &self.saved_3d_state {
+            // Restore saved 3D state
+            saved_3d.clone()
+        } else {
+            // Default 3D state - maintain current position but set 3D rotation/pitch
+            CameraState {
+                position: self.position,
+                zoom: self.zoom,
+                rotation: 45.0,  // Nice 3D angle
+                pitch: 30.0,     // Slight downward angle
+            }
+        };
+        
+        self.start_transition(target_state, SceneProjectionMode::Perspective);
+    }
+
+    /// Start a smooth transition to a target camera state
+    fn start_transition(&mut self, target_state: CameraState, target_projection: SceneProjectionMode) {
+        // Store current state as transition start
+        self.transition_start_state = Some(CameraState {
+            position: self.position,
+            zoom: self.zoom,
+            rotation: self.rotation,
+            pitch: self.pitch,
+        });
+        
+        // Store target state
+        self.transition_target_state = Some(target_state);
+        
+        // Start transition
+        self.is_transitioning = true;
+        self.transition_start_time = 0.0;
+        
+        // Set target projection mode immediately (for rendering pipeline)
+        self.projection_mode = target_projection;
+    }
+
+    /// Update smooth transition (call each frame)
+    fn update_transition(&mut self, delta_time: f32) {
+        if !self.is_transitioning {
+            return;
+        }
+        
+        // Update transition time
+        self.transition_start_time += delta_time;
+        let t = (self.transition_start_time / self.transition_duration).clamp(0.0, 1.0);
+        
+        // Use smooth easing function (ease-in-out cubic)
+        let eased_t = if t < 0.5 {
+            4.0 * t * t * t
+        } else {
+            1.0 - (-2.0 * t + 2.0).powi(3) / 2.0
+        };
+        
+        // Interpolate between start and target states
+        if let (Some(start), Some(target)) = (&self.transition_start_state, &self.transition_target_state) {
+            // Interpolate position
+            self.position = start.position.lerp(target.position, eased_t);
+            self.target_position = self.position;
+            
+            // Interpolate zoom
+            self.zoom = start.zoom + (target.zoom - start.zoom) * eased_t;
+            self.target_zoom = self.zoom;
+            
+            // Interpolate rotation (handle wrapping)
+            let rotation_diff = (target.rotation - start.rotation + 180.0).rem_euclid(360.0) - 180.0;
+            self.rotation = start.rotation + rotation_diff * eased_t;
+            self.target_rotation = self.rotation;
+            
+            // Interpolate pitch
+            self.pitch = start.pitch + (target.pitch - start.pitch) * eased_t;
+            self.target_pitch = self.pitch;
+        }
+        
+        // Check if transition is complete
+        if t >= 1.0 {
+            self.is_transitioning = false;
+            self.transition_start_state = None;
+            self.transition_target_state = None;
+        }
     }
 
     /// Frame object in view (F key functionality)

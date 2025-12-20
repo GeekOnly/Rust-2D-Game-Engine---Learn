@@ -187,20 +187,30 @@
 
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 8. Integrate unified rendering with editor scene view
+- [x] 8. Integrate unified rendering with editor scene view
+
+
+
+
+
+
+
   - [x] 8.1 Create 2D/3D mode toggle UI in Scene View
     - [x] Add toggle button to Scene View toolbar
     - [x] Implement mode switching logic with SceneViewMode enum
     - [x] Create visual indicators for current mode
     - _Requirements: 1.1_
 
-  - [ ] 8.2 Connect SceneViewMode with UnifiedCamera system
+
+  - [x] 8.2 Connect SceneViewMode with UnifiedCamera system
+
+
     - Wire SceneViewMode enum to Camera.unified_rendering field
     - Update scene rendering to use UnifiedRenderer and UnifiedCameraBinding
     - Ensure editor gizmos work in both modes
     - _Requirements: 1.1, 6.2_
 
-  - [ ] 8.3 Implement smooth camera transitions between modes
+  - [x] 8.3 Implement smooth camera transitions between modes
     - Add transition animation system
     - Preserve camera context during mode switches
     - Create smooth interpolation between projection modes

@@ -57,6 +57,7 @@ pub struct TabContext<'a> {
     pub scene_view_mode: &'a mut scene_view::SceneViewMode,
     pub projection_mode: &'a mut scene_view::SceneProjectionMode,
     pub transform_space: &'a mut scene_view::TransformSpace,
+    pub unified_camera_binding: &'a mut Option<render::unified_renderer::UnifiedCameraBinding>,
     pub texture_manager: &'a mut engine::texture_manager::TextureManager,
     pub open_sprite_editor_request: &'a mut Option<std::path::PathBuf>,
     pub open_prefab_editor_request: &'a mut Option<std::path::PathBuf>,
@@ -287,6 +288,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                     self.context.egui_renderer,
                     self.context.device,
                     self.context.queue,
+                    self.context.unified_camera_binding,
                 );
                 
                 // Clear texture inspector selection when entity selection changes

@@ -16,13 +16,112 @@ pub mod interaction;
 pub mod toolbar;
 pub mod shortcuts;
 
+#[cfg(test)]
+mod tests;
+
 // Re-exports for backward compatibility
 pub use types::*;
 
-use ecs::{World, Entity};
+/// Sync SceneViewMode with Camera component's unified rendering
+/// This connects the editor's 2D/3D toggle with the actual camera rendering mode
+pub fn sync_scene_view_mode_with_camera(
+    world: &mut World,
+    scene_view_mode: SceneViewMode,
+    selected_entity: Option<Entity>,
+) {
+    // Find camera entities to update
+    let camera_entities: Vec<Entity> = if let Some(entity) = selected_entity {
+        // If we have a selected entity with a camera, use that
+        if world.has_component(entity, ComponentType::Camera) {
+            vec![entity]
+        } else {
+            // Otherwise, find all camera entities
+            world.cameras.keys().copied().collect()
+        }
+    } else {
+        // No selection, update all cameras
+        world.cameras.keys().copied().collect()
+    };
+
+    // Convert SceneViewMode to ViewMode
+    let view_mode = match scene_view_mode {
+        SceneViewMode::Mode2D => ecs::components::ViewMode::Mode2D,
+        SceneViewMode::Mode3D => ecs::components::ViewMode::Mode3D,
+    };
+
+    // Update each camera's unified rendering mode
+    for entity in camera_entities {
+        if let Some(camera) = world.cameras.get_mut(&entity) {
+            // Enable unified rendering if not already enabled
+            if !camera.has_unified_rendering() {
+                camera.enable_unified_rendering();
+            }
+            
+            // Set the view mode
+            camera.set_view_mode(view_mode);
+        }
+    }
+}
+
+/// Create or update unified camera binding for scene rendering
+/// This prepares the WGPU camera uniform for unified 2D/3D rendering
+pub fn update_unified_camera_binding(
+    scene_camera: &SceneCamera,
+    scene_view_mode: SceneViewMode,
+    viewport_size: (u32, u32),
+    camera_binding: &mut Option<UnifiedCameraBinding>,
+    device: &wgpu::Device,
+    queue: &wgpu::Queue,
+) {
+    // Create camera binding if it doesn't exist
+    if camera_binding.is_none() {
+        *camera_binding = Some(UnifiedCameraBinding::new(device));
+    }
+    
+    if let Some(binding) = camera_binding.as_mut() {
+        // Get camera matrices
+        let view_matrix = scene_camera.get_view_matrix();
+        let aspect_ratio = viewport_size.0 as f32 / viewport_size.1.max(1) as f32;
+        let projection_matrix = scene_camera.get_projection_matrix(aspect_ratio);
+        let camera_pos = scene_camera.position;
+        
+        // Create and update uniform based on mode
+        let mut uniform = UnifiedCameraUniform::new();
+        
+        match scene_view_mode {
+            SceneViewMode::Mode2D => {
+                uniform.update_2d(
+                    view_matrix,
+                    projection_matrix,
+                    camera_pos,
+                    100.0, // Default pixels per unit
+                    0.01,  // Default snap threshold
+                    true,  // Perfect pixel enabled
+                    viewport_size,
+                    1.0,   // Scale factor
+                );
+            }
+            SceneViewMode::Mode3D => {
+                uniform.update_3d(
+                    view_matrix,
+                    projection_matrix,
+                    camera_pos,
+                    viewport_size,
+                    1.0, // Scale factor
+                );
+            }
+        }
+        
+        // Update the buffer
+        queue.write_buffer(&binding.buffer, 0, bytemuck::cast_slice(&[uniform]));
+    }
+}
+
+use ecs::{World, Entity, ComponentType, ComponentManager};
 use egui;
 use crate::ui::TransformTool;
 use crate::{SceneCamera, SceneGrid, DragDropState};
+use render::unified_renderer::{UnifiedCameraBinding, UnifiedCameraUniform};
 
 /// Main scene view render function
 /// 
@@ -58,6 +157,7 @@ pub fn render_scene_view(
     egui_renderer: &mut egui_wgpu::Renderer,
     device: &wgpu::Device,
     queue: &wgpu::Queue,
+    unified_camera_binding: &mut Option<UnifiedCameraBinding>,
 ) {
     // Sync camera projection mode with editor state
     scene_camera.projection_mode = *projection_mode;
@@ -79,13 +179,32 @@ pub fn render_scene_view(
         transform_space,
     );
 
-    // Handle mode switching
+    // Handle mode switching with smooth transitions
     if previous_mode != *scene_view_mode {
         match scene_view_mode {
-            SceneViewMode::Mode2D => scene_camera.switch_to_2d(),
-            SceneViewMode::Mode3D => scene_camera.switch_to_3d(),
+            SceneViewMode::Mode2D => scene_camera.switch_to_2d_smooth(),
+            SceneViewMode::Mode3D => scene_camera.switch_to_3d_smooth(),
         }
+        
+        // Sync the scene view mode with camera components
+        sync_scene_view_mode_with_camera(world, *scene_view_mode, *selected_entity);
     }
+    
+    // Update unified camera binding for rendering
+    let viewport_size = (
+        scene_view_renderer.width.max(1),
+        scene_view_renderer.height.max(1),
+    );
+    
+    // Update the unified camera binding for unified rendering
+    update_unified_camera_binding(
+        scene_camera,
+        *scene_view_mode,
+        viewport_size,
+        unified_camera_binding,
+        device,
+        queue,
+    );
 
     // Main scene view
     let (response, painter) = ui.allocate_painter(

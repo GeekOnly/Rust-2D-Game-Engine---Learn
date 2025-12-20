@@ -1,0 +1,8 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc 459a59649e0cdd661ec200d23ea8c2465d9fc3f180d32b6c39c732f2a17466f5 # shrinks to settings = PerfectPixelSettings { enabled: true, snap_to_pixel: true, filter_mode: Nearest, pixels_per_unit: 216.40001, reference_resolution: (100, 100), snap_threshold: 0.001, maintain_aspect_ratio: false, snap_mode: Always }, position = Vec3(0.0, -32.238663, 0.0), scale = Vec3(0.1, 0.1, 0.1)
+cc 5621a16e05390d25d492b74ff2cec25c433fe462bd8082ec9c1e27a5ccaef1c9 # shrinks to settings = PerfectPixelSettings { enabled: true, snap_to_pixel: true, filter_mode: Nearest, pixels_per_unit: 440.33667, reference_resolution: (100, 100), snap_threshold: 0.001, maintain_aspect_ratio: false, snap_mode: Always }, position = Vec3(0.0, 72.0252, 0.0), scale = Vec3(0.1, 0.1, 0.1)

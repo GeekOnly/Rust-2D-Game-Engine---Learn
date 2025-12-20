@@ -83,6 +83,7 @@ impl EditorLogic {
                 &mut editor_state.scene_view_mode,
                 &mut editor_state.projection_mode,
                 &mut editor_state.transform_space,
+                &mut editor_state.unified_camera_binding,
                 game_view_renderer,
                 device,
                 queue,

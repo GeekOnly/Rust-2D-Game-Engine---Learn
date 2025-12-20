@@ -130,6 +130,7 @@ pub struct EditorState {
     pub scene_view_mode: super::ui::scene_view::SceneViewMode, // 2D or 3D mode
     pub projection_mode: super::ui::scene_view::SceneProjectionMode, // Isometric or Perspective
     pub transform_space: super::ui::scene_view::TransformSpace, // Local or World space
+    pub unified_camera_binding: Option<render::unified_renderer::UnifiedCameraBinding>, // Unified rendering camera binding
     pub texture_manager: engine::texture_manager::TextureManager, // Texture manager for sprites
     pub undo_stack: super::UndoStack,  // Undo/Redo system
     pub selection: super::SelectionManager,  // Multi-selection system
@@ -221,6 +222,7 @@ impl EditorState {
             scene_view_mode: super::ui::scene_view::SceneViewMode::Mode2D,
             projection_mode: super::ui::scene_view::SceneProjectionMode::Perspective, // Unity-style default
             transform_space: super::ui::scene_view::TransformSpace::Local,
+            unified_camera_binding: None, // Will be initialized when needed
             undo_stack: super::UndoStack::new(),
             selection: super::SelectionManager::new(),
             clipboard: super::Clipboard::new(),

@@ -209,7 +209,7 @@ mod tests {
     fn test_depth_sorting_grid_first() {
         let mut queue = RenderQueue::new();
         let mut camera = SceneCamera::new();
-        camera.position = Vec2::new(0.0, 0.0);
+        camera.position = glam::Vec3::new(0.0, 0.0, 0.0);
         camera.rotation = 0.0;
         camera.pitch = 0.0;
         
@@ -239,7 +239,7 @@ mod tests {
     fn test_depth_sorting_gizmos_last() {
         let mut queue = RenderQueue::new();
         let mut camera = SceneCamera::new();
-        camera.position = Vec2::new(0.0, 0.0);
+        camera.position = glam::Vec3::new(0.0, 0.0, 0.0);
         camera.rotation = 0.0;
         camera.pitch = 0.0;
         
@@ -274,7 +274,7 @@ mod tests {
     fn test_depth_sorting_sprites_by_z() {
         let mut queue = RenderQueue::new();
         let mut camera = SceneCamera::new();
-        camera.position = Vec2::new(0.0, 0.0);
+        camera.position = glam::Vec3::new(0.0, 0.0, 0.0);
         camera.rotation = 0.0;
         camera.pitch = 0.0;
         
@@ -325,7 +325,7 @@ mod tests {
     fn test_depth_sorting_tilemaps_by_z() {
         let mut queue = RenderQueue::new();
         let mut camera = SceneCamera::new();
-        camera.position = Vec2::new(0.0, 0.0);
+        camera.position = glam::Vec3::new(0.0, 0.0, 0.0);
         camera.rotation = 0.0;
         camera.pitch = 0.0;
         
@@ -370,7 +370,7 @@ mod tests {
     fn test_depth_sorting_mixed_objects() {
         let mut queue = RenderQueue::new();
         let mut camera = SceneCamera::new();
-        camera.position = Vec2::new(0.0, 0.0);
+        camera.position = glam::Vec3::new(0.0, 0.0, 0.0);
         camera.rotation = 0.0;
         camera.pitch = 0.0;
         
@@ -415,7 +415,7 @@ mod tests {
     fn test_calculate_sprite_depth() {
         let queue = RenderQueue::new();
         let mut camera = SceneCamera::new();
-        camera.position = Vec2::new(0.0, 0.0);
+        camera.position = glam::Vec3::new(0.0, 0.0, 0.0);
         camera.rotation = 0.0;
         camera.pitch = 0.0;
         
@@ -434,7 +434,7 @@ mod tests {
     fn test_depth_sorting_handles_nan() {
         let mut queue = RenderQueue::new();
         let mut camera = SceneCamera::new();
-        camera.position = Vec2::new(0.0, 0.0);
+        camera.position = glam::Vec3::new(0.0, 0.0, 0.0);
         camera.rotation = 0.0;
         camera.pitch = 0.0;
         

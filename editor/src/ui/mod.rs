@@ -156,6 +156,7 @@ impl EditorUI {
             let mut dummy_scene_view_mode = scene_view::SceneViewMode::Mode2D;
             let mut dummy_projection_mode = scene_view::SceneProjectionMode::Perspective;
             let mut dummy_transform_space = scene_view::TransformSpace::Local;
+            let mut dummy_unified_camera_binding: Option<render::unified_renderer::UnifiedCameraBinding> = None;
             
             let mut dummy_debug_draw = crate::debug_draw::DebugDrawManager::new();
             let dummy_map_manager = crate::map_manager::MapManager::new();
@@ -190,6 +191,7 @@ impl EditorUI {
                 egui_renderer,
                 device,
                 queue,
+                &mut dummy_unified_camera_binding,
             );
         });
 
@@ -316,6 +318,7 @@ impl EditorUI {
         scene_view_mode: &mut scene_view::SceneViewMode,
         projection_mode: &mut scene_view::SceneProjectionMode,
         transform_space: &mut scene_view::TransformSpace,
+        unified_camera_binding: &mut Option<render::unified_renderer::UnifiedCameraBinding>,
         game_view_renderer: &mut crate::game_view_renderer::GameViewRenderer,
         device: &wgpu::Device,
         queue: &wgpu::Queue,
@@ -405,6 +408,7 @@ impl EditorUI {
                 scene_view_mode,
                 projection_mode,
                 transform_space,
+                unified_camera_binding,
                 texture_manager,
                 open_sprite_editor_request,
                 open_prefab_editor_request,
