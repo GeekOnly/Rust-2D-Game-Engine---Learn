@@ -127,7 +127,7 @@ impl Default for ViewMode {
 }
 
 /// Filter mode for texture sampling in perfect pixel rendering
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum FilterMode {
     /// Nearest neighbor filtering for pixel-perfect rendering
     Nearest,
