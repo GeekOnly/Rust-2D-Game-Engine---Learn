@@ -155,10 +155,18 @@ pub fn render_sprite_picker(
                                                 );
                                                 
                                                 // Try to load and draw texture
+                                                // Sanitize path: .sprite file might contain "projects/Name/assets/..." which duplicates
+                                                // if we join it with project path. We need relative path starting with "assets/"
+                                                let clean_texture_path = if let Some(idx) = metadata.texture_path.find("assets") {
+                                                    &metadata.texture_path[idx..]
+                                                } else {
+                                                    &metadata.texture_path
+                                                };
+
                                                 if let Some(texture) = texture_manager.load_texture(
                                                     ctx,
                                                     &texture_id,
-                                                    std::path::Path::new(&metadata.texture_path)
+                                                    std::path::Path::new(clean_texture_path)
                                                 ) {
                                                     // Calculate UV coordinates for this sprite
                                                     let tex_size = texture.size();
@@ -190,9 +198,9 @@ pub fn render_sprite_picker(
                                                 }
 
                                                 if response.clicked() {
-                                                    // Use the relative texture path from metadata
-                                                    // metadata.texture_path is already relative to project root
-                                                    let texture_path = PathBuf::from(&metadata.texture_path);
+                                                    // Use the relative texture path from metadata, but sanitized
+                                                    // to ensure it starts with "assets/"
+                                                    let texture_path = PathBuf::from(clean_texture_path);
 
                                                     result = Some(SpritePickerResult {
                                                         sprite_file_path: sprite_file.clone(),

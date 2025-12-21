@@ -323,6 +323,9 @@ fn main() -> Result<()> {
                             egui_renderer.update_texture(&renderer.device, &renderer.queue, *id, image_delta);
                         }
 
+                        let screen_width = renderer.config.width;
+                        let screen_height = renderer.config.height;
+
                         let res = renderer.render_with_callback(|device, queue, encoder, view, depth_view, texture_manager, batch_renderer, mesh_renderer, camera_binding, light_binding| {
                             egui_renderer.update_buffers(
                                 device,
@@ -345,7 +348,7 @@ fn main() -> Result<()> {
                                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                                     view: depth_view,
                                     depth_ops: Some(wgpu::Operations {
-                                        load: wgpu::LoadOp::Clear(0.0), // Reverse-Z: clear to 0.0
+                                        load: wgpu::LoadOp::Clear(1.0), // Standard Z: clear to 1.0
                                         store: wgpu::StoreOp::Store,
                                     }),
                                     stencil_ops: None,
@@ -354,6 +357,44 @@ fn main() -> Result<()> {
                                 timestamp_writes: None,
                             });
                             
+                            // Find Main Camera and Calculate ViewProj
+                            let mut view_proj = glam::Mat4::IDENTITY;
+                            if let Some(main_camera) = world.cameras.iter()
+                                .min_by_key(|(_, camera)| camera.depth)
+                            {
+                                let (entity, camera) = main_camera;
+                                if let Some(transform) = world.transforms.get(entity) {
+                                     use glam::{Vec3, Quat, Mat4, EulerRot};
+                                     let rot_rad = Vec3::new(
+                                        transform.rotation[0].to_radians(),
+                                        transform.rotation[1].to_radians(),
+                                        transform.rotation[2].to_radians(),
+                                    );
+                                    let cam_rotation = Quat::from_euler(EulerRot::YXZ, rot_rad.y, rot_rad.x, rot_rad.z);
+                                    let cam_pos = Vec3::from(transform.position);
+                                    let forward = cam_rotation * Vec3::Z;
+                                    let up = cam_rotation * Vec3::Y;
+                                    let view = Mat4::look_at_rh(cam_pos, cam_pos + forward, up);
+                                    let max_dim = screen_width.max(1) as f32;
+                                    let aspect = screen_width as f32 / screen_height.max(1) as f32;
+                                    let projection = match camera.projection {
+                                        ecs::CameraProjection::Perspective => {
+                                            Mat4::perspective_rh(camera.fov.to_radians(), aspect, camera.near_clip, camera.far_clip)
+                                        }
+                                        ecs::CameraProjection::Orthographic => {
+                                            let half_height = camera.orthographic_size;
+                                            let half_width = half_height * aspect;
+                                            Mat4::orthographic_rh(-half_width, half_width, -half_height, half_height, camera.far_clip, camera.near_clip)
+                                        }
+                                    };
+                                    view_proj = projection * view;
+                                }
+                            } else {
+                                // Fallback default camera
+                                let projection = glam::Mat4::orthographic_rh(-8.8, 8.8, -5.0, 5.0, 50.0, 0.1);
+                                view_proj = projection;
+                            }
+
                             // Render Game World (3D / WGPU)
                             runtime::render_system::render_game_world(
                                 &world,
@@ -366,6 +407,7 @@ fn main() -> Result<()> {
                                 device,
                                 window.inner_size(),
                                 &mut rpass,
+                                view_proj,
                             );
 
                             // Render UI on top

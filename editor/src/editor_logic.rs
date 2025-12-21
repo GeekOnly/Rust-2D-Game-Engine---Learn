@@ -229,6 +229,16 @@ impl EditorLogic {
                      render_texture_manager,
                      mesh_renderer,
                  );
+
+                 // Load sprite textures into WGPU TextureManager for 3D scene view rendering
+                 EditorLogic::load_sprite_textures(
+                     &editor_state.world,
+                     project_path,
+                     device,
+                     queue,
+                     render_texture_manager,
+                 );
+
                  // Reset the request flag
                  editor_state.reload_mesh_assets_request = false;
              }
@@ -290,6 +300,9 @@ impl EditorLogic {
                                     flip_y: false,
                                     sprite_rect: Some([sprite_def.x, sprite_def.y, sprite_def.width, sprite_def.height]),
                                     pixels_per_unit: 100.0,
+                                    sorting_layer: "Default".to_string(),
+                                    order_in_layer: 0,
+                                    rendering_layer_mask: 1,
                                 };
                                 
                                 editor_state.world.sprites.insert(entity, sprite);
@@ -314,12 +327,60 @@ impl EditorLogic {
                         flip_y: false,
                         pixels_per_unit: 100.0,
                         sprite_rect: None,
+                        sorting_layer: "Default".to_string(),
+                        order_in_layer: 0,
+                        rendering_layer_mask: 1,
                     };
                     
                     editor_state.world.sprites.insert(entity, sprite);
                     editor_state.scene_modified = true;
                     editor_state.console.info(format!("Selected texture: {}", result.sprite_name));
                 }
+            }
+        }
+    }
+
+    /// Load all sprite textures from the scene into WGPU TextureManager
+    /// This is needed for rendering sprites in 3D scene view
+    fn load_sprite_textures(
+        world: &ecs::World,
+        project_path: &std::path::Path,
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        texture_manager: &mut render::TextureManager,
+    ) {
+        use std::collections::HashSet;
+
+        // Collect unique texture paths from all sprites
+        let mut texture_paths = HashSet::new();
+        for sprite in world.sprites.values() {
+            texture_paths.insert(sprite.texture_id.clone());
+        }
+
+        println!("DEBUG: Loading {} unique sprite textures for WGPU", texture_paths.len());
+
+        // Load each texture into WGPU TextureManager
+        for texture_id in texture_paths {
+            // Skip if already loaded
+            if texture_manager.get_texture(&texture_id).is_some() {
+                continue;
+            }
+
+            // Build full path
+            let texture_path = project_path.join(&texture_id);
+
+            if texture_path.exists() {
+                // Use load_texture method which takes a path
+                match texture_manager.load_texture(device, queue, &texture_path, &texture_id) {
+                    Ok(_) => {
+                        println!("DEBUG: ✓ Loaded sprite texture for WGPU: {}", texture_id);
+                    }
+                    Err(e) => {
+                        println!("DEBUG: ✗ Failed to load sprite texture {}: {}", texture_path.display(), e);
+                    }
+                }
+            } else {
+                println!("DEBUG: ✗ Sprite texture not found: {}", texture_path.display());
             }
         }
     }

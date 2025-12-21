@@ -280,6 +280,26 @@ pub struct Sprite {
     /// Default is 100 (like Unity). Lower values = larger sprites in world.
     #[serde(default = "default_pixels_per_unit")]
     pub pixels_per_unit: f32,
+    
+    /// Sorting Layer (Unity-style) - Group sprites
+    #[serde(default = "default_sorting_layer")]
+    pub sorting_layer: String,
+    
+    /// Order within the layer (Higher = On top)
+    #[serde(default)]
+    pub order_in_layer: i32,
+    
+    /// Mask for camera culling/lighting (Bitmask)
+    #[serde(default = "default_rendering_layer_mask")]
+    pub rendering_layer_mask: u32,
+}
+
+fn default_sorting_layer() -> String {
+    "Default".to_string()
+}
+
+fn default_rendering_layer_mask() -> u32 {
+    1 // Default Layer (Bit 0)
 }
 
 fn default_pixels_per_unit() -> f32 {
@@ -298,6 +318,9 @@ impl Default for Sprite {
             flip_y: false,
             sprite_rect: None,
             pixels_per_unit: 100.0,  // Unity standard
+            sorting_layer: default_sorting_layer(),
+            order_in_layer: 0,
+            rendering_layer_mask: default_rendering_layer_mask(),
         }
     }
 }

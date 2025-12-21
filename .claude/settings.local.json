@@ -26,7 +26,8 @@
       "Bash(taskkill:*)",
       "Bash(dir:*)",
       "Bash(cd:*)",
-      "Bash(cargo check:*)"
+      "Bash(cargo check:*)",
+      "Bash(timeout 15 cargo run:*)"
     ],
     "deny": [],
     "ask": []

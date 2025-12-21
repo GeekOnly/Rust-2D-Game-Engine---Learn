@@ -125,6 +125,9 @@ impl ComponentManager for crate::CustomWorld {
                     flip_y: false,
                     sprite_rect: None,
                     pixels_per_unit: 100.0,  // Unity standard
+                    sorting_layer: "Default".to_string(),
+                    order_in_layer: 0,
+                    rendering_layer_mask: 1,
                 });
             }
             ComponentType::SpriteSheet => {

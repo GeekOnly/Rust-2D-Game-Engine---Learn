@@ -84,6 +84,22 @@ pub fn render_sprite_inspector(
                             ui.checkbox(&mut sprite.billboard, "")
                                 .on_hover_text("Always face camera in 3D mode");
                             ui.end_row();
+
+                            // Unity-style Sorting
+                            ui.label("Sorting Layer");
+                            ui.text_edit_singleline(&mut sprite.sorting_layer)
+                                .on_hover_text("Name of the sorting layer (e.g. Default, Background)");
+                            ui.end_row();
+
+                            ui.label("Order in Layer");
+                            ui.add(egui::DragValue::new(&mut sprite.order_in_layer).speed(1))
+                                .on_hover_text("Lower values render first (background), higher values render last (foreground)");
+                            ui.end_row();
+                            
+                            ui.label("Rendering Mask");
+                            ui.add(egui::DragValue::new(&mut sprite.rendering_layer_mask).speed(1))
+                                .on_hover_text("Bitmask for Camera culling (Default: 1)");
+                            ui.end_row();
                         });
                     
                     ui.add_space(5.0);

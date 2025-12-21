@@ -103,6 +103,9 @@ pub fn render_hierarchy_with_filter(
                     flip_y: false,
                     sprite_rect: None,
                     pixels_per_unit: 100.0,
+                    sorting_layer: "Default".to_string(),
+                    order_in_layer: 0,
+                    rendering_layer_mask: 1,
                 });
                 entity_names.insert(entity, "Sprite".to_string());
                 *selected_entity = Some(entity);
