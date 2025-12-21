@@ -673,7 +673,7 @@ impl EditorApp {
                         let cam_pos = Vec3::from(transform.position);
 
                         // Calculate view matrix
-                        let forward = cam_rotation * Vec3::Z; // +Z Forward
+                        let forward = cam_rotation * -Vec3::Z; // -Z Forward (Standard RH)
                         let up = cam_rotation * Vec3::Y;      // +Y Up
                         let view = Mat4::look_at_rh(cam_pos, cam_pos + forward, up);
 
@@ -713,7 +713,7 @@ impl EditorApp {
                         );
                         let cam_rotation = Quat::from_euler(EulerRot::YXZ, rot_rad.y, rot_rad.x, rot_rad.z);
                         let cam_pos = Vec3::from(transform.position);
-                        let forward = cam_rotation * Vec3::Z;
+                        let forward = cam_rotation * -Vec3::Z;
                         let up = cam_rotation * Vec3::Y;
                         let view = Mat4::look_at_rh(cam_pos, cam_pos + forward, up);
                         let aspect = self.game_view_renderer.width as f32 / self.game_view_renderer.height as f32;
