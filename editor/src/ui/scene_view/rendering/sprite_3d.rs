@@ -4,7 +4,7 @@
 
 use ecs::{World, Entity};
 use egui;
-use glam::{Vec2, Vec3};
+use glam::{Vec2, Vec3, Quat};
 use std::collections::HashSet;
 use crate::SceneCamera;
 use super::projection_3d::{self, Transform3D};
@@ -29,7 +29,7 @@ pub struct Sprite3DRenderer {
 pub struct SpriteRenderData {
     pub entity: Entity,
     pub position: Vec3,
-    pub rotation: f32,
+    pub rotation: Quat, // Changed from f32 to Quat for 3D rotation
     pub scale: Vec2,
     pub texture_id: String,
     pub sprite_rect: Option<[u32; 4]>,
@@ -44,7 +44,7 @@ pub struct SpriteRenderData {
 pub struct ScreenSprite {
     pub screen_pos: Vec2,
     pub screen_size: Vec2,
-    pub rotation: f32,
+    pub rotation: f32, // Screen space rotation (Z) is still f32 usually, but let's calculate properly
     pub color: egui::Color32,
     pub depth: f32,
     pub entity: Entity,
@@ -79,7 +79,13 @@ impl Sprite3DRenderer {
                     transform.position[2],
                 );
                 
-                let rotation = transform.rotation[2]; // Z rotation for 2D sprites
+                // Get full 3D rotation
+                let rot_rad = Vec3::new(
+                    transform.rotation[0].to_radians(),
+                    transform.rotation[1].to_radians(),
+                    transform.rotation[2].to_radians(),
+                );
+                let rotation = Quat::from_euler(glam::EulerRot::XYZ, rot_rad.x, rot_rad.y, rot_rad.z);
                 
                 let scale = Vec2::new(
                     transform.scale[0],
@@ -295,32 +301,87 @@ impl Sprite3DRenderer {
         // Project center position (without viewport offset for size calculation)
         let center_screen = projection_3d::world_to_screen(sprite.position, camera, viewport_size)?;
         
-        // Calculate size in screen space by projecting corner points
-        // Use world-space offsets based on sprite dimensions
-        let right_world = sprite.position + Vec3::new(sprite.width * sprite.scale.x, 0.0, 0.0);
-        let up_world = sprite.position + Vec3::new(0.0, sprite.height * sprite.scale.y, 0.0);
-        
-        let right_screen = projection_3d::world_to_screen(right_world, camera, viewport_size)?;
-        let up_screen = projection_3d::world_to_screen(up_world, camera, viewport_size)?;
-        
-        // Calculate screen size from projected vectors (before viewport offset)
-        let width_vec = right_screen - center_screen;
-        let height_vec = up_screen - center_screen;
-        
-        // Apply viewport offset to final screen position
-        let mut screen_pos = center_screen;
-        screen_pos.x += viewport_rect.min.x;
-        screen_pos.y += viewport_rect.min.y;
-        
-        let screen_width = width_vec.length();
-        let screen_height = height_vec.length();
-        
         // Calculate rotation (billboard or world rotation)
-        let rotation = if sprite.billboard {
-            self.calculate_billboard_rotation(sprite.position, camera)
+        let rotation_quat = if sprite.billboard {
+            // If billboard, we ignore the world rotation and face the camera
+            // But for bounds calculation we need the effective rotation
+             // For now, let's assume billboard means "Z-plane facing camera" logic or similar.
+             // Actually, billboard rotation calculation returns f32 (Z angle).
+             let z_angle = self.calculate_billboard_rotation(sprite.position, camera);
+             Quat::from_rotation_z(z_angle)
         } else {
             sprite.rotation
         };
+
+        // Calculate size in screen space by projecting corner points
+        // Use world-space offsets based on sprite dimensions, ROTATED by the sprite's rotation
+        let half_width = sprite.width * sprite.scale.x * 0.5;
+        let half_height = sprite.height * sprite.scale.y * 0.5;
+        
+        // Corners in local space
+        let right_vec = Vec3::new(half_width, 0.0, 0.0);
+        let up_vec = Vec3::new(0.0, half_height, 0.0);
+        
+        // Rotate corners to world space
+        let right_world_offset = rotation_quat * right_vec;
+        let up_world_offset = rotation_quat * up_vec;
+        
+        // We use full width/height extent for bounds
+        // Let's project 4 corners to find the bounding box?
+        // Or just project Right and Up to estimate size?
+        // Projecting Right and Up only works if aligned with screen axes or if we want axes vectors.
+        // For a generic 2D rect bounds on screen, we should project all 4 corners and find min/max.
+        
+        let p1 = sprite.position - right_world_offset - up_world_offset; // BL
+        let p2 = sprite.position + right_world_offset - up_world_offset; // BR
+        let p3 = sprite.position + right_world_offset + up_world_offset; // TR
+        let p4 = sprite.position - right_world_offset + up_world_offset; // TL
+        
+        let s1 = projection_3d::world_to_screen(p1, camera, viewport_size);
+        let s2 = projection_3d::world_to_screen(p2, camera, viewport_size);
+        let s3 = projection_3d::world_to_screen(p3, camera, viewport_size);
+        let s4 = projection_3d::world_to_screen(p4, camera, viewport_size);
+        
+        // If any point is behind camera, we might have issues. 
+        // world_to_screen returns None if behind.
+        // If some are visible, we should try to render?
+        // For simplicity, require center to be visible (checked above).
+        
+        let points = [s1, s2, s3, s4];
+        let valid_points: Vec<Vec2> = points.iter().filter_map(|p| *p).collect();
+        
+        if valid_points.is_empty() {
+             return None;
+        }
+        
+        // Find AABB of projected points
+        let mut min_x = f32::MAX;
+        let mut max_x = f32::MIN;
+        let mut min_y = f32::MAX;
+        let mut max_y = f32::MIN;
+        
+        for p in valid_points {
+            min_x = min_x.min(p.x);
+            max_x = max_x.max(p.x);
+            min_y = min_y.min(p.y);
+            max_y = max_y.max(p.y);
+        }
+        
+        let screen_width = max_x - min_x;
+        let screen_height = max_y - min_y;
+        
+        // Update screen pos to center of AABB
+        let mut screen_pos = Vec2::new((min_x + max_x) * 0.5, (min_y + max_y) * 0.5);
+        screen_pos.x += viewport_rect.min.x;
+        screen_pos.y += viewport_rect.min.y;
+        
+        // Calculate screen-space rotation (approximate for display)
+        // If we are drawing an AABB, rotation is effectively 0.
+        // If we want to rotate the texture in UI overlay, we need projected angle.
+        // But render_bounds draws an AABB stroke. So rotation 0 is fine for bounds.
+        // For the fallback texture rendering (render method), it might need rotation.
+        // But for Selection Box, AABB is safer.
+        let screen_rotation = 0.0; 
         
         // Convert color
         let color = egui::Color32::from_rgba_unmultiplied(
@@ -335,7 +396,7 @@ impl Sprite3DRenderer {
         Some(ScreenSprite {
             screen_pos,
             screen_size: Vec2::new(screen_width, screen_height),
-            rotation,
+            rotation: screen_rotation,
             color,
             depth: dist,
             entity: sprite.entity,
@@ -426,53 +487,67 @@ impl Sprite3DRenderer {
         viewport_rect: egui::Rect,
         color: egui::Color32,
     ) {
-        if let Some(screen_sprite) = self.project_sprite_to_screen(sprite, camera, viewport_rect) {
-            // Validate screen sprite data
-            if !screen_sprite.screen_pos.is_finite() || !screen_sprite.screen_size.is_finite() {
-                eprintln!("Warning: Invalid screen sprite data in bounds rendering");
-                return;
+        let viewport_size = Vec2::new(viewport_rect.width(), viewport_rect.height());
+        
+        // Calculate 4 corners in World Space
+        let half_width = sprite.width * sprite.scale.x * 0.5;
+        let half_height = sprite.height * sprite.scale.y * 0.5;
+
+        // Vertices in local space (centered at 0,0, on XY plane)
+        let p1 = Vec3::new(-half_width, -half_height, 0.0); // BL
+        let p2 = Vec3::new(half_width, -half_height, 0.0);  // BR
+        let p3 = Vec3::new(half_width, half_height, 0.0);   // TR
+        let p4 = Vec3::new(-half_width, half_height, 0.0);  // TL
+
+        // Calculate rotation
+        let rotation_quat = if sprite.billboard {
+             // If billboard, assume Z rotation facing camera (simplified for now to match other logic)
+             let z_angle = self.calculate_billboard_rotation(sprite.position, camera);
+             Quat::from_rotation_z(z_angle)
+        } else {
+            sprite.rotation
+        };
+
+        // Transform to World Space
+        let transform_point = |p: Vec3| -> Vec3 {
+            sprite.position + (rotation_quat * p)
+        };
+
+        let w1 = transform_point(p1);
+        let w2 = transform_point(p2);
+        let w3 = transform_point(p3);
+        let w4 = transform_point(p4);
+
+        // Project to Screen Space
+        // Note: world_to_screen returns None if point is behind camera
+        let s1 = projection_3d::world_to_screen(w1, camera, viewport_size);
+        let s2 = projection_3d::world_to_screen(w2, camera, viewport_size);
+        let s3 = projection_3d::world_to_screen(w3, camera, viewport_size);
+        let s4 = projection_3d::world_to_screen(w4, camera, viewport_size);
+        
+        // Collect valid points
+        let corners = [s1, s2, s3, s4];
+        
+        // Only render if we have points. Ideally we'd clip lines against near plane, 
+        // but for a simple gizmo, checking if points are visible is a decent start.
+        // If some points are behind, we might get weird lines, but world_to_screen handles basic projection.
+        
+        // Helper to convert to absolute screen pos
+        let to_screen_pos = |p: Vec2| -> egui::Pos2 {
+            egui::pos2(viewport_rect.min.x + p.x, viewport_rect.min.y + p.y)
+        };
+
+        // Draw quad edges
+        // We draw lines between 0-1, 1-2, 2-3, 3-0 if both endpoints are valid.
+        // Or if one is invalid, we could clip, but skipping is safer for now to avoid artifacts.
+        
+        let edges = [(0, 1), (1, 2), (2, 3), (3, 0)];
+        let stroke = egui::Stroke::new(2.0, color);
+        
+        for (i, j) in edges {
+            if let (Some(c1), Some(c2)) = (corners[i], corners[j]) {
+                painter.line_segment([to_screen_pos(c1), to_screen_pos(c2)], stroke);
             }
-            
-            // Check for zero-size bounds
-            if screen_sprite.screen_size.x <= 0.0 || screen_sprite.screen_size.y <= 0.0 {
-                // Render as a point instead
-                painter.circle_stroke(
-                    egui::pos2(screen_sprite.screen_pos.x, screen_sprite.screen_pos.y),
-                    4.0,
-                    egui::Stroke::new(2.0, color),
-                );
-                return;
-            }
-            
-            // Calculate bounds with padding
-            let bounds_width = screen_sprite.screen_size.x + 4.0;
-            let bounds_height = screen_sprite.screen_size.y + 4.0;
-            
-            // Validate bounds dimensions
-            if !bounds_width.is_finite() || !bounds_height.is_finite() {
-                return;
-            }
-            
-            // Check for extreme bounds (likely off-screen or overflow)
-            if bounds_width > 100000.0 || bounds_height > 100000.0 {
-                return;
-            }
-            
-            let rect = egui::Rect::from_center_size(
-                egui::pos2(screen_sprite.screen_pos.x, screen_sprite.screen_pos.y),
-                egui::vec2(bounds_width, bounds_height),
-            );
-            
-            // Validate rect
-            if !rect.is_finite() {
-                return;
-            }
-            
-            painter.rect_stroke(
-                rect,
-                2.0,
-                egui::Stroke::new(2.0, color),
-            );
         }
     }
     
