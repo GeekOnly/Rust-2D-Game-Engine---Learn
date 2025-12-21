@@ -17,6 +17,7 @@ pub mod scene_view_renderer;
 pub mod states;
 pub mod toolbar;
 pub mod autosave;
+pub mod assets;
 pub mod asset_manager;
 pub mod drag_drop;
 pub mod shortcuts_handler;
