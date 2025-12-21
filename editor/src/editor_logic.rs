@@ -217,7 +217,7 @@ impl EditorLogic {
         // [SCENE POST-PROCESSING]
         // If a scene was loaded (via Menu, File, or Stop Play), we must check for Asset Meshes (GLTF)
         // and load them into the world.
-        // Also reload if requested from Inspector (when mesh type changes to/from Asset)
+        // Also reload if requested from Inspector (when mesh type(No change)s to/from Asset)
         if load_request || load_file_request.is_some() || (stop_request && !editor_state.is_playing) || editor_state.reload_mesh_assets_request {
              if let Some(project_path) = &editor_state.current_project_path {
                  use engine::runtime::render_system::post_process_asset_meshes;
@@ -231,7 +231,7 @@ impl EditorLogic {
                  );
 
                  // Load sprite textures into WGPU TextureManager for 3D scene view rendering
-                 EditorLogic::load_sprite_textures(
+                 EditorLogic::load_scene_textures(
                      &editor_state.world,
                      project_path,
                      device,
@@ -340,9 +340,9 @@ impl EditorLogic {
         }
     }
 
-    /// Load all sprite textures from the scene into WGPU TextureManager
-    /// This is needed for rendering sprites in 3D scene view
-    fn load_sprite_textures(
+    /// Load all scene textures (sprites and tilemaps) into WGPU TextureManager
+    /// This is needed for rendering in 3D scene view and Game View
+    fn load_scene_textures(
         world: &ecs::World,
         project_path: &std::path::Path,
         device: &wgpu::Device,
@@ -351,13 +351,29 @@ impl EditorLogic {
     ) {
         use std::collections::HashSet;
 
-        // Collect unique texture paths from all sprites
+        // Collect unique texture paths from all sprites and tilesets
+        // We use the path string as the Texture ID for WGPU lookups
         let mut texture_paths = HashSet::new();
+        
+        // 1. Sprites
         for sprite in world.sprites.values() {
-            texture_paths.insert(sprite.texture_id.clone());
+            if !sprite.texture_id.is_empty() {
+                texture_paths.insert(sprite.texture_id.clone());
+            }
         }
 
-        println!("DEBUG: Loading {} unique sprite textures for WGPU", texture_paths.len());
+        // 2. Tilesets
+        for tileset in world.tilesets.values() {
+            if !tileset.texture_path.is_empty() {
+                // Ensure we use the exact string render_system expects (tileset.texture_path)
+                texture_paths.insert(tileset.texture_path.clone());
+            }
+        }
+
+        println!("DEBUG: Loading {} unique textures for WGPU. Project Path: {}", texture_paths.len(), project_path.display());
+
+        // Potential subdirectories to search for textures
+        let search_dirs = ["", "assets", "atlas", "tilemaps/atlas", "levels/atlas"];
 
         // Load each texture into WGPU TextureManager
         for texture_id in texture_paths {
@@ -366,21 +382,30 @@ impl EditorLogic {
                 continue;
             }
 
-            // Build full path
-            let texture_path = project_path.join(&texture_id);
+            let mut found = false;
+            for dir in search_dirs {
+                let check_path = if dir.is_empty() {
+                    project_path.join(&texture_id)
+                } else {
+                    project_path.join(dir).join(&texture_id)
+                };
 
-            if texture_path.exists() {
-                // Use load_texture method which takes a path
-                match texture_manager.load_texture(device, queue, &texture_path, &texture_id) {
-                    Ok(_) => {
-                        println!("DEBUG: ✓ Loaded sprite texture for WGPU: {}", texture_id);
+                if check_path.exists() {
+                     match texture_manager.load_texture(device, queue, &check_path, &texture_id) {
+                        Ok(_) => {
+                            println!("DEBUG: ✓ Loaded texture for WGPU: {} (found in {})", texture_id, dir);
+                        }
+                        Err(e) => {
+                            println!("DEBUG: ✗ Failed to load texture {}: {}", check_path.display(), e);
+                        }
                     }
-                    Err(e) => {
-                        println!("DEBUG: ✗ Failed to load sprite texture {}: {}", texture_path.display(), e);
-                    }
+                    found = true;
+                    break;
                 }
-            } else {
-                println!("DEBUG: ✗ Sprite texture not found: {}", texture_path.display());
+            }
+
+            if !found {
+                 println!("DEBUG: ✗ Texture not found ANYWHERE: {}", texture_id);
             }
         }
     }

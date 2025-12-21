@@ -1,5 +1,5 @@
 use ecs::World;
-use render::{BatchRenderer, MeshRenderer, TextureManager, CameraBinding, LightBinding, Mesh, PbrMaterialUniform, ObjectUniform, PbrMaterial};
+use render::{BatchRenderer, MeshRenderer, TilemapRenderer, TextureManager, CameraBinding, LightBinding, Mesh, PbrMaterialUniform, ObjectUniform, PbrMaterial};
 use glam::{Vec3, Quat, Mat4};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -15,6 +15,18 @@ static mut MATERIAL_ASSETS: Option<HashMap<String, Arc<PbrMaterial>>> = None;
 static mut MATERIAL_BIND_GROUP_CACHE: Option<HashMap<String, wgpu::BindGroup>> = None;
 
 static mut MATERIAL_CACHE: Option<wgpu::BindGroup> = None;
+
+// Tilemap Cache: Entity -> (Vertex Buffer, Index Buffer, Index Count)
+static mut TILEMAP_CACHE: Option<HashMap<ecs::Entity, (wgpu::Buffer, wgpu::Buffer, u32)>> = None;
+
+fn get_tilemap_cache() -> &'static mut HashMap<ecs::Entity, (wgpu::Buffer, wgpu::Buffer, u32)> {
+    unsafe {
+        if TILEMAP_CACHE.is_none() {
+            TILEMAP_CACHE = Some(HashMap::new());
+        }
+        TILEMAP_CACHE.as_mut().unwrap()
+    }
+}
 
 fn get_mesh_cache() -> &'static mut HashMap<String, Mesh> {
     unsafe {
@@ -174,7 +186,8 @@ pub fn post_process_asset_meshes(
 }
 
 pub fn render_game_world<'a>(
-    world: &World,
+    world: &'a World,
+    tilemap_renderer: &'a TilemapRenderer,
     batch_renderer: &'a mut BatchRenderer,
     mesh_renderer: &'a mut MeshRenderer,
     camera_binding: &'a CameraBinding,
@@ -191,6 +204,10 @@ pub fn render_game_world<'a>(
     // Default light at (2.0, 5.0, 2.0) with white color
     light_binding.update(queue, [2.0, 5.0, 2.0], [1.0, 1.0, 1.0], 1.0);
 
+    // Ensure default textures exist before any immutable borrows (Fixes E0502)
+    let _ = texture_manager.get_white_texture(device, queue);
+    let _ = texture_manager.get_normal_texture(device, queue);
+
     // 1. Update Camera Uniform for Sprites
     // REMOVED: batch_renderer.update_camera(queue, view_proj);
     // Reason: Buffer reuse race-condition. We use the updated CameraBinding passed via logic instead.
@@ -204,7 +221,79 @@ pub fn render_game_world<'a>(
         }
     }
 
+    // ------------------------------------------------------------------------
+    // 0. Render Tilemaps (Background)
+    // ------------------------------------------------------------------------
+    let tilemap_cache = get_tilemap_cache();
+    
+    // Pass 1: Ensure geometry is cached
+    for (entity, tilemap) in &world.tilemaps {
+        if !tilemap.visible {
+            continue;
+        }
+
+        if !tilemap_cache.contains_key(entity) {
+             // Find corresponding Tileset to generate mesh
+            let tileset = world.tilesets.values().find(|ts| ts.texture_id == tilemap.tileset_id);
+            if let Some(tileset) = tileset {
+                // Get Transform for offset (default to Zero if missing)
+                 let pos = if let Some(transform) = world.transforms.get(entity) {
+                    glam::Vec3::from(transform.position)
+                } else {
+                    glam::Vec3::ZERO
+                };
+                
+                // Prepare Mesh (Geometry) with Scale and Offset
+                // Default pixels_per_unit = 8.0 (1 tile = 1 unit)
+                let mesh_data = tilemap_renderer.prepare_mesh(device, tilemap, tileset, pos, 8.0);
+                tilemap_cache.insert(*entity, mesh_data);
+            }
+        }
+    }
+
+    // Pass 2: Render
+    for (entity, tilemap) in &world.tilemaps {
+        if !tilemap.visible {
+            continue;
+        }
+
+        if let Some((vertex_buffer, index_buffer, index_count)) = tilemap_cache.get(entity) {
+            // Find tileset to get texture
+            let tileset = world.tilesets.values().find(|ts| ts.texture_id == tilemap.tileset_id);
+            if let Some(tileset) = tileset {
+                if let Some(texture) = texture_manager.get_texture(&tileset.texture_path) {
+                     tilemap_renderer.render(
+                        render_pass,
+                        vertex_buffer,
+                        index_buffer,
+                        *index_count,
+                        texture,
+                        &camera_binding.bind_group
+                    );
+                } else {
+                    static mut TEX_FAIL_LOGGED: bool = false;
+                    unsafe {
+                        if !TEX_FAIL_LOGGED {
+                            println!("DEBUG: Rendering FAILED for tilemap {:?}. Texture '{}' not found in TextureManager. Make sure it is loaded.", entity, tileset.texture_path);
+                            TEX_FAIL_LOGGED = true;
+                        }
+                    }
+                }
+            } else {
+                static mut TS_FAIL_LOGGED: bool = false;
+                unsafe {
+                    if !TS_FAIL_LOGGED {
+                        println!("DEBUG: Rendering FAILED for tilemap {:?}. Tileset '{}' not found in World.", entity, tilemap.tileset_id);
+                        TS_FAIL_LOGGED = true;
+                    }
+                }
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------------
     // 2. Sort/Group Sprites by Texture and Unity-style Sorting
+    // ------------------------------------------------------------------------
     // To minimize draw calls and state changes, we group sprites that share the same texture.
 
     // Start by clearing transient buffers from previous frame
@@ -255,9 +344,7 @@ pub fn render_game_world<'a>(
         a.transform.position[2].partial_cmp(&b.transform.position[2]).unwrap_or(std::cmp::Ordering::Equal)
     });
 
-    // Ensure default textures exist before any immutable borrows
-    let _ = texture_manager.get_white_texture(device, queue);
-    let _ = texture_manager.get_normal_texture(device, queue);
+
 
     // 3. Prepare Batches
     let mut current_texture_id = String::new();

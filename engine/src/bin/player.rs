@@ -326,7 +326,7 @@ fn main() -> Result<()> {
                         let screen_width = renderer.config.width;
                         let screen_height = renderer.config.height;
 
-                        let res = renderer.render_with_callback(|device, queue, encoder, view, depth_view, texture_manager, batch_renderer, mesh_renderer, camera_binding, light_binding| {
+                        let res = renderer.render_with_callback(|device, queue, encoder, view, depth_view, texture_manager, tilemap_renderer, batch_renderer, mesh_renderer, camera_binding, light_binding| {
                             egui_renderer.update_buffers(
                                 device,
                                 queue,
@@ -348,7 +348,7 @@ fn main() -> Result<()> {
                                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                                     view: depth_view,
                                     depth_ops: Some(wgpu::Operations {
-                                        load: wgpu::LoadOp::Clear(1.0), // Standard Z: clear to 1.0
+                                        load: wgpu::LoadOp::Clear(1.0), // Standard Z: clear to 1.0 (Matches BatchRenderer)
                                         store: wgpu::StoreOp::Store,
                                     }),
                                     stencil_ops: None,
@@ -398,6 +398,7 @@ fn main() -> Result<()> {
                             // Render Game World (3D / WGPU)
                             runtime::render_system::render_game_world(
                                 &world,
+                                tilemap_renderer,
                                 batch_renderer,
                                 mesh_renderer,
                                 camera_binding,
