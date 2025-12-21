@@ -182,134 +182,154 @@ pub fn render_game_world<'a>(
     texture_manager: &'a mut TextureManager,
     queue: &wgpu::Queue,
     device: &wgpu::Device,
-    screen_size: winit::dpi::PhysicalSize<u32>,
+    _screen_size: winit::dpi::PhysicalSize<u32>, // Unused now that projection is passed in
     render_pass: &mut wgpu::RenderPass<'a>,
+    view_proj: Mat4, // <--- Added Argument
 ) {
     // 0. Update Light (Simple directional light for now)
     // TODO: Find Light component in world
     // Default light at (2.0, 5.0, 2.0) with white color
     light_binding.update(queue, [2.0, 5.0, 2.0], [1.0, 1.0, 1.0], 1.0);
 
-    // 1. Find the active Main Camera
-    let mut main_camera = None;
-    let mut camera_transform = None;
+    // 1. Update Camera Uniform for Sprites
+    // REMOVED: batch_renderer.update_camera(queue, view_proj);
+    // Reason: Buffer reuse race-condition. We use the updated CameraBinding passed via logic instead.
 
-    for (entity, camera) in &world.cameras {
-        // For now, just use the first camera found
-        // TODO: Add enabled and is_main fields to Camera component
-        if let Some(transform) = world.transforms.get(entity) {
-            main_camera = Some(camera);
-            camera_transform = Some(transform);
-            break; 
+    // Debug: Print view_proj matrix once
+    static mut VIEWPROJ_LOGGED: bool = false;
+    unsafe {
+        if !VIEWPROJ_LOGGED {
+            println!("DEBUG: view_proj matrix = {:?}", view_proj);
+            VIEWPROJ_LOGGED = true;
         }
     }
 
-    let view_proj = if let (Some(camera), Some(transform)) = (main_camera, camera_transform) {
-        
-        // Convert Euler angles (Degrees) to Radians
-        let rot_rad = Vec3::new(
-            transform.rotation[0].to_radians(),
-            transform.rotation[1].to_radians(),
-            transform.rotation[2].to_radians(),
-        );
-        
-        // Reconstruct rotation quaternion (YXZ order: Yaw -> Pitch -> Roll)
-        let cam_rotation = Quat::from_euler(glam::EulerRot::YXZ, rot_rad.y, rot_rad.x, rot_rad.z);
-        let cam_pos = Vec3::from(transform.position);
-
-        // Calculate Forward and Up vectors
-        // NOTE: We assume +Z is Forward to match the Editor/Gizmo convention 
-        // (where Camera at -Z looks at Origin).
-        // Standard View Projection (RH) expects -Z forward, so `look_at_rh` handles the conversion.
-        let forward = cam_rotation * Vec3::Z; // +Z Forward
-        let up = cam_rotation * Vec3::Y;      // +Y Up
-
-        let view = Mat4::look_at_rh(cam_pos, cam_pos + forward, up);
-        
-        let projection = match camera.projection {
-             ecs::CameraProjection::Perspective => {
-                let aspect = screen_size.width as f32 / screen_size.height.max(1) as f32;
-                Mat4::perspective_rh(camera.fov.to_radians(), aspect, camera.near_clip, camera.far_clip)
-             }
-             ecs::CameraProjection::Orthographic => {
-                 let half_height = camera.orthographic_size;
-                 let aspect = screen_size.width as f32 / screen_size.height.max(1) as f32;
-                 let half_width = half_height * aspect;
-                 Mat4::orthographic_rh(-half_width, half_width, -half_height, half_height, camera.far_clip, camera.near_clip)
-             }
-        };
-
-        projection * view
-    } else {
-        // Fallback default camera with Reverse-Z
-        let projection = Mat4::orthographic_rh(-8.8, 8.8, -5.0, 5.0, 50.0, 0.1);
-        Mat4::IDENTITY * projection
-    };
-
-    // Update Camera Uniform ONCE per frame
-    batch_renderer.update_camera(queue, view_proj);
-
-    // 2. Sort/Group Sprites by Texture
+    // 2. Sort/Group Sprites by Texture and Unity-style Sorting
     // To minimize draw calls and state changes, we group sprites that share the same texture.
-    // We store the data needed for drawing.
-    struct DrawCommand {
-        texture_id: String,
-        pos: Vec3,
-        rot: Quat,
-        scale: Vec3,
-        color: [f32; 4],
-        rect: [u32; 4],
+
+    // Start by clearing transient buffers from previous frame
+    batch_renderer.start_frame();
+
+    // Debug: Count sprites (commented out - too spammy)
+    // let sprite_count = world.sprites.len();
+    // if sprite_count > 0 {
+    //     println!("DEBUG: Rendering {} sprites", sprite_count);
+    // }
+
+    struct SpriteInfo<'a> {
+        _entity: ecs::Entity,
+        sprite: &'a ecs::Sprite,
+        transform: &'a ecs::Transform,
     }
 
-    let mut commands: HashMap<String, Vec<DrawCommand>> = HashMap::new();
+    let mut visible_sprites = Vec::new();
 
     for (entity, sprite) in &world.sprites {
         // TODO: Add visible field to Sprite component
-        
         if let Some(transform) = world.transforms.get(entity) {
-            let cmd = DrawCommand {
-                texture_id: sprite.texture_id.clone(),
-                pos: Vec3::new(transform.position[0], transform.position[1], transform.position[2]),
-                rot: Quat::from_rotation_z(transform.rotation[2].to_radians()),
-                scale: Vec3::new(transform.scale[0] * sprite.width, transform.scale[1] * sprite.height, 1.0),
-                color: sprite.color,
-                rect: sprite.sprite_rect.unwrap_or([0, 0, sprite.width as u32, sprite.height as u32]),
-            };
-            
-            commands.entry(sprite.texture_id.clone()).or_default().push(cmd);
+             visible_sprites.push(SpriteInfo {
+                 _entity: *entity,
+                 sprite,
+                 transform,
+             });
         }
     }
+    
+    // Sort logic: Sorting Layer -> Order in Layer -> Z Depth (Back to Front)
+    visible_sprites.sort_by(|a, b| {
+        // 1. Sorting Layer (String comparison for now)
+        let layer_cmp = a.sprite.sorting_layer.cmp(&b.sprite.sorting_layer);
+        if layer_cmp != std::cmp::Ordering::Equal { return layer_cmp; }
+        
+        // 2. Order in Layer (Higher order = On top)
+        let order_cmp = a.sprite.order_in_layer.cmp(&b.sprite.order_in_layer);
+        if order_cmp != std::cmp::Ordering::Equal { return order_cmp; }
+        
+        // 3. Z-Depth (Back to Front) aka Painter's Algorithm
+        // For standard 2D with -Z camera, Back (-Z) to Front (+Z)?
+        // Wait, if Camera is at +Z looking at -Z.
+        // Far (-100) -> Near (0).
+        // Standard sort is Ascending. (-100, -99, ...).
+        // Draw -100 first, then -99. 
+        // So Ascending Z is correct if "Lower is Farther".
+        a.transform.position[2].partial_cmp(&b.transform.position[2]).unwrap_or(std::cmp::Ordering::Equal)
+    });
 
     // Ensure default textures exist before any immutable borrows
     let _ = texture_manager.get_white_texture(device, queue);
     let _ = texture_manager.get_normal_texture(device, queue);
 
-    // 3. Render Batches
-    // For now, just render the first batch to avoid borrowing issues
-    // TODO: Implement proper multi-texture batching
-    if let Some((texture_id, batch)) = commands.into_iter().next() {
-        if let Some(texture) = texture_manager.get_texture(&texture_id) {
-            // Clone texture data to avoid borrowing issues
+    // 3. Prepare Batches
+    let mut current_texture_id = String::new();
+    
+    batch_renderer.begin_frame(); 
+    
+    for info in visible_sprites {
+        // Check for texture change
+        if info.sprite.texture_id != current_texture_id {
+            if !current_texture_id.is_empty() {
+                // Finish previous batch
+                batch_renderer.finish_batch(device, current_texture_id.clone());
+            }
+            current_texture_id = info.sprite.texture_id.clone();
+        }
+        
+        if let Some(texture) = texture_manager.get_texture(&info.sprite.texture_id) {
             let tex_w = texture.width as f32;
             let tex_h = texture.height as f32;
-            
-            // Prepare sprite data
-            batch_renderer.begin_frame(); // Clears instance buffer for this batch
-            
-            for cmd in batch {
-                // Calculate UVs
-                let u_min = cmd.rect[0] as f32 / tex_w;
-                let v_min = cmd.rect[1] as f32 / tex_h;
-                let u_scale = cmd.rect[2] as f32 / tex_w;
-                let v_scale = cmd.rect[3] as f32 / tex_h;
 
-                batch_renderer.draw_sprite(cmd.pos, cmd.rot, cmd.scale, cmd.color, [u_min, v_min], [u_scale, v_scale]);
+            // Draw Sprite
+            let sprite = info.sprite;
+            let transform = info.transform;
+
+            // Debug: Print first sprite being rendered
+            static mut FIRST_SPRITE_LOGGED: bool = false;
+            unsafe {
+                if !FIRST_SPRITE_LOGGED {
+                    println!("DEBUG: First sprite - pos: {:?}, texture: {}", transform.position, sprite.texture_id);
+                    FIRST_SPRITE_LOGGED = true;
+                }
             }
+            
+            let rect = sprite.sprite_rect.unwrap_or([0, 0, sprite.width as u32, sprite.height as u32]);
+            let u_min = rect[0] as f32 / tex_w;
+            let v_min = rect[1] as f32 / tex_h;
+            let u_scale = rect[2] as f32 / tex_w;
+            let v_scale = rect[3] as f32 / tex_h;
+            
+            let pos = Vec3::new(transform.position[0], transform.position[1], transform.position[2]);
+            
+            // [Fix] Handle 3D Rotation and Billboarding
+            // If billboard is true, we keep original 2D behavior (Z-rotation only, facing Z plane)
+            // If billboard is false, we apply full 3D rotation so it can be placed as a floor/wall in 3D
+            let rot = if sprite.billboard {
+                 Quat::from_rotation_z(transform.rotation[2].to_radians())
+            } else {
+                 let rot_rad = Vec3::new(
+                    transform.rotation[0].to_radians(),
+                    transform.rotation[1].to_radians(),
+                    transform.rotation[2].to_radians(),
+                );
+                Quat::from_euler(glam::EulerRot::XYZ, rot_rad.x, rot_rad.y, rot_rad.z)
+            };
 
-            // Draw sprites
-            batch_renderer.end_frame(queue, render_pass, texture);
+            // Convert pixel size to world units using pixels_per_unit
+            let world_width = sprite.width / sprite.pixels_per_unit;
+            let world_height = sprite.height / sprite.pixels_per_unit;
+            let scale = Vec3::new(transform.scale[0] * world_width, transform.scale[1] * world_height, 1.0);
+
+            batch_renderer.draw_sprite(pos, rot, scale, sprite.color, [u_min, v_min], [u_scale, v_scale]);
         }
     }
+    
+    // Flush final batch
+    if !current_texture_id.is_empty() {
+         batch_renderer.finish_batch(device, current_texture_id);
+    }
+
+    // 4. Render All Batches
+    // Pass external camera binding (Scene Camera or Game Camera)
+    batch_renderer.render(render_pass, texture_manager, &camera_binding.bind_group);
 
     // 4. Render Meshes with Depth Sorting
     // Collect and sort meshes by Z position (back to front for transparency, front to back for opaque)
