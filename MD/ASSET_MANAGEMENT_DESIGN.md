@@ -1,81 +1,133 @@
-# Unified Asset Inspector Design
+# 📦 Asset Management System Design
 
-## Overview
-Currently, the XS Editor has a hardcoded check in `dock_layout.rs`:
-```rust
-if texture_selected { show_texture_inspector() } else { show_entity_inspector() }
-```
-This is not scalable. As we add Audio, 3D Models (.gltf), and Materials, we need a generic system.
+## 🎯 Overview
+The Asset Management System (AMS) is the backbone of the game engine, responsible for importing, processing, tracking, and loading game assets (textures, models, audio, scripts, scenes, etc.).
 
-## 1. The Problem
-*   **No Model Settings:** You cannot change the Import Scale or Forward Axis of a GLTF model.
-*   **No Audio Settings:** You cannot set an MP3 to "Stream from Disk" vs "Decompress on Load".
-*   **Hardcoded Logic:** `dock_layout.rs` will grow indefinitely if we keep adding `if/else`.
-
-## 2. Proposed Architecture
-
-### 2.1 The `AssetInspector` Trait
-We introduce a trait that all asset inspectors must implement.
-
-```rust
-pub trait AssetInspector {
-    /// Return true if this inspector handles this file extension
-    fn can_inspect(&self, path: &Path) -> bool;
-    
-    /// Draw the UI. Return `true` if changed.
-    fn render(&mut self, ui: &mut egui::Ui, path: &Path, asset_manager: &AssetManager) -> bool;
-    
-    /// Apply changes to .meta file
-    fn save(&mut self, path: &Path);
-}
-```
-
-### 2.2 The `InspectorRegistry`
-A central registry in `EditorState`.
-
-```rust
-pub struct InspectorRegistry {
-    inspectors: Vec<Box<dyn AssetInspector>>,
-}
-
-impl InspectorRegistry {
-    pub fn render_for_path(&mut self, ui: &mut egui::Ui, path: &Path) {
-        if let Some(inspector) = self.inspectors.iter_mut().find(|i| i.can_inspect(path)) {
-            inspector.render(ui, path, ...);
-        } else {
-            ui.label("No inspector for this asset type.");
-        }
-    }
-}
-```
-
-## 3. New Inspectors Needed
-
-### 3.1 `ModelInspector` (.gltf, .glb, .xsg)
-*   **Scale Factor:** Global scale multiplier (0.01 vs 1.0).
-*   **Axis Conversion:** Blender (Z-up) vs Unity (Y-up) correction.
-*   **Material Remapping:** Override internal materials with project materials.
-*   **Collider Gen:** "Generate Convex Mesh Collider" checkbox.
-
-### 3.2 `AudioInspector` (.wav, .mp3)
-*   **Force To Mono:** For 3D positional audio.
-*   **Compression:** `PCM`, `Vorbis`, `ADPCM`.
-*   **Load Type:** `DecompressOnLoad` (SFX), `CompressedInMemory`, `Streaming` (Music).
-
-### 3.3 `MaterialInspector` (.mat)
-*   **Shader Selection:** Dropdown to pick `.wgsl` shader.
-*   **Properties:** Auto-generated UI based on Shader Uniforms (Reflect from WGSL).
-    *   `float` -> Slider
-    *   `vec3` -> Color Picker
-    *   `texture` -> Texture Slot
+This document outlines the architecture for a robust, Unity/Unreal-style asset system that supports:
+1.  **Unique Identification (UUIDs)** for stable references.
+2.  **Metadata & Import Settings** via sidecar `.meta` files.
+3.  **Async Loading & Caching** for performance.
+4.  **Hot Reloading** for rapid iteration.
+5.  **Editor Integration** (Content Browser).
 
 ---
 
-## 4. Implementation Steps
+## 🏗 Architecture
 
-1.  **Refactor `dock_layout.rs`:** Remove the hardcoded `texture_inspector` check.
-2.  **Create `InspectorRegistry`:** In `editor/src/ui/inspector/registry.rs`.
-3.  **Port `TextureInspector`:** Make it implement `AssetInspector` trait.
-4.  **Implement `ModelInspector`:** Basic scale settings for GLTF.
+### 1. The Asset Database (Editor-Side)
+The **Asset Database** is responsible for tracking all files in the `assets/` folder. It maps file paths to UUIDs and maintains the state of imported assets.
 
-This system is required before we can seriously import 3D assets for the Physics/Voxel work.
+-   **Responsibility**:
+    -   Scanning the `assets/` directory.
+    -   Generating/Reading `.meta` files.
+    -   Detecting file changes (watchdog).
+    -   Triggering importers when source files change.
+
+### 2. The Runtime Asset Manager
+The **Runtime Manager** handles loading assets into memory for the game.
+
+-   **Responsibility**:
+    -   Loading assets by UUID or Path.
+    -   Caching loaded assets (ref-counting).
+    -   Unloading unused assets.
+    -   Handling async loading requests.
+
+---
+
+## 📂 File Structure & Metadata
+
+### The `.meta` File
+Every source asset (e.g., `player.png`) will have a generated sidecar file (e.g., `player.png.meta`).
+
+**Why?**
+-   **Stable References**: If `player.png` is moved to a different folder, the UUID in the `.meta` file stays the same. Other assets (like Scenes) reference the UUID, not the path.
+-   **Import Settings**: Stores settings specific to that asset (e.g., Texture filtering mode, Audio compression quality).
+
+#### Example: `player.png.meta`
+```yaml
+guid: 5a2b3c4d-8e9f-1g2h-3i4j-5k6l7m8n9o0p
+importer: TextureImporter
+settings:
+  read_write: false
+  generate_mipmaps: true
+  filter_mode: Bilinear
+  wrap_mode: Clamp
+```
+
+---
+
+## 🔄 Asset Workflow
+
+### 1. Import Process
+When a new file is dropped into `assets/`:
+1.  **Detection**: `AssetDatabase` detects the new file.
+2.  **Meta Generation**: A unique UUID is generated, and a `.meta` file is created.
+3.  **Processing**: The appropriate `Importer` (e.g., `TextureImporter`) processes the raw file into an engine-friendly format if necessary (or loads it directly).
+
+### 2. Loading (Runtime)
+```rust
+// Identifying an asset
+let player_sprite_id = AssetId::from("5a2b3c4d-...");
+
+// Requesting load (Async)
+let handle = asset_manager.load::<Texture>(player_sprite_id);
+
+// Accessing (once loaded)
+if let Some(texture) = asset_manager.get(handle) {
+    renderer.draw(texture);
+}
+```
+
+---
+
+## 🧩 Core Components
+
+### `AssetId` (UUID)
+A 128-bit unique identifier referencing a specific asset.
+
+### `AssetHandle<T>`
+A lightweight handle used by game objects to reference an asset. It allows the underlying asset to be swapped (hot-reloaded) without updating every game object.
+
+### `AssetCache`
+A map of `AssetId -> LoadedAsset`. Uses Reference Counting (Arc) to keep assets alive while in use.
+
+---
+
+## 🗓 Roadmap
+
+### Phase 1: Foundation (Current Status)
+- [x] Basic File Browser (Editor).
+- [x] `AssetMetadata` struct (Size, Type, Modified Time).
+- [ ] UUID Generation for all assets.
+- [ ] `.meta` file creation/parsing.
+
+### Phase 2: Runtime Integration
+- [ ] `AssetManager` struct with `load()` and `unload()`.
+- [ ] Integration with `TextureManager`, `ModelManager`, etc.
+- [ ] Scene format update to use UUIDs instead of paths.
+
+### Phase 3: Advanced Features
+- [ ] Hot Reloading (Update GPU resources when file changes).
+- [ ] Asset Bundles (Packing for release).
+- [ ] Async Loading (Background thread pool).
+
+---
+
+## 📝 Usage Examples
+
+### Defining a Component with an Asset Ref
+```rust
+struct SpriteComponent {
+    texture: AssetHandle<Texture>,
+    // stored as UUID in serialization
+}
+```
+
+### Drag & Drop in Editor
+1.  User drags `jump.wav` from Content Browser to a Button in Inspector.
+2.  Editor looks up `.meta` for `jump.wav`.
+3.  Inspector receives the UUID.
+4.  Component saves the UUID.
+
+---
+*Created by XS Game Studio Architecture Team*

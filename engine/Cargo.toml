@@ -38,6 +38,7 @@ bytemuck = { workspace = true }
 gltf = "1.4.1"
 bincode = "1.3.3"
 lz4_flex = "0.12.0"
+uuid = { version = "1.19.0", features = ["v4", "serde"] }
 
 [dev-dependencies]
 proptest = { workspace = true }
