@@ -212,7 +212,7 @@ pub fn render_transform_gizmo(
                     }
                     TransformTool::Rotate => {
                         // 3D Rotation Gizmo: Render 3 rings
-                        let radius_world = scale * 4.0; // Rough visual size
+                        let radius_world = scale * 1.2; // Adjusted visual size
                         let segments = 32;
 
                         // Function to draw a ring in a plane defined by two vectors
@@ -913,8 +913,8 @@ pub fn render_camera_frustum_3d(
         let rotation = glam::Quat::from_euler(glam::EulerRot::YXZ, rot_y, rot_x, rot_z);
 
         // Calculate directional vectors from rotation
-        // Engine convention: Forward is +Z, Up is +Y, Right is +X
-        let forward = rotation * glam::Vec3::Z;
+        // Engine convention: Forward is -Z (Right Handed), Up is +Y, Right is +X
+        let forward = rotation * -glam::Vec3::Z;
         let up = rotation * glam::Vec3::Y;
         let right = rotation * glam::Vec3::X;
 

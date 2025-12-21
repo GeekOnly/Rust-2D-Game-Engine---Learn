@@ -22,11 +22,11 @@
       }
     ],
     [
-      343,
+      321,
       {
         "position": [
-          33.375,
-          -21.375,
+          5.375,
+          -13.375,
           0.0
         ],
         "rotation": [
@@ -42,11 +42,11 @@
       }
     ],
     [
-      330,
+      331,
       {
         "position": [
-          9.375,
-          -11.875,
+          36.375,
+          -13.375,
           0.0
         ],
         "rotation": [
@@ -105,8 +105,8 @@
       11,
       {
         "position": [
-          14.563578,
-          -16.330235,
+          10.039423,
+          -9.225673,
           0.0
         ],
         "rotation": [
@@ -642,51 +642,51 @@
       }
     ],
     [
+      343,
+      {
+        "position": [
+          33.375,
+          -21.375,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      330,
+      {
+        "position": [
+          9.375,
+          -11.875,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
       324,
       {
         "position": [
           9.375,
           -2.375,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      321,
-      {
-        "position": [
-          5.375,
-          -13.375,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      331,
-      {
-        "position": [
-          36.375,
-          -13.375,
           0.0
         ],
         "rotation": [
@@ -718,7 +718,7 @@
       ]
     ],
     [
-      327,
+      332,
       [
         0.0,
         -0.0
@@ -732,14 +732,14 @@
       ]
     ],
     [
-      341,
+      326,
       [
         0.0,
         -0.0
       ]
     ],
     [
-      332,
+      323,
       [
         0.0,
         -0.0
@@ -893,14 +893,14 @@
       ]
     ],
     [
-      326,
+      341,
       [
         0.0,
         -0.0
       ]
     ],
     [
-      323,
+      327,
       [
         0.0,
         -0.0
@@ -1864,50 +1864,68 @@
         "script_name": "player_controller",
         "enabled": true,
         "parameters": {
-          "dash_duration": {
-            "Float": 0.2
+          "can_dash": {
+            "Bool": false
           },
-          "new_vel_x": {
+          "is_dashing": {
+            "Bool": true
+          },
+          "dash_timer": {
             "Float": 0.0
           },
-          "dash_direction_y": {
+          "elapsed_time": {
+            "Int": 0
+          },
+          "hud_loaded": {
+            "Bool": true
+          },
+          "frame_count": {
+            "Int": 0
+          },
+          "new_vel_x": {
             "Float": 0.0
           },
           "velocity_y": {
             "Float": 0.0
           },
+          "wall_slide_speed": {
+            "Float": 1.0
+          },
           "dash_y": {
             "Float": 1.0
           },
-          "can_dash": {
-            "Bool": false
+          "wall_direction": {
+            "Int": 0
           },
-          "dash_timer": {
-            "Float": 0.0
+          "hud_prefab_path": {
+            "String": "projects/Celeste Demo/assets/ui/celeste_hud.uiprefab"
           },
-          "dash_x": {
-            "Float": 1.0
+          "current_fps": {
+            "Int": 0
           },
-          "velocity_x": {
+          "dash_direction_x": {
             "Float": 0.0
           },
           "is_touching_wall": {
             "Bool": false
           },
-          "wall_slide_speed": {
-            "Float": 1.0
+          "velocity_x": {
+            "Float": 0.0
           },
-          "is_dashing": {
-            "Bool": true
+          "hud_instance_name": {
+            "String": "celeste_hud"
           },
           "is_grounded": {
             "Bool": false
           },
-          "dash_direction_x": {
+          "dash_duration": {
+            "Float": 0.2
+          },
+          "dash_direction_y": {
             "Float": 0.0
           },
-          "wall_direction": {
-            "Int": 0
+          "dash_x": {
+            "Float": 1.0
           }
         }
       }
