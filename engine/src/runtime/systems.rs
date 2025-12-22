@@ -18,10 +18,10 @@ pub struct GameSystems {
 }
 
 impl GameSystems {
-    pub fn new() -> Result<Self> {
+    pub fn new(asset_loader: std::sync::Arc<dyn engine_core::assets::AssetLoader>) -> Result<Self> {
         Ok(Self {
             physics_world: PhysicsWorld::new(),
-            script_engine: ScriptEngine::new()?,
+            script_engine: ScriptEngine::new(asset_loader)?,
         })
     }
 

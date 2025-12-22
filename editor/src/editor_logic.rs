@@ -263,6 +263,7 @@ impl EditorLogic {
             physics_accumulator,
             fixed_time_step,
             dt,
+            asset_loader,
         );
     }
 

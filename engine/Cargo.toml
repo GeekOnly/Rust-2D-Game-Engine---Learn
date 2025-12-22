@@ -60,7 +60,7 @@ criterion = { workspace = true }
 
 [features]
 default = ["rapier"]
-rapier = ["physics/rapier"]
+rapier = ["physics/rapier", "script/rapier"]
 system-clipboard = []
 
 [[bin]]

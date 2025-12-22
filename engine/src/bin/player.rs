@@ -92,9 +92,9 @@ fn main() -> Result<()> {
         .build(&event_loop)?;
 
     // Initialize systems
-    let asset_loader = std::sync::Arc::new(engine::assets::native_loader::NativeAssetLoader::new("."));
+    let asset_loader: std::sync::Arc<dyn engine_core::assets::AssetLoader> = std::sync::Arc::new(engine::assets::native_loader::NativeAssetLoader::new("."));
     let mut ctx = EngineContext::new(asset_loader.clone());
-    let mut script_engine = ScriptEngine::new()?;
+    let mut script_engine = ScriptEngine::new(asset_loader.clone())?;
     
     #[cfg(feature = "rapier")]
     let mut physics = RapierPhysicsWorld::new();
@@ -160,8 +160,8 @@ fn main() -> Result<()> {
                 log::info!("Scene loaded successfully");
                 
                 // Load scripts after scene is loaded
-                let scripts_folder = project_path.join("scripts");
-                if let Err(e) = runtime::script_loader::load_all_scripts(&mut world, &mut script_engine, &scripts_folder) {
+                // scripts_folder is no longer needed as argument, simpler call:
+                if let Err(e) = runtime::script_loader::load_all_scripts(&mut world, &mut script_engine) {
                     log::error!("Failed to load scripts: {}", e);
                 } else {
                     log::info!("Scripts loaded successfully");

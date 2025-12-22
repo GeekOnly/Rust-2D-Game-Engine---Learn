@@ -1,6 +1,6 @@
 use ecs::World;
 use script::ScriptEngine;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use anyhow::Result;
 
 /// Load and initialize all scripts in the world (Unity-style lifecycle)
@@ -8,7 +8,7 @@ use anyhow::Result;
 pub fn load_all_scripts(
     world: &mut World,
     script_engine: &mut ScriptEngine,
-    scripts_folder: &PathBuf,
+    // scripts_folder argument removed - we use AssetLoader with "scripts/" prefix
 ) -> Result<()> {
     let entities_with_scripts: Vec<_> = world.scripts.keys().cloned().collect();
 
@@ -17,18 +17,20 @@ pub fn load_all_scripts(
         if let Some(script) = world.scripts.get(entity) {
             if script.enabled {
                 let script_name = script.script_name.clone();
-                let script_path = scripts_folder.join(format!("{}.lua", script_name));
+                let script_path = format!("scripts/{}.lua", script_name);
 
-                if script_path.exists() {
-                    if let Ok(content) = std::fs::read_to_string(&script_path) {
-                        if let Err(e) = script_engine.load_script_for_entity(*entity, &content, world) {
+                // Use AssetLoader from ScriptEngine
+                match pollster::block_on(script_engine.asset_loader.load_text(&script_path)) {
+                    Ok(content) => {
+                         if let Err(e) = script_engine.load_script_for_entity(*entity, &content, world) {
                             log::error!("Failed to load script {} for entity {}: {}", script_name, entity, e);
                         } else {
                             log::info!("Loaded script: {} (Awake called)", script_name);
                         }
                     }
-                } else {
-                    log::warn!("Script file not found: {:?}", script_path);
+                    Err(e) => {
+                         log::warn!("Script file not found or failed to load: {} ({})", script_path, e);
+                    }
                 }
             }
         }
@@ -53,7 +55,7 @@ pub fn load_all_scripts(
 pub fn run_all_scripts(
     world: &mut World,
     script_engine: &mut ScriptEngine,
-    scripts_folder: &PathBuf,
+    // scripts_folder argument removed
     input: &input::InputSystem,
     dt: f32,
 ) -> Result<()> {
@@ -62,7 +64,9 @@ pub fn run_all_scripts(
     for entity in entities_with_scripts {
         if let Some(script) = world.scripts.get(&entity) {
             if script.enabled {
-                let script_path = scripts_folder.join(format!("{}.lua", script.script_name));
+                // script_path info is effectively unused by run_script (it uses entity state),
+                // but we can pass a dummy path or reconstruct if needed for logging.
+                let script_path = Path::new("scripts").join(format!("{}.lua", script.script_name));
 
                 let mut log_callback = |msg: String| {
                     log::info!("{}", msg);

@@ -42,9 +42,14 @@ The goal is to replace all direct `std::fs` calls in the engine with `AssetLoade
     - **Status:** Done. `XsgImporter` and `GltfLoader` refactored to use `AssetLoader`.
 
 #### 4. Script Engine (Lua) 📜
-- [ ] **Update Lua Script Loading**
-    - **Target:** `script/src/lib.rs` or wherever `mlua` loads files.
-    - **Action:** Instead of `lua.load(Path)`, use `loader.load_text(path).await` to get the script content, then `lua.load(&script_content).exec()`.
+- [x] **Update Lua Script Loading**
+    - **Target:** `script/src/lib.rs` (`ScriptEngine`), `engine/src/runtime/script_loader.rs`.
+    - **Action:** Instead of `std::fs`, use `loader.load_text(path)` to get the script content.
+    - **Implementation Details:**
+        - `ScriptEngine` now stores `Arc<dyn AssetLoader>`.
+        - `ScriptEngine` registers a custom `package.searcher` for Lua `require` calls, which uses `pollster::block_on(asset_loader.load_text(...))`.
+        - `load_all_scripts` refactored to use `asset_loader`.
+        - `PlayModeSystem` now uses `ScriptEngine`'s stored loader/state instead of filesystem checks for collision callbacks.
 
 ---
 

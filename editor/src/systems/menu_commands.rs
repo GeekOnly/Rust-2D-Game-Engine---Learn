@@ -146,8 +146,9 @@ impl MenuCommandSystem {
                  }
 
                  // Load scripts (same as Player binary)
-                 if let Some(scripts_folder) = editor_state.get_scripts_folder() {
-                     if let Err(e) = engine::runtime::script_loader::load_all_scripts(&mut editor_state.world, script_engine, &scripts_folder) {
+                 // Load scripts (same as Player binary)
+                 if editor_state.current_project_path.is_some() {
+                     if let Err(e) = engine::runtime::script_loader::load_all_scripts(&mut editor_state.world, script_engine) {
                          editor_state.console.error(format!("Failed to load scripts: {}", e));
                      } else {
                          editor_state.console.info("Scripts loaded successfully".to_string());

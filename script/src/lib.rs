@@ -1,11 +1,13 @@
 // Force rebuild - UI commands fix v2
-use mlua::{Lua, Function, Table};
+use mlua::{Lua, Function, Table, Value};
 use anyhow::Result;
 use ecs::{World, Entity, EntityTag};
 use input::{InputSystem, Key, MouseButton, GamepadButton};
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::collections::HashMap;
+use engine_core::assets::AssetLoader;
+use std::sync::Arc;
 
 #[cfg(feature = "rapier")]
 mod rapier_bindings;
@@ -42,19 +44,65 @@ pub struct ScriptEngine {
     pub debug_lines: Rc<RefCell<Vec<DebugLine>>>,
     // UI command queue (Lua -> Engine)
     pub ui_commands: Rc<RefCell<Vec<UICommand>>>,
+    // Asset Loader for loading scripts/modules
+    pub asset_loader: Arc<dyn AssetLoader>,
 }
 
 impl ScriptEngine {
-    pub fn new() -> Result<Self> {
+    pub fn new(asset_loader: Arc<dyn AssetLoader>) -> Result<Self> {
         let lua = Lua::new();
+        
+        // Register custom require searcher for the main Lua state
+        Self::register_require_searcher(&lua, asset_loader.clone())?;
+
         Ok(Self { 
             lua,
             entity_states: HashMap::new(),
             ground_states: HashMap::new(),
             debug_lines: Rc::new(RefCell::new(Vec::new())),
             ui_commands: Rc::new(RefCell::new(Vec::new())),
+            asset_loader,
         })
     }
+    
+    // Helper to register AssetLoader-based require searcher
+    fn register_require_searcher(lua: &Lua, asset_loader: Arc<dyn AssetLoader>) -> Result<()> {
+        let globals = lua.globals();
+        let package: Table = globals.get("package")?;
+        // Try "searchers" (Lua 5.2+) first, then "loaders" (Lua 5.1/LuaJIT)
+        let searchers: Table = if let Ok(s) = package.get("searchers") {
+            s
+        } else {
+            package.get("loaders")?
+        };
+        
+        let loader_arc = asset_loader;
+        let custom_loader = lua.create_function(move |lua, name: String| {
+             // Convert dotted package name to path (e.g. "game.utils" -> "scripts/game/utils.lua")
+             let path = format!("scripts/{}.lua", name.replace('.', "/"));
+             
+             // Block on async load
+             let result = pollster::block_on(loader_arc.load_text(&path));
+             
+             match result {
+                 Ok(content) => {
+                     let chunk = lua.load(&content).set_name(&path);
+                     let loader_func = chunk.into_function()?; 
+                     Ok(Value::Function(loader_func))
+                 },
+                 Err(e) => {
+                     // Lua expects an error string if module not found
+                     Ok(Value::String(lua.create_string(&format!("\n\tAssetLoader: failed to load '{}' ({})", path, e))?))
+                 }
+             }
+        })?;
+        
+        // Append to searchers
+        let len = searchers.len()?;
+        searchers.set(len + 1, custom_loader)?;
+        Ok(())
+    }
+
     
     /// Get and clear debug lines (called by engine after rendering)
     pub fn take_debug_lines(&self) -> Vec<DebugLine> {
@@ -81,6 +129,9 @@ impl ScriptEngine {
     pub fn load_script_for_entity(&mut self, entity: Entity, content: &str, world: &mut World) -> Result<()> {
         // Create a new Lua state for this entity
         let lua = Lua::new();
+        
+        // Register custom require searcher for this entity's Lua state
+        Self::register_require_searcher(&lua, self.asset_loader.clone())?;
         
         // Load the script content
         lua.load(content).exec()?;

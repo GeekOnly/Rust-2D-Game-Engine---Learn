@@ -8,4 +8,10 @@ mlua = { workspace = true }
 anyhow = { workspace = true }
 ecs = { path = "../ecs" }
 input = { path = "../input" }
+engine_core = { path = "../engine_core" }
 log = { workspace = true }
+pollster = { workspace = true }
+
+[features]
+default = []
+rapier = []

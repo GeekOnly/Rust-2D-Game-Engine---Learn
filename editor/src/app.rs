@@ -113,11 +113,11 @@ impl EditorApp {
         let launcher_state = LauncherState::new()?;
         let editor_state = EditorState::new();
 
-        let asset_loader = std::sync::Arc::new(engine::assets::native_loader::NativeAssetLoader::new("."));
-        let ctx = EngineContext::new(asset_loader);
+        let asset_loader: std::sync::Arc<dyn engine_core::assets::AssetLoader> = std::sync::Arc::new(engine::assets::native_loader::NativeAssetLoader::new("."));
+        let ctx = EngineContext::new(asset_loader.clone());
         // Sample game removed - use projects/ folder for game content
 
-        let script_engine = ScriptEngine::new()?;
+        let script_engine = ScriptEngine::new(asset_loader.clone())?;
         #[cfg(feature = "rapier")]
         let physics = RapierPhysicsWorld::new();
         #[cfg(not(feature = "rapier"))]

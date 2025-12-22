@@ -18,6 +18,7 @@ impl PlayModeSystem {
         physics_accumulator: &mut f32,
         fixed_time_step: f32,
         dt: f32,
+        asset_loader: &dyn engine_core::assets::AssetLoader,
     ) {
         if !editor_state.is_playing {
             return;
@@ -191,28 +192,19 @@ impl PlayModeSystem {
                 if collision {
                     // Call on_collision for e1's script
                     if let Some(script) = editor_state.world.scripts.get(&e1).filter(|s| s.enabled) {
-                            let script_name = script.script_name.clone();
-                            if let Some(scripts_folder) = editor_state.get_scripts_folder() {
-                                let script_path = scripts_folder.join(format!("{}.lua", script_name));
-                                if script_path.exists() {
-                                    if let Err(e) = script_engine.call_collision(&script_path, e1, e2, &mut editor_state.world) {
-                                        editor_state.console.error(format!("Collision error {}: {}", script_name, e));
-                                    }
-                                }
-                            }
+                        let script_name = script.script_name.clone();
+                        // Call collision (path ignored by engine, resolved via entity state)
+                        if let Err(e) = script_engine.call_collision(&std::path::Path::new(""), e1, e2, &mut editor_state.world) {
+                             editor_state.console.error(format!("Collision error {}: {}", script_name, e));
+                        }
                     }
 
                     // Call on_collision for e2's script
                     if let Some(script) = editor_state.world.scripts.get(&e2).filter(|s| s.enabled) {
-                            let script_name = script.script_name.clone();
-                            if let Some(scripts_folder) = editor_state.get_scripts_folder() {
-                                let script_path = scripts_folder.join(format!("{}.lua", script_name));
-                                if script_path.exists() {
-                                    if let Err(e) = script_engine.call_collision(&script_path, e2, e1, &mut editor_state.world) {
-                                        editor_state.console.error(format!("Collision error {}: {}", script_name, e));
-                                    }
-                                }
-                            }
+                        let script_name = script.script_name.clone();
+                        if let Err(e) = script_engine.call_collision(&std::path::Path::new(""), e2, e1, &mut editor_state.world) {
+                             editor_state.console.error(format!("Collision error {}: {}", script_name, e));
+                        }
                     }
                 }
             }
