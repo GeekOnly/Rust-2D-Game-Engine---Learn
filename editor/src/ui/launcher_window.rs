@@ -12,6 +12,7 @@ impl LauncherWindow {
         app_state: &mut AppState,
         launcher_state: &mut LauncherState,
         editor_state: &mut EditorState,
+        asset_loader: &dyn engine_core::assets::AssetLoader,
         // editor_mod: &mut EditorMod, // If needed
     ) {
         egui::CentralPanel::default().show(ctx, |ui| {
@@ -44,7 +45,7 @@ impl LauncherWindow {
                                 editor_state.load_editor_layout();
 
                                 // Try to load last opened scene first, then startup scene
-                                Self::load_initial_scene(editor_state, launcher_state, &folder);
+                                Self::load_initial_scene(editor_state, launcher_state, &folder, asset_loader);
                             }
                             Err(e) => {
                                 launcher_state.error_message = Some(format!("Error: {}", e));
@@ -71,7 +72,7 @@ impl LauncherWindow {
                         });
                         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                             if ui.button("Open").clicked() {
-                                Self::open_example_project(name, desc, app_state, launcher_state, editor_state);
+                                Self::open_example_project(name, desc, app_state, launcher_state, editor_state, asset_loader);
                             }
                         });
                     });
@@ -116,8 +117,8 @@ impl LauncherWindow {
                                             *app_state = AppState::Editor;
                                             *editor_state = EditorState::new();
                                             editor_state.set_project_path(project.path.clone());
-
-                                            Self::load_initial_scene(editor_state, launcher_state, &project.path);
+                                            
+                                            Self::load_initial_scene(editor_state, launcher_state, &project.path, asset_loader);
                                         }
                                     });
                                 });
@@ -175,14 +176,14 @@ impl LauncherWindow {
         }
     }
 
-    fn load_initial_scene(editor_state: &mut EditorState, launcher_state: &LauncherState, folder: &std::path::Path) {
+    fn load_initial_scene(editor_state: &mut EditorState, launcher_state: &LauncherState, folder: &std::path::Path, asset_loader: &dyn engine_core::assets::AssetLoader) {
         let mut scene_loaded = false;
                                                         
         // 1. Try last opened scene
         if let Ok(Some(last_scene)) = launcher_state.project_manager.get_last_opened_scene(folder) {
             let scene_path = folder.join(&last_scene);
             if scene_path.exists() {
-                if let Err(e) = editor_state.load_scene(&scene_path) {
+                if let Err(e) = editor_state.load_scene(&scene_path, asset_loader) {
                     editor_state.console.error(format!("Failed to load last scene: {}", e));
                 } else {
                     editor_state.current_scene_path = Some(scene_path.clone());
@@ -197,7 +198,7 @@ impl LauncherWindow {
             if let Ok(Some(startup_scene)) = launcher_state.project_manager.get_startup_scene(folder) {
                 let scene_path = folder.join(&startup_scene);
                 if scene_path.exists() {
-                    if let Err(e) = editor_state.load_scene(&scene_path) {
+                    if let Err(e) = editor_state.load_scene(&scene_path, asset_loader) {
                         editor_state.console.error(format!("Failed to load startup scene: {}", e));
                     } else {
                         editor_state.current_scene_path = Some(scene_path.clone());
@@ -214,6 +215,7 @@ impl LauncherWindow {
         app_state: &mut AppState, 
         launcher_state: &mut LauncherState, 
         editor_state: &mut EditorState,
+        asset_loader: &dyn engine_core::assets::AssetLoader,
     ) {
          // Check if this is an existing example project (Celeste Demo or FPS 3D Example)
          if name == "Celeste Demo" || name == "FPS 3D Example" {
@@ -238,7 +240,7 @@ impl LauncherWindow {
                         let scene_path = project_path.join("scenes/main.json");
                         log::info!("Attempting to load scene: {:?}", scene_path);
                         if scene_path.exists() {
-                            match editor_state.load_scene(&scene_path) {
+                            match editor_state.load_scene(&scene_path, asset_loader) {
                                 Ok(_) => {
                                     log::info!("Scene loaded successfully!");
                                     

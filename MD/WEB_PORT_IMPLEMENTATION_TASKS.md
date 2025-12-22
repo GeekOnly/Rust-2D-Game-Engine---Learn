@@ -7,35 +7,39 @@ This document tracks the specific implementation steps required to verify the We
 The goal is to replace all direct `std::fs` calls in the engine with `AssetLoader` traits.
 
 ### Core Engine Updates
-- [ ] **Inject AssetLoader into EngineContext**
+- [x] **Inject AssetLoader into EngineContext**
     - Modify `EngineContext` in `engine_core/src/lib.rs` to hold `pub asset_loader: Arc<dyn AssetLoader>`.
     - Update `engine/src/lib.rs` (or main entry point) to initialize the correct loader (`NativeAssetLoader` vs `WebAssetLoader`) and pass it to context.
 
 ### Subsystem Refactoring
 
 #### 1. Texture Manager 🖼️
-- [ ] **Refactor `load_texture` to be Async**
-    - **Current:** `load_texture(path: &str) -> AssetId` (Synchronous)
+- [x] **Refactor `load_texture` to support `Vec<u8>` loading**
+    - **Status:** Implemented `load_texture_from_bytes` in both `engine` and `render` crates.
+    - **Current:** `load_texture(path: &str) -> AssetId` (Synchronous wrapper around bytes loader)
     - **New:** `load_texture(loader: &dyn AssetLoader, path: &str) -> AssetId` (returns placeholder immediately, loads in background?) OR `async fn load_texture(...) -> Result<AssetId>`
     - **Strategy:**
         1. Keep `load_texture` returning an `AssetId` immediately so we don't break ECS flow.
         2. Spawn the async load task.
         3. Use a "Pink Texture" (placeholder) until the real data arrives.
         4. When `AssetLoader::load_binary` returns `Vec<u8>`, use `image::load_from_memory` instead of `image::open`.
+    - **Status Check:** `load_texture_from_bytes` is implemented. Editor logic uses `asset_loader.load_binary` -> `texture_manager.load_texture_from_bytes`.
 
 #### 2. Scene Loader 🎬
-- [ ] **Refactor `SceneLoader` / `SceneManager`**
-    - **Target File:** `engine/src/assets/manager.rs` or `runtime/scene_manager.rs` (check codebase).
+- [x] **Refactor `SceneLoader` / `SceneManager`**
+    - **Target File:** `editor/src/states.rs` (EditorState).
     - **Action:**
         - Change `load_scene_from_file(path)` to use `loader.load_text(path).await`.
         - Parse the returned JSON string.
+    - **Status:** Done. `EditorState::load_scene` uses `asset_loader` to read the scene JSON.
 
 #### 3. GLTF / Model Loader 🧊
-- [ ] **Update `gltf_loader.rs`**
+- [x] **Update `gltf_loader.rs`**
     - GLTF loading is complex because `.gltf` files reference external `.bin` and texture files.
     - **Challenge:** The `gltf` crate typically expects a file path.
     - **Solution:** We might need to read the `.gltf` JSON manually or use the `gltf::import_slice` API if we load the `.glb` (binary) completely into memory first.
     - **Task:** Switch to loading `.glb` (single file) via `AssetLoader::load_binary` and use `gltf::import_slice`.
+    - **Status:** Done. `XsgImporter` and `GltfLoader` refactored to use `AssetLoader`.
 
 #### 4. Script Engine (Lua) 📜
 - [ ] **Update Lua Script Loading**

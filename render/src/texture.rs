@@ -145,11 +145,11 @@ impl TextureManager {
         }
     }
 
-    pub fn load_texture(
+    pub fn load_texture_from_bytes(
         &mut self,
         device: &wgpu::Device,
         queue: &wgpu::Queue,
-        path: impl AsRef<Path>,
+        bytes: &[u8],
         id: &str,
     ) -> Result<()> {
         // Ensure layout exists
@@ -157,10 +157,20 @@ impl TextureManager {
             self.bind_group_layout = Some(Texture::create_bind_group_layout(device));
         }
 
-        let bytes = std::fs::read(path)?;
-        let texture = Texture::from_bytes(device, queue, &bytes, Some(id), self.bind_group_layout.as_ref())?;
+        let texture = Texture::from_bytes(device, queue, bytes, Some(id), self.bind_group_layout.as_ref())?;
         self.textures.insert(id.to_string(), texture);
         Ok(())
+    }
+
+    pub fn load_texture(
+        &mut self,
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        path: impl AsRef<Path>,
+        id: &str,
+    ) -> Result<()> {
+        let bytes = std::fs::read(path)?;
+        self.load_texture_from_bytes(device, queue, &bytes, id)
     }
 
     pub fn get_texture(&self, id: &str) -> Option<&Texture> {

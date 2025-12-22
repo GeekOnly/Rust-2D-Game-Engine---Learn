@@ -1,4 +1,5 @@
 use crate::assets::xsg::*;
+use pollster;
 use ecs::{World, Entity};
 use render::{MeshRenderer, Mesh, PbrMaterial, ModelVertex, Texture};
 use crate::texture_manager::TextureManager;
@@ -20,8 +21,9 @@ impl XsgLoader {
         queue: &wgpu::Queue,
         path_id: &str,
         base_path: &std::path::Path,
+        asset_loader: &dyn engine_core::assets::AssetLoader,
     ) -> anyhow::Result<()> {
-        Self::load_resources(&xsg, device, queue, path_id, base_path)?;
+        Self::load_resources(&xsg, device, queue, path_id, base_path, asset_loader)?;
         get_model_manager().add_model(path_id.to_string(), xsg);
         Ok(())
     }
@@ -32,6 +34,7 @@ impl XsgLoader {
          queue: &wgpu::Queue,
          path_id: &str,
          base_path: &std::path::Path,
+         asset_loader: &dyn engine_core::assets::AssetLoader,
     ) -> anyhow::Result<(std::collections::HashMap<u32, Vec<String>>, std::collections::HashMap<u32, String>)> {
          let mut mesh_map: std::collections::HashMap<u32, Vec<String>> = std::collections::HashMap::new(); // Index -> List of Asset IDs
          let mut material_map = std::collections::HashMap::new(); // Index -> Asset ID
@@ -42,17 +45,20 @@ impl XsgLoader {
             let tex_id = format!("{}_tex_{}_{}", path_id, xsg_tex.name, i);
             let mut loaded_texture = None;
             
-            if let Some(uri) = &xsg_tex.uri {
-                 let full_path = base_path.join(uri);
-                 
-                 if let Ok(img) = image::open(&full_path) {
-                     // Use Texture directly as it is imported
-                     if let Ok(tex) = Texture::from_image(device, queue, &img, Some(&tex_id), None) {
-                         loaded_texture = Some(Arc::new(tex));
-                     }
-                 } else {
-                     warn!("Failed to load texture at {:?}", full_path);
-                 }
+             if let Some(uri) = &xsg_tex.uri {
+                  let full_path = base_path.join(uri);
+                  let full_path_str = full_path.to_str().unwrap_or(uri);
+                  
+                  // Load via AssetLoader
+                  if let Ok(data) = pollster::block_on(asset_loader.load_binary(full_path_str)) {
+                      if let Ok(img) = image::load_from_memory(&data) {
+                           if let Ok(tex) = Texture::from_image(device, queue, &img, Some(&tex_id), None) {
+                               loaded_texture = Some(Arc::new(tex));
+                           }
+                      }
+                  } else {
+                      warn!("Failed to load texture at {:?}", full_path);
+                  }
             } else if let Some(data) = &xsg_tex.data {
                  if let Ok(img) = image::load_from_memory(data) {
                      if let Ok(tex) = Texture::from_image(device, queue, &img, Some(&tex_id), None) {
@@ -153,8 +159,9 @@ impl XsgLoader {
         _texture_manager: &mut TextureManager, // Unused now
         path_id: &str,
         base_path: &std::path::Path,
+        asset_loader: &dyn engine_core::assets::AssetLoader,
     ) -> anyhow::Result<Vec<Entity>> {
-        let (mesh_map, material_map) = Self::load_resources(xsg, device, queue, path_id, base_path)?;
+        let (mesh_map, material_map) = Self::load_resources(xsg, device, queue, path_id, base_path, asset_loader)?;
         let mut created_entities = Vec::new();
         
         // 4. Create Entities (Nodes)

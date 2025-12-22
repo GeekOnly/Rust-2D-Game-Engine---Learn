@@ -4,6 +4,7 @@ use std::fs::File;
 use std::io::{Read, Write};
 use anyhow::{Context, Result};
 use gltf;
+use pollster;
 use crate::assets::xsg::*;
 
 pub struct XsgImporter;
@@ -187,11 +188,10 @@ impl XsgImporter {
         Ok(())
     }
     
-    /// Load XSG file from disk
-    pub fn load_from_file<P: AsRef<Path>>(path: P) -> Result<XsgFile> {
-        let mut file = File::open(path).context("Failed to open XSG file")?;
-        let mut buffer = Vec::new();
-        file.read_to_end(&mut buffer)?;
+    /// Load XSG file from asset
+    pub fn load_from_asset(asset_loader: &dyn engine_core::assets::AssetLoader, path: &str) -> Result<XsgFile> {
+        let buffer = pollster::block_on(asset_loader.load_binary(path))
+            .with_context(|| format!("Failed to load XSG file: {}", path))?;
         
         let mut cursor = std::io::Cursor::new(&buffer);
         
@@ -202,6 +202,9 @@ impl XsgImporter {
         
         // Read Header
         let header_end = 4 + header_len;
+        if header_end > buffer.len() {
+             anyhow::bail!("Invalid XSG file: header length exceeds file size");
+        }
         let header_slice = &buffer[4..header_end];
         let header: XsgHeader = bincode::deserialize(header_slice)?;
         

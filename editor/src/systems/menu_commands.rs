@@ -25,6 +25,7 @@ impl MenuCommandSystem {
         queue: &wgpu::Queue,
         texture_manager: &mut render::TextureManager,
         mesh_renderer: &render::MeshRenderer,
+        asset_loader: &dyn engine_core::assets::AssetLoader,
     ) {
          // Edit script request
          if let Some(script_name) = edit_script_request {
@@ -104,7 +105,7 @@ impl MenuCommandSystem {
                 .add_filter("Scene", &["json", "scene"])
                 .pick_file() 
             {
-                 if let Err(e) = editor_state.load_scene(&path) {
+                 if let Err(e) = editor_state.load_scene(&path, asset_loader) {
                       editor_state.console.error(format!("Failed to load scene: {}", e));
                  } else {
                       editor_state.current_scene_path = Some(path.clone());
@@ -115,7 +116,7 @@ impl MenuCommandSystem {
 
         // Load File Request (from asset browser)
         if let Some(path) = load_file_request {
-             if let Err(e) = editor_state.load_scene(&path) {
+             if let Err(e) = editor_state.load_scene(&path, asset_loader) {
                   editor_state.console.error(format!("Failed to load scene: {}", e));
              } else {
                   editor_state.current_scene_path = Some(path.clone());
@@ -140,6 +141,7 @@ impl MenuCommandSystem {
                          queue,
                          texture_manager,
                          mesh_renderer,
+                         asset_loader,
                      );
                  }
 
@@ -184,7 +186,7 @@ impl MenuCommandSystem {
                  
                  // Reload scene to reset state
                  if let Some(path) = editor_state.current_scene_path.clone() {
-                      if let Err(e) = editor_state.load_scene(&path) {
+                      if let Err(e) = editor_state.load_scene(&path, asset_loader) {
                            editor_state.console.error(format!("Failed to reload scene after stop: {}", e));
                       }
                  }

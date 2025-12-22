@@ -13,20 +13,24 @@ pub trait EngineModule: Any {
     fn as_any(&mut self) -> &mut dyn Any;
 }
 
+use std::sync::Arc;
+use crate::assets::AssetLoader;
 use input::InputSystem;
 
 pub struct EngineContext {
     pub modules: HashMap<String, Box<dyn EngineModule>>,
     pub should_quit: bool,
     pub input: InputSystem,
+    pub asset_loader: Arc<dyn AssetLoader>,
 }
 
 impl EngineContext {
-    pub fn new() -> Self {
+    pub fn new(asset_loader: Arc<dyn AssetLoader>) -> Self {
         Self { 
             modules: HashMap::new(), 
             should_quit: false,
             input: InputSystem::new(),
+            asset_loader,
         }
     }
 

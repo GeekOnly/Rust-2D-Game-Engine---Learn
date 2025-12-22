@@ -81,6 +81,7 @@ pub fn post_process_asset_meshes(
     queue: &wgpu::Queue,
     _texture_manager: &mut TextureManager,
     _mesh_renderer: &MeshRenderer,
+    asset_loader: &dyn engine_core::assets::AssetLoader,
 ) {
     // [SCENE POST-PROCESSING] Load External Assets (XSG)
     // Iterate over all entities with MeshType::Asset and load the referenced XSG files
@@ -119,68 +120,67 @@ pub fn post_process_asset_meshes(
         }
 
         let asset_path = project_path.join(&asset_rel_path);
+        let asset_path_str = asset_path.to_str().unwrap_or("");
         println!("DEBUG: Attempting to load asset from: {:?}", asset_path);
 
-        if asset_path.exists() {
-            println!("DEBUG: File exists! Loading...");
+        // Ideally we should check if asset exists using asset_loader, but it doesn't have `exists()`.
+        // We just try to load.
             
-            // Check file extension to determine loader
-            let extension = asset_path.extension()
-                .and_then(|ext| ext.to_str())
-                .unwrap_or("");
-            
-            let load_result = match extension.to_lowercase().as_str() {
-                "xsg" => {
-                    println!("DEBUG: Loading XSG file");
-                    // Load XSG file
-                    match crate::assets::xsg_importer::XsgImporter::load_from_file(&asset_path) {
-                        Ok(xsg) => {
-                            // Create a dummy texture manager for XSG loader
-                            let mut dummy_texture_manager = crate::texture_manager::TextureManager::new();
-                            let base_path = asset_path.parent().unwrap_or(std::path::Path::new("."));
-                            
-                            crate::assets::xsg_loader::XsgLoader::load_into_world(
-                                &xsg,
-                                world,
-                                device,
-                                queue,
-                                &mut dummy_texture_manager,
-                                &asset_rel_path,
-                                base_path,
-                            )
-                        }
-                        Err(e) => Err(anyhow::anyhow!("Failed to load XSG file: {}", e))
+        // Check file extension to determine loader
+        // Simple check on string
+        let extension = asset_path.extension()
+            .and_then(|ext| ext.to_str())
+            .unwrap_or("");
+        
+        let load_result = match extension.to_lowercase().as_str() {
+            "xsg" => {
+                println!("DEBUG: Loading XSG file");
+                // Load XSG file via AssetLoader
+                match crate::assets::xsg_importer::XsgImporter::load_from_asset(asset_loader, asset_path_str) {
+                    Ok(xsg) => {
+                        // Create a dummy texture manager for XSG loader
+                        let mut dummy_texture_manager = crate::texture_manager::TextureManager::new();
+                        let base_path = asset_path.parent().unwrap_or(std::path::Path::new("."));
+                        
+                        crate::assets::xsg_loader::XsgLoader::load_into_world(
+                            &xsg,
+                            world,
+                            device,
+                            queue,
+                            &mut dummy_texture_manager,
+                            &asset_rel_path,
+                            base_path,
+                            asset_loader
+                        )
                     }
+                    Err(e) => Err(anyhow::anyhow!("Failed to load XSG file: {}", e))
                 }
-                _ => {
-                    Err(anyhow::anyhow!("Unsupported asset format: {}. Only XSG files are supported.", extension))
-                }
-            };
-            
-            match load_result {
-                Ok(loaded_entities) => {
-                    println!("DEBUG: Successfully loaded {} entities from asset", loaded_entities.len());
-                    // Parent loaded entities to the container
-                    for child in loaded_entities {
-                        if world.parents.get(&child).is_none() {
-                             world.set_parent(child, Some(parent_entity));
-                        }
-                    }
-
-                    // NOTE: We keep the Mesh component with MeshType::Asset so it can be serialized
-                    // and reloaded. The rendering system will skip it since the asset path won't
-                    // match any mesh in the asset cache (child entities do the actual rendering).
-                    // world.meshes.remove(&parent_entity);  // <-- DO NOT REMOVE
-                    println!("DEBUG: Attached entities to parent {:?}", parent_entity);
-                },
-                Err(e) => {
-                    log::error!("Failed to load Asset: {:?}", e);
-                    println!("DEBUG: Failed to load Asset: {:?}", e);
-                },
             }
-        } else {
-             log::error!("Asset not found: {:?}", asset_path);
-             println!("DEBUG: Asset NOT FOUND at: {:?}", asset_path);
+            _ => {
+                Err(anyhow::anyhow!("Unsupported asset format: {}. Only XSG files are supported.", extension))
+            }
+        };
+        
+        match load_result {
+            Ok(loaded_entities) => {
+                println!("DEBUG: Successfully loaded {} entities from asset", loaded_entities.len());
+                // Parent loaded entities to the container
+                for child in loaded_entities {
+                    if world.parents.get(&child).is_none() {
+                         world.set_parent(child, Some(parent_entity));
+                    }
+                }
+
+                // NOTE: We keep the Mesh component with MeshType::Asset so it can be serialized
+                // and reloaded. The rendering system will skip it since the asset path won't
+                // match any mesh in the asset cache (child entities do the actual rendering).
+                // world.meshes.remove(&parent_entity);  // <-- DO NOT REMOVE
+                println!("DEBUG: Attached entities to parent {:?}", parent_entity);
+            },
+            Err(e) => {
+                log::error!("Failed to load Asset: {:?}", e);
+                println!("DEBUG: Failed to load Asset: {:?}", e);
+            },
         }
     }
 }

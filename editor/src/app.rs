@@ -9,6 +9,7 @@ use render::{RenderModule, CameraBinding};
 use crate::ui::TransformTool;
 use crate::states::{AppState, LauncherState, EditorState};
 use engine::runtime;
+use engine_core::assets::AssetLoader;
 use crate::theme::UnityTheme;
 use winit::{
     event::*,
@@ -112,7 +113,8 @@ impl EditorApp {
         let launcher_state = LauncherState::new()?;
         let editor_state = EditorState::new();
 
-        let ctx = EngineContext::new();
+        let asset_loader = std::sync::Arc::new(engine::assets::native_loader::NativeAssetLoader::new("."));
+        let ctx = EngineContext::new(asset_loader);
         // Sample game removed - use projects/ folder for game content
 
         let script_engine = ScriptEngine::new()?;
@@ -505,6 +507,7 @@ impl EditorApp {
                     &mut self.app_state,
                     &mut self.launcher_state,
                     &mut self.editor_state,
+                    &*self.ctx.asset_loader,
                 );
             }
             AppState::Playing => {
@@ -537,7 +540,7 @@ impl EditorApp {
              runtime::transform_system::update_global_transforms(&mut self.editor_state.world);
         }
 
-        let res = self.renderer.render_with_callback(|device, queue, encoder, view, depth_view, texture_manager, tilemap_renderer, batch_renderer, mesh_renderer, camera_binding, light_binding| {
+        let res = self.renderer.render_with_callback(|device, queue, encoder, view, _depth_view, texture_manager, tilemap_renderer, batch_renderer, mesh_renderer, camera_binding, light_binding| {
             // Render Game World to Offscreen Texture (for Editor Game View)
             if self.app_state == AppState::Editor {
                 // Ensure Asset meshes are loaded (idempotent check)
@@ -548,7 +551,8 @@ impl EditorApp {
                          device,
                          queue,
                          texture_manager,
-                         mesh_renderer
+                         mesh_renderer,
+                         &*self.ctx.asset_loader,
                      );
                 }
                 // ----------------------------------------------------------------
@@ -966,6 +970,7 @@ impl EditorApp {
         }
 
         // Main Editor Logic
+        let asset_loader = self.ctx.asset_loader.clone();
         crate::editor_logic::EditorLogic::handle_editor_frame(
             &self.egui_ctx,
             &mut self.app_state,
@@ -983,6 +988,7 @@ impl EditorApp {
             &mut self.scene_view_renderer,
             &self.renderer.mesh_renderer,
             &mut self.renderer.texture_manager,
+            &*asset_loader,
         );
         
         // Clear input state if not in play mode (PlayModeSystem handles it when playing)

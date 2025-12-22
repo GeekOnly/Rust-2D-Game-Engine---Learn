@@ -7,6 +7,7 @@ use std::collections::HashMap;
 use crate::{Console, SceneCamera, SceneGrid, AssetManager, DragDropState};
 use super::{TransformTool, inspector, scene_view, texture_inspector};
 use super::panels::{hierarchy, asset_browser};
+use engine_core::assets::AssetLoader;
 
 /// Tab types for the docking system
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -82,6 +83,7 @@ pub struct TabContext<'a> {
     pub reload_mesh_assets_request: &'a mut bool,
     pub egui_renderer: &'a mut egui_wgpu::Renderer,
     pub scene_view_renderer: &'a mut crate::scene_view_renderer::SceneViewRenderer,
+    pub asset_loader: &'a dyn AssetLoader,
 }
 
 /// Render game view toolbar (resolution selector, etc.)
@@ -287,6 +289,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                     self.context.egui_renderer,
                     self.context.device,
                     self.context.queue,
+                    self.context.asset_loader,
                 );
                 
                 // Clear texture inspector selection when entity selection changes

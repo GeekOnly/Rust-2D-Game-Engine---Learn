@@ -8,6 +8,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use glam::{Vec3, Mat4, Quat};
 use log::info;
+use pollster;
 
 pub struct GltfLoader {
     base_path: PathBuf,
@@ -33,32 +34,37 @@ impl GltfLoader {
         queue: &wgpu::Queue,
         texture_manager: &mut TextureManager,
         mesh_renderer: &MeshRenderer,
+        asset_loader: &dyn engine_core::assets::AssetLoader,
         path: impl AsRef<Path>,
     ) -> Result<Vec<LoadedMesh>> {
         let path = path.as_ref();
+        let path_str = path.to_str().ok_or_else(|| anyhow::anyhow!("Invalid path"))?;
         self.base_path = path.parent().unwrap_or(Path::new("")).to_path_buf();
         
         info!("Loading GLTF: {:?}", path);
-        let gltf = Gltf::open(path)?;
+        
+        let bytes = pollster::block_on(asset_loader.load_binary(path_str))?;
+        let (document, buffer_data, _image_data) = gltf::import_slice(&bytes)?;
 
         let mut loaded_meshes = Vec::new();
 
         // Load all buffers upfront
         let mut buffers = Vec::new();
-        let blob = gltf.blob.as_deref();
         
-        for buffer in gltf.buffers() {
+        for buffer in document.buffers() {
             match buffer.source() {
                 gltf::buffer::Source::Bin => {
-                     if let Some(blob) = blob {
-                        buffers.push(blob.to_vec());
+                    if buffer.index() < buffer_data.len() {
+                        buffers.push(buffer_data[buffer.index()].to_vec());
                     } else {
                          return Err(anyhow::anyhow!("Missing GLB binary chunk"));
                     }
                 }
                 gltf::buffer::Source::Uri(uri) => {
                      let buffer_path = self.base_path.join(uri);
-                     let data = std::fs::read(&buffer_path).with_context(|| format!("Failed to read buffer: {:?}", buffer_path))?;
+                     let uri_str = buffer_path.to_str().unwrap_or(uri);
+                     let data = pollster::block_on(asset_loader.load_binary(uri_str))
+                        .with_context(|| format!("Failed to read buffer: {:?}", buffer_path))?;
                      buffers.push(data);
                 }
             }
@@ -66,15 +72,15 @@ impl GltfLoader {
 
         // Load Materials
         let mut materials_cache = Vec::new();
-        for material in gltf.materials() {
-             let pbr_mat = self.load_material(device, queue, texture_manager, mesh_renderer, &material, &buffers)?;
+        for material in document.materials() {
+             let pbr_mat = self.load_material(device, queue, texture_manager, mesh_renderer, asset_loader, &material, &buffers)?;
              materials_cache.push(Arc::new(pbr_mat));
         }
 
         // We'll iterate through scenes -> nodes
-        for scene in gltf.scenes() {
+        for scene in document.scenes() {
             for node in scene.nodes() {
-                self.process_node(device, &node, Mat4::IDENTITY, &gltf, &buffers, &materials_cache, &mut loaded_meshes)?;
+                self.process_node(device, &node, Mat4::IDENTITY, &document, &buffers, &materials_cache, &mut loaded_meshes)?;
             }
         }
 
@@ -87,6 +93,7 @@ impl GltfLoader {
         queue: &wgpu::Queue,
         texture_manager: &mut TextureManager,
         mesh_renderer: &MeshRenderer,
+        asset_loader: &dyn engine_core::assets::AssetLoader,
         material: &GltfMaterial,
         buffers: &[Vec<u8>],
     ) -> Result<PbrMaterial> {
@@ -105,7 +112,7 @@ impl GltfLoader {
 
         // Load Textures
         if let Some(info) = pbr.base_color_texture() {
-            let texture = self.load_texture(device, queue, texture_manager, &info.texture(), buffers, true)?; 
+            let texture = self.load_texture(device, queue, texture_manager, asset_loader, &info.texture(), buffers, true)?; 
             pbr_material.albedo_texture = Some(Arc::new(texture));
         } else if let Some(tex) = texture_manager.get_white_texture(device, queue) {
              // TextureManager returns Arc<Texture> or reference?
@@ -138,13 +145,13 @@ impl GltfLoader {
         }
         
         if let Some(info) = material.normal_texture() {
-             if let Ok(tex) = self.load_texture(device, queue, texture_manager, &info.texture(), buffers, false) {
+             if let Ok(tex) = self.load_texture(device, queue, texture_manager, asset_loader, &info.texture(), buffers, false) {
                  pbr_material.normal_texture = Some(Arc::new(tex));
              }
         }
 
         if let Some(info) = pbr.metallic_roughness_texture() {
-             if let Ok(tex) = self.load_texture(device, queue, texture_manager, &info.texture(), buffers, false) {
+             if let Ok(tex) = self.load_texture(device, queue, texture_manager, asset_loader, &info.texture(), buffers, false) {
                  pbr_material.metallic_roughness_texture = Some(Arc::new(tex));
              }
         }
@@ -184,7 +191,7 @@ impl GltfLoader {
         device: &wgpu::Device,
         node: &gltf::Node,
         parent_transform: Mat4,
-        gltf: &Gltf,
+        gltf: &gltf::Document,
         buffers: &[Vec<u8>],
         materials_cache: &[Arc<PbrMaterial>],
         loaded_meshes: &mut Vec<LoadedMesh>,
@@ -290,6 +297,7 @@ impl GltfLoader {
         device: &wgpu::Device,
         queue: &wgpu::Queue,
         texture_manager: &mut TextureManager,
+        asset_loader: &dyn engine_core::assets::AssetLoader,
         gltf_texture: &gltf::Texture,
         buffers: &[Vec<u8>],
         srgb: bool,
@@ -322,34 +330,29 @@ impl GltfLoader {
                  let mut resolved_path = self.base_path.join(uri_path);
 
                  // If the file doesn't exist, try alternative path resolutions
-                 if !resolved_path.exists() {
-                     log::debug!("Texture not found at {:?}, trying alternative paths", resolved_path);
-
-                     // Check if URI starts with a component that's already in base_path
-                     // For example: base = "projects/game/assets", uri = "assets/textures/foo.png"
-                     // Should resolve to "projects/game/assets/textures/foo.png", not "projects/game/assets/assets/textures/foo.png"
-
-                     if let Some(first_component) = uri_path.components().next() {
-                         if let Some(base_last) = self.base_path.components().last() {
-                             // Compare components as strings to handle potential encoding/separator differences
-                             let first_str = first_component.as_os_str().to_string_lossy();
-                             let base_last_str = base_last.as_os_str().to_string_lossy();
-                             
-                             if first_str == base_last_str || 
-                                (base_last_str == "assets" && first_str == "assets") {
-                                 // Skip the first component of URI since it duplicates the last base path component
-                                 let uri_without_first: std::path::PathBuf = uri_path.components()
-                                     .skip(1)
-                                     .collect();
-                                 let alternative_path = self.base_path.join(uri_without_first);
-                                 log::info!("Resolved duplicate path component: {:?} -> {:?}", resolved_path, alternative_path);
-                                 resolved_path = alternative_path;
-                             }
+                 // NOTE: With AssetLoader we can't easily check existence without trying to load.
+                 // We rely on simple path joining for now. Complex resolution logic might need adjustment for AssetLoader.
+                 // Assume standard path for now.
+                 
+                 // Check if URI starts with a component that's already in base_path (simple string check)
+                 if let Some(first_component) = uri_path.components().next() {
+                     if let Some(base_last) = self.base_path.components().last() {
+                         let first_str = first_component.as_os_str().to_string_lossy();
+                         let base_last_str = base_last.as_os_str().to_string_lossy();
+                         
+                         if first_str == base_last_str || 
+                            (base_last_str == "assets" && first_str == "assets") {
+                             let uri_without_first: std::path::PathBuf = uri_path.components()
+                                 .skip(1)
+                                 .collect();
+                             let alternative_path = self.base_path.join(uri_without_first);
+                             resolved_path = alternative_path;
                          }
                      }
                  }
 
-                 let data = std::fs::read(&resolved_path)
+                 let uri_str = resolved_path.to_str().unwrap_or(uri);
+                 let data = pollster::block_on(asset_loader.load_binary(uri_str))
                      .with_context(|| format!("Failed to read texture at {:?} (from URI: {})", resolved_path, uri))?;
                  image::load_from_memory(&data)?
             }

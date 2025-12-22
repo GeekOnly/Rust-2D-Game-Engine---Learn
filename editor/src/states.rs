@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 use anyhow::Result;
 use std::sync::mpsc::Receiver;
+use pollster;
 
 /// Application state machine
 #[derive(Debug, PartialEq)]
@@ -354,8 +355,14 @@ impl EditorState {
         Ok(())
     }
 
-    pub fn load_scene(&mut self, path: &PathBuf) -> Result<()> {
-        let json = std::fs::read_to_string(path)?;
+    pub fn load_scene(&mut self, path: &PathBuf, asset_loader: &dyn engine_core::assets::AssetLoader) -> Result<()> {
+        let path_str = path.to_str().ok_or_else(|| anyhow::anyhow!("Invalid path"))?;
+        
+        // Use block_on to execute the async load synchronously for now
+        // This is safe on native because NativeAssetLoader uses blocking fs calls inside async wrapper (conceptually)
+        // For WASM, this will need to be refactored to be truly async
+        let json = pollster::block_on(asset_loader.load_text(path_str))?;
+        
         self.world.load_from_json(&json)?;
         self.current_scene_path = Some(path.clone());
         self.scene_modified = false;

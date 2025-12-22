@@ -1,4 +1,5 @@
 use engine_core::EngineContext;
+use engine_core::assets::AssetLoader;
 use crate::states::{AppState, EditorState};
 use crate::ui::EditorUI;
 use script::ScriptEngine;
@@ -27,6 +28,7 @@ impl EditorLogic {
         scene_view_renderer: &mut crate::scene_view_renderer::SceneViewRenderer,
         mesh_renderer: &render::MeshRenderer,
         render_texture_manager: &mut render::TextureManager,
+        asset_loader: &dyn engine_core::assets::AssetLoader,
     ) {
         let mut save_request = false;
         let mut save_as_request = false;
@@ -109,6 +111,7 @@ impl EditorLogic {
                 &mut editor_state.ui_manager,
                 dt,
                 &mut editor_state.reload_mesh_assets_request,
+                asset_loader,
             );
         } else {
              // Fallback to old layout
@@ -153,6 +156,7 @@ impl EditorLogic {
                 device,
                 queue,
                 &mut editor_state.reload_mesh_assets_request,
+                asset_loader,
              );
         }
 
@@ -212,6 +216,7 @@ impl EditorLogic {
             queue,
             render_texture_manager,
             mesh_renderer,
+            asset_loader,
         );
 
         // [SCENE POST-PROCESSING]
@@ -228,6 +233,7 @@ impl EditorLogic {
                      queue,
                      render_texture_manager,
                      mesh_renderer,
+                     asset_loader,
                  );
 
                  // Load sprite textures into WGPU TextureManager for 3D scene view rendering
@@ -237,6 +243,7 @@ impl EditorLogic {
                      device,
                      queue,
                      render_texture_manager,
+                     asset_loader,
                  );
 
                  // Reset the request flag
@@ -350,6 +357,7 @@ impl EditorLogic {
         device: &wgpu::Device,
         queue: &wgpu::Queue,
         texture_manager: &mut render::TextureManager,
+        asset_loader: &dyn engine_core::assets::AssetLoader,
     ) {
         use std::collections::HashSet;
 
@@ -391,14 +399,17 @@ impl EditorLogic {
                 } else {
                     project_path.join(dir).join(&texture_id)
                 };
+                
+                let check_path_str = check_path.to_str().unwrap_or("");
 
-                if check_path.exists() {
-                     match texture_manager.load_texture(device, queue, &check_path, &texture_id) {
+                // Attempt load via AssetLoader
+                if let Ok(bytes) = pollster::block_on(asset_loader.load_binary(check_path_str)) {
+                     match texture_manager.load_texture_from_bytes(device, queue, &bytes, &texture_id) {
                         Ok(_) => {
                             println!("DEBUG: ✓ Loaded texture for WGPU: {} (found in {})", texture_id, dir);
                         }
                         Err(e) => {
-                            println!("DEBUG: ✗ Failed to load texture {}: {}", check_path.display(), e);
+                            println!("DEBUG: ✗ Failed to load texture bytes {}: {}", check_path.display(), e);
                         }
                     }
                     found = true;

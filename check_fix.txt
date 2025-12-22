@@ -1,0 +1,1117 @@
+﻿cargo : warning: unused import: `EcsWorld`
+At line:1 char:1
++ cargo check -p editor 2>&1 | Out-File 
+-Encoding UTF8 check_fix.txt
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified 
+   : (warning: unused import: `EcsWorld`:  
+  String) [], RemoteException
+    + FullyQualifiedErrorId : NativeComman 
+   dError
+ 
+ --> ecs\src\loaders\tiled_loader.rs:4:21
+  |
+4 | use crate::traits::{EcsWorld, Compon...
+  |                     ^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by 
+default
+
+warning: unused import: `EcsWorld`
+ --> ecs\src\loaders\ldtk_loader.rs:3:21
+  |
+3 | use crate::traits::{EcsWorld, Compon...
+  |                     ^^^^^^^^
+
+warning: variable does not need to be 
+mutable
+   --> 
+ecs\src\loaders\ldtk_loader.rs:242:37
+    |
+242 | ...   let mut transform = Transfor...
+    |           ----^^^^^^^^^
+    |           |
+    |           help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` on by 
+default
+
+warning: `ecs` (lib) generated 3 warnings 
+(run `cargo fix --lib -p ecs` to apply 1 
+suggestion)
+warning: variant `CellSize` is never 
+constructed
+  --> sprite_editor\src\ui\sprite_editor_wi
+ndow.rs:33:5
+   |
+31 | enum AutoSliceMode {
+   |      ------------- variant in this 
+enum
+32 |     Grid,
+33 |     CellSize,
+   |     ^^^^^^^^
+   |
+   = note: `AutoSliceMode` has derived 
+impls for the traits `Clone` and `Debug`, 
+but these are intentionally ignored during 
+dead code analysis
+   = note: `#[warn(dead_code)]` on by 
+default
+
+warning: multiple fields are never read
+   --> sprite_editor\src\ui\sprite_editor_w
+indow.rs:298:5
+    |
+292 | pub struct SpriteEditorWindow {
+    |            ------------------ fields 
+in this struct
+...
+298 |     auto_slice_columns: u32,
+    |     ^^^^^^^^^^^^^^^^^^
+299 |     auto_slice_rows: u32,
+    |     ^^^^^^^^^^^^^^^
+300 |     auto_slice_padding: u32,
+    |     ^^^^^^^^^^^^^^^^^^
+301 |     auto_slice_spacing: u32,
+    |     ^^^^^^^^^^^^^^^^^^
+302 |     auto_slice_mode: AutoSliceMode,
+    |     ^^^^^^^^^^^^^^^
+303 |     auto_slice_cell_width: u32,
+    |     ^^^^^^^^^^^^^^^^^^^^^
+304 |     auto_slice_cell_height: u32,
+    |     ^^^^^^^^^^^^^^^^^^^^^^
+305 |     show_export_dialog: bool,
+306 |     export_format: ExportFormat,
+    |     ^^^^^^^^^^^^^
+
+warning: `sprite_editor` (lib) generated 2 
+warnings
+warning: unused imports: 
+`ToonMaterialUniform` and `ToonMaterial`
+ --> render\src\mesh_renderer.rs:2:90
+  |
+2 | ...m, ToonMaterial, 
+ToonMaterialUniform};
+  |       ^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by 
+default
+
+warning: unused import: 
+`wgpu::util::DeviceExt`
+ --> render\src\grid_renderer.rs:2:5
+  |
+2 | use wgpu::util::DeviceExt;
+  |     ^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused variable: `occlusion_view`
+   --> render\src\mesh_renderer.rs:487:12
+    |
+487 | ...   let occlusion_view = materia...
+    |           ^^^^^^^^^^^^^^ help: if 
+this is intentional, prefix it with an 
+underscore: `_occlusion_view`
+    |
+    = note: `#[warn(unused_variables)]` on 
+by default
+
+warning: unused variable: 
+`occlusion_sampler`
+   --> render\src\mesh_renderer.rs:488:12
+    |
+488 | ... let occlusion_sampler = materi...
+    |         ^^^^^^^^^^^^^^^^^ help: if 
+this is intentional, prefix it with an 
+underscore: `_occlusion_sampler`
+
+warning: unused variable: `queue`
+   --> render\src\mesh_renderer.rs:436:9
+    |
+436 |         queue: &wgpu::Queue, 
+    |         ^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_queue`
+
+warning: field `bind_group_layout` is 
+never read
+  --> render\src\sprite_renderer.rs:37:5
+   |
+32 | pub struct SpriteRenderer {
+   |            -------------- field in 
+this struct
+...
+37 |     bind_group_layout: wgpu::BindGr...
+   |     ^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by 
+default
+
+warning: fields `instance_buffer` and 
+`camera_bind_group` are never read
+   --> render\src\batch_renderer.rs:101:5
+    |
+93  | pub struct BatchRenderer {
+    |            ------------- fields in 
+this struct
+...
+101 |     instance_buffer: wgpu::Buffer,
+    |     ^^^^^^^^^^^^^^^
+...
+106 |     camera_bind_group: wgpu::BindG...
+    |     ^^^^^^^^^^^^^^^^^
+
+warning: unexpected `cfg` condition value: 
+`rapier`
+  --> script\src\lib.rs:10:7
+   |
+10 | #[cfg(feature = "rapier")]
+   |       ^^^^^^^^^^^^^^^^^^ help: remove 
+the condition
+   |
+   = note: no expected values for `feature`
+   = help: consider adding `rapier` as a 
+feature in `Cargo.toml`
+   = note: see <https://doc.rust-lang.org/n
+ightly/rustc/check-cfg/cargo-specifics.html
+> for more information about checking 
+conditional configuration
+   = note: `#[warn(unexpected_cfgs)]` on 
+by default
+
+warning: `render` (lib) generated 7 
+warnings (run `cargo fix --lib -p render` 
+to apply 2 suggestions)
+warning: `script` (lib) generated 1 warning
+warning: unused import: `CanvasScaler`
+ --> ui\src\canvas_system.rs:6:21
+  |
+6 | use crate::{Canvas, CanvasScaler};
+  |                     ^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by 
+default
+
+warning: unused import: `UIEventType`
+ --> ui\src\slider_system.rs:6:30
+  |
+6 | ...:{UIEvent, UIEventType, UIEventDi...
+  |               ^^^^^^^^^^^
+
+warning: unused import: `UIEventType`
+ --> ui\src\toggle_system.rs:6:30
+  |
+6 | ...:{UIEvent, UIEventType, UIEventDi...
+  |               ^^^^^^^^^^^
+
+warning: unused import: `UIEventType`
+ --> ui\src\dropdown_system.rs:6:30
+  |
+6 | ...:{UIEvent, UIEventType, UIEventDi...
+  |               ^^^^^^^^^^^
+
+warning: unused import: `LineType`
+ --> ui\src\input_field_system.rs:5:61
+  |
+5 | ...Validation, LineType, UIElement, ...
+  |                ^^^^^^^^
+
+warning: unused import: `UIEventType`
+ --> ui\src\input_field_system.rs:6:30
+  |
+6 | ...:{UIEvent, UIEventType, UIEventDi...
+  |               ^^^^^^^^^^^
+
+warning: unused variable: 
+`event_dispatcher`
+  --> ui\src\slider_system.rs:40:9
+   |
+40 |         event_dispatcher: &UIEventD...
+   |         ^^^^^^^^^^^^^^^^ help: if 
+this is intentional, prefix it with an 
+underscore: `_event_dispatcher`
+   |
+   = note: `#[warn(unused_variables)]` on 
+by default
+
+warning: unused variable: 
+`event_dispatcher`
+  --> ui\src\toggle_system.rs:38:9
+   |
+38 |         event_dispatcher: &UIEventD...
+   |         ^^^^^^^^^^^^^^^^ help: if 
+this is intentional, prefix it with an 
+underscore: `_event_dispatcher`
+
+warning: unused variable: `entity`
+  --> ui\src\toggle_system.rs:71:14
+   |
+71 |         for (entity, toggle) in tog...
+   |              ^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_entity`
+
+warning: unused variable: `template`
+  --> ui\src\dropdown_system.rs:62:45
+   |
+62 | ...let Some(template) = dropdown.te...
+   |             ^^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_template`
+
+warning: unused variable: 
+`event_dispatcher`
+  --> ui\src\dropdown_system.rs:42:9
+   |
+42 |         event_dispatcher: &UIEventD...
+   |         ^^^^^^^^^^^^^^^^ help: if 
+this is intentional, prefix it with an 
+underscore: `_event_dispatcher`
+
+warning: unused variable: `entity`
+  --> ui\src\dropdown_system.rs:98:14
+   |
+98 |         for (entity, dropdown) in d...
+   |              ^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_entity`
+
+warning: unused variable: 
+`event_dispatcher`
+  --> ui\src\input_field_system.rs:42:9
+   |
+42 |         event_dispatcher: &UIEventD...
+   |         ^^^^^^^^^^^^^^^^ help: if 
+this is intentional, prefix it with an 
+underscore: `_event_dispatcher`
+
+warning: unused variable: `entity`
+   --> ui\src\input_field_system.rs:317:14
+    |
+317 | ...    for (entity, field) in inpu...
+    |             ^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_entity`
+
+warning: unused variable: 
+`placeholder_element`
+   --> ui\src\input_field_system.rs:326:29
+    |
+326 | ...Some(placeholder_element) = tex...
+    |         ^^^^^^^^^^^^^^^^^^^ help: if 
+this is intentional, prefix it with an 
+underscore: `_placeholder_element`
+
+warning: unused variable: `alpha_threshold`
+   --> 
+ui\src\rendering\mask_system.rs:249:65
+    |
+249 | ... Vec2, alpha_threshold: f32) ->...
+    |           ^^^^^^^^^^^^^^^ help: if 
+this is intentional, prefix it with an 
+underscore: `_alpha_threshold`
+
+warning: unused variable: `x3`
+   --> ui\src\rendering\nine_slice.rs:149:9
+    |
+149 |     let x3 = rect.x + rect.width;
+    |         ^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_x3`
+
+warning: unused variable: `y3`
+   --> ui\src\rendering\nine_slice.rs:154:9
+    |
+154 |     let y3 = rect.y + rect.height;
+    |         ^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_y3`
+
+warning: unused variable: `batch`
+   --> 
+ui\src\rendering\batch_builder.rs:354:51
+    |
+354 | ...t Some(ref batch) = current_bat...
+    |               ^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_batch`
+
+warning: unused variable: `sprite`
+   --> ui\src\style_system.rs:123:25
+    |
+123 | ...Some(ref sprite) = style.button...
+    |             ^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_sprite`
+
+warning: unused variable: `world`
+  --> ui\src\lua_bindings\animation.rs:18:5
+   |
+18 |     world: &'scope RefCell<&mut Wor...
+   |     ^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_world`
+
+warning: unused variable: `notes`
+  --> ui\src\hud_converter.rs:87:49
+   |
+87 | ..._children, notes) = Self::conver...
+   |               ^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_notes`
+
+warning: unused variable: `binding`
+   --> ui\src\hud_converter.rs:132:9
+    |
+132 |         binding: &str,
+    |         ^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_binding`
+
+warning: field `layout_cache` is never read
+  --> ui\src\layout_system.rs:19:5
+   |
+17 | pub struct LayoutSystem {
+   |            ------------ field in this 
+struct
+18 |     /// Cached layout calculations ...
+19 |     layout_cache: HashMap<Entity, L...
+   |     ^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by 
+default
+
+warning: fields `child_positions` and 
+`child_sizes` are never read
+  --> ui\src\layout_system.rs:25:5
+   |
+23 | struct LayoutCache {
+   |        ----------- fields in this 
+struct
+24 |     /// Last calculated positions f...
+25 |     child_positions: HashMap<Entity...
+   |     ^^^^^^^^^^^^^^^
+26 |     /// Last calculated sizes for c...
+27 |     child_sizes: HashMap<Entity, Ve...
+   |     ^^^^^^^^^^^
+   |
+   = note: `LayoutCache` has derived impls 
+for the traits `Debug` and `Clone`, but 
+these are intentionally ignored during 
+dead code analysis
+
+warning: associated function 
+`lighten_color` is never used
+   --> ui\src\style_system.rs:266:8
+    |
+24  | impl StyleSystem {
+    | ---------------- associated function 
+in this implementation
+...
+266 |     fn lighten_color(color: Color,...
+    |        ^^^^^^^^^^^^^
+
+warning: function `parse_easing` is never 
+used
+   --> 
+ui\src\lua_bindings\animation.rs:320:4
+    |
+320 | fn parse_easing(name: &str) -> Eas...
+    |    ^^^^^^^^^^^^
+
+warning: `ui` (lib) generated 27 warnings 
+(run `cargo fix --lib -p ui` to apply 6 
+suggestions)
+warning: unused import: 
+`std::marker::PhantomData`
+ --> engine\src\assets\manager.rs:3:5
+  |
+3 | use std::marker::PhantomData;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by 
+default
+
+warning: unused imports: `Gltf`, `Mesh as 
+GltfMesh`, and `Texture as GltfTexture`
+ --> engine\src\assets\gltf_loader.rs:3:12
+  |
+3 | ...::{Gltf, Mesh as GltfMesh, 
+Primitive, Material as GltfMaterial, 
+Texture as GltfTexture};
+  |       ^^^^  ^^^^^^^^^^^^^^^^           
+                            
+^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `ReadIndices` and 
+`ReadTexCoords`
+ --> engine\src\assets\gltf_loader.rs:4:24
+  |
+4 | ...::{ReadTexCoords, ReadIndices};
+  |       ^^^^^^^^^^^^^  ^^^^^^^^^^^
+
+warning: unused import: 
+`image::GenericImageView`
+ --> engine\src\assets\gltf_loader.rs:6:5
+  |
+6 | use image::GenericImageView;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `PathBuf`
+ --> engine\src\assets\xsg_importer.rs:2:23
+  |
+2 | use std::path::{Path, PathBuf};
+  |                       ^^^^^^^
+
+warning: unused import: `MeshRenderer`
+ --> engine\src\assets\xsg_loader.rs:4:14
+  |
+4 | use render::{MeshRenderer, Mesh, Pbr...
+  |              ^^^^^^^^^^^^
+
+warning: unused import: 
+`wgpu::util::DeviceExt`
+ --> engine\src\assets\xsg_loader.rs:7:5
+  |
+7 | use wgpu::util::DeviceExt;
+  |     ^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `info`
+  --> engine\src\assets\xsg_loader.rs:10:11
+   |
+10 | use log::{info, warn};
+   |           ^^^^
+
+warning: unused import: 
+`ecs::traits::ComponentAccess`
+   --> 
+engine\src\runtime\render_system.rs:112:9
+    |
+112 |     use ecs::traits::ComponentAccess;
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused variable: `tex`
+   --> 
+engine\src\assets\gltf_loader.rs:117:28
+    |
+117 | ...f let Some(tex) = texture_manag...
+    |               ^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_tex`
+    |
+    = note: `#[warn(unused_variables)]` on 
+by default
+
+warning: unused variable: `texture_manager`
+   --> 
+engine\src\assets\gltf_loader.rs:299:9
+    |
+299 |         texture_manager: &mut Text...
+    |         ^^^^^^^^^^^^^^^ help: if 
+this is intentional, prefix it with an 
+underscore: `_texture_manager`
+
+warning: unused variable: `srgb`
+   --> 
+engine\src\assets\gltf_loader.rs:303:9
+    |
+303 |         srgb: bool,
+    |         ^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_srgb`
+
+warning: unused variable: `images`
+  --> 
+engine\src\assets\xsg_importer.rs:23:33
+   |
+23 | ..., buffers, images) = gltf::impor...
+   |               ^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_images`
+
+warning: value assigned to `mime_type` is 
+never read
+  --> 
+engine\src\assets\xsg_importer.rs:38:21
+   |
+38 |             let mut mime_type = None;
+   |                     ^^^^^^^^^
+   |
+   = help: maybe it is overwritten before 
+being read?
+   = note: `#[warn(unused_assignments)]` 
+on by default
+
+warning: unused variable: `camera_entity`
+  --> engine\src\runtime\renderer.rs:47:18
+   |
+47 | ... Some((camera_entity, camera, tr...
+   |           ^^^^^^^^^^^^^ help: if this 
+is intentional, prefix it with an 
+underscore: `_camera_entity`
+
+warning: unused variable: `camera`
+  --> engine\src\runtime\renderer.rs:47:33
+   |
+47 | ...ra_entity, camera, transform)) =...
+   |               ^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_camera`
+
+warning: unused variable: `transform`
+  --> engine\src\runtime\renderer.rs:47:41
+   |
+47 | ... camera, transform)) = main_came...
+   |             ^^^^^^^^^ help: if this 
+is intentional, prefix it with an 
+underscore: `_transform`
+
+warning: unused variable: `texture_manager`
+  --> engine\src\runtime\renderer.rs:15:5
+   |
+15 |     texture_manager: &mut TextureMa...
+   |     ^^^^^^^^^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_texture_manager`
+
+warning: unused variable: `cam_pos`
+   --> engine\src\runtime\renderer.rs:216:9
+    |
+216 |     let cam_pos = camera_transform...
+    |         ^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_cam_pos`
+
+warning: unused variable: `camera`
+   --> engine\src\runtime\renderer.rs:235:5
+    |
+235 |     camera: &Camera,
+    |     ^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_camera`
+
+warning: unused variable: `top_world_pos`
+   --> 
+engine\src\runtime\renderer.rs:654:13
+    |
+654 | ...   let top_world_pos = world_po...
+    |           ^^^^^^^^^^^^^ help: if 
+this is intentional, prefix it with an 
+underscore: `_top_world_pos`
+
+warning: unused variable: `mat_id`
+   --> 
+engine\src\runtime\render_system.rs:563:26
+    |
+563 | ...let Some(mat_id) = &ecs_mesh.ma...
+    |             ^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_mat_id`
+
+warning: variable does not need to be 
+mutable
+   --> engine\src\texture_manager.rs:124:13
+    |
+124 | ...   let mut full_path = if let S...
+    |           ----^^^^^^^^^
+    |           |
+    |           help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` on by 
+default
+
+warning: function `render_entities` is 
+never used
+   --> engine\src\runtime\renderer.rs:203:4
+    |
+203 | fn render_entities(
+    |    ^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` on by 
+default
+
+warning: function `render_tilemap_2d` is 
+never used
+   --> engine\src\runtime\renderer.rs:230:4
+    |
+230 | fn render_tilemap_2d(
+    |    ^^^^^^^^^^^^^^^^^
+
+warning: function `render_orthographic` is 
+never used
+   --> engine\src\runtime\renderer.rs:347:4
+    |
+347 | fn render_orthographic(
+    |    ^^^^^^^^^^^^^^^^^^^
+
+warning: function `render_perspective` is 
+never used
+   --> engine\src\runtime\renderer.rs:572:4
+    |
+572 | fn render_perspective(
+    |    ^^^^^^^^^^^^^^^^^^
+
+warning: static `MATERIAL_CACHE` is never 
+used
+  --> 
+engine\src\runtime\render_system.rs:17:12
+   |
+17 | static mut MATERIAL_CACHE: Option<w...
+   |            ^^^^^^^^^^^^^^
+
+warning: creating a shared reference to 
+mutable static
+  --> 
+engine\src\assets\model_manager.rs:34:12
+   |
+34 |         if MODEL_MANAGER.is_none() {
+   |            ^^^^^^^^^^^^^^^^^^^^^^^ 
+shared reference to mutable static
+   |
+   = note: for more information, see <https
+://doc.rust-lang.org/nightly/edition-guide/
+rust-2024/static-mut-references.html>
+   = note: shared references to mutable 
+statics are dangerous; it's undefined 
+behavior if the static is mutated or if a 
+mutable reference is created for it while 
+the shared reference lives
+   = note: `#[warn(static_mut_refs)]` on 
+by default
+
+warning: creating a mutable reference to 
+mutable static
+  --> 
+engine\src\assets\model_manager.rs:37:9
+   |
+37 | ...   MODEL_MANAGER.as_mut().unwrap()
+   |       ^^^^^^^^^^^^^^^^^^^^^^ mutable 
+reference to mutable static
+   |
+   = note: for more information, see <https
+://doc.rust-lang.org/nightly/edition-guide/
+rust-2024/static-mut-references.html>
+   = note: mutable references to mutable 
+statics are dangerous; it's undefined 
+behavior if any other pointer to the 
+static is used or if any other reference 
+is created for the static while the 
+mutable reference lives
+
+warning: creating a shared reference to 
+mutable static
+  --> 
+engine\src\runtime\render_system.rs:24:12
+   |
+24 |         if TILEMAP_CACHE.is_none() {
+   |            ^^^^^^^^^^^^^^^^^^^^^^^ 
+shared reference to mutable static
+   |
+   = note: for more information, see <https
+://doc.rust-lang.org/nightly/edition-guide/
+rust-2024/static-mut-references.html>
+   = note: shared references to mutable 
+statics are dangerous; it's undefined 
+behavior if the static is mutated or if a 
+mutable reference is created for it while 
+the shared reference lives
+
+warning: creating a mutable reference to 
+mutable static
+  --> 
+engine\src\runtime\render_system.rs:27:9
+   |
+27 | ...   TILEMAP_CACHE.as_mut().unwrap()
+   |       ^^^^^^^^^^^^^^^^^^^^^^ mutable 
+reference to mutable static
+   |
+   = note: for more information, see <https
+://doc.rust-lang.org/nightly/edition-guide/
+rust-2024/static-mut-references.html>
+   = note: mutable references to mutable 
+statics are dangerous; it's undefined 
+behavior if any other pointer to the 
+static is used or if any other reference 
+is created for the static while the 
+mutable reference lives
+
+warning: creating a shared reference to 
+mutable static
+  --> 
+engine\src\runtime\render_system.rs:33:12
+   |
+33 |         if MESH_CACHE.is_none() {
+   |            ^^^^^^^^^^^^^^^^^^^^ 
+shared reference to mutable static
+   |
+   = note: for more information, see <https
+://doc.rust-lang.org/nightly/edition-guide/
+rust-2024/static-mut-references.html>
+   = note: shared references to mutable 
+statics are dangerous; it's undefined 
+behavior if the static is mutated or if a 
+mutable reference is created for it while 
+the shared reference lives
+
+warning: creating a mutable reference to 
+mutable static
+  --> 
+engine\src\runtime\render_system.rs:36:9
+   |
+36 |         MESH_CACHE.as_mut().unwrap()
+   |         ^^^^^^^^^^^^^^^^^^^ mutable 
+reference to mutable static
+   |
+   = note: for more information, see <https
+://doc.rust-lang.org/nightly/edition-guide/
+rust-2024/static-mut-references.html>
+   = note: mutable references to mutable 
+statics are dangerous; it's undefined 
+behavior if any other pointer to the 
+static is used or if any other reference 
+is created for the static while the 
+mutable reference lives
+
+warning: creating a shared reference to 
+mutable static
+  --> 
+engine\src\runtime\render_system.rs:42:12
+   |
+42 |         if MESH_ASSETS.is_none() {
+   |            ^^^^^^^^^^^^^^^^^^^^^ 
+shared reference to mutable static
+   |
+   = note: for more information, see <https
+://doc.rust-lang.org/nightly/edition-guide/
+rust-2024/static-mut-references.html>
+   = note: shared references to mutable 
+statics are dangerous; it's undefined 
+behavior if the static is mutated or if a 
+mutable reference is created for it while 
+the shared reference lives
+
+warning: creating a mutable reference to 
+mutable static
+  --> 
+engine\src\runtime\render_system.rs:45:9
+   |
+45 |         MESH_ASSETS.as_mut().unwrap()
+   |         ^^^^^^^^^^^^^^^^^^^^ mutable 
+reference to mutable static
+   |
+   = note: for more information, see <https
+://doc.rust-lang.org/nightly/edition-guide/
+rust-2024/static-mut-references.html>
+   = note: mutable references to mutable 
+statics are dangerous; it's undefined 
+behavior if any other pointer to the 
+static is used or if any other reference 
+is created for the static while the 
+mutable reference lives
+
+warning: creating a shared reference to 
+mutable static
+  --> 
+engine\src\runtime\render_system.rs:51:12
+   |
+51 |         if MATERIAL_ASSETS.is_none() {
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^^ 
+shared reference to mutable static
+   |
+   = note: for more information, see <https
+://doc.rust-lang.org/nightly/edition-guide/
+rust-2024/static-mut-references.html>
+   = note: shared references to mutable 
+statics are dangerous; it's undefined 
+behavior if the static is mutated or if a 
+mutable reference is created for it while 
+the shared reference lives
+
+warning: creating a mutable reference to 
+mutable static
+  --> 
+engine\src\runtime\render_system.rs:54:9
+   |
+54 | ...   MATERIAL_ASSETS.as_mut().unwr...
+   |       ^^^^^^^^^^^^^^^^^^^^^^^^ 
+mutable reference to mutable static
+   |
+   = note: for more information, see <https
+://doc.rust-lang.org/nightly/edition-guide/
+rust-2024/static-mut-references.html>
+   = note: mutable references to mutable 
+statics are dangerous; it's undefined 
+behavior if any other pointer to the 
+static is used or if any other reference 
+is created for the static while the 
+mutable reference lives
+
+warning: creating a shared reference to 
+mutable static
+  --> 
+engine\src\runtime\render_system.rs:60:12
+   |
+60 | ...if 
+MATERIAL_BIND_GROUP_CACHE.is_none() {
+   |       
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ shared 
+reference to mutable static
+   |
+   = note: for more information, see <https
+://doc.rust-lang.org/nightly/edition-guide/
+rust-2024/static-mut-references.html>
+   = note: shared references to mutable 
+statics are dangerous; it's undefined 
+behavior if the static is mutated or if a 
+mutable reference is created for it while 
+the shared reference lives
+
+warning: creating a mutable reference to 
+mutable static
+  --> 
+engine\src\runtime\render_system.rs:63:9
+   |
+63 | ...   
+MATERIAL_BIND_GROUP_CACHE.as_mut().un...
+   |       
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ mutable 
+reference to mutable static
+   |
+   = note: for more information, see <https
+://doc.rust-lang.org/nightly/edition-guide/
+rust-2024/static-mut-references.html>
+   = note: mutable references to mutable 
+statics are dangerous; it's undefined 
+behavior if any other pointer to the 
+static is used or if any other reference 
+is created for the static while the 
+mutable reference lives
+
+warning: creating a shared reference to 
+mutable static
+   --> 
+engine\src\runtime\render_system.rs:460:12
+    |
+460 |         if ENTITY_CACHE.is_none() {
+    |            ^^^^^^^^^^^^^^^^^^^^^^ 
+shared reference to mutable static
+    |
+    = note: for more information, see <http
+s://doc.rust-lang.org/nightly/edition-guide
+/rust-2024/static-mut-references.html>
+    = note: shared references to mutable 
+statics are dangerous; it's undefined 
+behavior if the static is mutated or if a 
+mutable reference is created for it while 
+the shared reference lives
+
+warning: creating a mutable reference to 
+mutable static
+   --> 
+engine\src\runtime\render_system.rs:463:9
+    |
+463 | ...   ENTITY_CACHE.as_mut().unwrap()
+    |       ^^^^^^^^^^^^^^^^^^^^^ mutable 
+reference to mutable static
+    |
+    = note: for more information, see <http
+s://doc.rust-lang.org/nightly/edition-guide
+/rust-2024/static-mut-references.html>
+    = note: mutable references to mutable 
+statics are dangerous; it's undefined 
+behavior if any other pointer to the 
+static is used or if any other reference 
+is created for the static while the 
+mutable reference lives
+
+warning: creating a shared reference to 
+mutable static
+   --> 
+engine\src\runtime\render_system.rs:467:12
+    |
+467 | ...if 
+ENTITY_MATERIAL_CACHE.is_none() {
+    |       
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ shared 
+reference to mutable static
+    |
+    = note: for more information, see <http
+s://doc.rust-lang.org/nightly/edition-guide
+/rust-2024/static-mut-references.html>
+    = note: shared references to mutable 
+statics are dangerous; it's undefined 
+behavior if the static is mutated or if a 
+mutable reference is created for it while 
+the shared reference lives
+
+warning: creating a mutable reference to 
+mutable static
+   --> 
+engine\src\runtime\render_system.rs:470:9
+    |
+470 | ...   
+ENTITY_MATERIAL_CACHE.as_mut().un...
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
+mutable reference to mutable static
+    |
+    = note: for more information, see <http
+s://doc.rust-lang.org/nightly/edition-guide
+/rust-2024/static-mut-references.html>
+    = note: mutable references to mutable 
+statics are dangerous; it's undefined 
+behavior if any other pointer to the 
+static is used or if any other reference 
+is created for the static while the 
+mutable reference lives
+
+warning: creating a shared reference to 
+mutable static
+   --> 
+engine\src\runtime\render_system.rs:696:12
+    |
+696 | ...if MODEL_NODE_CACHE.is_none() {
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^ 
+shared reference to mutable static
+    |
+    = note: for more information, see <http
+s://doc.rust-lang.org/nightly/edition-guide
+/rust-2024/static-mut-references.html>
+    = note: shared references to mutable 
+statics are dangerous; it's undefined 
+behavior if the static is mutated or if a 
+mutable reference is created for it while 
+the shared reference lives
+
+warning: creating a mutable reference to 
+mutable static
+   --> 
+engine\src\runtime\render_system.rs:699:9
+    |
+699 | ...   MODEL_NODE_CACHE.as_mut().un...
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^ 
+mutable reference to mutable static
+    |
+    = note: for more information, see <http
+s://doc.rust-lang.org/nightly/edition-guide
+/rust-2024/static-mut-references.html>
+    = note: mutable references to mutable 
+statics are dangerous; it's undefined 
+behavior if any other pointer to the 
+static is used or if any other reference 
+is created for the static while the 
+mutable reference lives
+
+warning: `engine` (lib) generated 46 
+warnings (run `cargo fix --lib -p engine` 
+to apply 9 suggestions)
+    Checking editor v0.1.0 
+(K:\XSGameStudio\2025 Project\Game 
+Engine\Rust 2D Game Engine\editor)
+warning: unused import: 
+`engine_core::assets::AssetLoader`
+  --> editor\src\app.rs:12:5
+   |
+12 | use engine_core::assets::AssetLoader;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` on by 
+default
+
+warning: unexpected `cfg` condition value: 
+`system-clipboard`
+   --> 
+editor\src\systems\clipboard.rs:508:7
+    |
+508 | #[cfg(feature = "system-clipboard")]
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: expected values for `feature` 
+are: `default` and `rapier`
+    = help: consider adding 
+`system-clipboard` as a feature in 
+`Cargo.toml`
+    = note: see <https://doc.rust-lang.org/
+nightly/rustc/check-cfg/cargo-specifics.htm
+l> for more information about checking 
+conditional configuration
+    = note: `#[warn(unexpected_cfgs)]` on 
+by default
+
+warning: unused imports: `Arc` and `RwLock`
+ --> editor\src\assets\database.rs:3:17
+  |
+3 | use std::sync::{Arc, RwLock};
+  |                 ^^^  ^^^^^^
+
+warning: unused import: 
+`engine_core::assets::AssetLoader`
+ --> editor\src\editor_logic.rs:2:5
+  |
+2 | use engine_core::assets::AssetLoader;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused variable: `depth_view`
+   --> editor\src\app.rs:543:85
+    |
+543 | ...e, queue, encoder, view, 
+depth_view, texture_manager, 
+tilemap_renderer, batch_renderer, 
+mesh_renderer, camera_binding, 
+light_binding| {
+    |                             
+^^^^^^^^^^ help: if this is intentional, 
+prefix it with an underscore: `_depth_view`
+    |
+    = note: `#[warn(unused_variables)]` on 
+by default
+
+warning: unused variable: `scene_grid`
+  --> editor\src\ui\scene_view\rendering\vi
+ew_3d.rs:50:5
+   |
+50 |     scene_grid: &SceneGrid,
+   |     ^^^^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_scene_grid`
+
+warning: unused variable: `center_screen`
+   --> editor\src\ui\scene_view\rendering\s
+prite_3d.rs:302:13
+    |
+302 |         let center_screen = projectio
+n_3d::world_to_screen(sprite.position, 
+camera, viewport_size)?;
+    |             ^^^^^^^^^^^^^ help: if 
+this is intentional, prefix it with an 
+underscore: `_center_screen`
+
+warning: value assigned to `best_dist` is 
+never read
+   --> editor\src\ui\scene_view\interaction
+\transform.rs:472:49
+    |
+472 |                         if dist_z < 
+best_dist { best_dist = dist_z; best_axis 
+= Some(2u8); }
+    |                                      
+           ^^^^^^^^^
+    |
+    = help: maybe it is overwritten before 
+being read?
+    = note: `#[warn(unused_assignments)]` 
+on by default
+
+warning: unused variable: `world_pos`
+   --> 
+editor\src\ui\scene_view\mod.rs:496:33
+    |
+496 | ...                   let world_pos 
+= match scene_view_mode {
+    |                           ^^^^^^^^^ 
+help: if this is intentional, prefix it 
+with an underscore: `_world_pos`
+
+warning: `editor` (lib) generated 9 
+warnings (run `cargo fix --lib -p editor` 
+to apply 2 suggestions)
+    Finished `dev` profile [optimized + 
+debuginfo] target(s) in 8.47s

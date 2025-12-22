@@ -28,6 +28,7 @@ pub use dock_layout::{
     get_dock_style, save_default_layout, load_default_layout_name, get_layout_by_name, load_custom_layouts, save_custom_layout_state, load_custom_layout_state
 };
 use panels::{hierarchy, bottom_panel};
+use engine_core::assets::AssetLoader;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum TransformTool {
@@ -82,6 +83,7 @@ impl EditorUI {
         device: &wgpu::Device,
         queue: &wgpu::Queue,
         reload_mesh_assets_request: &mut bool,
+        asset_loader: &dyn AssetLoader,
     ) {
         // Top Menu Bar
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
@@ -190,6 +192,7 @@ impl EditorUI {
                 egui_renderer,
                 device,
                 queue,
+                asset_loader,
             );
         });
 
@@ -342,6 +345,7 @@ impl EditorUI {
         ui_manager: &mut engine::ui_manager::UIManager,
         dt: f32,
         reload_mesh_assets_request: &mut bool,
+        asset_loader: &dyn AssetLoader,
     ) {
         // Handle layout change request (will be processed by caller)
         // Layout changes are handled in main.rs to access EditorState
@@ -430,6 +434,7 @@ impl EditorUI {
                 reload_mesh_assets_request,
                 egui_renderer,
                 scene_view_renderer,
+                asset_loader,
             };
 
             let mut tab_viewer = EditorTabViewer {

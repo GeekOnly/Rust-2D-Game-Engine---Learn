@@ -58,6 +58,7 @@ pub fn render_scene_view(
     egui_renderer: &mut egui_wgpu::Renderer,
     device: &wgpu::Device,
     queue: &wgpu::Queue,
+    asset_loader: &dyn engine_core::assets::AssetLoader,
 ) {
     // Sync camera projection mode with editor state
     scene_camera.projection_mode = *projection_mode;
@@ -485,14 +486,14 @@ pub fn render_scene_view(
                 } 
                 // Handle XSG files
                 else if asset.path.extension().and_then(|s| s.to_str()) == Some("xsg") {
-                    if let Ok(xsg) = engine::assets::xsg_importer::XsgImporter::load_from_file(&asset.path) {
+                    if let Ok(xsg) = engine::assets::xsg_importer::XsgImporter::load_from_asset(asset_loader, &asset.path.to_string_lossy()) {
                          if let Some(screen_pos) = drag_drop.drop_position {
                             let center = rect.center();
                             let relative_x = screen_pos.x - center.x;
                             let relative_y = screen_pos.y - center.y;
                             
                              // Determine world position based on mode
-                            let world_pos = match scene_view_mode {
+                            let _world_pos = match scene_view_mode {
                                 SceneViewMode::Mode2D => {
                                      let p = scene_camera.screen_to_world(glam::Vec2::new(relative_x, relative_y));
                                      glam::Vec3::new(p.x, p.y, 0.0)
@@ -533,6 +534,7 @@ pub fn render_scene_view(
                                 texture_manager,
                                 &path_id,
                                 &base_path,
+                                asset_loader,
                             ) {
                                 Ok(entities) => {
                                     if !entities.is_empty() {

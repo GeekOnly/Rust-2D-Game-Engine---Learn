@@ -92,7 +92,8 @@ fn main() -> Result<()> {
         .build(&event_loop)?;
 
     // Initialize systems
-    let mut ctx = EngineContext::new();
+    let asset_loader = std::sync::Arc::new(engine::assets::native_loader::NativeAssetLoader::new("."));
+    let mut ctx = EngineContext::new(asset_loader.clone());
     let mut script_engine = ScriptEngine::new()?;
     
     #[cfg(feature = "rapier")]
@@ -181,6 +182,7 @@ fn main() -> Result<()> {
         &renderer.queue,
         &mut renderer.texture_manager,
         &renderer.mesh_renderer,
+        &*asset_loader,
     );
 
     let mut last_frame_time = std::time::Instant::now();

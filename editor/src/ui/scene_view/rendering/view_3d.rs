@@ -47,7 +47,7 @@ pub fn render_scene_3d(
     painter: &egui::Painter,
     world: &mut World,
     scene_camera: &SceneCamera,
-    scene_grid: &SceneGrid,
+    _scene_grid: &SceneGrid,
     _infinite_grid: &mut InfiniteGrid,
     projection_mode: &SceneProjectionMode,
     _center: egui::Pos2,
