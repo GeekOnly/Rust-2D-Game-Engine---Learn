@@ -1,7 +1,7 @@
 use crate::{World, Entity, Tilemap, TileSet, Transform, Collider, Rigidbody2D};
-use serde_json::Value;
 use std::path::Path;
 use crate::traits::{EcsWorld, ComponentAccess};
+use crate::components::ldtk_map::LdtkJson;
 
 /// Normalize texture path - extract filename from absolute paths
 fn normalize_texture_path(path: &str) -> String {
@@ -23,7 +23,7 @@ fn normalize_texture_path(path: &str) -> String {
 
 /// LDTK file loader
 /// 
-/// Loads LDtk JSON files directly using serde_json
+/// Loads LDtk JSON files directly using typed structs
 /// Compatible with LDtk 1.5.3+
 pub struct LdtkLoader;
 
@@ -76,7 +76,7 @@ impl LdtkLoader {
         let project_data = std::fs::read_to_string(path.as_ref())
             .map_err(|e| format!("Failed to read LDTK file: {}", e))?;
         
-        let project: Value = serde_json::from_str(&project_data)
+        let project: LdtkJson = serde_json::from_str(&project_data)
             .map_err(|e| format!("Failed to parse LDTK JSON: {}", e))?;
 
         // Create Grid entity (parent)
@@ -89,25 +89,16 @@ impl LdtkLoader {
             .unwrap_or("Unknown");
         let _ = ComponentAccess::<String>::insert(world, grid_entity, format!("LDtk Grid - {}", file_name));
         
-        // Get grid size from LDtk
-        let grid_size = project["defaultGridSize"]
-            .as_i64()
-            .unwrap_or(8) as f32;
-        
-        // Create Grid component with cell size matching tilemap tiles
-        // This ensures grid aligns perfectly with tilemap tiles in both 2D and 3D modes
-        // Use appropriate pixels_per_unit for tilemap scale
-        // For 8px tiles to be 1 world unit each (matching grid cells)
-        let pixels_per_unit = grid_size; // 8px = 1 world unit
-        let _cell_width = grid_size / pixels_per_unit;
-        let _cell_height = grid_size / pixels_per_unit;
+        // Use default grid size from LDtk for world scale
+        let grid_size = project.default_grid_size as f32;
+        let pixels_per_unit = grid_size; // 1 tile = 1 world unit
         
         let grid = crate::Grid {
-            cell_size: (1.0, 1.0, 0.0),  // 1 world unit per cell = 1 tile per cell
+            cell_size: (1.0, 1.0, 0.0),  // 1 world unit per cell
             cell_gap: (0.0, 0.0),
             layout: crate::GridLayout::Rectangle,
             swizzle: crate::CellSwizzle::XYZ,
-            plane: crate::GridPlane::XY,  // Default horizontal plane - can be changed to XZ for 3D
+            plane: crate::GridPlane::XY, 
         };
         let _ = ComponentAccess::<crate::Grid>::insert(world, grid_entity, grid);
         
@@ -123,689 +114,257 @@ impl LdtkLoader {
         
         // Load levels as children of Grid
         let mut tilemap_entities = Vec::new();
-        let levels = project["levels"]
-            .as_array()
-            .ok_or("No levels found in LDTK file")?;
 
-        for level in levels {
-            let entities = Self::load_level_as_children(
-                level,
-                &project,
-                world,
-                grid_entity,
-                path.as_ref(),
-            )?;
-            tilemap_entities.extend(entities);
-        }
-
-        if tilemap_entities.is_empty() {
-            log::warn!("No entities loaded from LDTK file. Check if levels have layers with data.");
-        }
-
-        Ok((grid_entity, tilemap_entities))
-    }
-
-    /// Load an LDTK project file and spawn entities into the world
-    pub fn load_project(path: impl AsRef<Path>, world: &mut World) -> Result<Vec<Entity>, String> {
-        // Load the project JSON
-        let project_data = std::fs::read_to_string(path.as_ref())
-            .map_err(|e| format!("Failed to read LDTK file: {}", e))?;
-        
-        let project: Value = serde_json::from_str(&project_data)
-            .map_err(|e| format!("Failed to parse LDTK JSON: {}", e))?;
-
-        let mut entities = Vec::new();
-
-        // Get levels array
-        let levels = project["levels"]
-            .as_array()
-            .ok_or("No levels found in LDTK file")?;
-
-        // Load each level
-        for level in levels {
-            // Get level world position
-            let level_world_x = level["worldX"].as_i64().unwrap_or(0) as f32;
-            let level_world_y = level["worldY"].as_i64().unwrap_or(0) as f32;
-            
+        for level in &project.levels {
             // Get layer instances
-            let empty_vec = vec![];
-            let layer_instances = level["layerInstances"]
-                .as_array()
-                .unwrap_or(&empty_vec);
-
-            // Process each layer
-            for layer in layer_instances {
-                // Get layer properties
-                let identifier = layer["__identifier"]
-                    .as_str()
-                    .unwrap_or("Unknown");
+            if let Some(layer_instances) = &level.layer_instances {
+                // Reverse to render bottom layers first (LDtk stores top-to-bottom)
+                // Actually, engine usually renders based on Z or draw order. 
+                // LDtk layers: [0] is TOP layer.
+                // We should iterate in reverse if we want [0] to be last spawned (on top)?
+                // Or just rely on Z-index. Let's spawn in order but adjust Z if needed.
+                // For now, standard iteration.
                 
-                let width = layer["__cWid"]
-                    .as_i64()
-                    .unwrap_or(0) as u32;
-                
-                let height = layer["__cHei"]
-                    .as_i64()
-                    .unwrap_or(0) as u32;
-                
-                let layer_def_uid = layer["layerDefUid"]
-                    .as_i64()
-                    .unwrap_or(0);
-                
-                let px_offset_x = layer["__pxTotalOffsetX"]
-                    .as_i64()
-                    .unwrap_or(0) as f32;
-                
-                let px_offset_y = layer["__pxTotalOffsetY"]
-                    .as_i64()
-                    .unwrap_or(0) as f32;
-
-                // Check if layer has tiles (either gridTiles or autoLayerTiles)
-                let has_grid_tiles = layer["gridTiles"]
-                    .as_array()
-                    .map(|arr| !arr.is_empty())
-                    .unwrap_or(false);
-                
-                let has_auto_tiles = layer["autoLayerTiles"]
-                    .as_array()
-                    .map(|arr| !arr.is_empty())
-                    .unwrap_or(false);
-
-                // Only create entity if layer has tiles
-                if has_grid_tiles || has_auto_tiles {
-                    let entity = world.spawn();
-
-                    // Create tilemap
-                    let mut tilemap = Tilemap::new(
-                        identifier,
-                        format!("tileset_{}", layer_def_uid),
-                        width,
-                        height,
-                    );
-
-                    // Get grid size for tile positioning
-                    let grid_size = layer["__gridSize"]
-                        .as_i64()
-                        .unwrap_or(8) as u32;
-
-                    // Parse tiles (prefer autoLayerTiles, fallback to gridTiles)
-                    let tiles_array = if has_auto_tiles {
-                        layer["autoLayerTiles"].as_array()
-                    } else {
-                        layer["gridTiles"].as_array()
-                    };
-
-                    if let Some(tiles) = tiles_array {
-                        let mut parsed_count = 0;
-                        
-                        for tile_data in tiles {
-                            // Get tile position in pixels
-                            let px = tile_data["px"].as_array();
-                            
-                            // Get tile ID
-                            let tile_id = tile_data["t"]
-                                .as_i64()
-                                .unwrap_or(0) as u32;
-                            
-                            // Get flip flags (f: 0=none, 1=flipX, 2=flipY, 3=both)
-                            let flip_flags = tile_data["f"]
-                                .as_i64()
-                                .unwrap_or(0);
-                            
-                            if let Some(px_array) = px {
-                                if px_array.len() >= 2 {
-                                    let tile_x = px_array[0].as_i64().unwrap_or(0) as u32;
-                                    let tile_y = px_array[1].as_i64().unwrap_or(0) as u32;
-                                    
-                                    // Convert pixel position to tile coordinates
-                                    let grid_x = tile_x / grid_size;
-                                    let grid_y = tile_y / grid_size;
-                                    
-                                    // Create tile
-                                    let tile = crate::Tile {
-                                        tile_id,
-                                        flip_h: (flip_flags & 1) != 0,
-                                        flip_v: (flip_flags & 2) != 0,
-                                        flip_d: false,
-                                    };
-                                    
-                                    // Set tile in tilemap
-                                    if tilemap.set_tile(grid_x, grid_y, tile) {
-                                        parsed_count += 1;
-                                    }
-                                }
-                            }
-                        }
-                        
-                        log::info!("Layer '{}': parsed {}/{} tiles ({}x{} grid, {}px tiles)", 
-                            identifier, parsed_count, tiles.len(), width, height, grid_size);
-                    }
-
-                    // Get tileset info and create TileSet component
-                    let tileset_uid = layer["__tilesetDefUid"]
-                        .as_i64()
-                        .unwrap_or(0);
+                for layer in layer_instances.iter().rev() {
+                     // Get grid size for this layer
+                    let layer_grid_size = layer.__grid_size as u32;
+                    let width = layer.__c_wid as u32;
+                    let height = layer.__c_hei as u32;
                     
-                    if tileset_uid > 0 {
-                        // Find tileset definition in project
-                        if let Some(tilesets) = project["defs"]["tilesets"].as_array() {
-                            for tileset_def in tilesets {
-                                if tileset_def["uid"].as_i64().unwrap_or(0) == tileset_uid {
-                                    if let Some(tileset_rel_path) = tileset_def["relPath"].as_str() {
-                                        // Convert relative path to absolute path
-                                        // LDtk uses "../" relative to the .ldtk file
-                                        let ldtk_dir = path.as_ref().parent().unwrap_or(std::path::Path::new("."));
-                                        let tileset_path = ldtk_dir.join(tileset_rel_path);
+                    match layer.__type.as_str() {
+                        "Tiles" | "AutoLayer" => {
+                            let tiles = if !layer.auto_layer_tiles.is_empty() {
+                                &layer.auto_layer_tiles
+                            } else {
+                                &layer.grid_tiles
+                            };
+
+                            if tiles.is_empty() {
+                                continue;
+                            }
+
+                            let entity = world.spawn();
+                            world.set_parent(entity, Some(grid_entity));
+
+                            // Create tilemap
+                            let mut tilemap = Tilemap::new(
+                                &layer.__identifier,
+                                format!("tileset_{}", layer.__tileset_def_uid.unwrap_or(0)),
+                                width,
+                                height,
+                            );
+
+                            for tile_data in tiles {
+                                // tile.px is [x, y] in pixels
+                                let px = tile_data.px;
+                                let tile_id = tile_data.t as u32;
+                                let flip_bits = tile_data.f; // 0=none, 1=flipX, 2=flipY
+
+                                // Convert to grid coords
+                                let grid_x = (px[0] as u32) / layer_grid_size;
+                                let grid_y = (px[1] as u32) / layer_grid_size;
+                                
+                                let tile = crate::Tile {
+                                    tile_id,
+                                    flip_h: (flip_bits & 1) != 0,
+                                    flip_v: (flip_bits & 2) != 0,
+                                    flip_d: false, // LDtk doesn't support diagonal flip commonly
+                                };
+                                
+                                tilemap.set_tile(grid_x, grid_y, tile);
+                            }
+
+                            // Find and setup tileset
+                            if let Some(uid) = layer.__tileset_def_uid {
+                                if let Some(tileset_def) = project.defs.tilesets.iter().find(|t| t.uid == uid) {
+                                     if let Some(rel_path) = &tileset_def.rel_path {
+                                        // Path logic
+                                        let ldtk_dir = path.as_ref().parent().unwrap_or(Path::new("."));
+                                        let tileset_path = ldtk_dir.join(rel_path);
                                         let tileset_path_abs = tileset_path.to_string_lossy().to_string();
                                         let tileset_path_str = normalize_texture_path(&tileset_path_abs);
 
-                                        log::info!("  Tileset: {} -> {} (normalized to: {})", tileset_rel_path, tileset_path_abs, tileset_path_str);
-                                        
-                                        // Get tileset dimensions
-                                        let tileset_width = tileset_def["pxWid"].as_i64().unwrap_or(256) as u32;
-                                        let tileset_height = tileset_def["pxHei"].as_i64().unwrap_or(256) as u32;
-                                        let columns = tileset_width / grid_size;
-                                        let rows = tileset_height / grid_size;
+                                        let columns = (tileset_def.px_wid / tileset_def.tile_grid_size) as u32;
+                                        // Calculate total tiles
+                                        let rows = (tileset_def.px_hei / tileset_def.tile_grid_size) as u32;
                                         let tile_count = columns * rows;
-                                        
-                                        // Create TileSet component
-                                        let tileset = crate::TileSet::new(
-                                            format!("tileset_{}", tileset_uid),
-                                            tileset_path_str.clone(),
-                                            format!("tileset_{}", tileset_uid),
-                                            grid_size,  // tile_width (from LDtk grid)
-                                            grid_size,  // tile_height (from LDtk grid)
+
+                                        let tileset = TileSet::new(
+                                            format!("tileset_{}", uid),
+                                            tileset_path_str,
+                                            format!("tileset_{}", uid),
+                                            layer_grid_size,
+                                            layer_grid_size,
                                             columns,
                                             tile_count,
                                         );
-                                        
-                                        let _ = ComponentAccess::<crate::TileSet>::insert(world, entity, tileset);
+                                        let _ = ComponentAccess::<TileSet>::insert(world, entity, tileset);
                                     }
-                                    break;
                                 }
                             }
+
+                            let _ = ComponentAccess::<Tilemap>::insert(world, entity, tilemap);
+                            let _ = ComponentAccess::<String>::insert(world, entity, format!("LDTK Layer: {}", layer.__identifier));
+
+                            // Calculate Transform
+                            // Level world pos + Layer offset
+                            let total_px_x = (level.world_x + layer.__px_total_offset_x) as f32;
+                            let total_px_y = (level.world_y + layer.__px_total_offset_y) as f32;
+                            
+                            // To map LDtk (Top-Left) to Engine (Bottom-Left assumed, OR 2D Y-Up)
+                            // In engine 2D usually Y is UP. LDtk is Y DOWN.
+                            // So Y = -total_px_y / PPU.
+                            let world_x = total_px_x / pixels_per_unit;
+                            let world_y = -total_px_y / pixels_per_unit;
+
+                            let transform = Transform::with_position(world_x, world_y, 0.0);
+                            let _ = ComponentAccess::<Transform>::insert(world, entity, transform);
+
+                            tilemap_entities.push(entity);
                         }
-                    }
-
-                    let _ = ComponentAccess::<Tilemap>::insert(world, entity, tilemap);
-                    let _ = ComponentAccess::<String>::insert(world, entity, format!("LDTK Layer: {}", identifier));
-
-                    // Add transform at layer offset
-                    // Convert pixel coordinates to world units (pixels / pixels_per_unit)
-                    // Use grid_size as pixels_per_unit for 1:1 tile-to-grid mapping
-                    let pixels_per_unit = grid_size as f32;
-                    // Combine level world position with layer offset
-                    let total_px_x = level_world_x + px_offset_x;
-                    let total_px_y = level_world_y + px_offset_y;
-                    let world_x = total_px_x / pixels_per_unit;
-                    let world_y = -total_px_y / pixels_per_unit; // Flip Y (LDtk uses top-left origin, engine uses bottom-left)
-                    
-                    let transform = Transform::with_position(
-                        world_x,
-                        world_y,
-                        0.0,
-                    );
-                    let _ = ComponentAccess::<Transform>::insert(world, entity, transform);
-
-                    entities.push(entity);
-                } else {
-                    log::debug!("Skipping empty layer: {}", identifier);
-                }
-            }
-        }
-
-        if entities.is_empty() {
-            log::warn!("No entities loaded from LDTK file. Check if levels have layers with data.");
-        }
-
-        Ok(entities)
-    }
-    
-    /// Generate colliders from IntGrid layer
-    /// Creates static collider entities for each solid tile
-    pub fn generate_colliders_from_intgrid(
-        path: impl AsRef<Path>,
-        world: &mut World,
-        collision_value: i64,
-    ) -> Result<Vec<Entity>, String> {
-        // Load the project JSON
-        let project_data = std::fs::read_to_string(path.as_ref())
-            .map_err(|e| format!("Failed to read LDTK file: {}", e))?;
-        
-        let project: Value = serde_json::from_str(&project_data)
-            .map_err(|e| format!("Failed to parse LDTK JSON: {}", e))?;
-
-        let mut collider_entities = Vec::new();
-        let pixels_per_unit = 8.0; // Use 8px = 1 world unit for LDtk compatibility
-
-        // Get levels array
-        let levels = project["levels"]
-            .as_array()
-            .ok_or("No levels found in LDTK file")?;
-
-        // Load each level
-        for level in levels {
-            // Get level world position
-            let level_world_x = level["worldX"].as_i64().unwrap_or(0) as f32;
-            let level_world_y = level["worldY"].as_i64().unwrap_or(0) as f32;
-            
-            // Get layer instances
-            let empty_vec = vec![];
-            let layer_instances = level["layerInstances"]
-                .as_array()
-                .unwrap_or(&empty_vec);
-
-            // Process each layer
-            for layer in layer_instances {
-                // Only process IntGrid layers
-                let layer_type = layer["__type"].as_str().unwrap_or("");
-                if layer_type != "IntGrid" {
-                    continue;
-                }
-                
-                // Get layer properties
-                let identifier = layer["__identifier"].as_str().unwrap_or("Unknown");
-                let width = layer["__cWid"].as_i64().unwrap_or(0) as u32;
-                let height = layer["__cHei"].as_i64().unwrap_or(0) as u32;
-                let grid_size = layer["__gridSize"].as_i64().unwrap_or(8) as f32;
-                
-                let px_offset_x = layer["__pxTotalOffsetX"].as_i64().unwrap_or(0) as f32;
-                let px_offset_y = layer["__pxTotalOffsetY"].as_i64().unwrap_or(0) as f32;
-                
-                // Get IntGrid CSV data
-                let intgrid_csv = layer["intGridCsv"].as_array();
-                
-                if let Some(intgrid) = intgrid_csv {
-                    log::info!("Generating colliders for IntGrid layer '{}' ({}x{})", identifier, width, height);
-                    
-                    let mut collider_count = 0;
-                    
-                    // Create collider for each solid tile
-                    for y in 0..height {
-                        for x in 0..width {
-                            let index = (y * width + x) as usize;
-                            if index >= intgrid.len() {
-                                continue;
-                            }
-                            
-                            let value = intgrid[index].as_i64().unwrap_or(0);
-                            
-                            // Check if this tile should have collision
-                            if value == collision_value {
-                                // Create collider entity
+                        "Entities" => {
+                            for entity_instance in &layer.entity_instances {
                                 let entity = world.spawn();
+                                world.set_parent(entity, Some(grid_entity));
+
+                                // Calculate position
+                                // Entity px is relative to Level
+                                let entity_px_x = entity_instance.px[0] as f32;
+                                let entity_px_y = entity_instance.px[1] as f32;
                                 
-                                // Calculate world position
-                                let total_px_x = level_world_x + px_offset_x + (x as f32 * grid_size);
-                                let total_px_y = level_world_y + px_offset_y + (y as f32 * grid_size);
+                                let total_px_x = (level.world_x + layer.__px_total_offset_x) as f32 + entity_px_x;
+                                let total_px_y = (level.world_y + layer.__px_total_offset_y) as f32 + entity_px_y;
+                                
                                 let world_x = total_px_x / pixels_per_unit;
                                 let world_y = -total_px_y / pixels_per_unit;
                                 
-                                // Position at tile center
-                                let tile_size = grid_size / pixels_per_unit;
-                                let center_x = world_x + tile_size / 2.0;
-                                let center_y = world_y - tile_size / 2.0;
+                                let mut transform = Transform::with_position(world_x, world_y, 0.0);
                                 
-                                let transform = Transform::with_position(center_x, center_y, 0.0);
+                                // Entity Pivot: LDtk pivot default is (0.5, 1.0) usually, but configurable.
+                                // Engine usually centers sprites? 
+                                // For now, just trust the coordinate conversion.
+                                // If pivot is at bottom-center (0.5, 1.0), the px coordinate is at that point.
+                                // So placing the entity at world_x, world_y places the pivot there.
+                                
                                 let _ = ComponentAccess::<Transform>::insert(world, entity, transform);
                                 
-                                // Add collider (size = 1 world unit = 1 tile)
-                                let collider = Collider::new(tile_size, tile_size);
-                                let _ = ComponentAccess::<Collider>::insert(world, entity, collider);
+                                // Name
+                                let _ = ComponentAccess::<String>::insert(world, entity, entity_instance.__identifier.clone());
                                 
-                                // Add kinematic rigidbody (static, doesn't move)
-                                let rigidbody = Rigidbody2D {
-                                    velocity: (0.0, 0.0),
-                                    gravity_scale: 0.0,
-                                    mass: 1.0,
-                                    is_kinematic: true,
-                                    freeze_rotation: true,
-                                    enable_ccd: false, // Static objects don't need CCD
-                                };
-                                let _ = ComponentAccess::<Rigidbody2D>::insert(world, entity, rigidbody);
+                                // Add to list (we reuse tilemap_entities list or should we separate? 
+                                // Function signature returns (Grid, Tilemaps). Entities are usually implicitly handled or we should add them to tilemap_entities for tracking?
+                                // "tilemap_entities" name suggests just tilemaps. But "load_project" returns generic Vec<Entity>.
+                                // load_project_with_grid returns (Entity, Vec<Entity>). I'll add them to the list so they are tracked/reloaded.
+                                tilemap_entities.push(entity);
                                 
-                                // Add name for debugging
-                                let _ = ComponentAccess::<String>::insert(world, entity, format!("Collider_{}_{}", x, y));
-                                
-                                collider_entities.push(entity);
-                                collider_count += 1;
+                                log::info!("Spawned Entity: {} at ({:.2}, {:.2})", entity_instance.__identifier, world_x, world_y);
                             }
                         }
+                        _ => {}
                     }
-                    
-                    log::info!("Created {} colliders for layer '{}'", collider_count, identifier);
                 }
             }
         }
+        
+        Ok((grid_entity, tilemap_entities))
+    }
 
-        Ok(collider_entities)
+    /// Load an LDTK project file and spawn entities into the world (Legacy/Simple wrapper)
+    pub fn load_project(path: impl AsRef<Path>, world: &mut World) -> Result<Vec<Entity>, String> {
+        let (grid, children) = Self::load_project_with_grid(path, world)?;
+        let mut all = vec![grid];
+        all.extend(children);
+        Ok(all)
     }
     
-    /// Load a level as children of Grid entity
-    fn load_level_as_children(
-        level: &Value,
-        project: &Value,
-        world: &mut World,
-        grid_parent: Entity,
-        ldtk_path: &Path,
-    ) -> Result<Vec<Entity>, String> {
-        let mut entities = Vec::new();
-
-        // Get level world position
-        let level_world_x = level["worldX"].as_i64().unwrap_or(0) as f32;
-        let level_world_y = level["worldY"].as_i64().unwrap_or(0) as f32;
-        
-        // Get layer instances
-        let empty_vec = vec![];
-        let layer_instances = level["layerInstances"]
-            .as_array()
-            .unwrap_or(&empty_vec);
-
-        // Process each layer
-        for layer in layer_instances {
-            // Get layer properties
-            let identifier = layer["__identifier"]
-                .as_str()
-                .unwrap_or("Unknown");
-            
-            let width = layer["__cWid"]
-                .as_i64()
-                .unwrap_or(0) as u32;
-            
-            let height = layer["__cHei"]
-                .as_i64()
-                .unwrap_or(0) as u32;
-            
-            let layer_def_uid = layer["layerDefUid"]
-                .as_i64()
-                .unwrap_or(0);
-            
-            let px_offset_x = layer["__pxTotalOffsetX"]
-                .as_i64()
-                .unwrap_or(0) as f32;
-            
-            let px_offset_y = layer["__pxTotalOffsetY"]
-                .as_i64()
-                .unwrap_or(0) as f32;
-
-            // Check if layer has tiles
-            let has_grid_tiles = layer["gridTiles"]
-                .as_array()
-                .map(|arr| !arr.is_empty())
-                .unwrap_or(false);
-            
-            let has_auto_tiles = layer["autoLayerTiles"]
-                .as_array()
-                .map(|arr| !arr.is_empty())
-                .unwrap_or(false);
-
-            // Only create entity if layer has tiles
-            if has_grid_tiles || has_auto_tiles {
-                let entity = world.spawn();
-
-                // Set parent to Grid
-                world.set_parent(entity, Some(grid_parent));
-
-                // Create tilemap
-                let mut tilemap = crate::Tilemap::new(
-                    identifier,
-                    format!("tileset_{}", layer_def_uid),
-                    width,
-                    height,
-                );
-
-                // Get grid size for tile positioning
-                let grid_size = layer["__gridSize"]
-                    .as_i64()
-                    .unwrap_or(8) as u32;
-
-                // Parse tiles (prefer autoLayerTiles, fallback to gridTiles)
-                let tiles_array = if has_auto_tiles {
-                    layer["autoLayerTiles"].as_array()
-                } else {
-                    layer["gridTiles"].as_array()
-                };
-
-                if let Some(tiles) = tiles_array {
-                    let mut parsed_count = 0;
-                    
-                    for tile_data in tiles {
-                        // Get tile position in pixels
-                        let px = tile_data["px"].as_array();
-                        
-                        // Get tile ID
-                        let tile_id = tile_data["t"]
-                            .as_i64()
-                            .unwrap_or(0) as u32;
-                        
-                        // Get flip flags (f: 0=none, 1=flipX, 2=flipY, 3=both)
-                        let flip_flags = tile_data["f"]
-                            .as_i64()
-                            .unwrap_or(0);
-                        
-                        if let Some(px_array) = px {
-                            if px_array.len() >= 2 {
-                                let tile_x = px_array[0].as_i64().unwrap_or(0) as u32;
-                                let tile_y = px_array[1].as_i64().unwrap_or(0) as u32;
-                                
-                                // Convert pixel position to tile coordinates
-                                let grid_x = tile_x / grid_size;
-                                let grid_y = tile_y / grid_size;
-                                
-                                // Create tile
-                                let tile = crate::Tile {
-                                    tile_id,
-                                    flip_h: (flip_flags & 1) != 0,
-                                    flip_v: (flip_flags & 2) != 0,
-                                    flip_d: false,
-                                };
-                                
-                                // Set tile in tilemap
-                                if tilemap.set_tile(grid_x, grid_y, tile) {
-                                    parsed_count += 1;
-                                }
-                            }
-                        }
-                    }
-                    
-                    log::info!("Layer '{}': parsed {}/{} tiles ({}x{} grid, {}px tiles)", 
-                        identifier, parsed_count, tiles.len(), width, height, grid_size);
-                }
-
-                // Get tileset info and create TileSet component
-                let tileset_uid = layer["__tilesetDefUid"]
-                    .as_i64()
-                    .unwrap_or(0);
-                
-                if tileset_uid > 0 {
-                    // Find tileset definition in project
-                    if let Some(tilesets) = project["defs"]["tilesets"].as_array() {
-                        for tileset_def in tilesets {
-                            if tileset_def["uid"].as_i64().unwrap_or(0) == tileset_uid {
-                                if let Some(tileset_rel_path) = tileset_def["relPath"].as_str() {
-                                    // Convert relative path to absolute path
-                                    let ldtk_dir = ldtk_path.parent().unwrap_or(std::path::Path::new("."));
-                                    let tileset_path = ldtk_dir.join(tileset_rel_path);
-                                    let tileset_path_abs = tileset_path.to_string_lossy().to_string();
-                                    let tileset_path_str = normalize_texture_path(&tileset_path_abs);
-
-                                    log::info!("  Tileset: {} -> {} (normalized to: {})", tileset_rel_path, tileset_path_abs, tileset_path_str);
-                                    
-                                    // Get tileset dimensions
-                                    let tileset_width = tileset_def["pxWid"].as_i64().unwrap_or(256) as u32;
-                                    let tileset_height = tileset_def["pxHei"].as_i64().unwrap_or(256) as u32;
-                                    let columns = tileset_width / grid_size;
-                                    let rows = tileset_height / grid_size;
-                                    let tile_count = columns * rows;
-                                    
-                                    // Create TileSet component
-                                    let tileset = crate::TileSet::new(
-                                        format!("tileset_{}", tileset_uid),
-                                        tileset_path_str.clone(),
-                                        format!("tileset_{}", tileset_uid),
-                                        grid_size,
-                                        grid_size,
-                                        columns,
-                                        tile_count,
-                                    );
-                                    
-                                    let _ = ComponentAccess::<TileSet>::insert(world, entity, tileset);
-                                }
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                let _ = ComponentAccess::<crate::Tilemap>::insert(world, entity, tilemap);
-                let _ = ComponentAccess::<String>::insert(world, entity, format!("LDTK Layer: {}", identifier));
-
-                // Add transform at layer offset (relative to Grid parent)
-                // Use grid_size as pixels_per_unit for 1:1 tile-to-grid mapping
-                let pixels_per_unit = 8.0; // Standard LDtk grid size
-                let total_px_x = level_world_x + px_offset_x;
-                let total_px_y = level_world_y + px_offset_y;
-                let world_x = total_px_x / pixels_per_unit;
-                let world_y = -total_px_y / pixels_per_unit;
-                
-                let transform = crate::Transform::with_position(
-                    world_x,
-                    world_y,
-                    0.0,
-                );
-                let _ = ComponentAccess::<Transform>::insert(world, entity, transform);
-
-                entities.push(entity);
-            } else {
-                log::debug!("Skipping empty layer: {}", identifier);
-            }
-        }
-
-        Ok(entities)
-    }
-
     /// Generate optimized composite colliders from IntGrid layer
-    /// Merges adjacent tiles into larger rectangles for better performance
     pub fn generate_composite_colliders_from_intgrid(
         path: impl AsRef<Path>,
         world: &mut World,
         collision_value: i64,
     ) -> Result<Vec<Entity>, String> {
-        // Load the project JSON
         let project_data = std::fs::read_to_string(path.as_ref())
             .map_err(|e| format!("Failed to read LDTK file: {}", e))?;
         
-        let project: Value = serde_json::from_str(&project_data)
+        let project: LdtkJson = serde_json::from_str(&project_data)
             .map_err(|e| format!("Failed to parse LDTK JSON: {}", e))?;
 
         let mut collider_entities = Vec::new();
-        let pixels_per_unit = 8.0; // Use 8px = 1 world unit for LDtk compatibility
+        let grid_size = project.default_grid_size as f32;
+        let pixels_per_unit = grid_size; 
 
-        // Get levels array
-        let levels = project["levels"]
-            .as_array()
-            .ok_or("No levels found in LDTK file")?;
+        for level in &project.levels {
+             if let Some(layer_instances) = &level.layer_instances {
+                for layer in layer_instances {
+                    if layer.__type != "IntGrid" {
+                        continue;
+                    }
 
-        // Load each level
-        for level in levels {
-            // Get level world position
-            let level_world_x = level["worldX"].as_i64().unwrap_or(0) as f32;
-            let level_world_y = level["worldY"].as_i64().unwrap_or(0) as f32;
-            
-            // Get layer instances
-            let empty_vec = vec![];
-            let layer_instances = level["layerInstances"]
-                .as_array()
-                .unwrap_or(&empty_vec);
-
-            // Process each layer
-            for layer in layer_instances {
-                // Only process IntGrid layers
-                let layer_type = layer["__type"].as_str().unwrap_or("");
-                if layer_type != "IntGrid" {
-                    continue;
-                }
-                
-                // Get layer properties
-                let identifier = layer["__identifier"].as_str().unwrap_or("Unknown");
-                let width = layer["__cWid"].as_i64().unwrap_or(0) as u32;
-                let height = layer["__cHei"].as_i64().unwrap_or(0) as u32;
-                let grid_size = layer["__gridSize"].as_i64().unwrap_or(8) as f32;
-                
-                let px_offset_x = layer["__pxTotalOffsetX"].as_i64().unwrap_or(0) as f32;
-                let px_offset_y = layer["__pxTotalOffsetY"].as_i64().unwrap_or(0) as f32;
-                
-                // Get IntGrid CSV data
-                let intgrid_csv = layer["intGridCsv"].as_array();
-                
-                if let Some(intgrid) = intgrid_csv {
-                    log::info!("Generating composite colliders for IntGrid layer '{}' ({}x{})", identifier, width, height);
+                    // Check if IntGrid has values
+                    if layer.int_grid_csv.is_empty() {
+                        continue;
+                    }
                     
+                    let width = layer.__c_wid as u32;
+                    let height = layer.__c_hei as u32;
+                    let layer_grid_size = layer.__grid_size as f32;
+                    
+                    log::info!("Generating composite colliders for IntGrid layer '{}' ({}x{})", layer.__identifier, width, height);
+
                     // Convert to 2D grid
                     let mut grid = vec![vec![false; width as usize]; height as usize];
                     for y in 0..height {
                         for x in 0..width {
                             let index = (y * width + x) as usize;
-                            if index < intgrid.len() {
-                                let value = intgrid[index].as_i64().unwrap_or(0);
+                            if index < layer.int_grid_csv.len() {
+                                let value = layer.int_grid_csv[index] as i64;
                                 grid[y as usize][x as usize] = value == collision_value;
                             }
                         }
                     }
-                    
-                    // Find rectangles using greedy algorithm
+
                     let rectangles = find_rectangles(&mut grid, width, height);
                     
-                    log::info!("Found {} composite rectangles (reduced from {} tiles)", 
-                        rectangles.len(), 
-                        grid.iter().flatten().filter(|&&v| v).count()
-                    );
-                    
-                    // Create collider for each rectangle
+                    log::info!("Found {} composite rectangles", rectangles.len());
+
                     for rect in rectangles {
                         let entity = world.spawn();
                         
-                        // Calculate world position (center of rectangle)
-                        let total_px_x = level_world_x + px_offset_x + (rect.x as f32 * grid_size);
-                        let total_px_y = level_world_y + px_offset_y + (rect.y as f32 * grid_size);
+                        // Calculate position
+                        let total_px_x = (level.world_x + layer.__px_total_offset_x) as f32 + (rect.x as f32 * layer_grid_size);
+                        let total_px_y = (level.world_y + layer.__px_total_offset_y) as f32 + (rect.y as f32 * layer_grid_size);
+                        
                         let world_x = total_px_x / pixels_per_unit;
                         let world_y = -total_px_y / pixels_per_unit;
                         
-                        // Calculate size in world units
-                        let rect_width = rect.width as f32 * grid_size / pixels_per_unit;
-                        let rect_height = rect.height as f32 * grid_size / pixels_per_unit;
+                        let rect_width = rect.width as f32 * layer_grid_size / pixels_per_unit;
+                        let rect_height = rect.height as f32 * layer_grid_size / pixels_per_unit;
                         
-                        // Position at rectangle center
+                        // Center
                         let center_x = world_x + rect_width / 2.0;
                         let center_y = world_y - rect_height / 2.0;
                         
                         let transform = Transform::with_position(center_x, center_y, 0.0);
                         let _ = ComponentAccess::<Transform>::insert(world, entity, transform);
                         
-                        // Add collider with rectangle size
                         let collider = Collider::new(rect_width, rect_height);
                         let _ = ComponentAccess::<Collider>::insert(world, entity, collider);
                         
-                        // Add kinematic rigidbody (static, doesn't move)
                         let rigidbody = Rigidbody2D {
                             velocity: (0.0, 0.0),
                             gravity_scale: 0.0,
                             mass: 1.0,
                             is_kinematic: true,
                             freeze_rotation: true,
-                            enable_ccd: false, // Static objects don't need CCD
+                            enable_ccd: false,
                         };
                         let _ = ComponentAccess::<Rigidbody2D>::insert(world, entity, rigidbody);
-                        
-                        // Add name for debugging
-                        let _ = ComponentAccess::<String>::insert(world, entity, format!("CompositeCollider_{}x{}", rect.width, rect.height));
+                        let _ = ComponentAccess::<String>::insert(world, entity, format!("CompositeCollider_{}_{}", rect.x, rect.y)); // Use coords for unique name check? or just rect size
                         
                         collider_entities.push(entity);
                     }
-                    
-                    log::info!("Created {} composite colliders for layer '{}'", collider_entities.len(), identifier);
                 }
-            }
+             }
         }
 
         Ok(collider_entities)
@@ -822,7 +381,6 @@ struct Rectangle {
 }
 
 /// Find rectangles in a 2D grid using greedy meshing algorithm
-/// This finds the largest possible rectangles to minimize collider count
 fn find_rectangles(grid: &mut Vec<Vec<bool>>, width: u32, height: u32) -> Vec<Rectangle> {
     let mut rectangles = Vec::new();
     
@@ -847,38 +405,19 @@ fn find_rectangles(grid: &mut Vec<Vec<bool>>, width: u32, height: u32) -> Vec<Re
     rectangles
 }
 
-/// Find the largest rectangle starting at (x, y) using greedy approach
-/// Tries both horizontal-first and vertical-first expansion and picks the larger one
 fn find_largest_rectangle(grid: &Vec<Vec<bool>>, x: u32, y: u32, width: u32, height: u32) -> Rectangle {
-    // Strategy 1: Expand horizontally first, then vertically
     let rect1 = expand_horizontal_first(grid, x, y, width, height);
-    
-    // Strategy 2: Expand vertically first, then horizontally
     let rect2 = expand_vertical_first(grid, x, y, width, height);
-    
-    // Pick the rectangle with larger area
-    let area1 = rect1.width * rect1.height;
-    let area2 = rect2.width * rect2.height;
-    
-    if area1 >= area2 {
-        rect1
-    } else {
-        rect2
-    }
+    if (rect1.width * rect1.height) >= (rect2.width * rect2.height) { rect1 } else { rect2 }
 }
 
-/// Expand horizontally first, then vertically
 fn expand_horizontal_first(grid: &Vec<Vec<bool>>, x: u32, y: u32, width: u32, height: u32) -> Rectangle {
-    // Find maximum width
     let mut rect_width = 1;
     while x + rect_width < width && grid[y as usize][(x + rect_width) as usize] {
         rect_width += 1;
     }
-    
-    // Find maximum height with this width
     let mut rect_height = 1;
     'height_loop: while y + rect_height < height {
-        // Check if entire row is solid
         for dx in 0..rect_width {
             if !grid[(y + rect_height) as usize][(x + dx) as usize] {
                 break 'height_loop;
@@ -886,27 +425,16 @@ fn expand_horizontal_first(grid: &Vec<Vec<bool>>, x: u32, y: u32, width: u32, he
         }
         rect_height += 1;
     }
-    
-    Rectangle {
-        x,
-        y,
-        width: rect_width,
-        height: rect_height,
-    }
+    Rectangle { x, y, width: rect_width, height: rect_height }
 }
 
-/// Expand vertically first, then horizontally
 fn expand_vertical_first(grid: &Vec<Vec<bool>>, x: u32, y: u32, width: u32, height: u32) -> Rectangle {
-    // Find maximum height
     let mut rect_height = 1;
     while y + rect_height < height && grid[(y + rect_height) as usize][x as usize] {
         rect_height += 1;
     }
-    
-    // Find maximum width with this height
     let mut rect_width = 1;
     'width_loop: while x + rect_width < width {
-        // Check if entire column is solid
         for dy in 0..rect_height {
             if !grid[(y + dy) as usize][(x + rect_width) as usize] {
                 break 'width_loop;
@@ -914,11 +442,5 @@ fn expand_vertical_first(grid: &Vec<Vec<bool>>, x: u32, y: u32, width: u32, heig
         }
         rect_width += 1;
     }
-    
-    Rectangle {
-        x,
-        y,
-        width: rect_width,
-        height: rect_height,
-    }
+    Rectangle { x, y, width: rect_width, height: rect_height }
 }
