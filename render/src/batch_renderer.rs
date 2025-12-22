@@ -1,6 +1,7 @@
 use wgpu::util::DeviceExt;
 use crate::texture::Texture;
 use crate::sprite_renderer::Vertex;
+use crate::texture::TextureManager; // Added import
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
@@ -82,6 +83,13 @@ impl CameraUniform {
     }
 }
 
+// Batch Data for Deferred Rendering
+struct BatchData {
+    buffer: wgpu::Buffer,
+    texture_id: String,
+    count: u32,
+}
+
 pub struct BatchRenderer {
     render_pipeline: wgpu::RenderPipeline,
     vertex_buffer: wgpu::Buffer,
@@ -96,6 +104,9 @@ pub struct BatchRenderer {
     camera_uniform: CameraUniform,
     camera_buffer: wgpu::Buffer,
     camera_bind_group: wgpu::BindGroup,
+    
+    // Deferred Batches
+    batches: Vec<BatchData>,
 }
 
 impl BatchRenderer {
@@ -121,7 +132,8 @@ impl BatchRenderer {
         let camera_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             entries: &[wgpu::BindGroupLayoutEntry {
                 binding: 0,
-                visibility: wgpu::ShaderStages::VERTEX,
+                // Match CameraBinding visibility (Vertex | Fragment) for layout compatibility
+                visibility: wgpu::ShaderStages::VERTEX | wgpu::ShaderStages::FRAGMENT,
                 ty: wgpu::BindingType::Buffer {
                     ty: wgpu::BufferBindingType::Uniform,
                     has_dynamic_offset: false,
@@ -173,7 +185,7 @@ impl BatchRenderer {
                 topology: wgpu::PrimitiveTopology::TriangleList,
                 strip_index_format: None,
                 front_face: wgpu::FrontFace::Ccw,
-                cull_mode: Some(wgpu::Face::Back),
+                cull_mode: None,
                 polygon_mode: wgpu::PolygonMode::Fill,
                 unclipped_depth: false,
                 conservative: false,
@@ -181,13 +193,9 @@ impl BatchRenderer {
             depth_stencil: Some(wgpu::DepthStencilState {
                 format: wgpu::TextureFormat::Depth32Float,
                 depth_write_enabled: true,
-                depth_compare: wgpu::CompareFunction::Greater, // Reverse-Z
+                depth_compare: wgpu::CompareFunction::Less, // Standard Z
                 stencil: wgpu::StencilState::default(),
-                bias: wgpu::DepthBiasState {
-                    constant: -1, // Negative for Reverse-Z // Small bias for sprites
-                    slope_scale: -1.0, // Negative for Reverse-Z // Small slope bias for sprites
-                    clamp: 0.0, // Maximum depth bias clamp
-                },
+                bias: wgpu::DepthBiasState::default(),
             }),
             multisample: wgpu::MultisampleState {
                 count: 1,
@@ -236,7 +244,13 @@ impl BatchRenderer {
             camera_uniform,
             camera_buffer,
             camera_bind_group,
+            batches: Vec::new(),
         }
+    }
+
+    pub fn start_frame(&mut self) {
+        self.batches.clear();
+        self.instances.clear();
     }
 
     pub fn begin_frame(&mut self) {
@@ -246,6 +260,15 @@ impl BatchRenderer {
     pub fn update_camera(&mut self, queue: &wgpu::Queue, view_proj: glam::Mat4) {
         self.camera_uniform.update_view_proj(view_proj);
         queue.write_buffer(&self.camera_buffer, 0, bytemuck::cast_slice(&[self.camera_uniform]));
+
+        // Debug: Print once to verify update_camera is called
+        static mut UPDATE_LOGGED: bool = false;
+        unsafe {
+            if !UPDATE_LOGGED {
+                println!("DEBUG: BatchRenderer.update_camera() called with view_proj = {:?}", view_proj);
+                UPDATE_LOGGED = true;
+            }
+        }
     }
 
     pub fn draw_sprite(
@@ -257,7 +280,20 @@ impl BatchRenderer {
         uv_offset: [f32; 2],
         uv_scale: [f32; 2],
     ) {
+        // Build transform matrix: T * R * S (Translation, Rotation, Scale)
+        // from_scale_rotation_translation applies them in the correct order
         let transform = glam::Mat4::from_scale_rotation_translation(scale, rotation, position);
+
+        // Debug: Print first sprite transform
+        static mut FIRST_TRANSFORM_LOGGED: bool = false;
+        unsafe {
+            if !FIRST_TRANSFORM_LOGGED {
+                println!("DEBUG: First sprite transform - pos: {:?}, scale: {:?}", position, scale);
+                println!("DEBUG: Model matrix = {:?}", transform);
+                FIRST_TRANSFORM_LOGGED = true;
+            }
+        }
+
         let instance = InstanceRaw {
             model: transform.to_cols_array_2d(),
             color,
@@ -267,36 +303,62 @@ impl BatchRenderer {
         self.instances.push(instance);
     }
 
-    pub fn end_frame<'a>(
-        &'a mut self,
-        queue: &wgpu::Queue,
-        render_pass: &mut wgpu::RenderPass<'a>,
-        texture: &'a Texture,
+    /// Complete the current batch, creating a buffer for it.
+    pub fn finish_batch(
+        &mut self,
+        device: &wgpu::Device,
+        texture_id: String,
     ) {
         if self.instances.is_empty() {
             return;
         }
 
-        // Upload instances to GPU
-        // Note: For production, handle buffer resizing if instances > MAX_INSTANCES
-        // and ideally use staging buffers for better performance on some platforms.
-        // For now, queue.write_buffer is fine for < 10k items.
-        
         let instance_bytes = bytemuck::cast_slice(&self.instances);
-        queue.write_buffer(&self.instance_buffer, 0, instance_bytes);
-
-        if let Some(bind_group) = &texture.bind_group {
-            render_pass.set_pipeline(&self.render_pipeline);
-            // Group 0: Texture
-            render_pass.set_bind_group(0, bind_group, &[]);
-            // Group 1: Camera
-            render_pass.set_bind_group(1, &self.camera_bind_group, &[]);
-            
-            render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
-            render_pass.set_vertex_buffer(1, self.instance_buffer.slice(..)); // Instance buffer
-            render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
-            
-            render_pass.draw_indexed(0..self.num_indices, 0, 0..self.instances.len() as u32);
+        let buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+             label: Some("Batch Instance Buffer"),
+             contents: instance_bytes,
+             usage: wgpu::BufferUsages::VERTEX,
+        });
+        
+        self.batches.push(BatchData {
+            buffer,
+            texture_id,
+            count: self.instances.len() as u32,
+        });
+        
+        self.instances.clear();
+    }
+    
+    /// Render all collected batches
+    pub fn render<'a>(
+        &'a self,
+        render_pass: &mut wgpu::RenderPass<'a>,
+        texture_manager: &'a TextureManager,
+        camera_bind_group: &'a wgpu::BindGroup,
+    ) {
+        if self.batches.is_empty() {
+             return;
+        }
+         
+        render_pass.set_pipeline(&self.render_pipeline);
+        // Use the passed camera bind group (from CameraBinding) instead of internal one
+        render_pass.set_bind_group(1, camera_bind_group, &[]);
+        
+        for batch in &self.batches {
+             if let Some(texture) = texture_manager.get_texture(&batch.texture_id) {
+                 if let Some(bind_group) = &texture.bind_group {
+                     // Bind Texture
+                     render_pass.set_bind_group(0, bind_group, &[]);
+                     
+                     // Bind Buffers
+                     render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
+                     render_pass.set_vertex_buffer(1, batch.buffer.slice(..));
+                     render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
+                     
+                     // Draw
+                     render_pass.draw_indexed(0..self.num_indices, 0, 0..batch.count);
+                 }
+             }
         }
     }
 }

@@ -217,7 +217,7 @@ impl EditorLogic {
         // [SCENE POST-PROCESSING]
         // If a scene was loaded (via Menu, File, or Stop Play), we must check for Asset Meshes (GLTF)
         // and load them into the world.
-        // Also reload if requested from Inspector (when mesh type changes to/from Asset)
+        // Also reload if requested from Inspector (when mesh type(No change)s to/from Asset)
         if load_request || load_file_request.is_some() || (stop_request && !editor_state.is_playing) || editor_state.reload_mesh_assets_request {
              if let Some(project_path) = &editor_state.current_project_path {
                  use engine::runtime::render_system::post_process_asset_meshes;
@@ -229,6 +229,16 @@ impl EditorLogic {
                      render_texture_manager,
                      mesh_renderer,
                  );
+
+                 // Load sprite textures into WGPU TextureManager for 3D scene view rendering
+                 EditorLogic::load_scene_textures(
+                     &editor_state.world,
+                     project_path,
+                     device,
+                     queue,
+                     render_texture_manager,
+                 );
+
                  // Reset the request flag
                  editor_state.reload_mesh_assets_request = false;
              }
@@ -282,6 +292,7 @@ impl EditorLogic {
                             if let Some(sprite_def) = metadata.find_sprite(&result.sprite_name) {
                                 let sprite = ecs::Sprite {
                                     texture_id: relative_path.clone(),
+                                    asset_id: None,
                                     width: sprite_def.width as f32,
                                     height: sprite_def.height as f32,
                                     color: [1.0, 1.0, 1.0, 1.0],
@@ -290,6 +301,9 @@ impl EditorLogic {
                                     flip_y: false,
                                     sprite_rect: Some([sprite_def.x, sprite_def.y, sprite_def.width, sprite_def.height]),
                                     pixels_per_unit: 100.0,
+                                    sorting_layer: "Default".to_string(),
+                                    order_in_layer: 0,
+                                    rendering_layer_mask: 1,
                                 };
                                 
                                 editor_state.world.sprites.insert(entity, sprite);
@@ -306,6 +320,7 @@ impl EditorLogic {
                 } else {
                     let sprite = ecs::Sprite {
                         texture_id: relative_path,
+                        asset_id: None,
                         width: 1.0,
                         height: 1.0,
                         color: [1.0, 1.0, 1.0, 1.0],
@@ -314,12 +329,85 @@ impl EditorLogic {
                         flip_y: false,
                         pixels_per_unit: 100.0,
                         sprite_rect: None,
+                        sorting_layer: "Default".to_string(),
+                        order_in_layer: 0,
+                        rendering_layer_mask: 1,
                     };
                     
                     editor_state.world.sprites.insert(entity, sprite);
                     editor_state.scene_modified = true;
                     editor_state.console.info(format!("Selected texture: {}", result.sprite_name));
                 }
+            }
+        }
+    }
+
+    /// Load all scene textures (sprites and tilemaps) into WGPU TextureManager
+    /// This is needed for rendering in 3D scene view and Game View
+    fn load_scene_textures(
+        world: &ecs::World,
+        project_path: &std::path::Path,
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        texture_manager: &mut render::TextureManager,
+    ) {
+        use std::collections::HashSet;
+
+        // Collect unique texture paths from all sprites and tilesets
+        // We use the path string as the Texture ID for WGPU lookups
+        let mut texture_paths = HashSet::new();
+        
+        // 1. Sprites
+        for sprite in world.sprites.values() {
+            if !sprite.texture_id.is_empty() {
+                texture_paths.insert(sprite.texture_id.clone());
+            }
+        }
+
+        // 2. Tilesets
+        for tileset in world.tilesets.values() {
+            if !tileset.texture_path.is_empty() {
+                // Ensure we use the exact string render_system expects (tileset.texture_path)
+                texture_paths.insert(tileset.texture_path.clone());
+            }
+        }
+
+        println!("DEBUG: Loading {} unique textures for WGPU. Project Path: {}", texture_paths.len(), project_path.display());
+
+        // Potential subdirectories to search for textures
+        let search_dirs = ["", "assets", "atlas", "tilemaps/atlas", "levels/atlas"];
+
+        // Load each texture into WGPU TextureManager
+        for texture_id in texture_paths {
+            // Skip if already loaded
+            if texture_manager.get_texture(&texture_id).is_some() {
+                continue;
+            }
+
+            let mut found = false;
+            for dir in search_dirs {
+                let check_path = if dir.is_empty() {
+                    project_path.join(&texture_id)
+                } else {
+                    project_path.join(dir).join(&texture_id)
+                };
+
+                if check_path.exists() {
+                     match texture_manager.load_texture(device, queue, &check_path, &texture_id) {
+                        Ok(_) => {
+                            println!("DEBUG: ✓ Loaded texture for WGPU: {} (found in {})", texture_id, dir);
+                        }
+                        Err(e) => {
+                            println!("DEBUG: ✗ Failed to load texture {}: {}", check_path.display(), e);
+                        }
+                    }
+                    found = true;
+                    break;
+                }
+            }
+
+            if !found {
+                 println!("DEBUG: ✗ Texture not found ANYWHERE: {}", texture_id);
             }
         }
     }

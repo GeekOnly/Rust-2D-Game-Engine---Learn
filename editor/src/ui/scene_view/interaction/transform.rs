@@ -435,7 +435,7 @@ pub fn hit_test_gizmo(
                         }
                     }
                     TransformTool::Rotate => {
-                        let radius_world = scale * 4.0;
+                        let radius_world = scale * 1.2;
                         let hit_threshold = 10.0;
                         
                         let get_ring_dist = |axis_u: glam::Vec3, axis_v: glam::Vec3| -> f32 {

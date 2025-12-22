@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
+use engine_core::assets::AssetId;
 use egui::{ColorImage, TextureHandle, TextureOptions};
 
 // Default texture import settings for when editor is not available
@@ -68,6 +69,18 @@ impl TextureManager {
     /// Load texture with explicit path (no base path prepending)
     /// Useful when the path is already absolute or needs custom handling
     pub fn load_texture_absolute(&mut self, ctx: &egui::Context, texture_id: &str, full_path: &Path) -> Option<&TextureHandle> {
+        // ... implementation (unchanged) ...
+        // Note: For brevity, we assume the previous method ends here or implementation is kept.
+        // Actually, replace_file_content replaces the whole block. I should be careful not to delete logic.
+        // The user tool documentation says "replacement content must be a complete drop-in replacement".
+        // I'll trust the tool logic, but I can't see the whole file content here to be precise with "unchanged".
+        // Better: Append the new method using a unique target string at the END of load_texture_absolute.
+        // But I don't see the end clearly.
+        // I'll insert it BEFORE load_texture.
+        self.load_texture_absolute_impl(ctx, texture_id, full_path)
+    }
+
+    fn load_texture_absolute_impl(&mut self, ctx: &egui::Context, texture_id: &str, full_path: &Path) -> Option<&TextureHandle> {
         // Check if already loaded
         if self.textures.contains_key(texture_id) {
             return self.textures.get(texture_id);
@@ -102,6 +115,12 @@ impl TextureManager {
                 None
             }
         }
+    }
+
+    /// Load texture using AssetId
+    pub fn load_texture_asset(&mut self, ctx: &egui::Context, asset_id: AssetId, path: &Path) -> Option<&TextureHandle> {
+        // Use AssetId string representation as the key
+        self.load_texture(ctx, &asset_id.to_string(), path)
     }
 
     pub fn load_texture(&mut self, ctx: &egui::Context, texture_id: &str, path: &Path) -> Option<&TextureHandle> {

@@ -453,7 +453,12 @@ fn render_ldtk_map_details(
     entity: ecs::Entity,
     world: &mut World,
 ) {
-    ui.collapsing(RichText::new(format!("🗺️ {}", ldtk_map.identifier)).strong(), |ui| {
+    let map_name = std::path::Path::new(&ldtk_map.file_path)
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or("Unknown Map");
+
+    ui.collapsing(RichText::new(format!("🗺️ {}", map_name)).strong(), |ui| {
         // Map info
         ui.horizontal(|ui| {
             ui.label("File:");
@@ -462,7 +467,9 @@ fn render_ldtk_map_details(
         
         ui.horizontal(|ui| {
             ui.label("Size:");
-            ui.label(format!("{}x{} px", ldtk_map.world_width, ldtk_map.world_height));
+            let w = ldtk_map.world_grid_width.unwrap_or(0);
+            let h = ldtk_map.world_grid_height.unwrap_or(0);
+            ui.label(format!("{}x{} px", w, h));
         });
         
         ui.horizontal(|ui| {
@@ -526,9 +533,9 @@ fn render_ldtk_map_details(
         }
         
         // Tilesets details
-        if !ldtk_map.tilesets.is_empty() {
+        if !ldtk_map.defs.tilesets.is_empty() {
             ui.collapsing("🎨 Tilesets", |ui| {
-                for (_, tileset) in &ldtk_map.tilesets {
+                for tileset in &ldtk_map.defs.tilesets {
                     render_ldtk_tileset_details(ui, tileset);
                 }
             });
@@ -549,25 +556,35 @@ fn render_ldtk_level_details(
         
         ui.horizontal(|ui| {
             ui.label("Size:");
-            ui.label(format!("{}x{} px", level.px_width, level.px_height));
+            ui.label(format!("{}x{} px", level.px_wid, level.px_hei));
         });
         
+        // Count layers safely
+        let layer_count = level.layer_instances.as_ref().map_or(0, |l| l.len());
         ui.horizontal(|ui| {
             ui.label("Layers:");
-            ui.label(format!("{}", level.layers.len()));
+            ui.label(format!("{}", layer_count));
         });
         
         ui.horizontal(|ui| {
             ui.label("Entities:");
-            ui.label(format!("{}", level.entities.len()));
+            let entity_count = level.layer_instances.as_ref().map_or(0, |layers| {
+                layers.iter()
+                    .filter(|l| l.__type == "Entities")
+                    .map(|l| l.entity_instances.len())
+                    .sum()
+            });
+            ui.label(format!("{}", entity_count));
         });
         
         // Layer details
-        if !level.layers.is_empty() {
-            ui.separator();
-            ui.label(RichText::new("Layers:").strong());
-            for layer in &level.layers {
-                render_ldtk_layer_summary(ui, layer);
+        if let Some(layers) = &level.layer_instances {
+            if !layers.is_empty() {
+                ui.separator();
+                ui.label(RichText::new("Layers:").strong());
+                for layer in layers {
+                    render_ldtk_layer_summary(ui, layer);
+                }
             }
         }
     });
@@ -576,28 +593,29 @@ fn render_ldtk_level_details(
 /// Render LDtk Layer summary
 fn render_ldtk_layer_summary(
     ui: &mut egui::Ui,
-    layer: &ecs::LdtkLayerInstance,
+    layer: &ecs::LayerInstance,
 ) {
     ui.horizontal(|ui| {
-        let icon = match layer.layer_type {
-            ecs::LdtkLayerType::IntGrid => "🔲",
-            ecs::LdtkLayerType::Tiles => "🎨",
-            ecs::LdtkLayerType::AutoLayer => "🤖",
-            ecs::LdtkLayerType::Entities => "👤",
+        let icon = match layer.__type.as_str() {
+            "IntGrid" => "🔲",
+            "Tiles" => "🎨",
+            "AutoLayer" => "🤖",
+            "Entities" => "👤",
+            _ => "?",
         };
         
         ui.label(icon);
-        ui.label(&layer.identifier);
+        ui.label(&layer.__identifier);
         
-        let type_text = format!("{:?}", layer.layer_type);
+        let type_text = format!("{}", layer.__type);
         ui.label(RichText::new(type_text).color(Color32::GRAY).italics());
         
         if !layer.visible {
             ui.label(RichText::new("(Hidden)").color(Color32::RED));
         }
         
-        if layer.opacity < 1.0 {
-            ui.label(RichText::new(format!("({:.0}%)", layer.opacity * 100.0)).color(Color32::YELLOW));
+        if layer.__opacity < 1.0 {
+            ui.label(RichText::new(format!("({:.0}%)", layer.__opacity * 100.0)).color(Color32::YELLOW));
         }
     });
 }
@@ -605,12 +623,12 @@ fn render_ldtk_layer_summary(
 /// Render LDtk Tileset details
 fn render_ldtk_tileset_details(
     ui: &mut egui::Ui,
-    tileset: &ecs::LdtkTilesetDef,
+    tileset: &ecs::TilesetDef,
 ) {
     ui.horizontal(|ui| {
         ui.label("🎨");
         ui.label(&tileset.identifier);
-        ui.label(RichText::new(format!("({}x{} px)", tileset.px_width, tileset.px_height)).color(Color32::GRAY));
+        ui.label(RichText::new(format!("({}x{} px)", tileset.px_wid, tileset.px_hei)).color(Color32::GRAY));
         ui.label(RichText::new(format!("Grid: {}", tileset.tile_grid_size)).color(Color32::GRAY));
     });
 }

@@ -196,11 +196,13 @@ impl SceneCamera {
         let initial_zoom = 2.0;  // 2x zoom for better visibility in editor
         let settings = CameraSettings::default();
         Self {
-            position: Vec3::ZERO,
+            // Start camera at a position where it can see objects at origin
+            // For 3D mode: use orbit camera looking at origin
+            position: Vec3::ZERO,  // Pivot point (what camera looks at)
             zoom: initial_zoom,       // Editor zoom (2x for comfortable editing)
-            rotation: 0.0,    // Start in 2D mode (0° rotation)
-            pitch: 0.0,       // Start in 2D mode (0° pitch)
-            distance: 500.0,  // Default distance for 3D mode
+            rotation: 45.0,   // Default rotation for nice 3D view angle
+            pitch: 25.0,      // Default pitch for 3D view (looking down slightly)
+            distance: 50.0,   // Distance from pivot (how far camera is from origin)
             pivot: Vec3::ZERO,
             projection_mode: SceneProjectionMode::Isometric, // Unity-style default (orthographic Scene View)
             min_zoom: 0.001,   // Min zoom (0.1% - very zoomed out)
@@ -216,9 +218,9 @@ impl SceneCamera {
             pan_speed: 1.0,
             settings,
             velocity: CameraVelocity::default(),
-            target_position: Vec3::ZERO,
-            target_rotation: 0.0,  // Start in 2D mode
-            target_pitch: 0.0,     // Start in 2D mode
+            target_position: Vec3::ZERO,  // Match initial position
+            target_rotation: 45.0,  // Match initial rotation
+            target_pitch: 25.0,     // Match initial pitch
             target_zoom: initial_zoom,  // Match initial_zoom
             zoom_interpolation_speed: 10.0,
             saved_3d_state: None,

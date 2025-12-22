@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use anyhow::Result;
 use std::any::Any;
 
+pub mod assets;
 pub mod project;
 
 pub trait EngineModule: Any {

@@ -171,13 +171,14 @@ impl RenderModule {
         });
 
         let texture_manager = TextureManager::new(Some(&device));
-        let sprite_renderer = SpriteRenderer::new(&device, &config);
-        let tilemap_renderer = TilemapRenderer::new(&device, &config);
-        let batch_renderer = BatchRenderer::new(&device, &config);
 
-        // Initialize 3D bindings
+        // Initialize 3D bindings (Initialize BEFORE renderers that depend on them)
         let camera_binding = CameraBinding::new(&device);
         let light_binding = LightBinding::new(&device);
+
+        let sprite_renderer = SpriteRenderer::new(&device, &config);
+        let tilemap_renderer = TilemapRenderer::new(&device, &config, &camera_binding.bind_group_layout);
+        let batch_renderer = BatchRenderer::new(&device, &config);
 
         let mesh_renderer = MeshRenderer::new(
             &device, 
@@ -233,11 +234,11 @@ impl RenderModule {
     }
 
     pub fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
-        self.render_with_callback(|_, _, _, _, _, _, _, _, _, _| {})
+        self.render_with_callback(|_, _, _, _, _, _, _, _, _, _, _| {})
     }
 
     pub fn render_with_callback<F>(&mut self, callback: F) -> Result<(), wgpu::SurfaceError>
-    where F: FnOnce(&wgpu::Device, &wgpu::Queue, &mut wgpu::CommandEncoder, &wgpu::TextureView, &wgpu::TextureView, &mut TextureManager, &mut BatchRenderer, &mut MeshRenderer, &mut CameraBinding, &LightBinding)
+    where F: FnOnce(&wgpu::Device, &wgpu::Queue, &mut wgpu::CommandEncoder, &wgpu::TextureView, &wgpu::TextureView, &mut TextureManager, &mut TilemapRenderer, &mut BatchRenderer, &mut MeshRenderer, &mut CameraBinding, &LightBinding)
     {
         let output = self.surface.get_current_texture()?;
         let view = output.texture.create_view(&wgpu::TextureViewDescriptor::default());
@@ -265,7 +266,7 @@ impl RenderModule {
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                     view: &self.depth_view,
                     depth_ops: Some(wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(0.0), // Reverse-Z: clear to 0.0
+                        load: wgpu::LoadOp::Clear(1.0), // Standard Z: clear to 1.0 (Matches BatchRenderer)
                         store: wgpu::StoreOp::Store,
                     }),
                     stencil_ops: None,
@@ -276,7 +277,7 @@ impl RenderModule {
         }
 
         // Callback for overlay (egui) and game render
-        callback(&self.device, &self.queue, &mut encoder, &view, &self.depth_view, &mut self.texture_manager, &mut self.batch_renderer, &mut self.mesh_renderer, &mut self.camera_binding, &self.light_binding);
+        callback(&self.device, &self.queue, &mut encoder, &view, &self.depth_view, &mut self.texture_manager, &mut self.tilemap_renderer, &mut self.batch_renderer, &mut self.mesh_renderer, &mut self.camera_binding, &self.light_binding);
         
         self.queue.submit(std::iter::once(encoder.finish()));
         output.present();

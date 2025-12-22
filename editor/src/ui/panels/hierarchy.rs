@@ -95,6 +95,7 @@ pub fn render_hierarchy_with_filter(
                 world.transforms.insert(entity, transform);
                 world.sprites.insert(entity, ecs::Sprite {
                     texture_id: "sprite".to_string(),
+                    asset_id: None,
                     width: 1.0,  // Base size, actual size determined by transform.scale
                     height: 1.0,
                     color: [1.0, 1.0, 1.0, 1.0],
@@ -103,6 +104,9 @@ pub fn render_hierarchy_with_filter(
                     flip_y: false,
                     sprite_rect: None,
                     pixels_per_unit: 100.0,
+                    sorting_layer: "Default".to_string(),
+                    order_in_layer: 0,
+                    rendering_layer_mask: 1,
                 });
                 entity_names.insert(entity, "Sprite".to_string());
                 *selected_entity = Some(entity);

@@ -74,7 +74,9 @@ pub fn render_mesh_inspector(ui: &mut egui::Ui, world: &mut World, entity: Entit
                             if let ecs::MeshType::Asset(path) = &mut mesh.mesh_type {
                                 ui.label("Asset Path");
                                 ui.horizontal(|ui| {
-                                    ui.text_edit_singleline(path);
+                                    if ui.text_edit_singleline(path).changed() {
+                                        *reload_mesh_assets_request = true;
+                                    }
                                     if ui.button("📁").on_hover_text("Browse...").clicked() {
                                         // Set default directory to project's assets folder if available
                                         let mut dialog = rfd::FileDialog::new()

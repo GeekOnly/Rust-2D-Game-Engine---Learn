@@ -11,7 +11,7 @@ function on_start()
     ldtk_runtime = LdtkRuntime.new()
     
     -- โหลด map
-    local map_path = "levels/world.ldtk"
+    local map_path = "levels/Level_01.ldtk"
     print("Loading map: " .. map_path)
     
     local success = ldtk_runtime:load(map_path)

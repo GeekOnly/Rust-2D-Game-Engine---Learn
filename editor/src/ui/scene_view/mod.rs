@@ -133,7 +133,16 @@ pub fn render_scene_view(
     // Render entities
     let center = rect.center();
     let mut hovered_entity: Option<Entity> = None;
-    
+
+    // Debug: Print current mode once
+    static mut MODE_LOGGED: bool = false;
+    unsafe {
+        if !MODE_LOGGED {
+            println!("DEBUG: Scene View Mode = {:?}", scene_view_mode);
+            MODE_LOGGED = true;
+        }
+    }
+
     // Render entities based on mode
     let ctx = ui.ctx().clone();
     match scene_view_mode {
@@ -420,6 +429,7 @@ pub fn render_scene_view(
                             if let Some(first_sprite) = metadata.sprites.first() {
                                 world.sprites.insert(entity, ecs::Sprite {
                                     texture_id: metadata.texture_path.clone(),
+                                    asset_id: None,
                                     width: first_sprite.width as f32,
                                     height: first_sprite.height as f32,
                                     color: [1.0, 1.0, 1.0, 1.0],
@@ -428,6 +438,9 @@ pub fn render_scene_view(
                                     flip_y: false,
                                     sprite_rect: Some([first_sprite.x, first_sprite.y, first_sprite.width, first_sprite.height]),
                                     pixels_per_unit: 100.0,
+                                    sorting_layer: "Default".to_string(),
+                                    order_in_layer: 0,
+                                    rendering_layer_mask: 1,
                                 });
                             }
                             

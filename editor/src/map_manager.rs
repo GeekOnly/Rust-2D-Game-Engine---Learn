@@ -228,6 +228,7 @@ impl MapManager {
                 world,
                 true,  // auto_generate_colliders
                 self.collision_value,  // Use configured collision value
+                None, // Layer filter
             ).map_err(|e| {
                 // Convert string error to TilemapError and log it
                 let error: TilemapError = e.into();
@@ -372,6 +373,7 @@ impl MapManager {
                 path,
                 world,
                 self.collision_value,  // Use configured collision value
+                None, // Layer filter
             ).map_err(|e| {
                 let error: TilemapError = e.into();
                 error.log_error();

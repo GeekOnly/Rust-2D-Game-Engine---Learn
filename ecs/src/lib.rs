@@ -185,6 +185,7 @@ impl Prefab {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Transform {
     pub position: [f32; 3],  // X, Y, Z
+    #[serde(deserialize_with = "deserialize_rotation")]
     pub rotation: [f32; 3],  // Euler angles: X, Y, Z (in degrees)
     pub scale: [f32; 3],     // X, Y, Z
 }
@@ -231,6 +232,39 @@ impl Transform {
     }
 }
 
+fn deserialize_rotation<'de, D>(deserializer: D) -> Result<[f32; 3], D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    struct RotationVisitor;
+
+    impl<'de> serde::de::Visitor<'de> for RotationVisitor {
+        type Value = [f32; 3];
+
+        fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+            formatter.write_str("an array of 2 or 3 floats")
+        }
+
+        fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+        where
+            A: serde::de::SeqAccess<'de>,
+        {
+            let x = seq.next_element()?.unwrap_or(0.0);
+            let y = seq.next_element()?.unwrap_or(0.0);
+            let z = seq.next_element()?.unwrap_or(0.0);
+            
+            // If it was a 2-element array (old format), z comes out as 0.0 if not present, which is fine
+            // But we need to drain the rest if 3 elements potentially
+            // Wait, next_element returns Ok(None) if end of seq.
+            
+            Ok([x, y, z])
+        }
+    }
+
+    deserializer.deserialize_any(RotationVisitor)
+}
+
+
 /// Computed Global Transform (World Matrix)
 /// This is derived from the hierarchy chain (Parent * Child)
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -260,11 +294,15 @@ impl GlobalTransform {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Sprite {
     pub texture_id: String,
+    /// Asset ID of the texture (replaces texture_id eventually)
+    #[serde(default)]
+    pub asset_id: Option<engine_core::assets::AssetId>,
     /// Original sprite width in pixels (use Transform.scale for sizing)
     pub width: f32,
     /// Original sprite height in pixels (use Transform.scale for sizing)
     pub height: f32,
     pub color: [f32; 4], // RGBA
+    #[serde(default)]
     pub billboard: bool, // If true, sprite always faces camera (3D mode only)
     /// Flip sprite horizontally
     #[serde(default)]
@@ -280,6 +318,26 @@ pub struct Sprite {
     /// Default is 100 (like Unity). Lower values = larger sprites in world.
     #[serde(default = "default_pixels_per_unit")]
     pub pixels_per_unit: f32,
+    
+    /// Sorting Layer (Unity-style) - Group sprites
+    #[serde(default = "default_sorting_layer")]
+    pub sorting_layer: String,
+    
+    /// Order within the layer (Higher = On top)
+    #[serde(default)]
+    pub order_in_layer: i32,
+    
+    /// Mask for camera culling/lighting (Bitmask)
+    #[serde(default = "default_rendering_layer_mask")]
+    pub rendering_layer_mask: u32,
+}
+
+fn default_sorting_layer() -> String {
+    "Default".to_string()
+}
+
+fn default_rendering_layer_mask() -> u32 {
+    1 // Default Layer (Bit 0)
 }
 
 fn default_pixels_per_unit() -> f32 {
@@ -290,6 +348,7 @@ impl Default for Sprite {
     fn default() -> Self {
         Self {
             texture_id: String::new(),
+            asset_id: None,
             width: 1.0,  // Default 1x1 pixel
             height: 1.0,
             color: [1.0, 1.0, 1.0, 1.0],
@@ -298,6 +357,9 @@ impl Default for Sprite {
             flip_y: false,
             sprite_rect: None,
             pixels_per_unit: 100.0,  // Unity standard
+            sorting_layer: default_sorting_layer(),
+            order_in_layer: 0,
+            rendering_layer_mask: default_rendering_layer_mask(),
         }
     }
 }
@@ -307,6 +369,7 @@ impl Sprite {
     pub fn new(texture_id: impl Into<String>, width: f32, height: f32) -> Self {
         Self {
             texture_id: texture_id.into(),
+            asset_id: None,
             width,
             height,
             ..Default::default()
@@ -673,6 +736,7 @@ pub struct CustomWorld {
     pub ldtk_intgrid_colliders: HashMap<CustomEntity, LdtkIntGridCollider>,
     // 3D Model component (Static Props)
     pub model_3ds: HashMap<CustomEntity, Model3D>,
+    pub ldtk_entities: HashMap<CustomEntity, LdtkEntity>,
 }
 
 impl CustomWorld {
@@ -729,6 +793,7 @@ impl CustomWorld {
         self.tilemap_colliders.remove(&e);
         self.ldtk_intgrid_colliders.remove(&e);
         self.model_3ds.remove(&e);
+        self.ldtk_entities.remove(&e);
     }
 
     pub fn clear(&mut self) {
@@ -760,6 +825,7 @@ impl CustomWorld {
         self.tilemap_colliders.clear();
         self.ldtk_intgrid_colliders.clear();
         self.model_3ds.clear();
+        self.ldtk_entities.clear();
         self.next_entity = 0;
     }
 
@@ -813,6 +879,7 @@ impl CustomWorld {
             maps: Vec<(CustomEntity, Map)>,
             world_uis: Vec<(CustomEntity, WorldUI)>,
             model_3ds: Vec<(CustomEntity, Model3D)>,
+            ldtk_entities: Vec<(CustomEntity, LdtkEntity)>,
         }
 
         let data = SceneData {
@@ -840,6 +907,7 @@ impl CustomWorld {
             maps: self.maps.iter().map(|(k, v)| (*k, v.clone())).collect(),
             world_uis: self.world_uis.iter().map(|(k, v)| (*k, v.clone())).collect(),
             model_3ds: self.model_3ds.iter().map(|(k, v)| (*k, v.clone())).collect(),
+            ldtk_entities: self.ldtk_entities.iter().map(|(k, v)| (*k, v.clone())).collect(),
         };
 
         serde_json::to_string_pretty(&data)
@@ -896,6 +964,8 @@ impl CustomWorld {
             world_uis: Vec<(CustomEntity, WorldUI)>,
             #[serde(default)]
             model_3ds: Vec<(CustomEntity, Model3D)>,
+            #[serde(default)]
+            ldtk_entities: Vec<(CustomEntity, LdtkEntity)>,
         }
 
         let data: SceneData = serde_json::from_str(json)?;
@@ -979,6 +1049,9 @@ impl CustomWorld {
         }
         for (entity, model_3d) in data.model_3ds {
             self.model_3ds.insert(entity, model_3d);
+        }
+        for (entity, ldtk_entity) in data.ldtk_entities {
+            self.ldtk_entities.insert(entity, ldtk_entity);
         }
         
         // Reconstruct hierarchy
@@ -1099,6 +1172,7 @@ mod custom_world_impls {
     impl_component_access!(CustomWorld, TilemapCollider, tilemap_colliders, CustomEntity);
     impl_component_access!(CustomWorld, LdtkIntGridCollider, ldtk_intgrid_colliders, CustomEntity);
     impl_component_access!(CustomWorld, Model3D, model_3ds, CustomEntity);
+    impl_component_access!(CustomWorld, LdtkEntity, ldtk_entities, CustomEntity);
 }
 
 // Manual implementations for tuple and primitive types
