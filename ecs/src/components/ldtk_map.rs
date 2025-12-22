@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 /// Root object of the LDtk JSON file
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct LdtkJson {
     /// Project background color
@@ -29,8 +29,11 @@ pub struct LdtkJson {
     pub external_levels: bool,
 }
 
+/// Backward compatibility alias
+pub type LdtkMap = LdtkJson;
+
 /// Definitions of sub-elements
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct LdtkDefs {
     pub layers: Vec<LayerDef>,
@@ -39,7 +42,7 @@ pub struct LdtkDefs {
 }
 
 /// Level data
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct LdtkLevel {
     pub identifier: String,
@@ -55,7 +58,7 @@ pub struct LdtkLevel {
 }
 
 /// Layer Definition
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct LayerDef {
     #[serde(rename = "__type")]
@@ -70,7 +73,7 @@ pub struct LayerDef {
 }
 
 /// Entity Definition
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct EntityDef {
     pub identifier: String,
@@ -82,7 +85,7 @@ pub struct EntityDef {
 }
 
 /// Field Definition
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct FieldDef {
     pub identifier: String,
@@ -91,7 +94,7 @@ pub struct FieldDef {
 }
 
 /// Tileset Definition
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct TilesetDef {
     pub identifier: String,
@@ -105,7 +108,7 @@ pub struct TilesetDef {
 }
 
 /// Layer Instance (The actual layer data in a level)
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct LayerInstance {
     pub __identifier: String,
@@ -139,7 +142,7 @@ pub struct LayerInstance {
 }
 
 /// Tile Instance
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct TileInstance {
     #[serde(rename = "px")]
@@ -155,7 +158,7 @@ pub struct TileInstance {
 }
 
 /// Entity Instance
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct EntityInstance {
     pub __identifier: String,
@@ -172,7 +175,7 @@ pub struct EntityInstance {
 }
 
 /// Field Instance
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct FieldInstance {
     pub __identifier: String,

@@ -1943,6 +1943,14 @@
           }
         }
       }
+    ],
+    [
+      315,
+      {
+        "script_name": "map_loader",
+        "enabled": true,
+        "parameters": {}
+      }
     ]
   ],
   "active": [
@@ -11629,15 +11637,5 @@
   ],
   "maps": [],
   "world_uis": [],
-  "model_3ds": [],
-  "scripts": [
-    [
-      315,
-      {
-        "script_name": "map_loader",
-        "enabled": true,
-        "parameters": {}
-      }
-    ]
-  ]
+  "model_3ds": []
 }

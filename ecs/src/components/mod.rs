@@ -16,9 +16,9 @@ pub use sprite_sheet::{SpriteSheet, SpriteFrame, AnimatedSprite, AnimationMode};
 pub use tilemap::{TileSet, Tilemap, Tile, TileData, TilemapChunk, TilemapRenderer, TilemapRenderMode, MaskInteraction};
 pub use tilemap_collider::{TilemapCollider, TilemapColliderMode, LdtkIntGridCollider};
 pub use ldtk_map::{
-    LdtkMap, LdtkLevel, LdtkLayerInstance, LdtkLayerData, LdtkLayerType,
-    LdtkTileInstance, LdtkEntityInstance, LdtkFieldValue,
-    LdtkTilesetDef, LdtkLayerDef, LdtkIntGridValue, LdtkEntityDef, LdtkFieldDef
+    LdtkJson, LdtkMap, LdtkDefs, LdtkLevel,
+    LayerDef, EntityDef, FieldDef, TilesetDef,
+    LayerInstance, TileInstance, EntityInstance, FieldInstance
 };
 pub use map::{Map, MapType};
 pub use grid::{Grid, GridLayout, HexagonOrientation, CellSwizzle, GridPlane};

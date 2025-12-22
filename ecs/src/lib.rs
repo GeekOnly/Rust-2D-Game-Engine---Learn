@@ -736,6 +736,7 @@ pub struct CustomWorld {
     pub ldtk_intgrid_colliders: HashMap<CustomEntity, LdtkIntGridCollider>,
     // 3D Model component (Static Props)
     pub model_3ds: HashMap<CustomEntity, Model3D>,
+    pub ldtk_entities: HashMap<CustomEntity, LdtkEntity>,
 }
 
 impl CustomWorld {
@@ -792,6 +793,7 @@ impl CustomWorld {
         self.tilemap_colliders.remove(&e);
         self.ldtk_intgrid_colliders.remove(&e);
         self.model_3ds.remove(&e);
+        self.ldtk_entities.remove(&e);
     }
 
     pub fn clear(&mut self) {
@@ -823,6 +825,7 @@ impl CustomWorld {
         self.tilemap_colliders.clear();
         self.ldtk_intgrid_colliders.clear();
         self.model_3ds.clear();
+        self.ldtk_entities.clear();
         self.next_entity = 0;
     }
 
@@ -876,6 +879,7 @@ impl CustomWorld {
             maps: Vec<(CustomEntity, Map)>,
             world_uis: Vec<(CustomEntity, WorldUI)>,
             model_3ds: Vec<(CustomEntity, Model3D)>,
+            ldtk_entities: Vec<(CustomEntity, LdtkEntity)>,
         }
 
         let data = SceneData {
@@ -903,6 +907,7 @@ impl CustomWorld {
             maps: self.maps.iter().map(|(k, v)| (*k, v.clone())).collect(),
             world_uis: self.world_uis.iter().map(|(k, v)| (*k, v.clone())).collect(),
             model_3ds: self.model_3ds.iter().map(|(k, v)| (*k, v.clone())).collect(),
+            ldtk_entities: self.ldtk_entities.iter().map(|(k, v)| (*k, v.clone())).collect(),
         };
 
         serde_json::to_string_pretty(&data)
@@ -959,6 +964,8 @@ impl CustomWorld {
             world_uis: Vec<(CustomEntity, WorldUI)>,
             #[serde(default)]
             model_3ds: Vec<(CustomEntity, Model3D)>,
+            #[serde(default)]
+            ldtk_entities: Vec<(CustomEntity, LdtkEntity)>,
         }
 
         let data: SceneData = serde_json::from_str(json)?;
@@ -1042,6 +1049,9 @@ impl CustomWorld {
         }
         for (entity, model_3d) in data.model_3ds {
             self.model_3ds.insert(entity, model_3d);
+        }
+        for (entity, ldtk_entity) in data.ldtk_entities {
+            self.ldtk_entities.insert(entity, ldtk_entity);
         }
         
         // Reconstruct hierarchy
@@ -1162,6 +1172,7 @@ mod custom_world_impls {
     impl_component_access!(CustomWorld, TilemapCollider, tilemap_colliders, CustomEntity);
     impl_component_access!(CustomWorld, LdtkIntGridCollider, ldtk_intgrid_colliders, CustomEntity);
     impl_component_access!(CustomWorld, Model3D, model_3ds, CustomEntity);
+    impl_component_access!(CustomWorld, LdtkEntity, ldtk_entities, CustomEntity);
 }
 
 // Manual implementations for tuple and primitive types
