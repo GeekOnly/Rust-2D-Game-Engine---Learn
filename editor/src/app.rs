@@ -467,7 +467,7 @@ impl EditorApp {
     }
 
     fn render(&mut self, target: &EventLoopWindowTarget<()>) {
-        let dt = 1.0 / 60.0; // Fixed time step for now
+        let _dt = 1.0 / 60.0; // Fixed time step for now
 
         // Don't clear input here - let PlayModeSystem handle it after scripts run
         self.ctx.input.update_gamepads();
@@ -756,7 +756,7 @@ impl EditorApp {
                 });
 
                 // Get game view resolution from settings to set viewport
-                let (w, h) = if matches!(self.editor_state.game_view_settings.resolution, runtime::GameViewResolution::Free) {
+                let (_w, _h) = if matches!(self.editor_state.game_view_settings.resolution, runtime::GameViewResolution::Free) {
                      (self.game_view_renderer.width, self.game_view_renderer.height)
                 } else {
                      self.editor_state.game_view_settings.resolution.get_size()

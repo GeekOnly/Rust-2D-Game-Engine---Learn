@@ -268,7 +268,8 @@ pub fn render_map_inspector(
                 match ecs::loaders::LdtkLoader::generate_composite_colliders_from_intgrid(
                     &full_path,
                     world,
-                    1  // IntGrid value 1 = solid
+                    1,  // IntGrid value 1 = solid
+                    None
                 ) {
                     Ok(collider_entities) => {
                         log::info!("✓ Generated {} composite colliders for map", collider_entities.len());

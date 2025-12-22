@@ -21,7 +21,7 @@ This plan outlines the steps to refactor and improve the LDtk integration in the
         - `Transform` (converted to engine coordinates).
         - `LdtkEntity` component containing metadata.
         - `Name` component (e.g., "PlayerStart", "Enemy").
-- [ ] **Tagging System**: Add a mechanism to tag these entities so systems can process them (e.g., a `SpawnPoint` system can look for entities with `LdtkEntity` identifier="PlayerStart").
+- [x] **Tagging System**: Add a mechanism to tag these entities so systems can process them (e.g., a `SpawnPoint` system can look for entities with `LdtkEntity` identifier="PlayerStart").
 
 ## Phase 3: Physics & Collider Improvements
 - [x] **Refactor Collider Generation**:
@@ -31,9 +31,9 @@ This plan outlines the steps to refactor and improve the LDtk integration in the
     - Ensure the loader can distinguish between "Visual" IntGrids and "Collider" IntGrids (e.g., by matching Layer name "IntGrid_Collider").
 
 ## Phase 4: Validation & Workflow
-- [ ] **Test Loading**: Load a sample map containing Tilesets, IntGrid Colliders, and Entities.
-- [ ] **Test Hot Reload**: Verify that modifying an Entity position in LDtk and saving updates the position in the engine runtime immediately.
-- [ ] **Coordinate Check**: Verify specifically that Y-coordinates align correctly between LDtk (Top-Left origin) and Engine (Bottom-Left origin).
+- [x] **Test Loading**: Load a sample map containing Tilesets, IntGrid Colliders, and Entities.
+- [x] **Test Hot Reload**: Verify that modifying an Entity position in LDtk and saving updates the position in the engine runtime immediately.
+- [x] **Coordinate Check**: Verify specifically that Y-coordinates align correctly between LDtk (Top-Left origin) and Engine (Bottom-Left origin).
 - [x] **Update Celeste Demo**:
     - Update `projects/Celeste Demo/scenes/main.json` to properly invoke the new LDtk loader logic.
     - Ensure the scene defines the correct LDtk file path and settings to demonstrate the new capabilities (Entities, Colliders).

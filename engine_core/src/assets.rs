@@ -3,6 +3,24 @@ use std::fmt;
 use std::fs;
 use std::path::{Path, PathBuf};
 use uuid::Uuid;
+use async_trait::async_trait;
+
+// ==================================================================================
+// Asset Loading Trait
+// ==================================================================================
+
+/// Trait for platform-agnostic asset loading (e.g., FileSystem vs HTTP Fetch).
+#[async_trait]
+pub trait AssetLoader: Send + Sync {
+    /// Loads an asset as a UTF-8 string (e.g., scene JSON, scripts).
+    async fn load_text(&self, path: &str) -> anyhow::Result<String>;
+
+    /// Loads an asset as raw bytes (e.g., textures, audio, models).
+    async fn load_binary(&self, path: &str) -> anyhow::Result<Vec<u8>>;
+
+    /// Returns the base path or URL for assets.
+    fn get_base_path(&self) -> String;
+}
 
 // ==================================================================================
 // Core Types (Moved from engine/src/assets/core.rs)

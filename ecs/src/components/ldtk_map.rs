@@ -27,6 +27,41 @@ pub struct LdtkJson {
 
     /// True if external levels are used
     pub external_levels: bool,
+
+    // Runtime fields (using default for LDtk file compatibility)
+    #[serde(default)]
+    pub file_path: String,
+    
+    #[serde(default)]
+    pub current_level: Option<String>,
+    
+    #[serde(default)]
+    pub auto_reload: bool,
+}
+
+impl LdtkJson {
+    pub fn new(file_path: String) -> Self {
+        // Try to load from file
+        let path = std::path::Path::new(&file_path);
+        if path.exists() {
+            if let Ok(content) = std::fs::read_to_string(path) {
+                if let Ok(mut map) = serde_json::from_str::<LdtkJson>(&content) {
+                    map.file_path = file_path;
+                    map.auto_reload = true; // Default to auto-reload
+                    // Set default current level if available
+                    if !map.levels.is_empty() {
+                         map.current_level = Some(map.levels[0].identifier.clone());
+                    }
+                    return map;
+                }
+            }
+        }
+        
+        // Return default if loading fails (should handle error better but for now consistent with UI)
+        let mut map = Self::default();
+        map.file_path = file_path;
+        map
+    }
 }
 
 /// Backward compatibility alias

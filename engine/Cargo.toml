@@ -4,6 +4,9 @@ version = "0.1.0"
 edition = "2021"
 default-run = "engine"
 
+[lib]
+crate-type = ["cdylib", "rlib"]
+
 [dependencies]
 engine_core = { path = "../engine_core" }
 ecs = { path = "../ecs" }
@@ -39,6 +42,13 @@ gltf = "1.4.1"
 bincode = "1.3.3"
 lz4_flex = "0.12.0"
 uuid = { version = "1.19.0", features = ["v4", "serde"] }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = "0.2"
+web-sys = { version = "0.3", features = ["Window", "Document", "Element", "HtmlCanvasElement", "Request", "Response"] }
+wasm-bindgen-futures = "0.4"
+js-sys = "0.3"
+console_error_panic_hook = "0.1"
 
 [dev-dependencies]
 proptest = { workspace = true }
