@@ -35,6 +35,7 @@ impl LdtkLoader {
         world: &mut World,
         auto_generate_colliders: bool,
         collision_value: i64,
+        layer_filter: Option<&str>,
     ) -> Result<(Entity, Vec<Entity>, Vec<Entity>), String> {
         // Load grid and tilemaps
         let (grid_entity, tilemap_entities) = Self::load_project_with_grid(path.as_ref(), world)?;
@@ -47,6 +48,7 @@ impl LdtkLoader {
                 path.as_ref(),
                 world,
                 collision_value,
+                layer_filter,
             ) {
                 Ok(colliders) => {
                     // Set colliders as children of Grid
@@ -228,7 +230,6 @@ impl LdtkLoader {
                                 world.set_parent(entity, Some(grid_entity));
 
                                 // Calculate position
-                                // Entity px is relative to Level
                                 let entity_px_x = entity_instance.px[0] as f32;
                                 let entity_px_y = entity_instance.px[1] as f32;
                                 
@@ -239,22 +240,30 @@ impl LdtkLoader {
                                 let world_y = -total_px_y / pixels_per_unit;
                                 
                                 let mut transform = Transform::with_position(world_x, world_y, 0.0);
-                                
-                                // Entity Pivot: LDtk pivot default is (0.5, 1.0) usually, but configurable.
-                                // Engine usually centers sprites? 
-                                // For now, just trust the coordinate conversion.
-                                // If pivot is at bottom-center (0.5, 1.0), the px coordinate is at that point.
-                                // So placing the entity at world_x, world_y places the pivot there.
-                                
                                 let _ = ComponentAccess::<Transform>::insert(world, entity, transform);
                                 
                                 // Name
                                 let _ = ComponentAccess::<String>::insert(world, entity, entity_instance.__identifier.clone());
+
+                                // Add LdtkEntity component with raw data
+                                use crate::components::ldtk_entity::LdtkEntity; // Import here or top
+                                use std::collections::HashMap;
+
+                                let mut fields = HashMap::new();
+                                for field in &entity_instance.field_instances {
+                                    fields.insert(field.__identifier.clone(), field.__value.clone());
+                                }
+
+                                let ldtk_entity = LdtkEntity {
+                                    identifier: entity_instance.__identifier.clone(),
+                                    iid: entity_instance.iid.clone(),
+                                    width: entity_instance.width,
+                                    height: entity_instance.height,
+                                    tags: entity_instance.__tags.clone(),
+                                    fields,
+                                };
+                                let _ = ComponentAccess::<LdtkEntity>::insert(world, entity, ldtk_entity);
                                 
-                                // Add to list (we reuse tilemap_entities list or should we separate? 
-                                // Function signature returns (Grid, Tilemaps). Entities are usually implicitly handled or we should add them to tilemap_entities for tracking?
-                                // "tilemap_entities" name suggests just tilemaps. But "load_project" returns generic Vec<Entity>.
-                                // load_project_with_grid returns (Entity, Vec<Entity>). I'll add them to the list so they are tracked/reloaded.
                                 tilemap_entities.push(entity);
                                 
                                 log::info!("Spawned Entity: {} at ({:.2}, {:.2})", entity_instance.__identifier, world_x, world_y);
@@ -278,10 +287,17 @@ impl LdtkLoader {
     }
     
     /// Generate optimized composite colliders from IntGrid layer
+    /// 
+    /// # Arguments
+    /// * `path` - Path to LDtk file
+    /// * `world` - ECS World
+    /// * `collision_value` - IntGrid value that represents collision
+    /// * `layer_filter` - Optional layer name filter. If None, processes all IntGrid layers.
     pub fn generate_composite_colliders_from_intgrid(
         path: impl AsRef<Path>,
         world: &mut World,
         collision_value: i64,
+        layer_filter: Option<&str>,
     ) -> Result<Vec<Entity>, String> {
         let project_data = std::fs::read_to_string(path.as_ref())
             .map_err(|e| format!("Failed to read LDTK file: {}", e))?;
@@ -299,6 +315,19 @@ impl LdtkLoader {
                     if layer.__type != "IntGrid" {
                         continue;
                     }
+                    
+                    // Filter by layer identifier if provided
+                    if let Some(filter) = layer_filter {
+                        if layer.__identifier != filter {
+                            continue;
+                        }
+                    } else {
+                        // Default behavior: ignore layers explicitly named "Visual" or "Art" if no filter?
+                        // Or just process all? Let's check if collision value matches first.
+                        // Actually, users might use IntGrid for other things. 
+                        // Plan suggested "Safe default".
+                        // Let's iterate all, assuming collision_value check is enough for basic usage.
+                    }
 
                     // Check if IntGrid has values
                     if layer.int_grid_csv.is_empty() {
@@ -309,6 +338,13 @@ impl LdtkLoader {
                     let height = layer.__c_hei as u32;
                     let layer_grid_size = layer.__grid_size as f32;
                     
+                    // Pre-scan to see if this layer actually contains the collision_value
+                    // to avoid doing heavy lifting for non-collision layers
+                    let has_collision_value = layer.int_grid_csv.iter().any(|&v| v as i64 == collision_value);
+                    if !has_collision_value {
+                        continue;
+                    }
+
                     log::info!("Generating composite colliders for IntGrid layer '{}' ({}x{})", layer.__identifier, width, height);
 
                     // Convert to 2D grid

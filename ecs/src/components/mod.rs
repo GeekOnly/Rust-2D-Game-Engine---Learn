@@ -23,4 +23,8 @@ pub use ldtk_map::{
 pub use map::{Map, MapType};
 pub use grid::{Grid, GridLayout, HexagonOrientation, CellSwizzle, GridPlane};
 pub use world_ui::{WorldUI, WorldUIType, QuestMarkerType};
+
 pub use collider_3d::{Collider3D, ColliderShape3D};
+
+pub mod ldtk_entity;
+pub use ldtk_entity::LdtkEntity;
