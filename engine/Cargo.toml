@@ -8,6 +8,7 @@ default-run = "engine"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
+async-trait = { workspace = true }
 engine_core = { path = "../engine_core" }
 ecs = { path = "../ecs" }
 script = { path = "../script" }
