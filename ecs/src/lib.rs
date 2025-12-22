@@ -185,6 +185,7 @@ impl Prefab {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Transform {
     pub position: [f32; 3],  // X, Y, Z
+    #[serde(deserialize_with = "deserialize_rotation")]
     pub rotation: [f32; 3],  // Euler angles: X, Y, Z (in degrees)
     pub scale: [f32; 3],     // X, Y, Z
 }
@@ -231,6 +232,39 @@ impl Transform {
     }
 }
 
+fn deserialize_rotation<'de, D>(deserializer: D) -> Result<[f32; 3], D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    struct RotationVisitor;
+
+    impl<'de> serde::de::Visitor<'de> for RotationVisitor {
+        type Value = [f32; 3];
+
+        fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+            formatter.write_str("an array of 2 or 3 floats")
+        }
+
+        fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+        where
+            A: serde::de::SeqAccess<'de>,
+        {
+            let x = seq.next_element()?.unwrap_or(0.0);
+            let y = seq.next_element()?.unwrap_or(0.0);
+            let z = seq.next_element()?.unwrap_or(0.0);
+            
+            // If it was a 2-element array (old format), z comes out as 0.0 if not present, which is fine
+            // But we need to drain the rest if 3 elements potentially
+            // Wait, next_element returns Ok(None) if end of seq.
+            
+            Ok([x, y, z])
+        }
+    }
+
+    deserializer.deserialize_any(RotationVisitor)
+}
+
+
 /// Computed Global Transform (World Matrix)
 /// This is derived from the hierarchy chain (Parent * Child)
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -260,11 +294,15 @@ impl GlobalTransform {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Sprite {
     pub texture_id: String,
+    /// Asset ID of the texture (replaces texture_id eventually)
+    #[serde(default)]
+    pub asset_id: Option<engine_core::assets::AssetId>,
     /// Original sprite width in pixels (use Transform.scale for sizing)
     pub width: f32,
     /// Original sprite height in pixels (use Transform.scale for sizing)
     pub height: f32,
     pub color: [f32; 4], // RGBA
+    #[serde(default)]
     pub billboard: bool, // If true, sprite always faces camera (3D mode only)
     /// Flip sprite horizontally
     #[serde(default)]
@@ -310,6 +348,7 @@ impl Default for Sprite {
     fn default() -> Self {
         Self {
             texture_id: String::new(),
+            asset_id: None,
             width: 1.0,  // Default 1x1 pixel
             height: 1.0,
             color: [1.0, 1.0, 1.0, 1.0],
@@ -330,6 +369,7 @@ impl Sprite {
     pub fn new(texture_id: impl Into<String>, width: f32, height: f32) -> Self {
         Self {
             texture_id: texture_id.into(),
+            asset_id: None,
             width,
             height,
             ..Default::default()

@@ -429,6 +429,7 @@ pub fn render_scene_view(
                             if let Some(first_sprite) = metadata.sprites.first() {
                                 world.sprites.insert(entity, ecs::Sprite {
                                     texture_id: metadata.texture_path.clone(),
+                                    asset_id: None,
                                     width: first_sprite.width as f32,
                                     height: first_sprite.height as f32,
                                     color: [1.0, 1.0, 1.0, 1.0],

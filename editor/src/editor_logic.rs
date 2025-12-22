@@ -292,6 +292,7 @@ impl EditorLogic {
                             if let Some(sprite_def) = metadata.find_sprite(&result.sprite_name) {
                                 let sprite = ecs::Sprite {
                                     texture_id: relative_path.clone(),
+                                    asset_id: None,
                                     width: sprite_def.width as f32,
                                     height: sprite_def.height as f32,
                                     color: [1.0, 1.0, 1.0, 1.0],
@@ -319,6 +320,7 @@ impl EditorLogic {
                 } else {
                     let sprite = ecs::Sprite {
                         texture_id: relative_path,
+                        asset_id: None,
                         width: 1.0,
                         height: 1.0,
                         color: [1.0, 1.0, 1.0, 1.0],

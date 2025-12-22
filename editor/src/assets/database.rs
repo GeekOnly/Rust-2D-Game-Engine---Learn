@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, RwLock};
 use walkdir::WalkDir;
-use engine::assets::core::{AssetId, AssetType};
+use engine::assets::core::AssetId;
 use engine::assets::metadata::AssetMetadata;
 
 /// The AssetDatabase tracks all assets in the project (editor-side).

@@ -95,6 +95,7 @@ pub fn render_hierarchy_with_filter(
                 world.transforms.insert(entity, transform);
                 world.sprites.insert(entity, ecs::Sprite {
                     texture_id: "sprite".to_string(),
+                    asset_id: None,
                     width: 1.0,  // Base size, actual size determined by transform.scale
                     height: 1.0,
                     color: [1.0, 1.0, 1.0, 1.0],

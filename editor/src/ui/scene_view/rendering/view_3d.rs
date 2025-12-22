@@ -41,7 +41,6 @@ fn render_default_camera_gizmo(
 use super::sprite_3d::Sprite3DRenderer;
 use super::tilemap_3d::Tilemap3DRenderer;
 use super::projection_3d;
-use super::grid;
 
 /// Render the scene in 3D mode
 pub fn render_scene_3d(

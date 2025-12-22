@@ -117,6 +117,7 @@ impl ComponentManager for crate::CustomWorld {
             ComponentType::Sprite => {
                 self.sprites.insert(entity, Sprite {
                     texture_id: "default".to_string(),
+                    asset_id: None,
                     width: 1.0,  // Base size
                     height: 1.0,
                     color: [1.0, 1.0, 1.0, 1.0],
