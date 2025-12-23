@@ -456,12 +456,15 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
 
 /// Create default Unity-like dock layout
 pub fn create_default_layout() -> DockState<EditorTab> {
-    // Try to load from embedded default layout file (DISABLED to prevent panic on startup due to 0-size rects)
-    // const DEFAULT_LAYOUT_JSON: &str = include_str!("default_layout.json");
-    // 
-    // if let Ok(dock_state) = serde_json::from_str::<DockState<EditorTab>>(DEFAULT_LAYOUT_JSON) {
-    //    return dock_state;
-    // }
+    // Try to load from embedded default layout file
+    const DEFAULT_LAYOUT_JSON: &str = include_str!("default_layout.json");
+    
+    match serde_json::from_str::<DockState<EditorTab>>(DEFAULT_LAYOUT_JSON) {
+        Ok(dock_state) => return dock_state,
+        Err(e) => {
+            println!("WARNING: Failed to load default_layout.json: {}. Using programmatic fallback.", e);
+        }
+    }
     
     // Fallback to programmatic layout if JSON fails
     // Simplified 2-column layout to prevent startup crash

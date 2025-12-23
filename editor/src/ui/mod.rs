@@ -88,8 +88,8 @@ impl EditorUI {
     ) {
         // Top Menu Bar
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
-            let mut dummy_layout = None;
-            menu_bar::render_menu_bar(
+             let mut dummy_layout_request = None;
+             menu_bar::render_menu_bar(
                 ui,
                 world,
                 entity_names,
@@ -109,115 +109,19 @@ impl EditorUI {
                 is_playing,
                 show_exit_dialog,
                 show_export_dialog,
-                &mut dummy_layout,
-                "default",
+                &mut dummy_layout_request,
+                "legacy", 
                 Self::get_scene_files,
             );
         });
 
-        // Hierarchy Panel (Left)
-        egui::SidePanel::left("hierarchy").min_width(200.0).show(ctx, |ui| {
-            // Note: This is the old non-dock layout. Map filtering is not available here
-            // as MapManager is not passed to this function. Use the dock layout for full features.
-            hierarchy::render_hierarchy(
-                ui,
-                world,
-                entity_names,
-                selected_entity,
-                load_file_request,
-                project_path,
-                current_scene_path,
-                console,
-                Self::get_scene_files,
-                &Self::get_entity_icon,
-            );
-        });
-
-        // Inspector Panel (Right)
-        egui::SidePanel::right("inspector").min_width(300.0).show(ctx, |ui| {
-            inspector::render_inspector(
-                ui,
-                world,
-                selected_entity,
-                entity_names,
-                edit_script_request,
-                project_path,
-                open_sprite_editor_request,
-                sprite_picker_state,
-                reload_mesh_assets_request,
-            );
-        });
-
-        // Center Panel - Scene/Game View
         egui::CentralPanel::default().show(ctx, |ui| {
-            // Update camera with delta time for smooth interpolation
-            let delta_time = ui.input(|i| i.stable_dt);
-            
-            // Dummy drag state for old layout (not used)
-            let mut dummy_dragging_entity = None;
-            let mut dummy_drag_axis = None;
-            let mut dummy_scene_view_mode = scene_view::SceneViewMode::Mode2D;
-            let mut dummy_projection_mode = scene_view::SceneProjectionMode::Perspective;
-            let mut dummy_transform_space = scene_view::TransformSpace::Local;
-            
-            let mut dummy_debug_draw = crate::debug_draw::DebugDrawManager::new();
-            let dummy_map_manager = crate::map_manager::MapManager::new();
-            
-            scene_view::render_scene_view(
-                ui,
-                world,
-                selected_entity,
-                scene_view_tab,
-                is_playing,
-                show_colliders,
-                show_velocities,
-                show_debug_lines,
-                &mut dummy_debug_draw,
-                current_tool,
-                scene_camera,
-                scene_grid,
-                infinite_grid,
-                camera_state_display,
-                play_request,
-                stop_request,
-                &mut dummy_dragging_entity,
-                &mut dummy_drag_axis,
-                &mut dummy_scene_view_mode,
-                &mut dummy_projection_mode,
-                &mut dummy_transform_space,
-                texture_manager,
-                drag_drop,
-                delta_time,
-                &dummy_map_manager,
-                scene_view_renderer,
-                egui_renderer,
-                device,
-                queue,
-                asset_loader,
-                render_cache,
-            );
+             ui.vertical_centered(|ui| {
+                 ui.add_space(50.0);
+                 ui.heading("Legacy Editor Mode");
+                 ui.label("This mode is deprecated. Please enable Docking in settings.");
+             });
         });
-
-        // Bottom Panel - Assets & Console
-        egui::TopBottomPanel::bottom("bottom_panel").min_height(280.0).show(ctx, |ui| {
-            bottom_panel::render_bottom_panel(
-                ui,
-                bottom_panel_tab,
-                asset_manager,
-                console,
-                drag_drop,
-                texture_manager,
-                project_path.as_ref(),
-            );
-        });
-
-        // Project Settings Dialog
-        project_settings::render_project_settings(
-            ctx,
-            show_project_settings,
-            project_path,
-            Self::get_scene_files,
-        );
     }
 
     /// Get all .scene files in project scenes folder
@@ -441,17 +345,43 @@ impl EditorUI {
                 render_cache,
             };
 
+            // Handle Layout Requests
+            if let Some(request) = layout_request.take() {
+                if let Some(proj_path) = project_path {
+                    if request == "load:default" {
+                        *dock_state = dock_layout::create_default_layout();
+                        // *current_layout_name = "default".to_string(); // current_layout_name is &str, immutable
+                    } else if request == "load:2column" {
+                        *dock_state = dock_layout::create_2_column_layout();
+                    } else if request == "load:tall" {
+                        *dock_state = dock_layout::create_tall_layout();
+                    } else if request == "load:wide" {
+                        *dock_state = dock_layout::create_wide_layout();
+                    } else if request == "save_as" {
+                         let name = format!("Layout_{}", chrono::Local::now().format("%Y%m%d_%H%M%S"));
+                         if let Ok(_) = dock_layout::save_custom_layout_state(&name, dock_state, proj_path) {
+                             // Success
+                         }
+                    } else if request == "save_default" {
+                        let _ = dock_layout::save_default_layout(current_layout_name, proj_path);
+                    } else if request.starts_with("custom:") {
+                        let name = request.trim_start_matches("custom:");
+                        if let Some(state) = dock_layout::load_custom_layout_state(name, proj_path) {
+                            *dock_state = state;
+                        }
+                    }
+                }
+            }
+    
             let mut tab_viewer = EditorTabViewer {
                 context: &mut tab_context,
             };
-
+    
             let available_size = ui.available_size();
             if available_size.x > 0.0 && available_size.y > 0.0 {
                 egui_dock::DockArea::new(dock_state)
                     .style(get_dock_style())
                     .show_inside(ui, &mut tab_viewer);
-            } else {
-                // If no space is available, just don't render the dock to avoid panic
             }
         });
 
