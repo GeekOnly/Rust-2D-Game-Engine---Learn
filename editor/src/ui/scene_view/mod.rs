@@ -59,6 +59,7 @@ pub fn render_scene_view(
     device: &wgpu::Device,
     queue: &wgpu::Queue,
     asset_loader: &dyn engine_core::assets::AssetLoader,
+    render_cache: &mut engine::runtime::render_system::RenderCache,
 ) {
     // Sync camera projection mode with editor state
     scene_camera.projection_mode = *projection_mode;
@@ -528,9 +529,10 @@ pub fn render_scene_view(
                             let path_id = asset.path.to_string_lossy().to_string();
                             match engine::assets::xsg_loader::XsgLoader::load_into_world(
                                 &xsg,
+                                render_cache,
                                 world,
                                 device,
-                                queue, 
+                                queue,
                                 texture_manager,
                                 &path_id,
                                 &base_path,

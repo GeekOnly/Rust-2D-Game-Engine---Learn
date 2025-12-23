@@ -3,7 +3,7 @@ use pollster;
 use ecs::{World, Entity};
 use render::{MeshRenderer, Mesh, PbrMaterial, ModelVertex, Texture};
 use crate::texture_manager::TextureManager;
-use crate::runtime::render_system::{register_mesh_asset, register_material_asset};
+use crate::runtime::render_system::{register_mesh_asset, register_material_asset, RenderCache};
 use wgpu::util::DeviceExt;
 use std::sync::Arc;
 use ecs::traits::ComponentAccess;
@@ -17,19 +17,21 @@ impl XsgLoader {
 
     pub fn load_to_manager(
         xsg: XsgFile,
+        render_cache: &mut RenderCache,
         device: &wgpu::Device,
         queue: &wgpu::Queue,
         path_id: &str,
         base_path: &std::path::Path,
         asset_loader: &dyn engine_core::assets::AssetLoader,
     ) -> anyhow::Result<()> {
-        Self::load_resources(&xsg, device, queue, path_id, base_path, asset_loader)?;
+        Self::load_resources(&xsg, render_cache, device, queue, path_id, base_path, asset_loader)?;
         get_model_manager().add_model(path_id.to_string(), xsg);
         Ok(())
     }
 
     pub fn load_resources(
          xsg: &XsgFile,
+         render_cache: &mut RenderCache,
          device: &wgpu::Device,
          queue: &wgpu::Queue,
          path_id: &str,
@@ -102,7 +104,7 @@ impl XsgLoader {
                  ..Default::default()
              });
              
-             register_material_asset(mat_id.clone(), material);
+             register_material_asset(render_cache, mat_id.clone(), material);
              material_map.insert(i as u32, mat_id);
         }
 
@@ -140,7 +142,7 @@ impl XsgLoader {
                     &prim.indices
                 );
                 
-                register_mesh_asset(mesh_id.clone(), Arc::new(mesh));
+                register_mesh_asset(render_cache, mesh_id.clone(), Arc::new(mesh));
                 println!("DEBUG: Registered mesh asset: {}", mesh_id);
                 
                 // Store mapping: MeshIndex -> List of MeshIDs
@@ -153,6 +155,7 @@ impl XsgLoader {
 
     pub fn load_into_world(
         xsg: &XsgFile,
+        render_cache: &mut RenderCache,
         world: &mut World,
         device: &wgpu::Device,
         queue: &wgpu::Queue,
@@ -161,7 +164,7 @@ impl XsgLoader {
         base_path: &std::path::Path,
         asset_loader: &dyn engine_core::assets::AssetLoader,
     ) -> anyhow::Result<Vec<Entity>> {
-        let (mesh_map, material_map) = Self::load_resources(xsg, device, queue, path_id, base_path, asset_loader)?;
+        let (mesh_map, material_map) = Self::load_resources(xsg, render_cache, device, queue, path_id, base_path, asset_loader)?;
         let mut created_entities = Vec::new();
         
         // 4. Create Entities (Nodes)

@@ -84,6 +84,7 @@ impl EditorUI {
         queue: &wgpu::Queue,
         reload_mesh_assets_request: &mut bool,
         asset_loader: &dyn AssetLoader,
+        render_cache: &mut engine::runtime::render_system::RenderCache,
     ) {
         // Top Menu Bar
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
@@ -193,6 +194,7 @@ impl EditorUI {
                 device,
                 queue,
                 asset_loader,
+                render_cache,
             );
         });
 
@@ -346,6 +348,7 @@ impl EditorUI {
         dt: f32,
         reload_mesh_assets_request: &mut bool,
         asset_loader: &dyn AssetLoader,
+        render_cache: &mut engine::runtime::render_system::RenderCache,
     ) {
         // Handle layout change request (will be processed by caller)
         // Layout changes are handled in main.rs to access EditorState
@@ -435,6 +438,7 @@ impl EditorUI {
                 egui_renderer,
                 scene_view_renderer,
                 asset_loader,
+                render_cache,
             };
 
             let mut tab_viewer = EditorTabViewer {

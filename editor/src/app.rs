@@ -9,6 +9,7 @@ use render::{RenderModule, CameraBinding};
 use crate::ui::TransformTool;
 use crate::states::{AppState, LauncherState, EditorState};
 use engine::runtime;
+use engine::runtime::render_system::RenderCache;
 use engine_core::assets::AssetLoader;
 use crate::theme::UnityTheme;
 use winit::{
@@ -38,6 +39,7 @@ pub struct EditorApp {
     pub grid_renderer: render::GridRenderer,
     pub physics_accumulator: f32,
     pub fixed_timestep: f32,
+    pub render_cache: RenderCache,
 }
 
 impl EditorApp {
@@ -173,6 +175,8 @@ impl EditorApp {
             &scene_camera_binding.bind_group_layout,
         );
 
+        let render_cache = RenderCache::new();
+
         Ok(Self {
             window,
             app_state,
@@ -191,6 +195,7 @@ impl EditorApp {
             grid_renderer,
             physics_accumulator: 0.0,
             fixed_timestep: 1.0 / 60.0,
+            render_cache,
         })
     }
 
@@ -546,6 +551,7 @@ impl EditorApp {
                 // Ensure Asset meshes are loaded (idempotent check)
                 if let Some(ref project_path) = self.editor_state.current_project_path {
                      runtime::render_system::post_process_asset_meshes(
+                         &mut self.render_cache,
                          project_path,
                          &mut self.editor_state.world,
                          device,
@@ -631,6 +637,7 @@ impl EditorApp {
                     );
 
                     runtime::render_system::render_game_world(
+                        &mut self.render_cache,
                         &self.editor_state.world,
                         tilemap_renderer,
                         batch_renderer,
@@ -772,6 +779,7 @@ impl EditorApp {
                 let screen_size = winit::dpi::PhysicalSize::new(w, h);
 
                 runtime::render_system::render_game_world(
+                    &mut self.render_cache,
                     &self.editor_state.world,
                     tilemap_renderer,
                     batch_renderer,
@@ -829,6 +837,7 @@ impl EditorApp {
                 };
 
                 runtime::render_system::render_game_world(
+                    &mut self.render_cache,
                     &self.editor_state.world,
                     tilemap_renderer,
                     batch_renderer,
@@ -989,6 +998,7 @@ impl EditorApp {
             &self.renderer.mesh_renderer,
             &mut self.renderer.texture_manager,
             &*asset_loader,
+            &mut self.render_cache,
         );
         
         // Clear input state if not in play mode (PlayModeSystem handles it when playing)

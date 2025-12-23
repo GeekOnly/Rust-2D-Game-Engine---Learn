@@ -26,6 +26,7 @@ impl MenuCommandSystem {
         texture_manager: &mut render::TextureManager,
         mesh_renderer: &render::MeshRenderer,
         asset_loader: &dyn engine_core::assets::AssetLoader,
+        render_cache: &mut engine::runtime::render_system::RenderCache,
     ) {
          // Edit script request
          if let Some(script_name) = edit_script_request {
@@ -135,6 +136,7 @@ impl MenuCommandSystem {
                  if let Some(project_path) = &editor_state.current_project_path {
                      use engine::runtime::render_system::post_process_asset_meshes;
                      post_process_asset_meshes(
+                         render_cache,
                          project_path,
                          &mut editor_state.world,
                          device,

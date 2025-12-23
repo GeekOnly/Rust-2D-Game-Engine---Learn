@@ -29,6 +29,7 @@ impl EditorLogic {
         mesh_renderer: &render::MeshRenderer,
         render_texture_manager: &mut render::TextureManager,
         asset_loader: &dyn engine_core::assets::AssetLoader,
+        render_cache: &mut engine::runtime::render_system::RenderCache,
     ) {
         let mut save_request = false;
         let mut save_as_request = false;
@@ -112,6 +113,7 @@ impl EditorLogic {
                 dt,
                 &mut editor_state.reload_mesh_assets_request,
                 asset_loader,
+                render_cache,
             );
         } else {
              // Fallback to old layout
@@ -157,6 +159,7 @@ impl EditorLogic {
                 queue,
                 &mut editor_state.reload_mesh_assets_request,
                 asset_loader,
+                render_cache,
              );
         }
 
@@ -217,6 +220,7 @@ impl EditorLogic {
             render_texture_manager,
             mesh_renderer,
             asset_loader,
+            render_cache,
         );
 
         // [SCENE POST-PROCESSING]
@@ -227,6 +231,7 @@ impl EditorLogic {
              if let Some(project_path) = &editor_state.current_project_path {
                  use engine::runtime::render_system::post_process_asset_meshes;
                  post_process_asset_meshes(
+                     render_cache,
                      project_path,
                      &mut editor_state.world,
                      device,
