@@ -1,13 +1,12 @@
 use crate::assets::xsg::*;
 use pollster;
 use ecs::{World, Entity};
-use render::{MeshRenderer, Mesh, PbrMaterial, ModelVertex, Texture};
+use render::{Mesh, PbrMaterial, ModelVertex, Texture};
 use crate::texture_manager::TextureManager;
 use crate::runtime::render_system::{register_mesh_asset, register_material_asset, RenderCache};
-use wgpu::util::DeviceExt;
 use std::sync::Arc;
 use ecs::traits::ComponentAccess;
-use log::{info, warn};
+use log::warn;
 use image;
 use crate::assets::model_manager::get_model_manager;
 

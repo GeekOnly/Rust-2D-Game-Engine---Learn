@@ -133,17 +133,19 @@ impl MeshRenderer {
             layout: Some(&render_pipeline_layout),
             vertex: wgpu::VertexState {
                 module: &pbr_shader,
-                entry_point: "vs_main",
+                entry_point: Some("vs_main"),
                 buffers: &[ModelVertex::desc()],
+                compilation_options: Default::default(),
             },
             fragment: Some(wgpu::FragmentState {
                 module: &pbr_shader,
-                entry_point: "fs_main",
+                entry_point: Some("fs_main"),
                 targets: &[Some(wgpu::ColorTargetState {
                     format: config.format,
                     blend: Some(wgpu::BlendState::REPLACE),
                     write_mask: wgpu::ColorWrites::ALL,
                 })],
+                compilation_options: Default::default(),
             }),
             primitive: wgpu::PrimitiveState {
                 topology: wgpu::PrimitiveTopology::TriangleList,
@@ -166,6 +168,7 @@ impl MeshRenderer {
                 mask: !0,
                 alpha_to_coverage_enabled: false,
             },
+            cache: None,
             multiview: None,
         });
 
@@ -210,17 +213,19 @@ impl MeshRenderer {
             layout: Some(&toon_pipeline_layout),
             vertex: wgpu::VertexState {
                 module: &toon_shader,
-                entry_point: "vs_main",
+                entry_point: Some("vs_main"),
                 buffers: &[ModelVertex::desc()],
+                compilation_options: Default::default(),
             },
             fragment: Some(wgpu::FragmentState {
                 module: &toon_shader,
-                entry_point: "fs_main",
+                entry_point: Some("fs_main"),
                 targets: &[Some(wgpu::ColorTargetState {
                     format: config.format,
                     blend: Some(wgpu::BlendState::REPLACE),
                     write_mask: wgpu::ColorWrites::ALL,
                 })],
+                compilation_options: Default::default(),
             }),
             primitive: wgpu::PrimitiveState {
                 topology: wgpu::PrimitiveTopology::TriangleList,
@@ -243,6 +248,7 @@ impl MeshRenderer {
                 mask: !0,
                 alpha_to_coverage_enabled: false,
             },
+            cache: None,
             multiview: None,
         });
 
@@ -252,17 +258,19 @@ impl MeshRenderer {
             layout: Some(&toon_pipeline_layout),
             vertex: wgpu::VertexState {
                 module: &toon_shader,
-                entry_point: "vs_outline",
+                entry_point: Some("vs_outline"),
                 buffers: &[ModelVertex::desc()],
+                compilation_options: Default::default(),
             },
             fragment: Some(wgpu::FragmentState {
                 module: &toon_shader,
-                entry_point: "fs_outline",
+                entry_point: Some("fs_outline"),
                 targets: &[Some(wgpu::ColorTargetState {
                     format: config.format,
                     blend: Some(wgpu::BlendState::ALPHA_BLENDING),
                     write_mask: wgpu::ColorWrites::ALL,
                 })],
+                compilation_options: Default::default(),
             }),
             primitive: wgpu::PrimitiveState {
                 topology: wgpu::PrimitiveTopology::TriangleList,
@@ -283,12 +291,12 @@ impl MeshRenderer {
                 // Standard Z: Larger value = Further away.
                 // So we want Outline Z > Object Z.
                 // But we still use 'Less' test against the buffer.
-                depth_compare: wgpu::CompareFunction::Less, 
+                depth_compare: wgpu::CompareFunction::Less,
                 stencil: wgpu::StencilState::default(),
                 bias: wgpu::DepthBiasState {
                     constant: 2, // Positive adds to Z -> Pushes it further away
-                    slope_scale: 2.0, 
-                    clamp: 0.0, 
+                    slope_scale: 2.0,
+                    clamp: 0.0,
                 },
             }),
             multisample: wgpu::MultisampleState {
@@ -296,6 +304,7 @@ impl MeshRenderer {
                 mask: !0,
                 alpha_to_coverage_enabled: false,
             },
+            cache: None,
             multiview: None,
         });
 

@@ -117,9 +117,9 @@ impl Toolbar {
             
             // Border
             if selected {
-                ui.painter().rect_stroke(rect, 2.0, Stroke::new(1.0, colors.accent_hover));
+                ui.painter().rect_stroke(rect, 2.0, Stroke::new(1.0, colors.accent_hover), egui::epaint::StrokeKind::Outside);
             } else {
-                ui.painter().rect_stroke(rect, 2.0, Stroke::new(1.0, colors.border));
+                ui.painter().rect_stroke(rect, 2.0, Stroke::new(1.0, colors.border), egui::epaint::StrokeKind::Outside);
             }
             
             // Icon
@@ -154,7 +154,7 @@ impl Toolbar {
             };
             
             ui.painter().rect_filled(rect, 2.0, bg_color);
-            ui.painter().rect_stroke(rect, 2.0, Stroke::new(1.0, Color32::from_rgb(40, 140, 40)));
+            ui.painter().rect_stroke(rect, 2.0, Stroke::new(1.0, Color32::from_rgb(40, 140, 40)), egui::epaint::StrokeKind::Outside);
             
             ui.painter().text(
                 rect.center(),
@@ -181,7 +181,7 @@ impl Toolbar {
             };
             
             ui.painter().rect_filled(rect, 2.0, bg_color);
-            ui.painter().rect_stroke(rect, 2.0, Stroke::new(1.0, Color32::from_rgb(160, 40, 40)));
+            ui.painter().rect_stroke(rect, 2.0, Stroke::new(1.0, Color32::from_rgb(160, 40, 40)), egui::epaint::StrokeKind::Outside);
             
             ui.painter().text(
                 rect.center(),

@@ -63,7 +63,7 @@ pub fn render_inspector(
             // ===== Unity-style Inspector Header (Gray bar) =====
             egui::Frame::none()
                 .fill(egui::Color32::from_rgb(60, 60, 60))
-                .inner_margin(egui::Margin::same(5.0))
+                .inner_margin(egui::Margin::same(5))
                 .show(ui, |ui| {
                     ui.horizontal(|ui| {
                         // Active checkbox

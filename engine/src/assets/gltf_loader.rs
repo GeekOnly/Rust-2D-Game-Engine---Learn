@@ -1,9 +1,7 @@
 use anyhow::{Result, Context};
 use wgpu::util::DeviceExt;
-use gltf::{Gltf, Mesh as GltfMesh, Primitive, Material as GltfMaterial, Texture as GltfTexture};
-use gltf::mesh::util::{ReadTexCoords, ReadIndices};
+use gltf::{Primitive, Material as GltfMaterial};
 use render::{Mesh, ModelVertex, PbrMaterial, Texture, TextureManager, MeshRenderer};
-use image::GenericImageView;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use glam::{Vec3, Mat4, Quat};
@@ -114,7 +112,7 @@ impl GltfLoader {
         if let Some(info) = pbr.base_color_texture() {
             let texture = self.load_texture(device, queue, texture_manager, asset_loader, &info.texture(), buffers, true)?; 
             pbr_material.albedo_texture = Some(Arc::new(texture));
-        } else if let Some(tex) = texture_manager.get_white_texture(device, queue) {
+        } else if let Some(_tex) = texture_manager.get_white_texture(device, queue) {
              // TextureManager returns Arc<Texture> or reference?
              // render::TextureManager returns Option<&Texture>.
              // But we need Arc.
@@ -296,11 +294,11 @@ impl GltfLoader {
         &self,
         device: &wgpu::Device,
         queue: &wgpu::Queue,
-        texture_manager: &mut TextureManager,
+        _texture_manager: &mut TextureManager,
         asset_loader: &dyn engine_core::assets::AssetLoader,
         gltf_texture: &gltf::Texture,
         buffers: &[Vec<u8>],
-        srgb: bool,
+        _srgb: bool,
     ) -> Result<Texture> {
         let source = gltf_texture.source();
         let name = source.name().unwrap_or("unnamed_tex");

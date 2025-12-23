@@ -1,6 +1,5 @@
 use std::any::Any;
 use std::collections::HashMap;
-use std::marker::PhantomData;
 use std::sync::{Arc, RwLock};
 use crate::assets::core::AssetId;
 

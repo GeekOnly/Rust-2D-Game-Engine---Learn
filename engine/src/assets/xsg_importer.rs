@@ -1,5 +1,5 @@
 
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::fs::File;
 use std::io::{Read, Write};
 use anyhow::{Context, Result};
@@ -20,7 +20,7 @@ impl XsgImporter {
     /// Import a GLTF/GLB file and convert it to XSG format
     pub fn import_from_gltf<P: AsRef<Path>>(path: P) -> Result<XsgFile> {
         let path = path.as_ref();
-        let (document, buffers, images) = gltf::import(path)
+        let (document, buffers, _images) = gltf::import(path)
             .context("Failed to import GLTF file")?;
             
         let mut xsg_nodes = Vec::new();

@@ -105,6 +105,7 @@ fn main() -> Result<()> {
     let mut renderer = pollster::block_on(RenderModule::new(&window))?;
     let mut texture_manager = TextureManager::new();
     let mut ui_manager = UIManager::new();
+    let mut render_cache = engine::runtime::render_system::RenderCache::new();
 
     // Initialize egui for rendering the game view (reuse renderer logic)
     let egui_ctx = egui::Context::default();
@@ -119,7 +120,6 @@ fn main() -> Result<()> {
         &renderer.device,
         renderer.config.format,
         Some(wgpu::TextureFormat::Depth32Float),
-        1,
     );
  
     // Load Game Project
@@ -176,6 +176,7 @@ fn main() -> Result<()> {
     // [SCENE POST-PROCESSING] Load External Assets (GLTF)
     // Use shared function explicitly
     runtime::render_system::post_process_asset_meshes(
+        &mut render_cache,
         &project_path,
         &mut world,
         &renderer.device,
@@ -346,6 +347,7 @@ fn main() -> Result<()> {
                                         load: wgpu::LoadOp::Clear(wgpu::Color { r: 0.1, g: 0.1, b: 0.1, a: 1.0 }),
                                         store: wgpu::StoreOp::Store,
                                     },
+                                    depth_slice: None,
                                 })],
                                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                                     view: depth_view,
@@ -399,6 +401,7 @@ fn main() -> Result<()> {
 
                             // Render Game World (3D / WGPU)
                             runtime::render_system::render_game_world(
+                                &mut render_cache,
                                 &world,
                                 tilemap_renderer,
                                 batch_renderer,
@@ -408,7 +411,6 @@ fn main() -> Result<()> {
                                 texture_manager,
                                 queue,
                                 device,
-                                window.inner_size(),
                                 &mut rpass,
                                 view_proj,
                             );

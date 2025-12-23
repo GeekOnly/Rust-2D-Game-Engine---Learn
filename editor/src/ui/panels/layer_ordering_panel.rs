@@ -205,7 +205,7 @@ impl LayerOrderingPanel {
             } else {
                 Color32::from_gray(35)
             })
-            .inner_margin(egui::Margin::same(8.0))
+            .inner_margin(egui::Margin::same(8))
             .rounding(4.0);
         
         let response = frame.show(ui, |ui| {

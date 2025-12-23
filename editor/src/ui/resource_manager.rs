@@ -59,17 +59,17 @@ pub fn render_resource_card(
 ) -> egui::Response {
     let card_response = egui::Frame::none()
         .fill(egui::Color32::from_rgb(50, 50, 52))
-        .rounding(egui::Rounding::same(6.0))
+        .rounding(egui::Rounding::same(6))
         .stroke(egui::Stroke::new(1.0, egui::Color32::from_rgb(70, 70, 72)))
-        .inner_margin(egui::Margin::same(12.0))
+        .inner_margin(egui::Margin::same(12))
         .show(ui, |ui| {
             ui.set_min_size(egui::vec2(110.0, 90.0));
             ui.vertical_centered(|ui| {
                 // Icon with accent color background
                 egui::Frame::none()
                     .fill(accent_color.linear_multiply(0.3))
-                    .rounding(egui::Rounding::same(8.0))
-                    .inner_margin(egui::Margin::same(8.0))
+                    .rounding(egui::Rounding::same(8))
+                    .inner_margin(egui::Margin::same(8))
                     .show(ui, |ui| {
                         ui.label(egui::RichText::new(icon).size(28.0).color(accent_color));
                     });

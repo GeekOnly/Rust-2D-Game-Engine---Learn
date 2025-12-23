@@ -1,4 +1,4 @@
-use wgpu;
+use egui_wgpu::wgpu;
 use egui;
 use egui_wgpu;
 

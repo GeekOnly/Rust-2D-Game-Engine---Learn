@@ -20,7 +20,7 @@ pub fn parse_hex_color(hex: &str) -> Result<egui::Color32, String> {
 pub fn render_component_header(ui: &mut egui::Ui, name: &str, icon: &str, always_open: bool) {
     egui::Frame::none()
         .fill(egui::Color32::from_rgb(56, 56, 56))
-        .inner_margin(egui::Margin::same(6.0))
+        .inner_margin(egui::Margin::same(6))
         .show(ui, |ui| {
             ui.horizontal(|ui| {
                 if !always_open {

@@ -695,13 +695,13 @@ impl SpriteEditorWindow {
             let frame = if is_selected {
                 egui::Frame::none()
                     .fill(egui::Color32::from_rgb(60, 90, 150))
-                    .inner_margin(egui::Margin::same(4.0))
-                    .rounding(4.0)
+                    .inner_margin(egui::Margin::same(4))
+                    .corner_radius(4.0)
             } else {
                 egui::Frame::none()
                     .fill(egui::Color32::from_rgb(40, 40, 45))
-                    .inner_margin(egui::Margin::same(4.0))
-                    .rounding(4.0)
+                    .inner_margin(egui::Margin::same(4))
+                    .corner_radius(4.0)
             };
             
             let frame_response = frame.show(ui, |ui| {
@@ -754,6 +754,7 @@ impl SpriteEditorWindow {
                             thumb_rect,
                             2.0,
                             egui::Stroke::new(1.0, egui::Color32::from_rgb(80, 80, 85)),
+                            egui::epaint::StrokeKind::Outside,
                         );
                     } else {
                         // Placeholder if texture not loaded
@@ -818,7 +819,8 @@ impl SpriteEditorWindow {
                 ui.painter().rect_stroke(
                     frame_response.response.rect,
                     4.0,
-                    egui::Stroke::new(1.0, egui::Color32::from_rgb(100, 150, 255))
+                    egui::Stroke::new(1.0, egui::Color32::from_rgb(100, 150, 255)),
+                    egui::epaint::StrokeKind::Outside,
                 );
             }
             
@@ -984,7 +986,7 @@ impl SpriteEditorWindow {
                         egui::Color32::from_rgb(255, 255, 0)
                     };
 
-                    painter.rect_stroke(sprite_rect, 0.0, egui::Stroke::new(2.0, color));
+                    painter.rect_stroke(sprite_rect, 0.0, egui::Stroke::new(2.0, color), egui::epaint::StrokeKind::Outside);
 
                     if is_selected {
                         painter.rect_filled(sprite_rect, 0.0, egui::Color32::from_rgba_unmultiplied(0, 255, 0, 30));

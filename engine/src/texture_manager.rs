@@ -121,7 +121,7 @@ impl TextureManager {
         }
 
         // Resolve full path
-        let mut full_path = if let Some(base) = &self.base_path {
+        let full_path = if let Some(base) = &self.base_path {
             let joined = base.join(path);
             // Check for common "assets/assets" duplication error
             let joined_str = joined.to_string_lossy();
@@ -225,6 +225,7 @@ impl TextureManager {
             magnification,
             minification,
             wrap_mode,
+            mipmap_mode: Default::default(),
         }
     }
 }

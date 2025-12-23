@@ -12,7 +12,7 @@ use glam::{Vec3, Mat4, Quat, EulerRot};
 pub fn render_game_view(
     ui: &mut egui::Ui,
     world: &World,
-    texture_manager: &mut TextureManager,
+    _texture_manager: &mut TextureManager,
     ui_manager: Option<&mut crate::ui_manager::UIManager>,
     game_view_settings: Option<&crate::runtime::GameViewSettings>,
 ) {
@@ -44,7 +44,7 @@ pub fn render_game_view(
     // Find the main camera (first active camera with lowest depth)
     let main_camera = find_main_camera(world);
 
-    if let Some((camera_entity, camera, transform)) = main_camera {
+    if let Some((_camera_entity, _camera, _transform)) = main_camera {
         // Clear background
         // Clear background - DISABLED (Let WGPU render pass clear it)
         /*
@@ -147,6 +147,7 @@ fn render_game_view_overlays(
             safe_rect,
             0.0,
             egui::Stroke::new(1.0, egui::Color32::from_rgb(0, 255, 0)),
+            egui::epaint::StrokeKind::Outside,
         );
         
         // Draw corner markers
@@ -176,6 +177,7 @@ fn render_game_view_overlays(
             rect,
             0.0,
             egui::Stroke::new(2.0, egui::Color32::from_rgb(100, 100, 100)),
+            egui::epaint::StrokeKind::Outside,
         );
     }
 }
@@ -213,7 +215,7 @@ fn render_entities(
     let ctx = ui.ctx().clone();
 
     // Get camera position
-    let cam_pos = camera_transform.position;
+    let _cam_pos = camera_transform.position;
 
     // Render based on projection mode
     match camera.projection {
@@ -232,7 +234,7 @@ fn render_tilemap_2d(
     transform: &ecs::Transform,
     painter: &egui::Painter,
     ctx: &egui::Context,
-    camera: &Camera,
+    _camera: &Camera,
     cam_pos: [f32; 3],
     center: egui::Pos2,
     zoom: f32,
@@ -651,7 +653,7 @@ fn render_perspective(
         // Calculate Scale/Size on Screen
         // Project a second point offset by scale to estimate screen size
         // Offset by UP vector * scale.y
-        let top_world_pos = world_pos + (cam_rotation * Vec3::Y) * transform.scale[1]; // Use camera up or world up? World up generally.
+        let _top_world_pos = world_pos + (cam_rotation * Vec3::Y) * transform.scale[1]; // Use camera up or world up? World up generally.
         // Let's use camera-facing plane size approximation for simplicity
         // Or simply: world_size / depth * constant
         

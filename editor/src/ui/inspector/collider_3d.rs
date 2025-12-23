@@ -33,7 +33,7 @@ pub fn render_collider_3d_inspector(ui: &mut egui::Ui, world: &mut World, entity
         
         egui::Frame::none()
         .fill(egui::Color32::from_rgb(60, 60, 60))
-        .inner_margin(egui::Margin::same(5.0))
+        .inner_margin(egui::Margin::same(5))
         .show(ui, |ui| {
              ui.horizontal(|ui| {
                 if ui.button(if header_open { "▼" } else { "▶" }).clicked() {

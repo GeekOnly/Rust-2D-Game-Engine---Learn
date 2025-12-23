@@ -398,6 +398,7 @@ pub fn render_collider_gizmo(
                 egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), size),
                 0.0,
                 egui::Stroke::new(1.5, egui::Color32::from_rgb(0, 255, 100)),
+                egui::epaint::StrokeKind::Outside,
             );
         } else {
             // Has rotation - draw as rotated polygon outline
@@ -728,7 +729,7 @@ fn render_default_camera_gizmo(
         egui::pos2(screen_x, screen_y),
         egui::vec2(size, size * 0.6),
     );
-    painter.rect_stroke(body_rect, 2.0, egui::Stroke::new(2.0, color));
+    painter.rect_stroke(body_rect, 2.0, egui::Stroke::new(2.0, color), egui::epaint::StrokeKind::Outside);
     
     // Draw X to indicate missing component
     let half_size = size * 0.3;
@@ -1088,6 +1089,7 @@ pub fn render_camera_viewport_bounds(
             viewport_rect,
             0.0,
             egui::Stroke::new(2.0, egui::Color32::from_rgb(255, 220, 0)),
+            egui::epaint::StrokeKind::Outside,
         );
         
         // Draw corner markers (Unity style)

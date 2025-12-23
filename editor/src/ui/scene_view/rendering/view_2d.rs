@@ -220,6 +220,7 @@ pub fn render_scene_2d(
                     egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), size + egui::vec2(4.0, 4.0)),
                     2.0,
                     egui::Stroke::new(2.0, egui::Color32::from_rgb(255, 200, 0)),
+                    egui::epaint::StrokeKind::Outside,
                 );
             } else if world.meshes.contains_key(&sel_entity) {
                 let scale = glam::Vec3::from(transform.scale);
@@ -230,6 +231,7 @@ pub fn render_scene_2d(
                     egui::Rect::from_center_size(egui::pos2(screen_x, screen_y), egui::vec2(selection_size, selection_size)),
                     2.0,
                     egui::Stroke::new(2.0, egui::Color32::from_rgb(255, 200, 0)),
+                    egui::epaint::StrokeKind::Outside,
                 );
             }
 
@@ -558,7 +560,7 @@ fn render_entity_2d(
                     egui::vec2(base_size, base_size),
                 );
                 painter.rect_filled(rect, 2.0, color);
-                painter.rect_stroke(rect, 2.0, egui::Stroke::new(1.0, egui::Color32::BLACK));
+                painter.rect_stroke(rect, 2.0, egui::Stroke::new(1.0, egui::Color32::BLACK), egui::epaint::StrokeKind::Outside);
             }
         }
     } else {

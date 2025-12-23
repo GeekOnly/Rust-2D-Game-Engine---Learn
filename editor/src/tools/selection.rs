@@ -369,6 +369,7 @@ impl SelectionManager {
                 rect,
                 0.0,
                 egui::Stroke::new(1.0, egui::Color32::from_rgb(100, 150, 255)),
+                egui::epaint::StrokeKind::Outside,
             );
         }
     }

@@ -445,9 +445,14 @@ impl EditorUI {
                 context: &mut tab_context,
             };
 
-            egui_dock::DockArea::new(dock_state)
-                .style(get_dock_style())
-                .show_inside(ui, &mut tab_viewer);
+            let available_size = ui.available_size();
+            if available_size.x > 0.0 && available_size.y > 0.0 {
+                egui_dock::DockArea::new(dock_state)
+                    .style(get_dock_style())
+                    .show_inside(ui, &mut tab_viewer);
+            } else {
+                // If no space is available, just don't render the dock to avoid panic
+            }
         });
 
         // Project Settings Dialog

@@ -1,6 +1,6 @@
 use ecs::World;
 use script::ScriptEngine;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use anyhow::Result;
 
 /// Load and initialize all scripts in the world (Unity-style lifecycle)

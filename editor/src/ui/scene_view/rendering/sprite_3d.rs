@@ -472,6 +472,7 @@ impl Sprite3DRenderer {
                         rect,
                         2.0,
                         egui::Stroke::new(1.0, egui::Color32::from_rgba_premultiplied(255, 0, 0, 100)),
+                        egui::epaint::StrokeKind::Outside,
                     );
                 }
             }

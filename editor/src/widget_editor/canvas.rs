@@ -64,6 +64,7 @@ impl PrefabCanvas {
             canvas_rect,
             0.0,
             egui::Stroke::new(2.0, egui::Color32::from_rgb(100, 100, 100)),
+            egui::epaint::StrokeKind::Outside,
         );
         
         // Resolution info
@@ -128,6 +129,7 @@ impl PrefabCanvas {
             safe_rect,
             0.0,
             egui::Stroke::new(1.0, egui::Color32::from_rgb(0, 200, 0)),
+            egui::epaint::StrokeKind::Outside,
         );
     }
     
@@ -166,7 +168,7 @@ impl PrefabCanvas {
         } else if element.button.is_some() {
             // Render button (gray box with border)
             painter.rect_filled(element_rect, 4.0, egui::Color32::from_gray(80));
-            painter.rect_stroke(element_rect, 4.0, egui::Stroke::new(2.0, egui::Color32::from_gray(120)));
+            painter.rect_stroke(element_rect, 4.0, egui::Stroke::new(2.0, egui::Color32::from_gray(120)), egui::epaint::StrokeKind::Outside);
             painter.text(
                 element_rect.center(),
                 egui::Align2::CENTER_CENTER,
@@ -200,6 +202,7 @@ impl PrefabCanvas {
                 element_rect,
                 2.0,
                 egui::Stroke::new(2.0, egui::Color32::from_rgb(0, 150, 255)),
+                egui::epaint::StrokeKind::Outside,
             );
             
             // Selection handles (corners and edges)
@@ -320,7 +323,7 @@ impl PrefabCanvas {
         } else {
             // Stretched anchors - draw rectangle
             let anchor_rect = egui::Rect::from_two_pos(anchor_min_pos, anchor_max_pos);
-            painter.rect_stroke(anchor_rect, 0.0, egui::Stroke::new(2.0, egui::Color32::from_rgb(255, 100, 0)));
+            painter.rect_stroke(anchor_rect, 0.0, egui::Stroke::new(2.0, egui::Color32::from_rgb(255, 100, 0)), egui::epaint::StrokeKind::Outside);
         }
     }
     

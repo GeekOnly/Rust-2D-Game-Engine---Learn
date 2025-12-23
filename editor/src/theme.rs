@@ -45,36 +45,36 @@ impl UnityTheme {
         // Window
         style.visuals.window_fill = bg_medium;
         style.visuals.window_stroke = Stroke::new(1.0, border);
-        style.visuals.window_rounding = Rounding::same(0.0); // Sharp corners like Unity
+        style.visuals.window_corner_radius = egui::CornerRadius::same(0); // Sharp corners like Unity
         style.visuals.window_shadow = egui::epaint::Shadow {
-            offset: egui::vec2(0.0, 0.0),
-            blur: 0.0,
-            spread: 0.0,
+            offset: [0, 0],
+            blur: 0,
+            spread: 0,
             color: Color32::TRANSPARENT,
         }; // No shadow
-        
+
         // Panel
         style.visuals.panel_fill = bg_dark;
-        
+
         // Extreme background (for popups)
         style.visuals.extreme_bg_color = bg_dark;
-        
+
         // Text colors
         style.visuals.override_text_color = Some(text);
         style.visuals.warn_fg_color = Color32::from_rgb(255, 200, 0);
         style.visuals.error_fg_color = Color32::from_rgb(255, 80, 80);
-        
+
         // Spacing (Unity-like tight spacing)
         style.spacing.item_spacing = egui::vec2(4.0, 4.0);
         style.spacing.button_padding = egui::vec2(8.0, 4.0);
-        style.spacing.window_margin = Margin::same(8.0);
-        style.spacing.menu_margin = Margin::same(4.0);
-        
+        style.spacing.window_margin = Margin::same(8);
+        style.spacing.menu_margin = Margin::same(4);
+
         // Rounding (minimal like Unity)
-        style.visuals.widgets.noninteractive.rounding = Rounding::same(2.0);
-        style.visuals.widgets.inactive.rounding = Rounding::same(2.0);
-        style.visuals.widgets.hovered.rounding = Rounding::same(2.0);
-        style.visuals.widgets.active.rounding = Rounding::same(2.0);
+        style.visuals.widgets.noninteractive.corner_radius = egui::CornerRadius::same(2);
+        style.visuals.widgets.inactive.corner_radius = egui::CornerRadius::same(2);
+        style.visuals.widgets.hovered.corner_radius = egui::CornerRadius::same(2);
+        style.visuals.widgets.active.corner_radius = egui::CornerRadius::same(2);
         
         ctx.set_style(style);
     }

@@ -475,6 +475,7 @@ impl Tilemap3DRenderer {
                         rect,
                         0.0,
                         egui::Stroke::new(0.5, egui::Color32::from_rgba_premultiplied(255, 0, 0, 100)),
+                        egui::epaint::StrokeKind::Outside,
                     );
                 }
             }

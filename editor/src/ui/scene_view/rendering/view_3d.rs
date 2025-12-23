@@ -25,7 +25,7 @@ fn render_default_camera_gizmo(
         egui::pos2(screen_x, screen_y),
         egui::vec2(size, size * 0.6),
     );
-    painter.rect_stroke(body_rect, 2.0, egui::Stroke::new(2.0, color));
+    painter.rect_stroke(body_rect, 2.0, egui::Stroke::new(2.0, color), egui::epaint::StrokeKind::Outside);
     
     // Draw X to indicate missing component
     let half_size = size * 0.3;
