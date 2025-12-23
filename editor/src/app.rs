@@ -17,6 +17,8 @@ use winit::{
     event_loop::{ControlFlow, EventLoop, ActiveEventLoop},
     window::Window,
 };
+use glam::{Vec3, Mat4, Quat, EulerRot};
+use ecs::{Camera, CameraProjection};
 
 pub struct EditorApp {
     pub window: Window,
@@ -844,6 +846,114 @@ impl EditorApp {
             self.renderer.queue.submit(std::iter::once(encoder.finish()));
         }
         
-        // TODO: Implement Game View offscreen rendering if needed (currently using main swapchain or sprite view)
+        // Render Game View
+        let game_width = self.game_view_renderer.width;
+        let game_height = self.game_view_renderer.height;
+
+        if game_width > 0 && game_height > 0 {
+             // Find Main Camera
+             let mut cameras: Vec<_> = self.editor_state.world.cameras.iter()
+                .filter_map(|(entity, camera)| {
+                    if self.editor_state.world.active.get(entity).copied().unwrap_or(true) {
+                        self.editor_state.world.transforms.get(entity).map(|transform| (entity, camera, transform))
+                    } else {
+                        None
+                    }
+                })
+                .collect();
+            
+            // Sort by depth (lowest depth first)
+            cameras.sort_by_key(|(_, camera, _)| camera.depth);
+            
+            if let Some((_, camera, transform)) = cameras.first() {
+                 let mut encoder = self.renderer.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+                    label: Some("Game View Encoder"),
+                 });
+                 
+                 // Calculate View Matrix
+                 let rot_rad = Vec3::new(
+                    transform.rotation[0].to_radians(),
+                    transform.rotation[1].to_radians(),
+                    transform.rotation[2].to_radians(),
+                 );
+                 let cam_rotation = Quat::from_euler(EulerRot::YXZ, rot_rad.y, rot_rad.x, rot_rad.z);
+                 let cam_translation = Vec3::from(transform.position);
+                 let view = Mat4::from_rotation_translation(cam_rotation, cam_translation).inverse();
+                 
+                 // Calculate Projection Matrix
+                 let aspect = game_width as f32 / game_height as f32;
+                 let projection = match camera.projection {
+                    CameraProjection::Orthographic => {
+                         let height = camera.orthographic_size;
+                         let width = height * aspect;
+                         Mat4::orthographic_rh(
+                            -width, width, 
+                            -height, height, 
+                            camera.near_clip, camera.far_clip
+                        )
+                    },
+                    CameraProjection::Perspective => {
+                        Mat4::perspective_rh(
+                            camera.fov.to_radians(), 
+                            aspect, 
+                            camera.near_clip, 
+                            camera.far_clip
+                        )
+                    }
+                 };
+                 
+                 // Update Camera Binding (Reusing scene_camera_binding is safe because of sequential submission)
+                 self.scene_camera_binding.update(&self.renderer.queue, view, projection, Vec3::from(transform.position));
+                 
+                 {
+                    let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                        label: Some("Game View Render Pass"),
+                        color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                            view: &self.game_view_renderer.view,
+                            resolve_target: None,
+                            ops: wgpu::Operations {
+                                load: wgpu::LoadOp::Clear(wgpu::Color {
+                                    r: camera.background_color[0] as f64,
+                                    g: camera.background_color[1] as f64,
+                                    b: camera.background_color[2] as f64,
+                                    a: camera.background_color[3] as f64,
+                                }),
+                                store: wgpu::StoreOp::Store,
+                            },
+                            depth_slice: None,
+                        })],
+                        depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                            view: &self.game_view_renderer.depth_view,
+                            depth_ops: Some(wgpu::Operations {
+                                load: wgpu::LoadOp::Clear(1.0),
+                                store: wgpu::StoreOp::Store,
+                            }),
+                            stencil_ops: None,
+                        }),
+                        occlusion_query_set: None,
+                        timestamp_writes: None,
+                    });
+                    
+                    // Render Game World
+                    runtime::render_system::render_game_world(
+                        &mut self.render_cache,
+                        &self.editor_state.world,
+                        &self.renderer.tilemap_renderer,
+                        &mut self.renderer.batch_renderer,
+                        &mut self.renderer.mesh_renderer,
+                        &self.scene_camera_binding, 
+                        &self.renderer.light_binding,
+                        &mut self.renderer.texture_manager,
+                        &self.renderer.queue,
+                        &self.renderer.device,
+                        winit::dpi::PhysicalSize::new(game_width, game_height),
+                        &mut rpass,
+                        projection * view, 
+                    );
+                 }
+                
+                 self.renderer.queue.submit(std::iter::once(encoder.finish()));
+            }
+        }
     }
 }
