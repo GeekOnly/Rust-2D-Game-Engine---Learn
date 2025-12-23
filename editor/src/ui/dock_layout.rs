@@ -464,8 +464,17 @@ pub fn create_default_layout() -> DockState<EditorTab> {
     // }
     
     // Fallback to programmatic layout if JSON fails
-    // SAFE MODE: Single tab to prevent layout crash
-    DockState::new(vec![EditorTab::Scene])
+    // Simplified 2-column layout to prevent startup crash
+    let mut dock_state = DockState::new(vec![EditorTab::Scene]);
+
+    // Split to create right panel (Inspector)
+    let [_scene, _inspector] = dock_state.main_surface_mut().split_right(
+        NodeIndex::root(),
+        0.75, // 75% Scene, 25% Inspector
+        vec![EditorTab::Inspector],
+    );
+
+    dock_state
 }
 
 /// Create alternative layouts

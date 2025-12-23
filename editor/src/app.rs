@@ -773,8 +773,77 @@ impl EditorApp {
     }
 
     fn render_offscreen_views(&mut self) {
-        // For now, skip the offscreen rendering to fix the compilation issue
-        // TODO: Implement proper offscreen rendering without lifetime conflicts
-        // The scene view and game view textures will be rendered directly in the UI
+        // Render Scene View
+        let width = self.scene_view_renderer.width;
+        let height = self.scene_view_renderer.height;
+        
+        if width > 0 && height > 0 {
+            let mut encoder = self.renderer.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+                label: Some("Scene View Encoder"),
+            });
+
+            // Calculate View & Projection Matrices
+            let aspect = width as f32 / height as f32;
+            let projection = self.editor_state.scene_camera.get_projection_matrix(aspect);
+            let view = self.editor_state.scene_camera.get_view_matrix();
+            let camera_pos = self.editor_state.scene_camera.position;
+
+            // Update scene camera uniform buffer
+            self.scene_camera_binding.update(&self.renderer.queue, view, projection, camera_pos);
+
+            {
+                let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                    label: Some("Scene View Render Pass"),
+                    color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                        view: &self.scene_view_renderer.view,
+                        resolve_target: None,
+                        ops: wgpu::Operations {
+                            load: wgpu::LoadOp::Clear(wgpu::Color { r: 0.15, g: 0.15, b: 0.15, a: 1.0 }), // Dark Unity-like background
+                            store: wgpu::StoreOp::Store,
+                        },
+                        depth_slice: None,
+                    })],
+                    depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                        view: &self.scene_view_renderer.depth_view,
+                        depth_ops: Some(wgpu::Operations {
+                            load: wgpu::LoadOp::Clear(1.0),
+                            store: wgpu::StoreOp::Store,
+                        }),
+                        stencil_ops: None,
+                    }),
+                    occlusion_query_set: None,
+                    timestamp_writes: None,
+                });
+                
+                // Draw Grid (WGPU)
+                if self.editor_state.infinite_grid.enabled || self.editor_state.scene_grid.enabled {
+                    self.grid_renderer.render(
+                        &mut rpass, 
+                        &self.scene_camera_binding.bind_group
+                    );
+                }
+
+                // Render Game World
+                runtime::render_system::render_game_world(
+                    &mut self.render_cache,
+                    &self.editor_state.world,
+                    &self.renderer.tilemap_renderer,
+                    &mut self.renderer.batch_renderer,
+                    &mut self.renderer.mesh_renderer,
+                    &self.scene_camera_binding, 
+                    &self.renderer.light_binding,
+                    &mut self.renderer.texture_manager,
+                    &self.renderer.queue,
+                    &self.renderer.device,
+                    winit::dpi::PhysicalSize::new(width, height),
+                    &mut rpass,
+                    projection * view, 
+                );
+            }
+
+            self.renderer.queue.submit(std::iter::once(encoder.finish()));
+        }
+        
+        // TODO: Implement Game View offscreen rendering if needed (currently using main swapchain or sprite view)
     }
 }
