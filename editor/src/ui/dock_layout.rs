@@ -84,6 +84,7 @@ pub struct TabContext<'a> {
     pub egui_renderer: &'a mut egui_wgpu::Renderer,
     pub scene_view_renderer: &'a mut crate::scene_view_renderer::SceneViewRenderer,
     pub asset_loader: &'a dyn AssetLoader,
+    pub render_cache: &'a mut engine::runtime::render_system::RenderCache,
 }
 
 /// Render game view toolbar (resolution selector, etc.)
@@ -290,6 +291,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                     self.context.device,
                     self.context.queue,
                     self.context.asset_loader,
+                    self.context.render_cache,
                 );
                 
                 // Clear texture inspector selection when entity selection changes
