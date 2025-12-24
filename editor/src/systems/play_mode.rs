@@ -71,8 +71,36 @@ impl PlayModeSystem {
         }
         
         // Run scripts FIRST (before physics) so they can set velocities
-        // Use the same script system as Player binary for consistency
-        engine::runtime::script_system::update_scripts(script_engine, &mut editor_state.world, &ctx.input, dt);
+        {
+            let entities: Vec<ecs::Entity> = editor_state.world.scripts.keys().cloned().collect();
+
+            for entity in entities {
+                let should_run = if let Some(script) = editor_state.world.scripts.get(&entity) {
+                    script.enabled
+                } else {
+                    false
+                };
+
+                if should_run {
+                    let mut log_callback = |msg: String| {
+                        log::info!("[Lua] {}", msg);
+                    };
+
+                    let result = script_engine.run_script(
+                        std::path::Path::new(""),
+                        entity,
+                        &mut editor_state.world,
+                        &ctx.input,
+                        dt,
+                        &mut log_callback,
+                    );
+
+                    if let Err(e) = result {
+                        editor_state.console.error(format!("Script error for entity {}: {}", entity, e));
+                    }
+                }
+            }
+        }
 
         // Transfer debug lines from script engine to debug_draw manager
         let script_debug_lines = script_engine.take_debug_lines();

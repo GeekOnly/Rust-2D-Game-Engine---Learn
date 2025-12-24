@@ -209,8 +209,8 @@ impl EditorApp {
                 ref event,
                 window_id,
             } if window_id == self.window.id() => {
-                // Pass events to egui
-                let _ = self.egui_state.on_window_event(&self.window, event);
+                // Pass events to egui and check if it consumed the event
+                let egui_consumed = self.egui_state.on_window_event(&self.window, event);
 
                 match event {
                     WindowEvent::CloseRequested
@@ -230,7 +230,19 @@ impl EditorApp {
                         }
                     }
                     WindowEvent::KeyboardInput { event: key_event, .. } => {
-                        self.handle_keyboard_input(key_event);
+                        // When playing in editor, allow game input even if egui wants keyboard
+                        // This fixes the issue where Game View panel consumes A/D keys
+                        let should_handle = if self.app_state == AppState::Editor && self.editor_state.is_playing {
+                            // In play mode, always handle keyboard input for game control
+                            true
+                        } else {
+                            // Otherwise, check if egui wants the input
+                            !egui_consumed.consumed
+                        };
+
+                        if should_handle {
+                            self.handle_keyboard_input(key_event);
+                        }
                     }
                     WindowEvent::CursorMoved { position, .. } => {
                         self.ctx.input.set_mouse_position(position.x as f32, position.y as f32);

@@ -119,6 +119,15 @@ impl ScriptEngine {
         self.ground_states.insert(entity, is_grounded);
     }
 
+    /// Clear all entity states (called when loading a new scene or stopping play mode)
+    pub fn clear(&mut self) {
+        self.entity_states.clear();
+        self.ground_states.clear();
+        self.debug_lines.borrow_mut().clear();
+        self.ui_commands.borrow_mut().clear();
+        log::info!("🧹 ScriptEngine cleared - all entity states removed");
+    }
+
     pub fn exec(&self, src: &str) -> Result<()> {
         self.lua.load(src).exec()?;
         Ok(())

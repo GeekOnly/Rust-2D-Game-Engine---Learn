@@ -132,6 +132,9 @@ impl MenuCommandSystem {
                  editor_state.is_playing = true;
                  editor_state.console.info("▶ Starting Play Mode...".to_string());
 
+                 // Clear script engine to ensure fresh start
+                 script_engine.clear();
+
                  // Process GLTF assets (same as scene loading)
                  if let Some(project_path) = &editor_state.current_project_path {
                      use engine::runtime::render_system::post_process_asset_meshes;
@@ -147,19 +150,53 @@ impl MenuCommandSystem {
                      );
                  }
 
-                 // Load scripts (same as Player binary)
-                 // Load scripts (same as Player binary)
-                 if editor_state.current_project_path.is_some() {
-                     if let Err(e) = engine::runtime::script_loader::load_all_scripts(&mut editor_state.world, script_engine) {
-                         editor_state.console.error(format!("Failed to load scripts: {}", e));
-                     } else {
+                 // Load scripts (same as Player binary) - INLINE VERSION WITH DEBUG LOGS
+                 if let Some(ref project_path) = editor_state.current_project_path {
+                     // Inline load_all_scripts to add debug logging
+                     let entities_to_load: Vec<_> = editor_state.world.scripts.keys().cloned().collect();
+                     editor_state.console.debug(format!("🔍 [LoadScripts] Found {} entities with script components", entities_to_load.len()));
+
+                     let mut load_success = true;
+                     for entity in &entities_to_load {
+                         if let Some(script) = editor_state.world.scripts.get(entity) {
+                             if script.enabled {
+                                 let script_name = script.script_name.clone();
+                                 // Include project path in the script path
+                                let script_path = format!("{}/scripts/{}.lua", project_path.display(), script_name);
+                                 editor_state.console.debug(format!("🔍 [LoadScripts] Loading script: {}", script_path));
+
+                                 match pollster::block_on(script_engine.asset_loader.load_text(&script_path)) {
+                                     Ok(content) => {
+                                         editor_state.console.debug(format!("✅ [LoadScripts] Script file loaded: {} ({} bytes)", script_path, content.len()));
+                                         if let Err(e) = script_engine.load_script_for_entity(*entity, &content, &mut editor_state.world) {
+                                             editor_state.console.error(format!("Failed to load script {} for entity {}: {}", script_name, entity, e));
+                                             load_success = false;
+                                         } else {
+                                             editor_state.console.debug(format!("✅ [LoadScripts] Script loaded for entity {}: {} (Awake called)", entity, script_name));
+                                         }
+                                     }
+                                     Err(e) => {
+                                         editor_state.console.error(format!("Script file not found or failed to load: {} ({})", script_path, e));
+                                         load_success = false;
+                                     }
+                                 }
+                             }
+                         }
+                     }
+
+                     if load_success {
                          editor_state.console.info("Scripts loaded successfully".to_string());
                          
                          // Start scripts (call Start() for all entities with scripts)
                          let entities_with_scripts: Vec<_> = editor_state.world.scripts.keys().copied().collect();
+                         editor_state.console.debug(format!("🔍 Found {} entities with scripts", entities_with_scripts.len()));
+
                          for entity in entities_with_scripts {
+                             editor_state.console.debug(format!("🔍 Calling Start() for entity {}", entity));
                              if let Err(e) = script_engine.call_start_for_entity(entity, &mut editor_state.world) {
                                  editor_state.console.error(format!("Script start error for entity {:?}: {}", entity, e));
+                             } else {
+                                 editor_state.console.debug(format!("✅ Start() completed for entity {}", entity));
                              }
                          }
                      }
@@ -186,7 +223,10 @@ impl MenuCommandSystem {
             if editor_state.is_playing {
                  editor_state.is_playing = false;
                  editor_state.console.info("⏹ Stopping Play Mode...".to_string());
-                 
+
+                 // Clear script engine to remove all entity Lua states
+                 script_engine.clear();
+
                  // Reload scene to reset state
                  if let Some(path) = editor_state.current_scene_path.clone() {
                       if let Err(e) = editor_state.load_scene(&path, asset_loader) {
