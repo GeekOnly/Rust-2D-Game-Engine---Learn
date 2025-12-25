@@ -239,7 +239,7 @@ impl RenderModule {
 
         // Initialize 3D bindings (Initialize BEFORE renderers that depend on them)
         let camera_binding = CameraBinding::new(&device);
-        let light_binding = LightBinding::new(&device, &config);
+        let mut light_binding = LightBinding::new(&device, &config);
 
         let sprite_renderer = SpriteRenderer::new(&device, &config);
         let tilemap_renderer = TilemapRenderer::new(&device, &config, &camera_binding.bind_group_layout);
@@ -251,6 +251,9 @@ impl RenderModule {
             &camera_binding.bind_group_layout,
             &light_binding.bind_group_layout
         );
+
+        // Link LightBinding to the RenderModule's scene_depth_view immediately
+        light_binding.update_resources(&device, &scene_depth_view);
 
         Ok(Self {
             surface,

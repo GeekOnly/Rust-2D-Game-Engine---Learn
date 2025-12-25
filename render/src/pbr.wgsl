@@ -190,24 +190,32 @@ fn fetch_shadow(world_pos: vec3<f32>, N: vec3<f32>, L: vec3<f32>, view_depth: f3
     
     let current_depth = proj_coords.z - bias;
     
-    // PCF
+
+    // Optimized 4-tap PCF (cheaper than 9-tap 3x3 loop)
     var shadow = 0.0;
     let size = vec2<f32>(textureDimensions(t_shadow).xy);
     let texel_size = vec2<f32>(1.0 / size.x, 1.0 / size.y);
     
-    for(var x = -1; x <= 1; x++) {
-        for(var y = -1; y <= 1; y++) {
-            let pcf_depth = textureSampleCompare(
-                t_shadow, 
-                s_shadow, 
-                uv + vec2<f32>(f32(x), f32(y)) * texel_size, 
-                i32(cascade_index), // Array Layer
-                current_depth
-            );
-            shadow += pcf_depth;
-        }
+    // 4 Samples: Diagonal Pattern (covers ~1.5 texel radius)
+    // Using hardware bilinear comparison (textureSampleCompare) gives 2x2 PCF per tap.
+    // Overlapping them gives smoother results.
+    let offsets = array<vec2<f32>, 4>(
+        vec2<f32>(-0.5, -0.5),
+        vec2<f32>( 0.5, -0.5),
+        vec2<f32>(-0.5,  0.5),
+        vec2<f32>( 0.5,  0.5)
+    );
+
+    for (var i = 0; i < 4; i++) {
+        shadow += textureSampleCompare(
+            t_shadow, 
+            s_shadow, 
+            uv + offsets[i] * texel_size, 
+            i32(cascade_index), 
+            current_depth
+        );
     }
-    shadow /= 9.0;
+    shadow *= 0.25;
     
     // Debug: Color tint based on cascade? No, keep it clean.
     return shadow;
@@ -243,14 +251,16 @@ fn contact_shadows(world_pos: vec3<f32>, L: vec3<f32>, uv: vec2<f32>, dither: f3
         
         let screen_uv = ndc.xy * vec2<f32>(0.5, -0.5) + vec2<f32>(0.5, 0.5);
 
-        // Sample Scene Depth - Use regular sampler for depth texture sampling
-        // For AAA mobile: bilinear filtering helps smooth depth comparisons
-        let scene_depth_raw = textureSample(t_scene_depth, s_scene_depth, screen_uv);
+        // Use textureLoad for exact pixel depth (bypassing comparison sampler)
+        let dim = textureDimensions(t_scene_depth);
+        let px = vec2<i32>(screen_uv * vec2<f32>(dim));
+        
+        // Bounds check
+        if (px.x < 0 || px.x >= i32(dim.x) || px.y < 0 || px.y >= i32(dim.y)) {
+             continue;
+        }
 
-        // Fallback: textureLoad for exact pixel (no filtering)
-        // let dim = textureDimensions(t_scene_depth);
-        // let px = vec2<i32>(screen_uv * vec2<f32>(dim));
-        // let scene_depth_raw = textureLoad(t_scene_depth, px, 0);
+        let scene_depth_raw = textureLoad(t_scene_depth, px, 0);
         
         // Compare Depths
         // Note: WGPU Depth is 0..1 (Reverse Z if configured? We use standard Z < 1.0? 
@@ -319,6 +329,11 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     
     // Combine (Min)
     let final_shadow = min(shadow_factor, contact_shadow);
+
+    // [DEBUG] Verify Contact Shadows
+    // if (contact_shadow < 0.5) {
+    //    return vec4<f32>(1.0, 0.0, 0.0, 1.0); // RED if Contact Shadow hit
+    // }
 
     let radiance = light.color.rgb * light.color.a * attenuation * final_shadow;
 
