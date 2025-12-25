@@ -100,7 +100,7 @@ impl RenderModule {
 
         surface.configure(&device, &config);
 
-        // Create depth texture
+        // Create depth texture (AAA Mobile: with COPY_SRC for contact shadows)
         let depth_texture = device.create_texture(&wgpu::TextureDescriptor {
             label: Some("Depth Texture"),
             size: wgpu::Extent3d {
@@ -112,7 +112,7 @@ impl RenderModule {
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             format: wgpu::TextureFormat::Depth32Float,
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_SRC,
             view_formats: &[],
         });
 
@@ -281,7 +281,7 @@ impl RenderModule {
             self.config.height = new_size.height;
             self.surface.configure(&self.device, &self.config);
             
-            // Recreate depth texture with new size
+            // Recreate depth texture with new size (AAA Mobile: with COPY_SRC for contact shadows)
             self.depth_texture = self.device.create_texture(&wgpu::TextureDescriptor {
                 label: Some("Depth Texture"),
                 size: wgpu::Extent3d {
@@ -293,7 +293,7 @@ impl RenderModule {
                 sample_count: 1,
                 dimension: wgpu::TextureDimension::D2,
                 format: wgpu::TextureFormat::Depth32Float,
-                usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING,
+                usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_SRC,
                 view_formats: &[],
             });
             
