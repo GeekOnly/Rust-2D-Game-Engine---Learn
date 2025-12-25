@@ -4,6 +4,7 @@ use crate::{Mesh, ModelVertex, Texture, PbrMaterial, TextureManager, PbrMaterial
 pub struct MeshRenderer {
     render_pipeline: wgpu::RenderPipeline,
     shadow_pipeline: wgpu::RenderPipeline,
+    depth_pipeline: wgpu::RenderPipeline, // NEW: Scene Depth Pre-pass
     pub material_layout: wgpu::BindGroupLayout,
     // Toon Support
     toon_pipeline: wgpu::RenderPipeline,
@@ -249,6 +250,42 @@ impl MeshRenderer {
             multiview: None,
         });
 
+        // Depth Pre-pass Pipeline (Matches Render Pipeline but no Fragment)
+        let depth_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("Depth Pre-pass Pipeline"),
+            layout: Some(&shadow_pipeline_layout), // Reuses same layout (Camera+Light) for simplicity, though only Camera needed really
+            vertex: wgpu::VertexState {
+                module: &pbr_shader,
+                entry_point: Some("vs_main"), // Reuses main vertex logic (with normal/uv overhead, but reusable)
+                buffers: &[ModelVertex::desc(), MeshInstance::desc()],
+                compilation_options: Default::default(),
+            },
+            fragment: None, // No Fragment Shader
+            primitive: wgpu::PrimitiveState {
+                topology: wgpu::PrimitiveTopology::TriangleList,
+                strip_index_format: None,
+                front_face: wgpu::FrontFace::Ccw,
+                cull_mode: Some(wgpu::Face::Back), // Back-face culling (Matches Main Pass)
+                polygon_mode: wgpu::PolygonMode::Fill,
+                unclipped_depth: false,
+                conservative: false,
+            },
+            depth_stencil: Some(wgpu::DepthStencilState {
+                format: wgpu::TextureFormat::Depth32Float,
+                depth_write_enabled: true,
+                depth_compare: wgpu::CompareFunction::Less, // Standard Z
+                stencil: wgpu::StencilState::default(),
+                bias: wgpu::DepthBiasState::default(),
+            }),
+            multisample: wgpu::MultisampleState {
+                count: 1,
+                mask: !0,
+                alpha_to_coverage_enabled: false,
+            },
+            cache: None,
+            multiview: None,
+        });
+
         // --- Toon Setup ---
         let toon_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some("Toon Shader"),
@@ -388,6 +425,7 @@ impl MeshRenderer {
         Self {
             render_pipeline,
             shadow_pipeline,
+            depth_pipeline,
             material_layout,
             toon_pipeline,
             outline_pipeline,
@@ -639,4 +677,21 @@ impl MeshRenderer {
            label: Some("pbr_material_bind_group"),
        })
    }
+    pub fn render_depth_instanced<'a>(
+        &'a self,
+        render_pass: &mut wgpu::RenderPass<'a>,
+        mesh: &'a Mesh,
+        camera_bind_group: &'a wgpu::BindGroup,
+        light_bind_group: &'a wgpu::BindGroup,
+        instance_buffer: &'a wgpu::Buffer,
+        instance_count: u32,
+    ) {
+        render_pass.set_pipeline(&self.depth_pipeline);
+        render_pass.set_bind_group(0, camera_bind_group, &[]);
+        render_pass.set_bind_group(1, light_bind_group, &[]);
+        render_pass.set_vertex_buffer(0, mesh.vertex_buffer.slice(..));
+        render_pass.set_vertex_buffer(1, instance_buffer.slice(..));
+        render_pass.set_index_buffer(mesh.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
+        render_pass.draw_indexed(0..mesh.num_elements, 0, 0..instance_count);
+    }
 }

@@ -335,7 +335,7 @@ fn main() -> Result<()> {
                         let screen_height = renderer.config.height;
                         let renderer_size = renderer.size;
 
-                        let res = renderer.render_with_callback(|device, queue, encoder, view, depth_view, texture_manager, tilemap_renderer, batch_renderer, mesh_renderer, camera_binding, light_binding| {
+                        let res = renderer.render_with_callback(|device, queue, encoder, view, depth_view, texture_manager, tilemap_renderer, batch_renderer, mesh_renderer, camera_binding, light_binding, depth_texture, scene_depth_texture, _scene_depth_view, config| {
                             egui_renderer.update_buffers(
                                 device,
                                 queue,
@@ -352,8 +352,13 @@ fn main() -> Result<()> {
                                 queue,
                                 texture_manager,
                                 light_binding,
-                                &camera_binding,
+                                camera_binding,
                                 mesh_renderer,
+                                depth_view,
+                                depth_texture,
+                                scene_depth_texture,
+                                config.width,
+                                config.height
                             );
 
                             let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {

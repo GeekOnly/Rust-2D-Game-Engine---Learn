@@ -800,6 +800,11 @@ impl EditorApp {
             &self.renderer.light_binding,
             &self.scene_camera_binding, // Reuse scene camera binding placeholder
             &self.renderer.mesh_renderer,
+            &self.scene_view_renderer.depth_view,
+            &self.scene_view_renderer.depth_texture,
+            &self.scene_view_renderer.scene_depth_texture,
+            self.scene_view_renderer.width,
+            self.scene_view_renderer.height
         );
 
 

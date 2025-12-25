@@ -37,6 +37,8 @@ pub struct RenderModule {
     pub shadow_pipeline: wgpu::RenderPipeline,
     pub depth_texture: wgpu::Texture,
     pub depth_view: wgpu::TextureView,
+    pub scene_depth_texture: wgpu::Texture, // NEW: Copy source/dest
+    pub scene_depth_view: wgpu::TextureView, // Bound to LightBinding
     pub texture_manager: TextureManager,
     pub sprite_renderer: SpriteRenderer,
     pub tilemap_renderer: TilemapRenderer,
@@ -115,6 +117,23 @@ impl RenderModule {
         });
 
         let depth_view = depth_texture.create_view(&wgpu::TextureViewDescriptor::default());
+
+        // Create Scene Depth Copy Texture (Readable by Shader)
+        let scene_depth_texture = device.create_texture(&wgpu::TextureDescriptor {
+            label: Some("Scene Depth Texture"),
+            size: wgpu::Extent3d {
+                width: config.width,
+                height: config.height,
+                depth_or_array_layers: 1,
+            },
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Depth32Float,
+            usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+            view_formats: &[],
+        });
+        let scene_depth_view = scene_depth_texture.create_view(&wgpu::TextureViewDescriptor::default());
 
         // Create a basic render pipeline
         let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
@@ -243,6 +262,8 @@ impl RenderModule {
             shadow_pipeline,
             depth_texture,
             depth_view,
+            scene_depth_texture,
+            scene_depth_view,
             texture_manager,
             sprite_renderer,
             tilemap_renderer,
@@ -277,15 +298,35 @@ impl RenderModule {
             });
             
             self.depth_view = self.depth_texture.create_view(&wgpu::TextureViewDescriptor::default());
+
+            // Resize Scene Depth
+            self.scene_depth_texture = self.device.create_texture(&wgpu::TextureDescriptor {
+                label: Some("Scene Depth Texture"),
+                size: wgpu::Extent3d {
+                    width: new_size.width,
+                    height: new_size.height,
+                    depth_or_array_layers: 1,
+                },
+                mip_level_count: 1,
+                sample_count: 1,
+                dimension: wgpu::TextureDimension::D2,
+                format: wgpu::TextureFormat::Depth32Float,
+                usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+                view_formats: &[],
+            });
+            self.scene_depth_view = self.scene_depth_texture.create_view(&wgpu::TextureViewDescriptor::default());
+            
+            // LightBinding holds the texture view in the BindGroup, so it must be updated.
+            self.light_binding.update_resources(&self.device, &self.scene_depth_view);
         }
     }
 
     pub fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
-        self.render_with_callback(|_, _, _, _, _, _, _, _, _, _, _| {})
+        self.render_with_callback(|_, _, _, _, _, _, _, _, _, _, _, _, _, _, _| {})
     }
 
     pub fn render_with_callback<F>(&mut self, callback: F) -> Result<(), wgpu::SurfaceError>
-    where F: FnOnce(&wgpu::Device, &wgpu::Queue, &mut wgpu::CommandEncoder, &wgpu::TextureView, &wgpu::TextureView, &mut TextureManager, &mut TilemapRenderer, &mut BatchRenderer, &mut MeshRenderer, &mut CameraBinding, &LightBinding)
+    where F: FnOnce(&wgpu::Device, &wgpu::Queue, &mut wgpu::CommandEncoder, &wgpu::TextureView, &wgpu::TextureView, &mut TextureManager, &mut TilemapRenderer, &mut BatchRenderer, &mut MeshRenderer, &mut CameraBinding, &LightBinding, &wgpu::Texture, &wgpu::Texture, &wgpu::TextureView, &wgpu::SurfaceConfiguration)
     {
         let output = self.surface.get_current_texture()?;
         let view = output.texture.create_view(&wgpu::TextureViewDescriptor::default());
@@ -325,7 +366,7 @@ impl RenderModule {
         }
 
         // Callback for overlay (egui) and game render
-        callback(&self.device, &self.queue, &mut encoder, &view, &self.depth_view, &mut self.texture_manager, &mut self.tilemap_renderer, &mut self.batch_renderer, &mut self.mesh_renderer, &mut self.camera_binding, &self.light_binding);
+        callback(&self.device, &self.queue, &mut encoder, &view, &self.depth_view, &mut self.texture_manager, &mut self.tilemap_renderer, &mut self.batch_renderer, &mut self.mesh_renderer, &mut self.camera_binding, &self.light_binding, &self.depth_texture, &self.scene_depth_texture, &self.scene_depth_view, &self.config);
         
         self.queue.submit(std::iter::once(encoder.finish()));
         output.present();
