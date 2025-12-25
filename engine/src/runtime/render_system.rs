@@ -186,10 +186,20 @@ pub fn render_game_world<'a>(
     render_pass: &mut wgpu::RenderPass<'a>,
     view_proj: Mat4, // <--- Added Argument
 ) {
-    // 0. Update Light (Simple directional light for now)
-    // TODO: Find Light component in world
-    // Default light at (2.0, 5.0, 2.0) with white color
-    light_binding.update(queue, [2.0, 5.0, 2.0], [1.0, 1.0, 1.0], 1.0);
+    // 0. Extract Frame Data
+    let frame = ExtractionSystem::extract(world, 0.0);
+
+    // 1. Update Light
+    if let Some(light) = frame.lights.first() {
+        // Use position from uniform (x, y, z) - w is separate
+        let pos = [light.position[0], light.position[1], light.position[2]];
+        let color = [light.color[0], light.color[1], light.color[2]];
+        let intensity = light.color[3]; // We packed intensity into alpha
+        light_binding.update(queue, pos, color, intensity);
+    } else {
+        // Default light if none exists
+        light_binding.update(queue, [2.0, 5.0, 2.0], [1.0, 1.0, 1.0], 1.0);
+    }
 
     // Ensure default textures exist before any immutable borrows (Fixes E0502)
     let _ = texture_manager.get_white_texture(device, queue);
@@ -490,8 +500,8 @@ pub fn render_game_world<'a>(
 
 
     // 5. EXTRACT & RENDER (Instanced)
-    // Extract frame
-    let frame = ExtractionSystem::extract(world, 0.0);
+    // Frame extracted at step 0
+    // let frame = ExtractionSystem::extract(world, 0.0);
 
     // Ensure 'default' material exists for untextured meshes
     if !render_cache.material_bind_group_cache.contains_key("default") {

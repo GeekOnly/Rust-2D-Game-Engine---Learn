@@ -28,3 +28,9 @@ pub use collider_3d::{Collider3D, ColliderShape3D};
 
 pub mod ldtk_entity;
 pub use ldtk_entity::LdtkEntity;
+
+pub mod light;
+pub use light::*;
+
+pub mod visible;
+pub use visible::Visible;

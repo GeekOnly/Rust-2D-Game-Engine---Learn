@@ -1,6 +1,6 @@
 use ecs::World;
 use crate::runtime::render_frame::RenderFrame;
-use render::MeshInstance;
+use render::{MeshInstance, LightUniform};
 
 pub struct ExtractionSystem;
 
@@ -25,7 +25,8 @@ impl ExtractionSystem {
         for (entity, mesh_component) in &world.meshes {
             if let Some(transform) = world.transforms.get(entity) {
                 // Visibility Check
-                 if let Some(visible) = world.active.get(entity) { if !visible { continue; } }
+                    if let Some(active) = world.active.get(entity) { if !active { continue; } }
+                if let Some(visible) = world.visibles.get(entity) { if !visible.is_visible { continue; } }
 
                 let model_matrix = if let Some(global) = world.global_transforms.get(entity) {
                     glam::Mat4::from_cols_array(&global.matrix)
@@ -126,6 +127,25 @@ impl ExtractionSystem {
                      }
                  }
             }
+        }
+
+
+        // 4. Extract Lights
+        for (entity, light) in &world.lights {
+            if let Some(visible) = world.active.get(entity) { if !visible { continue; } }
+            
+            let position = if let Some(global) = world.global_transforms.get(entity) {
+                // Extract translation from matrix
+                let col3 = &global.matrix[12..15];
+                [col3[0], col3[1], col3[2]]
+            } else if let Some(transform) = world.transforms.get(entity) {
+                transform.position
+            } else {
+                [0.0, 0.0, 0.0]
+            };
+
+            let uniform = LightUniform::new(position, light.color, light.intensity);
+            frame.lights.push(uniform);
         }
 
         frame

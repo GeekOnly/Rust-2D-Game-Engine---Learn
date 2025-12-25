@@ -4,15 +4,15 @@ Technical Specification v1.1 (Consolidated)
 
 1. Objective
 
-ระบบ Growth Animation สำหรับพืชแบบ procedural โดย:
+ระบบ Growth Animation สำหรับพืชแบบ procedural โดยใช้ **Rust 2D/3D Game Engine (WGPU)**:
 
-ใช้ Vertex Animation (VAT) เท่านั้น
+ใช้ Vertex Animation (VAT) ผ่าน WGPU Compute/Vertex Shader
 
-ไม่ใช้ skeleton / physics runtime
+ไม่ใช้ skeleton / physics runtime (ใช้ Vertex Displacement)
 
-deterministic, network-safe
+deterministic, network-safe (SYNC ผ่าน Seed & Time)
 
-ประสิทธิภาพสูง (mobile → PC)
+ประสิทธิภาพสูง (Instanced Rendering ใน `render::VegetationRenderer`)
 
 รองรับ instance จำนวนมาก
 
@@ -22,14 +22,15 @@ Tree	Trunk → Branch → Leaf
 Flower	Stem → Bud → Bloom
 Vine	Segment-based climbing
 3. Growth State Machine
-enum class GrowthState {
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub enum GrowthState {
   Seed,
   Growing,
   Blooming,
   Mature,
   Dormant,
-  Dead
-};
+  Dead,
+}
 
 
 State เปลี่ยนได้ด้วยเวลา / event
@@ -100,10 +101,15 @@ Fixed topology required
 delta = animated_pos - base_pos
 
 8.2 Storage Layout (Preferred)
+#[repr(C)]
+#[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
 struct VatVertex {
-  int16 dx, dy, dz;
-};
-index = frame * vertex_count + vertex_id;
+    dx: i16, dy: i16, dz: i16, // Snorm16
+    normal_dx: i8, normal_dy: i8, normal_dz: i8, // Snorm8
+    padding: u8,
+}
+// index = frame * vertex_count + vertex_id;
+// Uploaded as a specialized storage buffer or Texture2D (Rg32Sint/Float)
 
 
 Texture VAT เป็น optional fallback
@@ -123,22 +129,40 @@ Runtime:
 final = blend(stage0, stage1, stage2)
 
 10. Runtime Playback
-10.1 Shader Logic
-frame = clamp(time * fps, 0, max_frame)
-final_pos = base_pos + unpack(delta)
+10.1 Shader Logic (WGPU WGSL)
 
-10.2 Instance Parameters
-time_offset
-growth_speed
-variation_seed
+```wgsl
+// vegetation.wgsl
+struct VertexInput {
+    @location(0) position: vec3<f32>,
+    @location(10) growth_params: vec4<f32>, // Instanced: [growth_t, wind_speed, seed, phase]
+};
+
+// Fetch VAT Frame
+let frame_idx = loop_animation(time, total_frames);
+let offset = textureLoad(vat_texture, vec2<i32>(vertex_index, frame_idx), 0).xyz;
+
+var final_pos = base_pos + offset * smoothstep(0.0, 1.0, growth_t);
+```
+
+10.2 Instance Parameters (Rust Struct)
+```rust
+#[repr(C)]
+#[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
+pub struct VegetationInstance {
+    pub model: [[f32; 4]; 4],
+    pub color: [f32; 4],
+    pub growth_params: [f32; 4], // time, speed, var_seed, phase
+}
+```
 
 11. Wind & Secondary Motion
-final_pos += wind_offset * wind_weight * (1 - rigidity)
+final_pos += wind_offset * wind_weight * (1.0 - rigidity);
 
 
-Wind แยกจาก growth
+Wind แยกจาก growth (Global Wind Uniform)
 
-ปิดได้ตาม state
+ปิดได้ตาม state (Optimization)
 
 12. LOD & Optimization
 LOD	Behavior
@@ -153,23 +177,28 @@ Frame decimation
 Quantization profile per platform
 
 13. ECS Integration
-struct GrowthComponent {
-  GrowthState state;
-  float time;
-  float speed;
-};
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Vegetation {
+    pub state: GrowthState,
+    pub current_time: f32,
+    pub growth_speed: f32,
+    pub asset_id: String, // Link to logic/VAT
+    pub variation_seed: u32,
+}
 
-struct VatComponent {
-  BufferHandle vat;
-};
+// Component Storage in `CustomWorld`
+// pub vegetations: HashMap<CustomEntity, Vegetation>,
 
 14. Tooling
-14.1 CLI Baker
-vegvat bake plant.glb \
-  --type tree \
-  --fps 30 \
-  --stages 3 \
-  --format buffer
+14.1 Editor Integration (Rust)
+
+Add "Import Vegetation" to Editor:
+1.  Load GLTF with animation.
+2.  Bake Position/Normal deltas to Texture (VAT).
+3.  Save as `.xsg` (Custom Asset) or `.vat` + `.png`.
+
+Usage:
+`engine_core::assets::vegetation_baker::bake_from_gltf(path, settings)`
 
 14.2 Validation
 

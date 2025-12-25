@@ -737,6 +737,8 @@ pub struct CustomWorld {
     // 3D Model component (Static Props)
     pub model_3ds: HashMap<CustomEntity, Model3D>,
     pub ldtk_entities: HashMap<CustomEntity, LdtkEntity>,
+    pub lights: HashMap<CustomEntity, Light>,
+    pub visibles: HashMap<CustomEntity, Visible>,
 }
 
 impl CustomWorld {
@@ -794,6 +796,8 @@ impl CustomWorld {
         self.ldtk_intgrid_colliders.remove(&e);
         self.model_3ds.remove(&e);
         self.ldtk_entities.remove(&e);
+        self.lights.remove(&e);
+        self.visibles.remove(&e);
     }
 
     pub fn clear(&mut self) {
@@ -826,6 +830,8 @@ impl CustomWorld {
         self.ldtk_intgrid_colliders.clear();
         self.model_3ds.clear();
         self.ldtk_entities.clear();
+        self.lights.clear();
+        self.visibles.clear();
         self.next_entity = 0;
     }
 
@@ -1173,6 +1179,8 @@ mod custom_world_impls {
     impl_component_access!(CustomWorld, LdtkIntGridCollider, ldtk_intgrid_colliders, CustomEntity);
     impl_component_access!(CustomWorld, Model3D, model_3ds, CustomEntity);
     impl_component_access!(CustomWorld, LdtkEntity, ldtk_entities, CustomEntity);
+    impl_component_access!(CustomWorld, Light, lights, CustomEntity);
+    impl_component_access!(CustomWorld, Visible, visibles, CustomEntity);
 }
 
 // Manual implementations for tuple and primitive types
