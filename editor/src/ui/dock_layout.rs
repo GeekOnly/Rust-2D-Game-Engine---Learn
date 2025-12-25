@@ -64,6 +64,7 @@ pub struct TabContext<'a> {
     pub sprite_editor_windows: &'a mut Vec<crate::SpriteEditorWindow>,
     pub sprite_picker_state: &'a mut super::sprite_picker::SpritePickerState,
     pub texture_inspector: &'a mut texture_inspector::TextureInspector,
+    pub ldtk_inspector: &'a mut super::ldtk_inspector::LdtkInspector,
     pub show_debug_lines: &'a mut bool,
     pub debug_draw: &'a mut crate::debug_draw::DebugDrawManager,
     pub map_manager: &'a mut crate::map_manager::MapManager,
@@ -209,11 +210,53 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                 // Clear texture inspector selection when entity selection changes
                 if previous_selected != *self.context.selected_entity {
                     self.context.texture_inspector.clear();
+                    self.context.ldtk_inspector.clear();
                 }
             }
             EditorTab::Inspector => {
-                // Show entity inspector or texture inspector based on selection
-                if self.context.texture_inspector.selected_texture.is_some() {
+                // Show entity inspector, texture inspector, or LDtk inspector based on selection
+                if self.context.ldtk_inspector.selected_asset.is_some() {
+                    // Show LDtk import settings
+                    if let Some(action) = self.context.ldtk_inspector.render(ui) {
+                        use super::ldtk_inspector::LdtkInspectorAction;
+                        match action {
+                            LdtkInspectorAction::SaveSettings => {
+                                if let Some(ref path) = self.context.ldtk_inspector.selected_asset.clone() {
+                                    // Helper to save settings
+                                    let save_settings = |settings: &engine_core::assets::ldtk::LdtkImportSettings, path: &std::path::Path| {
+                                        let meta_path = engine_core::assets::AssetMetadata::get_meta_path(path);
+                                        let mut meta = engine_core::assets::AssetMetadata::load_from_file(&meta_path)
+                                            .unwrap_or_else(|_| engine_core::assets::AssetMetadata::generate(path));
+                                        
+                                        // Update settings
+                                        meta.import_settings.ldtk = Some(settings.clone());
+                                        
+                                        // Save
+                                        if let Err(e) = meta.save_to_file(&meta_path) {
+                                            log::error!("Failed to save LDtk settings: {}", e);
+                                            false
+                                        } else {
+                                            true
+                                        }
+                                    };
+
+                                    if save_settings(&self.context.ldtk_inspector.settings, path) {
+                                        self.context.console.info("LDtk settings saved");
+                                        self.context.ldtk_inspector.has_changes = false;
+                                    } else {
+                                        self.context.console.error("Failed to save LDtk settings");
+                                    }
+                                }
+                            }
+                            LdtkInspectorAction::RevertSettings => {
+                                if let Some(path) = self.context.ldtk_inspector.selected_asset.clone() {
+                                    self.context.ldtk_inspector.set_asset(path);
+                                    self.context.console.info("LDtk settings reverted");
+                                }
+                            }
+                        }
+                    }
+                } else if self.context.texture_inspector.selected_texture.is_some() {
                     // Show texture import settings
                     if let Some(action) = self.context.texture_inspector.render(ui) {
                         match action {
@@ -489,6 +532,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                             }
                             asset_browser::AssetBrowserAction::SelectTexture(path) => {
                                 self.context.texture_inspector.set_texture(path);
+                                self.context.ldtk_inspector.clear(); // Clear LDtk selection
                             }
                             asset_browser::AssetBrowserAction::OpenUIPrefabEditor(path) => {
                                 *self.context.open_prefab_editor_request = Some(path);

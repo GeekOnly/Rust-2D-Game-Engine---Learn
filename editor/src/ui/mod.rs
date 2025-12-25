@@ -16,6 +16,7 @@ pub mod dialogs;
 pub mod launcher_window;
 pub mod game_window;
 pub mod panels;
+pub mod ldtk_inspector; // NEW: LDtk Asset Inspector
 
 // Re-exports
 use ecs::{World, Entity, EntityTag};
@@ -236,6 +237,7 @@ impl EditorUI {
         sprite_editor_windows: &mut Vec<crate::SpriteEditorWindow>,
         sprite_picker_state: &mut sprite_picker::SpritePickerState,
         texture_inspector: &mut texture_inspector::TextureInspector,
+        ldtk_inspector: &mut ldtk_inspector::LdtkInspector,
         map_view_state: &mut map_view::MapViewState,
         show_debug_lines: &mut bool,
         debug_draw: &mut crate::debug_draw::DebugDrawManager,
@@ -254,6 +256,15 @@ impl EditorUI {
         _asset_loader: &dyn AssetLoader,
         _render_cache: &mut engine::runtime::render_system::RenderCache,
     ) {
+        // Track global drag position
+        if drag_drop.is_dragging() {
+             if let Some(pos) = ctx.pointer_interact_pos() {
+                 drag_drop.set_drop_position(pos);
+             } else if let Some(pos) = ctx.pointer_latest_pos() {
+                 drag_drop.set_drop_position(pos);
+             }
+        }
+
         // Handle layout change request (will be processed by caller)
         // Layout changes are handled in main.rs to access EditorState
 
@@ -322,6 +333,7 @@ impl EditorUI {
                 sprite_editor_windows,
                 sprite_picker_state,
                 texture_inspector,
+                ldtk_inspector,
                 show_debug_lines,
                 debug_draw,
                 map_manager,
@@ -404,6 +416,73 @@ impl EditorUI {
                     .show_inside(ui, &mut tab_viewer);
             }
         });
+
+        // Render Drag Preview OUTSIDE CentralPanel to avoid clipping
+        if drag_drop.is_dragging() {
+            // Request repaint every frame while dragging
+            ctx.request_repaint();
+
+            // Get current mouse position
+            let mouse_pos = ctx.pointer_hover_pos();
+
+            log::info!("🎯 Drag active! Mouse pos: {:?}", mouse_pos);
+
+            // Update drop position to current mouse position
+            if let Some(pos) = mouse_pos {
+                drag_drop.set_drop_position(pos);
+                log::info!("📍 Updated drop position to: {:?}", pos);
+            } else {
+                log::warn!("⚠️ Mouse position is None!");
+            }
+
+            if let Some(pos) = mouse_pos {
+                 if let Some(asset) = drag_drop.get_dragged_asset() {
+                    log::info!("🗺 Drawing drag preview for: {} at {:?}", asset.name, pos);
+
+                    // Use ctx.layer_painter to draw on top of everything
+                    let painter = ctx.layer_painter(egui::LayerId::new(
+                        egui::Order::Foreground,
+                        egui::Id::new("drag_preview")
+                    ));
+
+                    // Get asset icon
+                    let icon = match &asset.asset_type {
+                        crate::asset_manager::AssetType::Sprite => "🖼",
+                        crate::asset_manager::AssetType::SpriteSheet => "🎞",
+                        crate::asset_manager::AssetType::Ldtk => "🗺",
+                        crate::asset_manager::AssetType::Prefab => "📦",
+                        _ => "📄",
+                    };
+
+                    let text = format!("{} {}", icon, asset.name);
+                    let text_pos = pos + egui::vec2(15.0, 15.0);
+
+                    // Background
+                    painter.rect_filled(
+                        egui::Rect::from_min_size(text_pos, egui::vec2(200.0, 30.0)),
+                        5.0,
+                        egui::Color32::from_black_alpha(220)
+                    );
+
+                    // Border
+                    painter.rect_stroke(
+                        egui::Rect::from_min_size(text_pos, egui::vec2(200.0, 30.0)),
+                        5.0,
+                        egui::Stroke::new(1.5, egui::Color32::from_rgb(100, 150, 255)),
+                        egui::epaint::StrokeKind::Outside
+                    );
+
+                    // Text
+                    painter.text(
+                        text_pos + egui::vec2(10.0, 15.0),
+                        egui::Align2::LEFT_CENTER,
+                        text,
+                        egui::FontId::proportional(14.0),
+                        egui::Color32::WHITE,
+                    );
+                 }
+            }
+        }
 
         // Project Settings Dialog
         project_settings::render_project_settings(

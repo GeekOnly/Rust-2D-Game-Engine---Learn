@@ -244,7 +244,7 @@ impl AssetBrowser {
         let mut action = None;
         let (rect, response) = ui.allocate_exact_size(
             Vec2::new(size, size + 30.0),
-            Sense::click(),
+            Sense::click_and_drag(),
         );
         
         if ui.is_rect_visible(rect) {
@@ -350,7 +350,13 @@ impl AssetBrowser {
             );
             
             // Handle drag
+            if response.drag_started() {
+                log::info!("🎯 Drag started! Asset: {}, Type: {:?}, Is folder: {}",
+                    asset.name, asset.asset_type, asset.asset_type == AssetType::Folder);
+            }
+
             if response.drag_started() && asset.asset_type != AssetType::Folder {
+                log::info!("✅ Starting drag for: {}", asset.name);
                 drag_drop.start_drag(DraggedAsset {
                     path: asset.path.clone(),
                     name: asset.name.clone(),
@@ -477,7 +483,13 @@ impl AssetBrowser {
             }).inner;
             
             // Handle drag
+            if response.drag_started() {
+                log::info!("🎯 Drag started! Asset: {}, Type: {:?}, Is folder: {}",
+                    asset.name, asset.asset_type, asset.asset_type == AssetType::Folder);
+            }
+
             if response.drag_started() && asset.asset_type != AssetType::Folder {
+                log::info!("✅ Starting drag for: {}", asset.name);
                 drag_drop.start_drag(DraggedAsset {
                     path: asset.path.clone(),
                     name: asset.name.clone(),

@@ -53,7 +53,7 @@ pub fn render_scene_view(
     texture_manager: &mut engine::texture_manager::TextureManager,
     drag_drop: &mut DragDropState,
     delta_time: f32,
-    map_manager: &crate::map_manager::MapManager,
+    map_manager: &mut crate::map_manager::MapManager,
     scene_view_renderer: &mut crate::scene_view_renderer::SceneViewRenderer,
     egui_renderer: &mut egui_wgpu::Renderer,
     device: &wgpu::Device,
@@ -396,10 +396,19 @@ pub fn render_scene_view(
         if let Some(hover_pos) = response.hover_pos() {
             drag_drop.set_drop_position(hover_pos);
         }
-        
+
         // Handle drop
-        if response.drag_stopped() {
+        let pointer_released = ui.input(|i| i.pointer.any_released());
+        let is_hovered = response.hovered();
+
+        if pointer_released {
+            log::info!("🖱️ Pointer released! Hovered: {}", is_hovered);
+        }
+
+        if drag_drop.is_dragging() && pointer_released && is_hovered {
+            log::info!("💧 Drop detected in Scene View!");
             if let Some(asset) = drag_drop.get_dragged_asset() {
+                log::info!("📦 Dropping asset: {} ({})", asset.name, asset.path.display());
                 // Check if it's a sprite file
                 if asset.path.extension().and_then(|s| s.to_str()) == Some("sprite") {
                     // Load sprite metadata
@@ -563,8 +572,16 @@ pub fn render_scene_view(
                 }
                 // Handle LDtk files
                 else if asset.path.extension().and_then(|s| s.to_str()) == Some("ldtk") {
-                    log::warn!("Drag and drop for .ldtk files is currently supported via the 'Assets' panel or 'Maps' panel. Please double-click the file in the Assets panel to load it.");
-                    // Ideally we would call map_manager.load_map(&asset.path, world) but map_manager is immutable here.
+                    log::info!("🗺️ Loading LDtk map from drag & drop: {:?}", asset.path);
+                    if let Err(e) = map_manager.load_map(&asset.path, world) {
+                        log::error!("❌ Failed to load LDtk map: {}", e.display_message());
+                    } else {
+                        log::info!("✅ LDtk map loaded successfully!");
+                        // Select grid entity if loaded
+                        if let Some(loaded_map) = map_manager.loaded_maps.get(&asset.path) {
+                            *selected_entity = Some(loaded_map.grid_entity);
+                        }
+                    }
                 }
                 
                 // Stop drag
