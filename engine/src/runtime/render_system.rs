@@ -209,14 +209,7 @@ pub fn render_game_world<'a>(
     // REMOVED: batch_renderer.update_camera(queue, view_proj);
     // Reason: Buffer reuse race-condition. We use the updated CameraBinding passed via logic instead.
 
-    // Debug: Print view_proj matrix once
-    static mut VIEWPROJ_LOGGED: bool = false;
-    unsafe {
-        if !VIEWPROJ_LOGGED {
-            println!("DEBUG: view_proj matrix = {:?}", view_proj);
-            VIEWPROJ_LOGGED = true;
-        }
-    }
+
 
     // ------------------------------------------------------------------------
     // 0. Render Tilemaps (Background)
