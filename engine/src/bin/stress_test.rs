@@ -202,7 +202,7 @@ fn main() -> Result<()> {
                         let screen_height = renderer.config.height;
                         let renderer_size = renderer.size;
 
-                        let res = renderer.render_with_callback(|device, queue, encoder, view, depth_view, texture_manager, tilemap_renderer, batch_renderer, mesh_renderer, camera_binding, light_binding| {
+                        let res = renderer.render_with_callback(|device, queue, encoder, view, depth_view, texture_manager, tilemap_renderer, batch_renderer, mesh_renderer, camera_binding, light_binding, depth_texture, scene_depth_texture, _scene_depth_view, config| {
                             egui_renderer.update_buffers(
                                 device,
                                 queue,
@@ -269,8 +269,26 @@ fn main() -> Result<()> {
                                 }
                              }
 
-                            // Render Game World
-                            runtime::render_system::render_game_world(
+                            // Prepare frame and shadows
+                            let frame = runtime::render_system::prepare_frame_and_shadows(
+                                &mut render_cache,
+                                &world,
+                                device,
+                                queue,
+                                texture_manager,
+                                light_binding,
+                                camera_binding,
+                                mesh_renderer,
+                                depth_view,
+                                depth_texture,
+                                scene_depth_texture,
+                                config.width,
+                                config.height,
+                            );
+
+                            // Render scene
+                            runtime::render_system::render_scene(
+                                &frame,
                                 &mut render_cache,
                                 &world,
                                 tilemap_renderer,
