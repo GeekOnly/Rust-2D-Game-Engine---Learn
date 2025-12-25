@@ -71,6 +71,13 @@ pub fn render_menu_bar(
             ui.checkbox(show_colliders, "Show Colliders");
             ui.checkbox(show_velocities, "Show Velocities");
             ui.checkbox(show_debug_lines, "Show Debug Lines");
+            ui.separator();
+            ui.label("🔲 Panels");
+            ui.separator();
+            if ui.button("🗺️ Maps").clicked() {
+                *layout_request = Some("open_tab:Maps".to_string());
+                ui.close_menu();
+            }
         });
         ui.menu_button("GameObject", |ui| {
             if ui.button("Create Empty").clicked() {

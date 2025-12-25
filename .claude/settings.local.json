@@ -27,7 +27,8 @@
       "Bash(dir:*)",
       "Bash(cd:*)",
       "Bash(cargo check:*)",
-      "Bash(timeout 15 cargo run:*)"
+      "Bash(timeout 15 cargo run:*)",
+      "Bash(./build/RustGame.exe)"
     ],
     "deny": [],
     "ask": []

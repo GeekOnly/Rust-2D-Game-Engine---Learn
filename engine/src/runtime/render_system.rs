@@ -58,6 +58,42 @@ pub fn register_material_asset(render_cache: &mut RenderCache, name: String, mat
     render_cache.material_assets.insert(name, material);
 }
 
+/// System to update tilemap meshes when they are marked as dirty
+pub fn update_dirty_tilemaps(
+    world: &mut World,
+    render_cache: &mut RenderCache,
+    tilemap_renderer: &TilemapRenderer,
+    device: &wgpu::Device,
+) {
+    for (entity, tilemap) in &mut world.tilemaps {
+        // If dirty or not in cache (first load), regenerate
+        if tilemap.dirty || !render_cache.tilemap_cache.contains_key(entity) {
+            // Find corresponding Tileset
+            let tileset = world.tilesets.values().find(|ts| ts.texture_id == tilemap.tileset_id);
+            
+            if let Some(tileset) = tileset {
+                // Get Transform for offset (need immutable access during mutable iteration - safe for other components)
+                // BUT world.transforms cannot be accessed while iterating world.tilemaps if they are in same struct?
+                // In this custom ECS `world.tilemaps` and `world.transforms` are separate fields.
+                // We can access them.
+                
+                let pos = if let Some(transform) = world.transforms.get(entity) {
+                    glam::Vec3::from(transform.position)
+                } else {
+                    glam::Vec3::ZERO
+                };
+                
+                // Prepare Mesh
+                let mesh_data = tilemap_renderer.prepare_mesh(device, tilemap, tileset, pos, 8.0);
+                render_cache.tilemap_cache.insert(*entity, mesh_data);
+                
+                // Clear dirty flag
+                tilemap.dirty = false;
+            }
+        }
+    }
+}
+
 
 
 pub fn post_process_asset_meshes(

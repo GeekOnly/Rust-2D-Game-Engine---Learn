@@ -83,8 +83,8 @@ impl EditorUI {
         device: &wgpu::Device,
         queue: &wgpu::Queue,
         reload_mesh_assets_request: &mut bool,
-        asset_loader: &dyn AssetLoader,
-        render_cache: &mut engine::runtime::render_system::RenderCache,
+        _asset_loader: &dyn AssetLoader,
+        _render_cache: &mut engine::runtime::render_system::RenderCache,
     ) {
         // Top Menu Bar
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
@@ -251,8 +251,8 @@ impl EditorUI {
         ui_manager: &mut engine::ui_manager::UIManager,
         dt: f32,
         reload_mesh_assets_request: &mut bool,
-        asset_loader: &dyn AssetLoader,
-        render_cache: &mut engine::runtime::render_system::RenderCache,
+        _asset_loader: &dyn AssetLoader,
+        _render_cache: &mut engine::runtime::render_system::RenderCache,
     ) {
         // Handle layout change request (will be processed by caller)
         // Layout changes are handled in main.rs to access EditorState
@@ -341,8 +341,8 @@ impl EditorUI {
                 reload_mesh_assets_request,
                 egui_renderer,
                 scene_view_renderer,
-                asset_loader,
-                render_cache,
+                asset_loader: _asset_loader,
+                render_cache: _render_cache,
             };
 
             // Handle Layout Requests
@@ -368,6 +368,26 @@ impl EditorUI {
                         let name = request.trim_start_matches("custom:");
                         if let Some(state) = dock_layout::load_custom_layout_state(name, proj_path) {
                             *dock_state = state;
+                        }
+                    } else if request == "open_tab:Maps" {
+                        // Check if tab exists
+                        let mut found = false;
+                        
+                        // iter_all_tabs returns ((SurfaceIndex, NodeIndex), &Tab)
+                        for ((_surf, _node), tab) in dock_state.iter_all_tabs() {
+                            if matches!(tab, dock_layout::EditorTab::MapView) {
+                                found = true;
+                                break;
+                            }
+                        }
+
+                        if !found {
+                            // Add new tab logic: Split right to create a side panel
+                            let [_old, _new] = dock_state.main_surface_mut().split_right(
+                                egui_dock::NodeIndex::root(),
+                                0.75,
+                                vec![dock_layout::EditorTab::MapView],
+                            );
                         }
                     }
                 }

@@ -6,7 +6,7 @@
 /// - GetComponent<T>() - ดึงข้อมูล Component
 /// - HasComponent<T>() - ตรวจสอบว่ามี Component หรือไม่
 
-use crate::{Entity, Transform, Sprite, Collider, Collider3D, Mesh, Camera, Script, ScriptLifecycleState, EntityTag, LdtkMap, TilemapCollider, LdtkIntGridCollider, Model3D};
+use crate::{Entity, Transform, Sprite, Collider, Collider3D, Mesh, Camera, Script, ScriptLifecycleState, EntityTag, LdtkMap, TilemapCollider, LdtkIntGridCollider, Model3D, AnimatedSprite, Tilemap, TilemapRenderer, Grid, WorldUI, Light};
 use std::collections::HashMap;
 
 /// Component Type Enum สำหรับระบุประเภท Component
@@ -27,6 +27,12 @@ pub enum ComponentType {
     LdtkIntGridCollider,
     Collider3D,
     Model3D,
+    AnimatedSprite,
+    Tilemap,
+    TilemapRenderer,
+    Grid,
+    WorldUI,
+    Light,
 }
 
 impl ComponentType {
@@ -48,6 +54,12 @@ impl ComponentType {
             ComponentType::LdtkIntGridCollider,
             ComponentType::Collider3D,
             ComponentType::Model3D,
+            ComponentType::AnimatedSprite,
+            ComponentType::Tilemap,
+            ComponentType::TilemapRenderer,
+            ComponentType::Grid,
+            ComponentType::WorldUI,
+            ComponentType::Light,
         ]
     }
 
@@ -69,6 +81,12 @@ impl ComponentType {
             ComponentType::LdtkIntGridCollider => "LDTK IntGrid Collider",
             ComponentType::Collider3D => "Collider 3D",
             ComponentType::Model3D => "Model 3D (XSG)",
+            ComponentType::AnimatedSprite => "Animated Sprite",
+            ComponentType::Tilemap => "Tilemap",
+            ComponentType::TilemapRenderer => "Tilemap Renderer",
+            ComponentType::Grid => "Grid",
+            ComponentType::WorldUI => "World UI",
+            ComponentType::Light => "Light Source",
         }
     }
 
@@ -186,6 +204,24 @@ impl ComponentManager for crate::CustomWorld {
             ComponentType::Model3D => {
                 self.model_3ds.insert(entity, Model3D::default());
             }
+            ComponentType::AnimatedSprite => {
+                self.animated_sprites.insert(entity, AnimatedSprite::default());
+            }
+            ComponentType::Tilemap => {
+                self.tilemaps.insert(entity, Tilemap::new("New Tilemap", "default", 10, 10));
+            }
+            ComponentType::TilemapRenderer => {
+                self.tilemap_renderers.insert(entity, TilemapRenderer::default());
+            }
+            ComponentType::Grid => {
+                self.grids.insert(entity, Grid::default());
+            }
+            ComponentType::WorldUI => {
+                self.world_uis.insert(entity, WorldUI::default());
+            }
+            ComponentType::Light => {
+                self.lights.insert(entity, Light::default());
+            }
         }
 
         Ok(())
@@ -251,6 +287,24 @@ impl ComponentManager for crate::CustomWorld {
             ComponentType::Model3D => {
                 self.model_3ds.remove(&entity);
             }
+            ComponentType::AnimatedSprite => {
+                self.animated_sprites.remove(&entity);
+            }
+            ComponentType::Tilemap => {
+                self.tilemaps.remove(&entity);
+            }
+            ComponentType::TilemapRenderer => {
+                self.tilemap_renderers.remove(&entity);
+            }
+            ComponentType::Grid => {
+                self.grids.remove(&entity);
+            }
+            ComponentType::WorldUI => {
+                self.world_uis.remove(&entity);
+            }
+            ComponentType::Light => {
+                self.lights.remove(&entity);
+            }
         }
 
         Ok(())
@@ -273,6 +327,12 @@ impl ComponentManager for crate::CustomWorld {
             ComponentType::LdtkIntGridCollider => self.ldtk_intgrid_colliders.contains_key(&entity),
             ComponentType::Collider3D => self.colliders_3d.contains_key(&entity),
             ComponentType::Model3D => self.model_3ds.contains_key(&entity),
+            ComponentType::AnimatedSprite => self.animated_sprites.contains_key(&entity),
+            ComponentType::Tilemap => self.tilemaps.contains_key(&entity),
+            ComponentType::TilemapRenderer => self.tilemap_renderers.contains_key(&entity),
+            ComponentType::Grid => self.grids.contains_key(&entity),
+            ComponentType::WorldUI => self.world_uis.contains_key(&entity),
+            ComponentType::Light => self.lights.contains_key(&entity),
         }
     }
 

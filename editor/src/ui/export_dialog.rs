@@ -17,6 +17,40 @@ impl ExportGameDialog {
             return;
         }
 
+        // Poll build updates from background thread
+        let mut should_clear_receiver = false;
+        let mut has_updates = false;
+
+        if let Some(ref receiver) = editor_state.build_receiver {
+            while let Ok(msg) = receiver.try_recv() {
+                has_updates = true;
+                if msg == "SUCCESS" {
+                    editor_state.build_params.is_building = false;
+                    should_clear_receiver = true;
+                } else {
+                    editor_state.build_params.build_output.push_str(&msg);
+                    editor_state.build_params.build_output.push('\n');
+
+                    // Check for errors
+                    if msg.starts_with("ERROR:") {
+                        editor_state.build_params.build_error = Some(msg.clone());
+                        editor_state.build_params.is_building = false;
+                        should_clear_receiver = true;
+                    }
+                }
+            }
+
+            // Request repaint if we got updates
+            if has_updates || editor_state.build_params.is_building {
+                ctx.request_repaint();
+            }
+        }
+
+        // Clear receiver after polling (outside the borrow scope)
+        if should_clear_receiver {
+            editor_state.build_receiver = None;
+        }
+
         // Create a local bool for the window state.
         // We initialize it to true since we check show_export_dialog above.
         // When the window is closed via X, egui sets this to false.
@@ -26,6 +60,7 @@ impl ExportGameDialog {
         
         // We use a scope here to borrow editor_state inside, but not lock it for the 'open' check logic
         {
+            println!("Showing export dialog window...");
             let window = egui::Window::new("Export Game")
                 .collapsible(false)
                 .resizable(false)
@@ -33,7 +68,8 @@ impl ExportGameDialog {
                 .anchor(egui::Align2::CENTER_CENTER, egui::vec2(0.0, 0.0))
                 .open(&mut open);
 
-            window.show(ctx, |ui| {
+            let response = window.show(ctx, |ui| {
+                println!("Inside export dialog UI closure");
                 ui.heading("Build Settings");
                 ui.separator();
                 
@@ -105,8 +141,12 @@ impl ExportGameDialog {
                     ui.colored_label(egui::Color32::RED, format!("Error: {}", error));
                 }
             });
+
+            println!("Export dialog response: {:?}", response.is_some());
         }
-        
+
+        println!("After window scope - should_start_build: {}, should_close: {}, open: {}", should_start_build, should_close, open);
+
         // Now updates to editor_state based on what happened
         if !open || should_close {
             editor_state.show_export_dialog = false;
@@ -116,27 +156,37 @@ impl ExportGameDialog {
              // We need to clone the path because start_build_process takes other mutable borrows
              // Wait, start_build_process takes &mut editor_state, so we can't have borrowed it above.
              // But the borrow of 'params' ended with the scope block.
-             let project_path = editor_state.current_project_path.clone().unwrap_or(std::env::current_dir().unwrap_or_default());
+             let project_path = editor_state.current_project_path.clone().unwrap_or_else(|| {
+                 println!("WARNING: No project path set, using current directory");
+                 std::env::current_dir().unwrap_or_default()
+             });
+             println!("Starting build process...");
+             println!("Game name: {}", editor_state.build_params.game_name);
+             println!("Output path: {:?}", editor_state.build_params.output_path);
+             println!("Project path: {:?}", project_path);
              start_build_process(editor_state, project_path);
         }
     }
 }
 
 fn start_build_process(editor_state: &mut EditorState, project_path: PathBuf) {
+    println!("start_build_process called!");
     editor_state.build_params.is_building = true;
     editor_state.build_params.build_output.clear();
     editor_state.build_params.build_error = None;
-    
+
     let (tx, rx) = mpsc::channel();
     editor_state.build_receiver = Some(rx);
-    
+
     let game_name = editor_state.build_params.game_name.clone();
     let output_path = editor_state.build_params.output_path.clone();
-    
+
     // We assume the editor is running from the engine root, so we use current_dir for building
     let engine_path = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
-    
+
+    println!("Spawning build thread...");
     thread::spawn(move || {
+        println!("Build thread started!");
         let _ = tx.send(format!("Starting build for {}...", game_name));
         let _ = tx.send(format!("Engine path: {:?}", engine_path));
         let _ = tx.send(format!("Project path: {:?}", project_path));

@@ -336,9 +336,9 @@ impl MapManager {
             .as_i64()
             .unwrap_or(8) as f32;
         
-        let pixels_per_unit = 100.0; // Unity standard PPU for consistent scale
+        let pixels_per_unit = grid_size; // Match LdtkLoader: 1 tile = 1 world unit
         let grid = ecs::Grid {
-            cell_size: (grid_size / pixels_per_unit, grid_size / pixels_per_unit, 0.0),  // 2D grid (no depth)
+            cell_size: (1.0, 1.0, 0.0),  // 1 world unit per cell (consistent with PPU=grid_size)
             cell_gap: (0.0, 0.0),
             layout: ecs::GridLayout::Rectangle,
             swizzle: ecs::CellSwizzle::XYZ,
@@ -604,8 +604,10 @@ impl MapManager {
                 world.names.insert(entity, format!("LDTK Layer: {}", identifier));
 
                 // Add transform at layer offset (relative to Grid parent)
-                // Unity standard: 100 pixels per unit for consistent 2D/3D world space
-                let pixels_per_unit = 100.0;
+                // Match LdtkLoader PPU logic
+                let default_grid_size = project["defaultGridSize"].as_i64().unwrap_or(16) as f32;
+                let pixels_per_unit = default_grid_size;
+                
                 let total_px_x = level_world_x + px_offset_x;
                 let total_px_y = level_world_y + px_offset_y;
                 let world_x = total_px_x / pixels_per_unit;

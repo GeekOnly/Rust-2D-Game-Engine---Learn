@@ -1,0 +1,9 @@
+{
+    "name": "Tilemap Demo",
+    "description": "A demo project showcasing LDtk tilemap workflow",
+    "version": "0.1.0",
+    "editor_startup_scene": "scenes/main.json",
+    "game_startup_scene": "scenes/main.json",
+    "last_opened_scene": "scenes/main.json",
+    "startup_scene": "scenes/main.json"
+}

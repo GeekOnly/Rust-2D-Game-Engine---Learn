@@ -241,7 +241,14 @@ pub struct Tilemap {
     /// Parallax scroll factor (for background layers)
     #[serde(default = "default_parallax_factor")]
     pub parallax_factor: (f32, f32),
+    
+    /// Dirty flag for rendering updates (runtime modification)
+    #[serde(skip)] // Don't serialize/save this runtime state
+    #[serde(default = "default_dirty")]
+    pub dirty: bool,
 }
+
+fn default_dirty() -> bool { true }
 
 fn default_animation_frame_rate() -> u32 { 1 }
 fn default_color() -> [f32; 4] { [1.0, 1.0, 1.0, 1.0] }
@@ -280,6 +287,7 @@ impl Tilemap {
             visible: true,
             opacity: 1.0,
             parallax_factor: (1.0, 1.0),
+            dirty: true, // Initially dirty to force first render
         }
     }
 
@@ -309,6 +317,7 @@ impl Tilemap {
         let index = (y * self.width + x) as usize;
         if let Some(t) = self.tiles.get_mut(index) {
             *t = tile;
+            self.dirty = true; // Mark as dirty for re-rendering
             true
         } else {
             false
@@ -325,6 +334,7 @@ impl Tilemap {
         for tile in &mut self.tiles {
             *tile = Tile::default();
         }
+        self.dirty = true;
     }
 
     /// Get the world position of a tile (in pixels, assuming tile size)

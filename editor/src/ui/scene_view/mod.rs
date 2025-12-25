@@ -561,6 +561,11 @@ pub fn render_scene_view(
                         log::error!("Failed to parse XSG file: {:?}", asset.path);
                     }
                 }
+                // Handle LDtk files
+                else if asset.path.extension().and_then(|s| s.to_str()) == Some("ldtk") {
+                    log::warn!("Drag and drop for .ldtk files is currently supported via the 'Assets' panel or 'Maps' panel. Please double-click the file in the Assets panel to load it.");
+                    // Ideally we would call map_manager.load_map(&asset.path, world) but map_manager is immutable here.
+                }
                 
                 // Stop drag
                 drag_drop.stop_drag();

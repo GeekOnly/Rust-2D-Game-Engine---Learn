@@ -8,6 +8,7 @@ pub mod mesh;
 pub mod camera;
 pub mod script;
 pub mod model_3d;
+pub mod tilemap;
 
 use ecs::{World, Entity, EntityTag, ComponentType, ComponentManager};
 use egui;
@@ -171,7 +172,11 @@ pub fn render_inspector(
             mesh::render_mesh_inspector(ui, world, entity, project_path.as_deref(), reload_mesh_assets_request);
             camera::render_camera_inspector(ui, world, entity);
             script::render_script_inspector(ui, world, entity, project_path, edit_script_request);
+            script::render_script_inspector(ui, world, entity, project_path, edit_script_request);
             model_3d::render_model_3d_inspector(ui, world, entity, project_path.as_deref());
+            tilemap::render_grid_inspector(ui, world, entity);
+            tilemap::render_tilemap_inspector(ui, world, entity);
+            tilemap::render_tilemap_renderer_inspector(ui, world, entity);
 
             // ===== Add Component Button (Unity-style) =====
             ui.add_space(15.0);
@@ -205,10 +210,33 @@ pub fn render_inspector(
                                 }
                             };
 
-                            render_component_category(ui, "🎨 Rendering", &[ComponentType::Sprite, ComponentType::Mesh, ComponentType::Model3D]);
-                            render_component_category(ui, "⚙️ Physics", &[ComponentType::BoxCollider, ComponentType::Collider3D, ComponentType::Rigidbody, ComponentType::TilemapCollider, ComponentType::LdtkIntGridCollider]);
-                            render_component_category(ui, "🗺️ Tilemap", &[ComponentType::LdtkMap]);
-                            render_component_category(ui, "📜 Other", &[ComponentType::Camera, ComponentType::Script, ComponentType::Tag, ComponentType::Map]);
+                            render_component_category(ui, "🎨 Rendering", &[
+                                ComponentType::Sprite, 
+                                ComponentType::AnimatedSprite,
+                                ComponentType::Mesh, 
+                                ComponentType::Model3D,
+                                ComponentType::TilemapRenderer,
+                                ComponentType::Light
+                            ]);
+                            
+                            render_component_category(ui, "⚙️ Physics", &[
+                                ComponentType::Rigidbody,
+                                ComponentType::BoxCollider, 
+                                ComponentType::Collider3D, 
+                                ComponentType::TilemapCollider
+                            ]);
+                            
+                            render_component_category(ui, "🗺️ Level & Tilemap", &[
+                                ComponentType::Grid,
+                                ComponentType::Tilemap,
+                                ComponentType::LdtkMap
+                            ]);
+                            
+                            render_component_category(ui, "📜 Logic & UI", &[
+                                ComponentType::Script, 
+                                ComponentType::Camera, 
+                                ComponentType::WorldUI
+                            ]);
                     }
                 });
             });

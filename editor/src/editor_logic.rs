@@ -195,6 +195,9 @@ impl EditorLogic {
         // Exit Confirmation Dialog
         ExitDialog::render(egui_ctx, editor_state);
 
+        // Export Game Dialog
+        crate::ui::export_dialog::ExportGameDialog::render(egui_ctx, editor_state);
+
         // Sprite Picker Dialog
         EditorLogic::handle_sprite_picker(egui_ctx, editor_state);
 

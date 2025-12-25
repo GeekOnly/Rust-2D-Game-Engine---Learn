@@ -18,7 +18,7 @@ pub fn parse_hex_color(hex: &str) -> Result<egui::Color32, String> {
 
 /// Render Unity-style component header
 pub fn render_component_header(ui: &mut egui::Ui, name: &str, icon: &str, always_open: bool) {
-    egui::Frame::none()
+    egui::Frame::NONE
         .fill(egui::Color32::from_rgb(56, 56, 56))
         .inner_margin(egui::Margin::same(6))
         .show(ui, |ui| {
@@ -239,3 +239,61 @@ pub fn parse_lua_script_parameters(script_path: &std::path::Path) -> HashMap<Str
 
     parameters
 }
+
+/// Render a full collapsible component section (Unity-style) with a validated header and content body.
+/// Returns true if the component should be removed.
+pub fn render_component<F>(ui: &mut egui::Ui, name: &str, icon: &str, add_contents: F) -> bool 
+where F: FnOnce(&mut egui::Ui) {
+    let mut remove_component = false;
+    let id = ui.make_persistent_id(name);
+    
+    // Manage collapse state manually to allow custom header
+    let mut state = egui::collapsing_header::CollapsingState::load_with_default_open(ui.ctx(), id, true);
+    
+    // Header
+    let header_response = ui.push_id(id, |ui| {
+        egui::Frame::NONE
+            .fill(egui::Color32::from_rgb(56, 56, 56))
+            .inner_margin(egui::Margin::same(6))
+            .show(ui, |ui| {
+                ui.horizontal(|ui| {
+                    // Caret for collapse status
+                    let icon_text = if state.is_open() { "▼" } else { "▶" };
+                    ui.label(icon_text);
+                    
+                    ui.label(icon);
+                    ui.strong(name);
+
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        if ui.small_button("⋮").on_hover_text("Component Options").clicked() {
+                            // Placeholder for future component menu
+                        }
+                    });
+                })
+            }).response.interact(egui::Sense::click())
+    }).inner;
+    
+    if header_response.clicked() {
+        state.toggle(ui);
+    }
+    
+    // Body
+    state.show_body_unindented(ui, |ui| {
+        // Indent content slightly
+        ui.indent("component_content_indent", |ui| {
+             ui.add_space(4.0);
+             add_contents(ui);
+             ui.add_space(8.0);
+             
+             ui.separator();
+             if ui.button("❌ Remove Component").clicked() {
+                 remove_component = true;
+             }
+             ui.add_space(4.0);
+        });
+    });
+    
+    ui.add_space(8.0);
+    remove_component
+}
+

@@ -27,7 +27,8 @@ local is_touching_wall = false
 local wall_direction = 0
 
 -- HUD Configuration
-local hud_prefab_path = "projects/Celeste Demo/assets/ui/celeste_hud.uiprefab"
+-- Use relative path for both editor and built game
+local hud_prefab_path = "assets/ui/celeste_hud.uiprefab"
 local hud_instance_name = "celeste_hud"
 local hud_loaded = false
 local frame_count = 0
