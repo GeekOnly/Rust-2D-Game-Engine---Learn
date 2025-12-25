@@ -8,6 +8,8 @@ pub struct SceneViewRenderer {
     pub texture_id: egui::TextureId,
     pub depth_texture: wgpu::Texture,
     pub depth_view: wgpu::TextureView,
+    pub scene_depth_texture: wgpu::Texture,
+    pub scene_depth_view: wgpu::TextureView,
     pub width: u32,
     pub height: u32,
     pub format: wgpu::TextureFormat,
@@ -48,7 +50,7 @@ impl SceneViewRenderer {
             wgpu::FilterMode::Linear,
         );
 
-        // Create depth texture for Z-buffering
+        // Create depth texture for Z-buffering (AAA Mobile: with COPY_SRC for contact shadows)
         let depth_texture = device.create_texture(&wgpu::TextureDescriptor {
             label: Some("Scene View Depth Texture"),
             size: wgpu::Extent3d {
@@ -60,11 +62,28 @@ impl SceneViewRenderer {
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             format: wgpu::TextureFormat::Depth32Float,
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC,
             view_formats: &[],
         });
 
         let depth_view = depth_texture.create_view(&wgpu::TextureViewDescriptor::default());
+
+        // Create scene depth copy
+        let scene_depth_texture = device.create_texture(&wgpu::TextureDescriptor {
+            label: Some("Scene View Scene Depth Texture"),
+            size: wgpu::Extent3d {
+                width: width.max(1),
+                height: height.max(1),
+                depth_or_array_layers: 1,
+            },
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Depth32Float,
+            usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+            view_formats: &[],
+        });
+        let scene_depth_view = scene_depth_texture.create_view(&wgpu::TextureViewDescriptor::default());
 
         Self {
             texture,
@@ -72,6 +91,8 @@ impl SceneViewRenderer {
             texture_id,
             depth_texture,
             depth_view,
+            scene_depth_texture,
+            scene_depth_view,
             width,
             height,
             format,
@@ -131,10 +152,30 @@ impl SceneViewRenderer {
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             format: wgpu::TextureFormat::Depth32Float,
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC,
             view_formats: &[],
         });
 
         self.depth_view = self.depth_texture.create_view(&wgpu::TextureViewDescriptor::default());
+
+        // Recreate Scene Depth
+        self.scene_depth_texture = device.create_texture(&wgpu::TextureDescriptor {
+            label: Some("Scene View Scene Depth Texture"),
+            size: wgpu::Extent3d {
+                width,
+                height,
+                depth_or_array_layers: 1,
+            },
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Depth32Float,
+            usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+            view_formats: &[],
+        });
+        self.scene_depth_view = self.scene_depth_texture.create_view(&wgpu::TextureViewDescriptor::default());
+
+        // Note: LightBinding needs to be updated if it binds this view!
+        // The app must handle calling light_binding.update_resources() with this new view.
     }
 }
