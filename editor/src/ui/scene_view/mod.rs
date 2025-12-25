@@ -60,6 +60,7 @@ pub fn render_scene_view(
     queue: &wgpu::Queue,
     asset_loader: &dyn engine_core::assets::AssetLoader,
     render_cache: &mut engine::runtime::render_system::RenderCache,
+    game_view_settings: &engine::runtime::GameViewSettings,
 ) {
     // Sync camera projection mode with editor state
     scene_camera.projection_mode = *projection_mode;
@@ -200,6 +201,7 @@ pub fn render_scene_view(
                 scene_view_renderer,
                 egui_renderer,
                 device,
+                game_view_settings,
             );
         }
     }

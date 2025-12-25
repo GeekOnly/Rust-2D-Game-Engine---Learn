@@ -292,6 +292,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                     self.context.queue,
                     self.context.asset_loader,
                     self.context.render_cache,
+                    self.context.game_view_settings,
                 );
                 
                 // Clear texture inspector selection when entity selection changes
@@ -313,29 +314,112 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                 // NOTE: We now use the offscreen texture rendered by WGPU in EditorApp::render
                 // Instead of software rendering via engine::runtime::render_game_view
 
-                // Get available size for the game view
-                let available_size = ui.available_size();
-                let (width, height) = (available_size.x as u32, available_size.y as u32);
-                
-                // Resize if needed
-                if width > 0 && height > 0 {
+                // Get available rect for the game view
+                let available_rect = ui.available_rect_before_wrap();
+
+                // Calculate game rect based on resolution settings
+                let game_rect = self.context.game_view_settings.calculate_game_rect(available_rect);
+                let (render_width, render_height) = self.context.game_view_settings.get_render_size();
+
+                // Resize renderer if needed
+                if render_width > 0 && render_height > 0 {
                     self.context.game_view_renderer.resize(
                         self.context.device,
                         self.context.egui_renderer,
-                        width,
-                        height
+                        render_width,
+                        render_height
                     );
                 }
 
-                // Calculate display rect based on resolution settings (e.g. aspect ratio) if needed.
-                // For now, if "Free", fill the space. If fixed, center it.
-                // GameViewSettings handling logic needs to be respected here.
-                
+                // Fill background if not in Free mode
+                if !matches!(self.context.game_view_settings.resolution, engine::runtime::GameViewResolution::Free) {
+                    let bg_color = self.context.game_view_settings.background_color;
+                    ui.painter().rect_filled(
+                        available_rect,
+                        0.0,
+                        egui::Color32::from_rgba_unmultiplied(
+                            (bg_color[0] * 255.0) as u8,
+                            (bg_color[1] * 255.0) as u8,
+                            (bg_color[2] * 255.0) as u8,
+                            (bg_color[3] * 255.0) as u8,
+                        ),
+                    );
+                }
+
                 let texture_id = self.context.game_view_renderer.texture_id;
-                
-                // Draw the texture
-                // We use uv (0,0) to (1,1)
-                ui.image(egui::load::SizedTexture::new(texture_id, available_size));
+
+                // Draw the game texture
+                let response = ui.put(game_rect, egui::Image::new(egui::load::SizedTexture::new(
+                    texture_id,
+                    [game_rect.width(), game_rect.height()],
+                )));
+
+                // Draw border around game view (if not Free mode)
+                if !matches!(self.context.game_view_settings.resolution, engine::runtime::GameViewResolution::Free) {
+                    ui.painter().rect_stroke(
+                        game_rect,
+                        0.0,
+                        egui::Stroke::new(2.0, egui::Color32::from_gray(100)),
+                        egui::epaint::StrokeKind::Outside,
+                    );
+                }
+
+                // Draw safe area guide
+                if self.context.game_view_settings.show_safe_area {
+                    let margin = 0.05; // 5% margin
+                    let safe_rect = game_rect.shrink2(egui::vec2(
+                        game_rect.width() * margin,
+                        game_rect.height() * margin,
+                    ));
+                    ui.painter().rect_stroke(
+                        safe_rect,
+                        0.0,
+                        egui::Stroke::new(1.0, egui::Color32::from_rgb(0, 255, 0)),
+                        egui::epaint::StrokeKind::Outside,
+                    );
+                }
+
+                // Draw resolution info overlay
+                if self.context.game_view_settings.show_resolution_info
+                    && !matches!(self.context.game_view_settings.resolution, engine::runtime::GameViewResolution::Free) {
+                    let info_text = format!(
+                        "{}\n{}x{} ({:.0}%)",
+                        self.context.game_view_settings.resolution.get_name(),
+                        render_width,
+                        render_height,
+                        self.context.game_view_settings.scale * 100.0
+                    );
+
+                    let painter = ui.painter();
+                    let text_pos = game_rect.left_top() + egui::vec2(10.0, 10.0);
+
+                    // Background
+                    let galley = painter.layout_no_wrap(
+                        info_text.clone(),
+                        egui::FontId::proportional(12.0),
+                        egui::Color32::WHITE,
+                    );
+                    let text_rect = egui::Rect::from_min_size(
+                        text_pos,
+                        galley.size() + egui::vec2(8.0, 4.0),
+                    );
+                    painter.rect_filled(
+                        text_rect,
+                        2.0,
+                        egui::Color32::from_black_alpha(180),
+                    );
+
+                    // Text
+                    painter.text(
+                        text_pos + egui::vec2(4.0, 2.0),
+                        egui::Align2::LEFT_TOP,
+                        info_text,
+                        egui::FontId::proportional(12.0),
+                        egui::Color32::WHITE,
+                    );
+                }
+
+                response;
             }
             EditorTab::Console => {
                 // Render console with full functionality

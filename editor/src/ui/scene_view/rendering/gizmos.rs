@@ -889,6 +889,7 @@ pub fn render_camera_frustum_3d(
     scene_camera: &SceneCamera,
     viewport_rect: egui::Rect,
     _camera_screen_pos: egui::Pos2, // Unused as we do our own projection
+    game_view_settings: &engine::runtime::GameViewSettings,
 ) {
     let viewport_size = glam::Vec2::new(viewport_rect.width(), viewport_rect.height());
     
@@ -919,8 +920,8 @@ pub fn render_camera_frustum_3d(
         let up = rotation * glam::Vec3::Y;
         let right = rotation * glam::Vec3::X;
 
-        // Standard aspect ratio for clean visualization
-        let aspect = 16.0 / 9.0;
+        // Use Game View resolution aspect ratio for accurate frustum visualization
+        let aspect = game_view_settings.resolution.get_aspect_ratio();
 
         // Unity-style frustum colors
         let frustum_color = egui::Color32::from_rgb(255, 255, 0); // Bright yellow

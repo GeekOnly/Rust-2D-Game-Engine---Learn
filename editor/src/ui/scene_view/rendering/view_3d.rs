@@ -63,6 +63,7 @@ pub fn render_scene_3d(
     scene_view_renderer: &mut crate::scene_view_renderer::SceneViewRenderer,
     egui_renderer: &mut egui_wgpu::Renderer,
     device: &wgpu::Device,
+    game_view_settings: &engine::runtime::GameViewSettings,
 ) {
     // ------------------------------------------------------------------------
     // 1. Render Scene Texture (WGPU Offscreen)
@@ -250,7 +251,7 @@ pub fn render_scene_3d(
                 render_camera_gizmo(painter, screen_x, screen_y, *entity, world, scene_camera, &SceneViewMode::Mode3D);
                 
                 // Render camera frustum (pyramid showing FOV)
-                render_camera_frustum_3d(painter, *entity, world, scene_camera, viewport_rect, egui::pos2(screen_x, screen_y));
+                render_camera_frustum_3d(painter, *entity, world, scene_camera, viewport_rect, egui::pos2(screen_x, screen_y), game_view_settings);
             }
             None => {
                 // Fallback: render at fixed position to ensure visibility
@@ -270,7 +271,7 @@ pub fn render_scene_3d(
                 );
                 
                 // Still try to render frustum with fallback position
-                render_camera_frustum_3d(painter, *entity, world, scene_camera, viewport_rect, egui::pos2(fallback_x, fallback_y));
+                render_camera_frustum_3d(painter, *entity, world, scene_camera, viewport_rect, egui::pos2(fallback_x, fallback_y), game_view_settings);
             }
         }
     }
