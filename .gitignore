@@ -22,3 +22,4 @@ ExampleCode
 dist
 build
 projects/FPS 3D Example/assets/sponza-gltf-pbr
+*.png
