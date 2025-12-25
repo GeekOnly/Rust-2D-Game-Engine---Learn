@@ -5,20 +5,18 @@ use crate::components::ldtk_map::LdtkJson;
 
 /// Normalize texture path - extract filename from absolute paths
 fn normalize_texture_path(path: &str) -> String {
-    // Check if it's an absolute path (Windows or Unix style)
-    if path.contains(":\\") || path.starts_with('/') {
-        // Extract just the filename
-        if let Some(filename) = Path::new(path).file_name() {
-            if let Some(name) = filename.to_str() {
-                // Return as assets/filename
-                log::info!("LdtkLoader: Normalized absolute path '{}' to 'assets/{}'", path, name);
-                return format!("assets/{}", name);
-            }
+    // Try to make path relative to CWD
+    if let Ok(cwd) = std::env::current_dir() {
+        let path_buf = Path::new(path);
+        if let Ok(playback_relative) = path_buf.strip_prefix(&cwd) {
+             let s = playback_relative.to_string_lossy().to_string();
+             // Normalize separators
+             return s.replace('\\', "/");
         }
     }
 
-    // Already relative, return as-is
-    path.to_string()
+    // Return as-is (absolute or relative)
+    path.replace('\\', "/")
 }
 
 /// LDTK file loader
@@ -36,9 +34,10 @@ impl LdtkLoader {
         auto_generate_colliders: bool,
         collision_value: i64,
         layer_filter: Option<&str>,
+        pixels_per_unit: Option<f32>,
     ) -> Result<(Entity, Vec<Entity>, Vec<Entity>), String> {
         // Load grid and tilemaps
-        let (grid_entity, tilemap_entities) = Self::load_project_with_grid(path.as_ref(), world)?;
+        let (grid_entity, tilemap_entities) = Self::load_project_with_grid(path.as_ref(), world, pixels_per_unit)?;
         
         let mut collider_entities = Vec::new();
         
@@ -49,6 +48,7 @@ impl LdtkLoader {
                 world,
                 collision_value,
                 layer_filter,
+                pixels_per_unit,
             ) {
                 Ok(colliders) => {
                     // Set colliders as children of Grid
@@ -73,6 +73,7 @@ impl LdtkLoader {
     pub fn load_project_with_grid(
         path: impl AsRef<Path>,
         world: &mut World,
+        pixels_per_unit_override: Option<f32>,
     ) -> Result<(Entity, Vec<Entity>), String> {
         // Load the project JSON
         let project_data = std::fs::read_to_string(path.as_ref())
@@ -93,7 +94,7 @@ impl LdtkLoader {
         
         // Use default grid size from LDtk for world scale
         let grid_size = project.default_grid_size as f32;
-        let pixels_per_unit = grid_size; // 1 tile = 1 world unit
+        let pixels_per_unit = pixels_per_unit_override.unwrap_or(grid_size); // Use override or default (1 tile = 1 world unit)
         
         let grid = crate::Grid {
             cell_size: (1.0, 1.0, 0.0),  // 1 world unit per cell
@@ -280,7 +281,7 @@ impl LdtkLoader {
 
     /// Load an LDTK project file and spawn entities into the world (Legacy/Simple wrapper)
     pub fn load_project(path: impl AsRef<Path>, world: &mut World) -> Result<Vec<Entity>, String> {
-        let (grid, children) = Self::load_project_with_grid(path, world)?;
+        let (grid, children) = Self::load_project_with_grid(path, world, None)?;
         let mut all = vec![grid];
         all.extend(children);
         Ok(all)
@@ -298,6 +299,7 @@ impl LdtkLoader {
         world: &mut World,
         collision_value: i64,
         layer_filter: Option<&str>,
+        pixels_per_unit_override: Option<f32>,
     ) -> Result<Vec<Entity>, String> {
         let project_data = std::fs::read_to_string(path.as_ref())
             .map_err(|e| format!("Failed to read LDTK file: {}", e))?;
@@ -307,7 +309,7 @@ impl LdtkLoader {
 
         let mut collider_entities = Vec::new();
         let grid_size = project.default_grid_size as f32;
-        let pixels_per_unit = grid_size; 
+        let pixels_per_unit = pixels_per_unit_override.unwrap_or(grid_size); 
 
         for level in &project.levels {
              if let Some(layer_instances) = &level.layer_instances {

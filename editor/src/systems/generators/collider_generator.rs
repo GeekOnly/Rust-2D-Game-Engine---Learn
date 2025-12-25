@@ -26,6 +26,7 @@ impl ColliderGenerator {
             world,
             collision_value,
             None,
+            None,
         ) {
             Ok(colliders) => colliders,
             Err(e) => {

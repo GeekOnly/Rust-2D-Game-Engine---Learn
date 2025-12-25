@@ -28,7 +28,9 @@
       "Bash(cd:*)",
       "Bash(cargo check:*)",
       "Bash(timeout 15 cargo run:*)",
-      "Bash(./build/RustGame.exe)"
+      "Bash(./build/RustGame.exe)",
+      "Bash(target/release/editor.exe:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []

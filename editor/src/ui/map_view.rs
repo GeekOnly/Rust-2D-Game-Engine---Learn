@@ -173,7 +173,7 @@ pub fn render_map_view(
                             let map_path = proj_path.join("levels").join(map_name);
                             
                             if map_path.exists() {
-                                match ecs::loaders::LdtkLoader::generate_composite_colliders_from_intgrid(&map_path, world, 1, None) {
+                                match ecs::loaders::LdtkLoader::generate_composite_colliders_from_intgrid(&map_path, world, 1, None, None) {
                                     Ok(collider_entities) => {
                                         console.info(format!("✅ Generated {} composite colliders", collider_entities.len()));
                                         log::info!("Generated {} composite colliders", collider_entities.len());

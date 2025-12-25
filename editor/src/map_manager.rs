@@ -221,14 +221,28 @@ impl MapManager {
             world.despawn(old_map.grid_entity);
         }
         
+        // Try to load import settings from .meta file
+        let meta_path = engine_core::assets::AssetMetadata::get_meta_path(path);
+        let mut pixels_per_unit = None;
+        let mut collision_value = self.collision_value;
+
+        if let Ok(metadata) = engine_core::assets::AssetMetadata::load_from_file(&meta_path) {
+            if let Some(ldtk_settings) = metadata.import_settings.ldtk {
+                pixels_per_unit = Some(ldtk_settings.pixels_per_unit);
+                // Also use generation strategy if defined later, for now just PPU
+                log::info!("Loaded LDtk settings for {:?}: PPU={}", path, ldtk_settings.pixels_per_unit);
+            }
+        }
+
         // Load new map with Grid and auto-generated colliders
         let (grid_entity, layer_entities, collider_entities) = 
             ecs::loaders::LdtkLoader::load_project_with_grid_and_colliders(
                 path,
                 world,
                 true,  // auto_generate_colliders
-                self.collision_value,  // Use configured collision value
+                collision_value,  // Use configured collision value
                 None, // Layer filter
+                pixels_per_unit, // Pass PPU override
             ).map_err(|e| {
                 // Convert string error to TilemapError and log it
                 let error: TilemapError = e.into();
@@ -336,9 +350,19 @@ impl MapManager {
             .as_i64()
             .unwrap_or(8) as f32;
         
-        let pixels_per_unit = grid_size; // Match LdtkLoader: 1 tile = 1 world unit
+        let mut pixels_per_unit = grid_size; // Default to grid_size
+
+        // Try to load import settings from .meta file
+        let meta_path = engine_core::assets::AssetMetadata::get_meta_path(path);
+        if let Ok(metadata) = engine_core::assets::AssetMetadata::load_from_file(&meta_path) {
+            if let Some(ldtk_settings) = metadata.import_settings.ldtk {
+                pixels_per_unit = ldtk_settings.pixels_per_unit;
+                log::info!("Reload using LDtk settings: PPU={}", pixels_per_unit);
+            }
+        }
+
         let grid = ecs::Grid {
-            cell_size: (1.0, 1.0, 0.0),  // 1 world unit per cell (consistent with PPU=grid_size)
+            cell_size: (1.0, 1.0, 0.0),  // 1 world unit per cell (consistent with PPU=grid_size or override)
             cell_gap: (0.0, 0.0),
             layout: ecs::GridLayout::Rectangle,
             swizzle: ecs::CellSwizzle::XYZ,
@@ -374,6 +398,7 @@ impl MapManager {
                 world,
                 self.collision_value,  // Use configured collision value
                 None, // Layer filter
+                Some(pixels_per_unit), // Pass PPU override
             ).map_err(|e| {
                 let error: TilemapError = e.into();
                 error.log_error();

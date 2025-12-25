@@ -5,6 +5,8 @@ use std::path::{Path, PathBuf};
 use uuid::Uuid;
 use async_trait::async_trait;
 
+pub mod ldtk;
+
 // ==================================================================================
 // Asset Loading Trait
 // ==================================================================================
@@ -66,6 +68,7 @@ pub enum AssetType {
     Model,
     Prefab,
     Folder,
+    Ldtk, // NEW: LDtk Tilemap Project
     Unknown,
 }
 
@@ -86,6 +89,7 @@ impl AssetType {
                 "ttf" | "otf" => Self::Font,
                 "obj" | "gltf" | "glb" => Self::Model,
                 "prefab" => Self::Prefab,
+                "ldtk" => Self::Ldtk, // NEW
                 _ => Self::Unknown,
             },
             None => Self::Unknown,
@@ -109,7 +113,10 @@ pub struct AssetMetadata {
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct ImportSettings {
     pub read_write: bool, // Example setting
-    // Add specific settings variants or fields here as needed
+    
+    /// Optional: Settings specific to LDtk files
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ldtk: Option<ldtk::LdtkImportSettings>,
 }
 
 impl AssetMetadata {

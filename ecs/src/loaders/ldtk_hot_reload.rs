@@ -72,6 +72,7 @@ impl LdtkHotReloader {
                 true,  // auto_generate_colliders
                 1,     // collision_value
                 None,  // layer_filter
+                None,
             )?;
         
         // Store all entities (Grid + Tilemaps + Colliders) for this file
@@ -165,7 +166,7 @@ impl LdtkHotReloader {
             std::thread::sleep(std::time::Duration::from_millis(50));
 
             // Reload the file with Grid support and auto-generated colliders
-            match super::LdtkLoader::load_project_with_grid_and_colliders(&path, world, true, 1, None) {
+            match super::LdtkLoader::load_project_with_grid_and_colliders(&path, world, true, 1, None, None) {
                 Ok((grid_entity, tilemap_entities, collider_entities)) => {
                     let mut entities = vec![grid_entity];
                     entities.extend(tilemap_entities);

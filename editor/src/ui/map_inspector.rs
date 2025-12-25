@@ -269,6 +269,7 @@ pub fn render_map_inspector(
                     &full_path,
                     world,
                     1,  // IntGrid value 1 = solid
+                    None,
                     None
                 ) {
                     Ok(collider_entities) => {

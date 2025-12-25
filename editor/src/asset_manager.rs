@@ -13,6 +13,7 @@ pub enum AssetType {
     Audio,
     Font,
     Folder,
+    Ldtk, // .ldtk files
     Unknown,
 }
 
@@ -26,6 +27,7 @@ impl AssetType {
             "prefab" => Self::Prefab,
             "wav" | "mp3" | "ogg" => Self::Audio,
             "ttf" | "otf" => Self::Font,
+            "ldtk" => Self::Ldtk,
             _ => Self::Unknown,
         }
     }
@@ -40,6 +42,7 @@ impl AssetType {
             Self::Audio => "🔊",
             Self::Font => "🔤",
             Self::Folder => "📁",
+            Self::Ldtk => "🗺️",
             Self::Unknown => "📄",
         }
     }
@@ -54,6 +57,7 @@ impl AssetType {
             Self::Audio => [200, 100, 255],    // Purple
             Self::Font => [255, 100, 150],     // Pink
             Self::Folder => [150, 150, 150],   // Gray
+            Self::Ldtk => [100, 200, 255],     // Light Blue
             Self::Unknown => [100, 100, 100],  // Dark gray
         }
     }
