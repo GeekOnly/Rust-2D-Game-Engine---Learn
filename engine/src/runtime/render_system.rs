@@ -1,7 +1,7 @@
 // Force update
-// Force update
+use wgpu::util::DeviceExt;
 use ecs::World;
-use render::{BatchRenderer, MeshRenderer, TilemapRenderer, TextureManager, CameraBinding, LightBinding, Mesh, PbrMaterial};
+use render::{BatchRenderer, MeshRenderer, TilemapRenderer, TextureManager, CameraBinding, LightBinding, Mesh, PbrMaterial, RenderModule};
 use glam::{Vec3, Mat4, Quat};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -185,10 +185,133 @@ pub fn prepare_frame_and_shadows(
     light_binding: &LightBinding,
     camera_binding: &CameraBinding, // Added
     mesh_renderer: &MeshRenderer,
-    // encoder removed, we manage submissions internally
+    depth_view: &wgpu::TextureView,
+    depth_texture: &wgpu::Texture,
+    scene_depth_texture: &wgpu::Texture,
+    width: u32,
+    height: u32,
 ) -> RenderFrame {
      // 0. Extract Frame Data
     let frame = ExtractionSystem::extract(world, 0.0);
+
+    // 1. Update Instance Buffers (moved up)
+    for (key, instances) in &frame.opaque_batches {
+        if instances.is_empty() { continue; }
+        
+        let buffer_key = format!("{}_mat_{}", key.mesh_id, key.material_id);
+        
+        // Always create/update buffer (simplest for now)
+        let instance_data = bytemuck::cast_slice(instances);
+        
+        if let Some(existing_buffer) = render_cache.instance_buffers.get(&buffer_key) {
+            if existing_buffer.size() < instance_data.len() as u64 {
+                 // Reallocate
+                 let new_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                    label: Some(&format!("Instance Buffer {}", buffer_key)),
+                    contents: instance_data,
+                    usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+                });
+                render_cache.instance_buffers.insert(buffer_key.clone(), new_buffer);
+            } else {
+                queue.write_buffer(existing_buffer, 0, instance_data);
+            }
+        } else {
+             let new_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some(&format!("Instance Buffer {}", buffer_key)),
+                contents: instance_data,
+                usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+            });
+            render_cache.instance_buffers.insert(buffer_key.clone(), new_buffer);
+        }
+    }
+
+    // 2. DEPTH PE-PASS (Z-Prepass)
+    // Render all opaque geometry to the Main Camera's Depth Buffer (render_module.depth_view)
+    // This populates the depth buffer for the main pass (Early-Z) AND allows us to copy it for SSCS.
+    {
+        // Update Camera for Main View
+        // Note: We need the actual camera matrices here. 
+        // We assume camera_binding is already updated for the Main View by the caller (player.rs / app.rs)
+        // CHECK: player.rs calls `prepare_frame_and_shadows` -> `render_scene`.
+        // The camera binding passed is the Main Camera.
+        // HOWEVER, in shadow loop below we OVERWRITE it.
+        // So we must assume it is currently valid for Main View.
+        
+        let mut depth_encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+            label: Some("Depth Pre-pass Encoder"),
+        });
+
+        {
+             let mut depth_pass = depth_encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("Depth Pre-pass"),
+                color_attachments: &[], // No color, depth only
+                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                    view: depth_view,
+                    depth_ops: Some(wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(1.0), // Clear Depth
+                        store: wgpu::StoreOp::Store,
+                    }),
+                    stencil_ops: None,
+                }),
+                occlusion_query_set: None,
+                timestamp_writes: None,
+            });
+
+            // Draw Instances
+            for (key, instances) in &frame.opaque_batches {
+                 let mesh_id = &key.mesh_id;
+                 let mat_id = &key.material_id; // Needed key
+                 
+                 let mesh_opt = if render_cache.mesh_assets.contains_key(mesh_id.as_str()) {
+                     render_cache.mesh_assets.get(mesh_id.as_str()).map(|m| m.as_ref())
+                 } else {
+                     render_cache.mesh_cache.get(mesh_id.as_str())
+                 };
+
+                 if let Some(mesh) = mesh_opt {
+                      if instances.is_empty() { continue; }
+                      let buffer_key = format!("{}_mat_{}", mesh_id, mat_id); // use same key
+                      
+                      if let Some(instance_buffer) = render_cache.instance_buffers.get(&buffer_key) {
+                            mesh_renderer.render_depth_instanced(
+                                &mut depth_pass,
+                                mesh,
+                                &camera_binding.bind_group, 
+                                &light_binding.bind_group, // Bound but unused in shader for depth? VS Main uses light? Check.
+                                instance_buffer,
+                                instances.len() as u32
+                            );
+                      }
+                 }
+            }
+        }
+        
+        // 3. COPY DEPTH TEXTURE (For SSCS)
+        // Copy `depth_texture` -> `scene_depth_texture`
+        // We need to access the source texture.
+        depth_encoder.copy_texture_to_texture(
+            wgpu::TexelCopyTextureInfo {
+                texture: depth_texture,
+                mip_level: 0,
+                origin: wgpu::Origin3d::ZERO,
+                aspect: wgpu::TextureAspect::DepthOnly,
+            },
+            wgpu::TexelCopyTextureInfo {
+                texture: scene_depth_texture,
+                mip_level: 0,
+                origin: wgpu::Origin3d::ZERO,
+                aspect: wgpu::TextureAspect::DepthOnly,
+            },
+            wgpu::Extent3d {
+                width: width,
+                height: height,
+                depth_or_array_layers: 1,
+            }
+        );
+
+        queue.submit(std::iter::once(depth_encoder.finish()));
+    }
+
 
     // Default Matrices
     let mut light_view_projs = [[[0.0; 4]; 4]; 4];
@@ -262,12 +385,7 @@ pub fn prepare_frame_and_shadows(
 
                      if let Some(mesh) = mesh_opt {
                           if instances.is_empty() { continue; }
-                          let buffer_key = format!("{}_{}", mesh_id, mat_id);
-                          
-                          // Ensure buffers exist (created in step 3 below, wait, step 3 is AFTER? No, we need them NOW)
-                          // We need to move Buffer Creation (Step 3) BEFORE this loop.
-                          // Let's do buffer creation first in this function.
-                          
+                          let buffer_key = format!("{}_mat_{}", mesh_id, mat_id);
                           if let Some(instance_buffer) = render_cache.instance_buffers.get(&buffer_key) {
                                 mesh_renderer.render_shadow_instanced(
                                     &mut shadow_pass,
@@ -679,8 +797,8 @@ pub fn render_scene<'a>(
 
               if let Some(material_bg) = material_bg_opt {
                   if instances.is_empty() { continue; }
-                  
-                  let cache_key = format!("{}_{}", mesh_id, mat_id);
+
+                  let cache_key = format!("{}_mat_{}", mesh_id, mat_id);
                   if let Some(instance_buffer) = render_cache.instance_buffers.get(&cache_key) {
                         mesh_renderer.render_instanced(
                             render_pass,
