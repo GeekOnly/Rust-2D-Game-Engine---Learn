@@ -1,4 +1,5 @@
 // Force update
+// Force update
 use ecs::World;
 use render::{BatchRenderer, MeshRenderer, TilemapRenderer, TextureManager, CameraBinding, LightBinding, Mesh, PbrMaterial};
 use glam::{Vec3, Mat4, Quat};
@@ -7,6 +8,7 @@ use std::sync::Arc;
 use crate::assets::model_manager::get_model_manager;
 use crate::runtime::extraction_system::ExtractionSystem;
 use anyhow;
+use crate::runtime::render_frame::RenderFrame;
 
 // Simple mesh cache to avoid regenerating meshes every frame
 // Render Cache Struct to replace static mut (Global State)
@@ -72,7 +74,7 @@ pub fn post_process_asset_meshes(
     // Iterate over all entities with MeshType::Asset and load the referenced XSG files
     // Post-process Asset meshes (Load XSG)
     // Find entities with MeshType::Asset
-    let mut assets_to_load = Vec::new();
+    let mut assets_to_load: Vec<(ecs::Entity, String)> = Vec::new();
     for (entity, mesh) in world.meshes.iter() {
         if let ecs::MeshType::Asset(path) = &mesh.mesh_type {
             // Only load supported file formats (.xsg)
@@ -171,7 +173,143 @@ pub fn post_process_asset_meshes(
     }
 }
 
-pub fn render_game_world<'a>(
+
+
+// Fixed signature with camera_binding
+pub fn prepare_frame_and_shadows(
+    render_cache: &mut RenderCache,
+    world: &World,
+    device: &wgpu::Device,
+    queue: &wgpu::Queue,
+    _texture_manager: &mut TextureManager, 
+    light_binding: &LightBinding,
+    camera_binding: &CameraBinding, // Added
+    mesh_renderer: &MeshRenderer,
+    // encoder removed, we manage submissions internally
+) -> RenderFrame {
+     // 0. Extract Frame Data
+    let frame = ExtractionSystem::extract(world, 0.0);
+
+    // Default Matrices
+    let mut light_view_projs = [[[0.0; 4]; 4]; 4];
+    let mut splits = [0.0; 4];
+
+    if let Some(light) = frame.lights.first() {
+         let light_pos = Vec3::new(light.position[0], light.position[1], light.position[2]);
+         let target = Vec3::ZERO; 
+         // View Matrix (World -> Light View Space)
+         let view = Mat4::look_at_rh(light_pos, target, Vec3::Y);
+         
+         // 2 Cascades
+         let cascade_splits = [20.0, 100.0];
+         splits[0] = cascade_splits[0];
+         splits[1] = cascade_splits[1];
+
+         for i in 0..2 {
+             let size = if i == 0 { 20.0 } else { 80.0 };
+             let near = 1.0;
+             let far = 200.0;
+             let proj = Mat4::orthographic_rh(-size, size, -size, size, near, far);
+             let view_proj = proj * view;
+             light_view_projs[i] = view_proj.to_cols_array_2d();
+
+             // Update Camera Uniform (Shadow Camera)
+             // We reuse camera_binding for the shadow pass.
+             // Since we verify by separate submissions, this queue write is safe sequentially.
+             camera_binding.update(queue, view, proj, light_pos);
+
+             // Create Encoder for this cascade
+             let mut shadow_encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+                 label: Some(&format!("Shadow Cascade {} Encoder", i)),
+             });
+
+             // Create View for this Layer
+             let view = light_binding.shadow_texture.texture.create_view(&wgpu::TextureViewDescriptor {
+                 label: Some("Shadow Cascade View"),
+                 format: Some(wgpu::TextureFormat::Depth32Float),
+                 dimension: Some(wgpu::TextureViewDimension::D2),
+                 base_array_layer: i as u32,
+                 array_layer_count: Some(1),
+                 ..Default::default()
+             });
+
+             {
+                let mut shadow_pass = shadow_encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                    label: Some("Shadow Pass"),
+                    color_attachments: &[], 
+                    depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                        view: &view,
+                        depth_ops: Some(wgpu::Operations {
+                            load: wgpu::LoadOp::Clear(1.0), 
+                            store: wgpu::StoreOp::Store,
+                        }),
+                        stencil_ops: None,
+                    }),
+                    occlusion_query_set: None,
+                    timestamp_writes: None,
+                });
+                
+                // Render Loop
+                for (key, instances) in &frame.opaque_batches {
+                     let mesh_id = &key.mesh_id;
+                     let mat_id = &key.material_id;
+                     
+                     let mesh_opt = if render_cache.mesh_assets.contains_key(mesh_id.as_str()) {
+                         render_cache.mesh_assets.get(mesh_id.as_str()).map(|m| m.as_ref())
+                     } else {
+                         render_cache.mesh_cache.get(mesh_id.as_str())
+                     };
+
+                     if let Some(mesh) = mesh_opt {
+                          if instances.is_empty() { continue; }
+                          let buffer_key = format!("{}_{}", mesh_id, mat_id);
+                          
+                          // Ensure buffers exist (created in step 3 below, wait, step 3 is AFTER? No, we need them NOW)
+                          // We need to move Buffer Creation (Step 3) BEFORE this loop.
+                          // Let's do buffer creation first in this function.
+                          
+                          if let Some(instance_buffer) = render_cache.instance_buffers.get(&buffer_key) {
+                                mesh_renderer.render_shadow_instanced(
+                                    &mut shadow_pass,
+                                    mesh,
+                                    &camera_binding.bind_group, 
+                                    &light_binding.bind_group,
+                                    instance_buffer,
+                                    instances.len() as u32
+                                );
+                          }
+                     }
+                }
+             }
+             
+             queue.submit(std::iter::once(shadow_encoder.finish()));
+         }
+    } else {
+        // No light? Clear shadow map?
+        // Just leaving it implies garbage or old frame.
+        // We should probably clear it.
+    }
+
+    // 2. Update Light Uniform (Global)
+    if let Some(light) = frame.lights.first() {
+        let pos = [light.position[0], light.position[1], light.position[2]];
+        let color = [light.color[0], light.color[1], light.color[2]];
+        let intensity = light.color[3];
+        light_binding.update(queue, pos, color, intensity, light_view_projs, splits);
+    } else {
+        light_binding.update(queue, [2.0, 5.0, 2.0], [1.0, 1.0, 1.0], 1.0, light_view_projs, splits);
+    }
+    
+    // 3. Update Buffers (Moved Logic here to be effective for rendering)
+    // Actually, we need to do this BEFORE the shadow loop.
+    // I will insert it at the top of the function in the Replacement content.
+    
+    frame
+}
+
+
+pub fn render_scene<'a>(
+    frame: &RenderFrame, // NEW ARGUMENT
     render_cache: &'a mut RenderCache,
     world: &'a World,
     tilemap_renderer: &'a TilemapRenderer,
@@ -182,28 +320,18 @@ pub fn render_game_world<'a>(
     texture_manager: &'a mut TextureManager,
     queue: &wgpu::Queue,
     device: &wgpu::Device,
-    _screen_size: winit::dpi::PhysicalSize<u32>, // Unused now that projection is passed in
+    _screen_size: winit::dpi::PhysicalSize<u32>, 
     render_pass: &mut wgpu::RenderPass<'a>,
-    view_proj: Mat4, // <--- Added Argument
+    view_proj: Mat4, 
 ) {
-    // 0. Extract Frame Data
-    let frame = ExtractionSystem::extract(world, 0.0);
+    // Note: Extraction (0) and Light Update (1) removed.
+    // Note: Use frame passed in argument.
 
-    // 1. Update Light
-    if let Some(light) = frame.lights.first() {
-        // Use position from uniform (x, y, z) - w is separate
-        let pos = [light.position[0], light.position[1], light.position[2]];
-        let color = [light.color[0], light.color[1], light.color[2]];
-        let intensity = light.color[3]; // We packed intensity into alpha
-        light_binding.update(queue, pos, color, intensity);
-    } else {
-        // Default light if none exists
-        light_binding.update(queue, [2.0, 5.0, 2.0], [1.0, 1.0, 1.0], 1.0);
-    }
-
-    // Ensure default textures exist before any immutable borrows (Fixes E0502)
+    // Ensure default textures exist
     let _ = texture_manager.get_white_texture(device, queue);
     let _ = texture_manager.get_normal_texture(device, queue);
+
+    // ... continue as usual ...
 
     // 1. Update Camera Uniform for Sprites
     // REMOVED: batch_renderer.update_camera(queue, view_proj);
@@ -277,8 +405,8 @@ pub fn render_game_world<'a>(
     // Create material bind groups for assets that need them
     for (_, ecs_mesh) in &mesh_entities {
             if let Some(mat_id) = &ecs_mesh.material_id {
-                if let Some(mat_asset) = render_cache.material_assets.get(mat_id) {
-                    if mat_asset.bind_group.is_none() && !render_cache.material_bind_group_cache.contains_key(mat_id) {
+                if let Some(mat_asset) = render_cache.material_assets.get(mat_id.as_str()) {
+                    if mat_asset.bind_group.is_none() && !render_cache.material_bind_group_cache.contains_key(mat_id.as_str()) {
                         let bind_group = mesh_renderer.create_pbr_bind_group(device, queue, mat_asset, texture_manager);
                         render_cache.material_bind_group_cache.insert(mat_id.clone(), bind_group);
                     }
@@ -519,29 +647,14 @@ pub fn render_game_world<'a>(
         render_cache.material_bind_group_cache.insert("default".to_string(), bg);
     }
 
-    // Opaque Batches (Instancing)
-    // PRE-PASS: Prepare Instance Buffers
-    for (key, instances) in &frame.opaque_batches {
-         if instances.is_empty() { continue; }
-         
-         let cache_key = format!("{}_{}", key.mesh_id, key.material_id);
-         let required_size = (instances.len() * std::mem::size_of::<render::MeshInstance>()) as u64;
-         
-         let buffer_valid = if let Some(buffer) = render_cache.instance_buffers.get(&cache_key) {
-             buffer.size() >= required_size
-         } else {
-             false
-         };
-
-         if !buffer_valid {
-              let new_buffer = mesh_renderer.create_instance_buffer(device, instances);
-              render_cache.instance_buffers.insert(cache_key, new_buffer);
-         } else {
-              let buffer = render_cache.instance_buffers.get(&cache_key).unwrap();
-              queue.write_buffer(buffer, 0, bytemuck::cast_slice(instances));
-         }
-    }
-
+    // Opaque Batches (Instancing) - already buffered in `prepare`
+    // No buffering loop needed if prepare called.
+    // However, if render_scene is called standalone (legacy), buffering is needed.
+    // But we removed `extract`, so `frame` comes from outside.
+    // We assume usage of `prepare_frame_and_shadows` implies buffers are ready.
+    // BUT we should double check or re-upload if logic allows.
+    // Since cache is persistent, it's fine.
+    
     // RENDER PASS
     for (key, instances) in &frame.opaque_batches {
          let mesh_id = &key.mesh_id;

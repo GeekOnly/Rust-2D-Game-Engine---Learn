@@ -8,6 +8,8 @@ struct CameraUniform {
 struct LightUniform {
     position: vec4<f32>,
     color: vec4<f32>,
+    view_proj: array<mat4x4<f32>, 4>, // Cascades
+    splits: vec4<f32>, // Split Planes (Z distances)
 };
 
 struct MaterialUniform {
@@ -22,6 +24,10 @@ var<uniform> camera: CameraUniform;
 
 @group(1) @binding(0)
 var<uniform> light: LightUniform;
+@group(1) @binding(1)
+var t_shadow: texture_depth_2d_array;
+@group(1) @binding(2)
+var s_shadow: sampler_comparison;
 
 // Material Bindings (Group 2)
 @group(2) @binding(0)
@@ -100,6 +106,22 @@ fn vs_main(
     return out;
 }
 
+@vertex
+fn vs_shadow(
+    in: VertexInput,
+) -> @builtin(position) vec4<f32> {
+    // Reconstruct model matrix
+    let model_matrix = mat4x4<f32>(
+        in.model_0,
+        in.model_1,
+        in.model_2,
+        in.model_3,
+    );
+    let world_pos = model_matrix * vec4<f32>(in.position, 1.0);
+    // Use Camera ViewProj (Group 0) - This allows us to bind the Light Matrix as "Camera" during Shadow Pass
+    return camera.view_proj * world_pos;
+}
+
 // PBR Functions
 const PI = 3.14159265359;
 
@@ -133,6 +155,60 @@ fn fresnel_schlick(cos_theta: f32, F0: vec3<f32>) -> vec3<f32> {
     return F0 + (1.0 - F0) * pow(clamp(1.0 - cos_theta, 0.0, 1.0), 5.0);
 }
 
+fn fetch_shadow(world_pos: vec3<f32>, N: vec3<f32>, L: vec3<f32>, view_depth: f32) -> f32 {
+    // Select Cascade
+    var cascade_index = 0u;
+    // Simple loop or if/else. splits are positive Z distances (e.g. 10.0, 50.0, 200.0)
+    // view_depth is usually negative in View Space (Right Handed), so use abs() or -view_depth
+    // Actually our View Space Z is negative. So distance is -view_dest.
+    let depth = -view_depth;
+    
+    if (depth > light.splits.x) { cascade_index = 1u; }
+    if (depth > light.splits.y) { cascade_index = 2u; }
+    if (depth > light.splits.z) { cascade_index = 3u; }
+
+    let light_space_pos = light.view_proj[cascade_index] * vec4<f32>(world_pos, 1.0);
+    let proj_coords = light_space_pos.xyz / light_space_pos.w;
+    
+    // NDC to Texture
+    let flip_correction = vec2<f32>(0.5, -0.5); 
+    let uv = proj_coords.xy * flip_correction + vec2<f32>(0.5, 0.5);
+    
+    // Depth verify
+    if (proj_coords.z < 0.0 || proj_coords.z > 1.0) {
+        return 1.0;
+    }
+
+    // Bias
+    let bias = max(0.005 * (1.0 - dot(N, L)), 0.001);
+    // Bias scaling with cascade roughly? 
+    // Usually far cascades need less bias/more bias depending on resolution ratio.
+    
+    let current_depth = proj_coords.z - bias;
+    
+    // PCF
+    var shadow = 0.0;
+    let size = vec2<f32>(textureDimensions(t_shadow).xy);
+    let texel_size = vec2<f32>(1.0 / size.x, 1.0 / size.y);
+    
+    for(var x = -1; x <= 1; x++) {
+        for(var y = -1; y <= 1; y++) {
+            let pcf_depth = textureSampleCompare(
+                t_shadow, 
+                s_shadow, 
+                uv + vec2<f32>(f32(x), f32(y)) * texel_size, 
+                i32(cascade_index), // Array Layer
+                current_depth
+            );
+            shadow += pcf_depth;
+        }
+    }
+    shadow /= 9.0;
+    
+    // Debug: Color tint based on cascade? No, keep it clean.
+    return shadow;
+}
+
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let albedo = textureSample(t_albedo, s_albedo, in.tex_coords) * material.albedo_factor * in.color;
@@ -153,7 +229,20 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     // Attenuation (simplified)
     let distance = length(light.position.xyz - in.world_position);
     let attenuation = 1.0 / (distance * distance);
-    let radiance = light.color.rgb * light.color.a * attenuation;
+    let view_depth = (camera.view_pos.w - in.world_position.z); // Incorrect. Need View SPace Z.
+    // Actually we need to calculate View Space depth.
+    // Camera View Matrix * World Pos.
+    // But we don't have View Matrix here (only view_proj).
+    // Let's pass View Space Z from vertex shader? Or reconstruct?
+    // Using distance to camera is "okay" for spheres, but cascades are planar.
+    // Better: let view_z = (camera.view_mat * vec4(in.world_position, 1.0)).z;
+    // We don't have view_mat.
+    // We have camera.view_pos.
+    // Distance approximation:
+    let view_dist = length(camera.view_pos.xyz - in.world_position);
+    
+    let shadow_factor = fetch_shadow(in.world_position, N, L, -view_dist); // Pass negative distance as mock Z
+    let radiance = light.color.rgb * light.color.a * attenuation * shadow_factor;
 
     // Cook-Torrance BRDF
     let NDF = distribution_ggx(N, H, roughness);

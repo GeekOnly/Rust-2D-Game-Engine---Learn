@@ -344,6 +344,18 @@ fn main() -> Result<()> {
                                 &screen_descriptor,
                             );
 
+                            // PRE-PASS: Prepare Frame & Render Shadows
+                            let frame = runtime::render_system::prepare_frame_and_shadows(
+                                &mut render_cache,
+                                &world,
+                                device,
+                                queue,
+                                texture_manager,
+                                light_binding,
+                                &camera_binding,
+                                mesh_renderer,
+                            );
+
                             let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                                 label: Some("egui_render"),
                                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
@@ -406,7 +418,9 @@ fn main() -> Result<()> {
                             }
 
                             // Render Game World (3D / WGPU)
-                            runtime::render_system::render_game_world(
+                            // Render Game World (3D / WGPU)
+                            runtime::render_system::render_scene(
+                                &frame,
                                 &mut render_cache,
                                 &world,
                                 tilemap_renderer,

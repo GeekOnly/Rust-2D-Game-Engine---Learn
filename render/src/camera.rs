@@ -74,7 +74,7 @@ impl CameraBinding {
         }
     }
 
-    pub fn update(&mut self, queue: &wgpu::Queue, view_matrix: glam::Mat4, projection_matrix: glam::Mat4, camera_pos: glam::Vec3) {
+    pub fn update(&self, queue: &wgpu::Queue, view_matrix: glam::Mat4, projection_matrix: glam::Mat4, camera_pos: glam::Vec3) {
         let mut uniform = CameraUniform::new();
         uniform.update(view_matrix, projection_matrix, camera_pos);
         queue.write_buffer(&self.buffer, 0, bytemuck::cast_slice(&[uniform]));

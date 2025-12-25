@@ -144,7 +144,14 @@ impl ExtractionSystem {
                 [0.0, 0.0, 0.0]
             };
 
-            let uniform = LightUniform::new(position, light.color, light.intensity);
+            // Default CSM Data for Frame Transfer (will be overwritten by render_system)
+            let uniform = LightUniform::new(
+                position, 
+                light.color, 
+                light.intensity, 
+                [[[0.0; 4]; 4]; 4], // Dummy ViewProj (4 Cascades)
+                [0.0; 4] // Dummy Splits
+            );
             frame.lights.push(uniform);
         }
 

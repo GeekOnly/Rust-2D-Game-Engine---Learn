@@ -3,6 +3,7 @@ use crate::{Mesh, ModelVertex, Texture, PbrMaterial, TextureManager, PbrMaterial
 
 pub struct MeshRenderer {
     render_pipeline: wgpu::RenderPipeline,
+    shadow_pipeline: wgpu::RenderPipeline,
     pub material_layout: wgpu::BindGroupLayout,
     // Toon Support
     toon_pipeline: wgpu::RenderPipeline,
@@ -153,6 +154,18 @@ impl MeshRenderer {
             push_constant_ranges: &[],
         });
 
+        // Shadow Pipeline Layout (Camera + Light only)
+        // Group 0: Camera (Placeholder/Unused by vs_shadow but needed for slot alignment if we reuse camera binding)
+        // Group 1: Light (Used)
+        let shadow_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+            label: Some("Shadow Pipeline Layout"),
+            bind_group_layouts: &[
+                camera_layout, 
+                light_layout,
+            ],
+            push_constant_ranges: &[],
+        });
+
         let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: Some("PBR Render Pipeline"),
             layout: Some(&render_pipeline_layout),
@@ -187,6 +200,45 @@ impl MeshRenderer {
                 depth_compare: wgpu::CompareFunction::Less, // Standard Z
                 stencil: wgpu::StencilState::default(),
                 bias: wgpu::DepthBiasState::default(),
+            }),
+            multisample: wgpu::MultisampleState {
+                count: 1,
+                mask: !0,
+                alpha_to_coverage_enabled: false,
+            },
+            cache: None,
+            multiview: None,
+        });
+
+        let shadow_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("Shadow Pipeline"),
+            layout: Some(&shadow_pipeline_layout),
+            vertex: wgpu::VertexState {
+                module: &pbr_shader,
+                entry_point: Some("vs_shadow"),
+                buffers: &[ModelVertex::desc(), MeshInstance::desc()],
+                compilation_options: Default::default(),
+            },
+            fragment: None, // No fragment shader (depth only)
+            primitive: wgpu::PrimitiveState {
+                topology: wgpu::PrimitiveTopology::TriangleList,
+                strip_index_format: None,
+                front_face: wgpu::FrontFace::Ccw,
+                cull_mode: Some(wgpu::Face::Front), // Front face culling for shadows
+                polygon_mode: wgpu::PolygonMode::Fill,
+                unclipped_depth: false,
+                conservative: false,
+            },
+            depth_stencil: Some(wgpu::DepthStencilState {
+                format: wgpu::TextureFormat::Depth32Float,
+                depth_write_enabled: true,
+                depth_compare: wgpu::CompareFunction::LessEqual, // Standard Z
+                stencil: wgpu::StencilState::default(),
+                bias: wgpu::DepthBiasState {
+                    constant: 2, 
+                    slope_scale: 2.0,
+                    clamp: 0.0,
+                },
             }),
             multisample: wgpu::MultisampleState {
                 count: 1,
@@ -335,6 +387,7 @@ impl MeshRenderer {
 
         Self {
             render_pipeline,
+            shadow_pipeline,
             material_layout,
             toon_pipeline,
             outline_pipeline,
@@ -357,6 +410,27 @@ impl MeshRenderer {
         render_pass.set_bind_group(0, camera_bind_group, &[]);
         render_pass.set_bind_group(1, light_bind_group, &[]);
         render_pass.set_bind_group(2, material_bind_group, &[]);
+        
+        render_pass.set_vertex_buffer(0, mesh.vertex_buffer.slice(..));
+        render_pass.set_vertex_buffer(1, instance_buffer.slice(..));
+        render_pass.set_index_buffer(mesh.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
+        
+        render_pass.draw_indexed(0..mesh.num_elements, 0, 0..instance_count);
+        render_pass.draw_indexed(0..mesh.num_elements, 0, 0..instance_count);
+    }
+
+    pub fn render_shadow_instanced<'a>(
+        &'a self,
+        render_pass: &mut wgpu::RenderPass<'a>,
+        mesh: &'a Mesh,
+        camera_bind_group: &'a wgpu::BindGroup,
+        light_bind_group: &'a wgpu::BindGroup,
+        instance_buffer: &'a wgpu::Buffer,
+        instance_count: u32,
+    ) {
+        render_pass.set_pipeline(&self.shadow_pipeline);
+        render_pass.set_bind_group(0, camera_bind_group, &[]);
+        render_pass.set_bind_group(1, light_bind_group, &[]);
         
         render_pass.set_vertex_buffer(0, mesh.vertex_buffer.slice(..));
         render_pass.set_vertex_buffer(1, instance_buffer.slice(..));

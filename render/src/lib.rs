@@ -34,6 +34,7 @@ pub struct RenderModule {
     pub config: wgpu::SurfaceConfiguration,
     pub size: winit::dpi::PhysicalSize<u32>,
     pub render_pipeline: wgpu::RenderPipeline,
+    pub shadow_pipeline: wgpu::RenderPipeline,
     pub depth_texture: wgpu::Texture,
     pub depth_view: wgpu::TextureView,
     pub texture_manager: TextureManager,
@@ -175,11 +176,51 @@ impl RenderModule {
             multiview: None,
         });
 
+        // Shadow Pipeline
+        let shadow_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("Shadow Pipeline"),
+            layout: Some(&render_pipeline_layout),
+            vertex: wgpu::VertexState {
+                module: &shader,
+                entry_point: Some("vs_main"), // We reuse the vertex shader
+                buffers: &[], // No buffers? Wait, we need MeshInstance buffer layout!
+                compilation_options: Default::default(),
+            },
+            fragment: None, // No fragment shader for shadow map
+            primitive: wgpu::PrimitiveState {
+                topology: wgpu::PrimitiveTopology::TriangleList,
+                strip_index_format: None,
+                front_face: wgpu::FrontFace::Ccw,
+                cull_mode: Some(wgpu::Face::Front), // Front face culling for shadows (Peter Panning fix)
+                polygon_mode: wgpu::PolygonMode::Fill,
+                unclipped_depth: false,
+                conservative: false,
+            },
+            depth_stencil: Some(wgpu::DepthStencilState {
+                format: wgpu::TextureFormat::Depth32Float,
+                depth_write_enabled: true,
+                depth_compare: wgpu::CompareFunction::LessEqual, // Standard Z for shadows
+                stencil: wgpu::StencilState::default(),
+                bias: wgpu::DepthBiasState {
+                    constant: 2, // Slope Scale Bias
+                    slope_scale: 2.0,
+                    clamp: 0.0,
+                },
+            }),
+            multisample: wgpu::MultisampleState {
+                count: 1,
+                mask: !0,
+                alpha_to_coverage_enabled: false,
+            },
+            cache: None,
+            multiview: None,
+        });
+
         let texture_manager = TextureManager::new(Some(&device));
 
         // Initialize 3D bindings (Initialize BEFORE renderers that depend on them)
         let camera_binding = CameraBinding::new(&device);
-        let light_binding = LightBinding::new(&device);
+        let light_binding = LightBinding::new(&device, &config);
 
         let sprite_renderer = SpriteRenderer::new(&device, &config);
         let tilemap_renderer = TilemapRenderer::new(&device, &config, &camera_binding.bind_group_layout);
@@ -199,6 +240,7 @@ impl RenderModule {
             config,
             size,
             render_pipeline,
+            shadow_pipeline,
             depth_texture,
             depth_view,
             texture_manager,

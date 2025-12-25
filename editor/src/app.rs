@@ -787,6 +787,22 @@ impl EditorApp {
     }
 
     fn render_offscreen_views(&mut self) {
+        // [SHADOW PASS]
+        // Execute Shadow Pass once for both views
+        // We use a separate encoder for shadows
+        // Execute Shadow Pass once for both views (Internal Encoders)
+        let frame = runtime::render_system::prepare_frame_and_shadows(
+            &mut self.render_cache,
+            &self.editor_state.world,
+            &self.renderer.device,
+            &self.renderer.queue,
+            &mut self.renderer.texture_manager,
+            &self.renderer.light_binding,
+            &self.scene_camera_binding, // Reuse scene camera binding placeholder
+            &self.renderer.mesh_renderer,
+        );
+
+
         // Render Scene View
         let width = self.scene_view_renderer.width;
         let height = self.scene_view_renderer.height;
@@ -838,7 +854,9 @@ impl EditorApp {
                 }
 
                 // Render Game World
-                runtime::render_system::render_game_world(
+                // Render Game World
+                runtime::render_system::render_scene(
+                    &frame,
                     &mut self.render_cache,
                     &self.editor_state.world,
                     &self.renderer.tilemap_renderer,
@@ -947,7 +965,9 @@ impl EditorApp {
                     });
                     
                     // Render Game World
-                    runtime::render_system::render_game_world(
+                    // Render Game World
+                    runtime::render_system::render_scene(
+                        &frame,
                         &mut self.render_cache,
                         &self.editor_state.world,
                         &self.renderer.tilemap_renderer,
