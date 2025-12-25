@@ -11,7 +11,7 @@ use render::RenderModule;
 use winit::{
     event::*,
     event_loop::{ControlFlow, EventLoop},
-    window::WindowBuilder,
+    window::Window,
 };
 
 // Use the engine library
@@ -86,10 +86,10 @@ fn main() -> Result<()> {
     log::info!("=== Game Player Runtime Starting ===");
 
     let event_loop = EventLoop::new()?;
-    let window = WindowBuilder::new()
+    let window_attributes = Window::default_attributes()
         .with_title("Rust 2D Game Engine Player")
-        .with_inner_size(winit::dpi::LogicalSize::new(1280, 720))
-        .build(&event_loop)?;
+        .with_inner_size(winit::dpi::LogicalSize::new(1280, 720));
+    let window = event_loop.create_window(window_attributes)?;
 
     // Initialize systems
     let asset_loader: std::sync::Arc<dyn engine_core::assets::AssetLoader> = std::sync::Arc::new(engine::assets::native_loader::NativeAssetLoader::new("."));
@@ -115,12 +115,17 @@ fn main() -> Result<()> {
         &window,
         Some(window.scale_factor() as f32),
         None,
+        None,
     );
     let mut egui_renderer = egui_wgpu::Renderer::new(
         &renderer.device,
         renderer.config.format,
-        Some(wgpu::TextureFormat::Depth32Float),
+        egui_wgpu::RendererOptions {
+            depth_stencil_format: Some(wgpu::TextureFormat::Depth32Float),
+            ..Default::default()
+        },
     );
+
  
     // Load Game Project
     // In a real export, these paths would be relative to the executable
@@ -328,6 +333,7 @@ fn main() -> Result<()> {
 
                         let screen_width = renderer.config.width;
                         let screen_height = renderer.config.height;
+                        let renderer_size = renderer.size;
 
                         let res = renderer.render_with_callback(|device, queue, encoder, view, depth_view, texture_manager, tilemap_renderer, batch_renderer, mesh_renderer, camera_binding, light_binding| {
                             egui_renderer.update_buffers(
@@ -411,11 +417,14 @@ fn main() -> Result<()> {
                                 texture_manager,
                                 queue,
                                 device,
+                                renderer_size,
                                 &mut rpass,
                                 view_proj,
                             );
 
                             // Render UI on top
+                            // SAFETY: egui_wgpu::Renderer::render requires 'static RenderPass
+                            let mut rpass: wgpu::RenderPass<'static> = unsafe { std::mem::transmute(rpass) };
                             egui_renderer.render(
                                 &mut rpass,
                                 &paint_jobs,

@@ -17,6 +17,31 @@ pub struct ObjectUniform {
     pub model: [[f32; 4]; 4],
 }
 
+#[repr(C)]
+#[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
+pub struct MeshInstance {
+    pub model: [[f32; 4]; 4],
+    pub color: [f32; 4],
+}
+
+impl MeshInstance {
+    pub fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
+        wgpu::VertexBufferLayout {
+            array_stride: std::mem::size_of::<MeshInstance>() as wgpu::BufferAddress,
+            step_mode: wgpu::VertexStepMode::Instance,
+            attributes: &[
+                // Model Matrix (vec4 x 4) - Locations 5-8
+                wgpu::VertexAttribute { offset: 0,  shader_location: 5, format: wgpu::VertexFormat::Float32x4 },
+                wgpu::VertexAttribute { offset: 16, shader_location: 6, format: wgpu::VertexFormat::Float32x4 },
+                wgpu::VertexAttribute { offset: 32, shader_location: 7, format: wgpu::VertexFormat::Float32x4 },
+                wgpu::VertexAttribute { offset: 48, shader_location: 8, format: wgpu::VertexFormat::Float32x4 },
+                // Color - Location 9
+                wgpu::VertexAttribute { offset: 64, shader_location: 9, format: wgpu::VertexFormat::Float32x4 },
+            ],
+        }
+    }
+}
+
 impl MeshRenderer {
     pub fn new(
         device: &wgpu::Device, 
@@ -123,7 +148,7 @@ impl MeshRenderer {
                 camera_layout,
                 light_layout,
                 &material_layout,
-                &object_layout,
+                // &object_layout, // Removed: Instancing uses attributes now
             ],
             push_constant_ranges: &[],
         });
@@ -134,7 +159,7 @@ impl MeshRenderer {
             vertex: wgpu::VertexState {
                 module: &pbr_shader,
                 entry_point: Some("vs_main"),
-                buffers: &[ModelVertex::desc()],
+                buffers: &[ModelVertex::desc(), MeshInstance::desc()],
                 compilation_options: Default::default(),
             },
             fragment: Some(wgpu::FragmentState {
@@ -318,24 +343,53 @@ impl MeshRenderer {
         }
     }
 
-    pub fn render_pbr<'a>(
+    pub fn render_instanced<'a>(
         &'a self,
         render_pass: &mut wgpu::RenderPass<'a>,
         mesh: &'a Mesh,
         material_bind_group: &'a wgpu::BindGroup,
         camera_bind_group: &'a wgpu::BindGroup,
         light_bind_group: &'a wgpu::BindGroup,
-        object_bind_group: &'a wgpu::BindGroup,
+        instance_buffer: &'a wgpu::Buffer,
+        instance_count: u32,
     ) {
         render_pass.set_pipeline(&self.render_pipeline);
         render_pass.set_bind_group(0, camera_bind_group, &[]);
         render_pass.set_bind_group(1, light_bind_group, &[]);
         render_pass.set_bind_group(2, material_bind_group, &[]);
-        render_pass.set_bind_group(3, object_bind_group, &[]);
         
         render_pass.set_vertex_buffer(0, mesh.vertex_buffer.slice(..));
+        render_pass.set_vertex_buffer(1, instance_buffer.slice(..));
         render_pass.set_index_buffer(mesh.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
-        render_pass.draw_indexed(0..mesh.num_elements, 0, 0..1);
+        
+        render_pass.draw_indexed(0..mesh.num_elements, 0, 0..instance_count);
+    }
+
+    pub fn create_instance_buffer(
+        &self,
+        device: &wgpu::Device,
+        instances: &[MeshInstance],
+    ) -> wgpu::Buffer {
+        device.create_buffer_init(
+            &wgpu::util::BufferInitDescriptor {
+                label: Some("Instance Buffer"),
+                contents: bytemuck::cast_slice(instances),
+                usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+            }
+        )
+    }
+
+    // Legacy method - kept to avoid breaking engine compilation immediately, but will panic or misrender if used with new shader
+    pub fn render_pbr<'a>(
+        &'a self,
+        _render_pass: &mut wgpu::RenderPass<'a>,
+        _mesh: &'a Mesh,
+        _material_bind_group: &'a wgpu::BindGroup,
+        _camera_bind_group: &'a wgpu::BindGroup,
+        _light_bind_group: &'a wgpu::BindGroup,
+        _object_bind_group: &'a wgpu::BindGroup,
+    ) {
+        panic!("render_pbr is deprecated using ObjectUniform. Use render_instanced instead.");
     }
 
     pub fn render_toon<'a>(

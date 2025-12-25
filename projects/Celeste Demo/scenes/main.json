@@ -2,390 +2,11 @@
   "next_entity": 350,
   "transforms": [
     [
-      328,
+      327,
       {
         "position": [
-          6.875,
-          -4.375,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      337,
-      {
-        "position": [
-          17.875,
-          -20.875,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      320,
-      {
-        "position": [
-          23.375,
-          -0.375,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      11,
-      {
-        "position": [
-          10.039423,
-          -9.225673,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          5.0,
-          5.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      333,
-      {
-        "position": [
-          6.375,
-          -14.375,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      321,
-      {
-        "position": [
-          5.375,
-          -13.375,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      323,
-      {
-        "position": [
-          34.875,
-          -1.375,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      0,
-      {
-        "position": [
-          10.234419,
-          -8.798935,
-          17.8
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          10.48,
-          1.0421437,
-          1.0
-        ]
-      }
-    ],
-    [
-      345,
-      {
-        "position": [
-          29.375,
-          -22.875,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      347,
-      {
-        "position": [
-          27.875,
-          -23.375,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      324,
-      {
-        "position": [
-          9.375,
-          -2.375,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      335,
-      {
-        "position": [
-          25.875,
-          -15.375,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      340,
-      {
-        "position": [
-          15.375,
-          -21.375,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      348,
-      {
-        "position": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          50.0,
-          50.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      334,
-      {
-        "position": [
-          21.875,
-          -20.375,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      341,
-      {
-        "position": [
-          30.875,
-          -19.375,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      349,
-      {
-        "position": [
-          14.653778,
-          3.7019835,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          4.2299986,
-          4.2299986,
-          4.2299986
-        ]
-      }
-    ],
-    [
-      346,
-      {
-        "position": [
-          32.375,
-          -22.375,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      326,
-      {
-        "position": [
-          8.375,
-          -3.375,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ]
-      }
-    ],
-    [
-      329,
-      {
-        "position": [
-          28.875,
-          -9.375,
+          4.375,
+          -10.875,
           0.0
         ],
         "rotation": [
@@ -421,11 +42,11 @@
       }
     ],
     [
-      327,
+      330,
       {
         "position": [
-          4.375,
-          -10.875,
+          9.375,
+          -11.875,
           0.0
         ],
         "rotation": [
@@ -441,11 +62,11 @@
       }
     ],
     [
-      322,
+      342,
       {
         "position": [
-          11.375,
-          -1.375,
+          29.375,
+          -20.375,
           0.0
         ],
         "rotation": [
@@ -461,11 +82,11 @@
       }
     ],
     [
-      325,
+      334,
       {
         "position": [
-          40.875,
-          -2.375,
+          21.875,
+          -20.375,
           0.0
         ],
         "rotation": [
@@ -481,10 +102,10 @@
       }
     ],
     [
-      332,
+      331,
       {
         "position": [
-          7.375,
+          36.375,
           -13.375,
           0.0
         ],
@@ -501,11 +122,31 @@
       }
     ],
     [
-      343,
+      326,
       {
         "position": [
-          33.375,
-          -21.375,
+          8.375,
+          -3.375,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      346,
+      {
+        "position": [
+          32.375,
+          -22.375,
           0.0
         ],
         "rotation": [
@@ -525,6 +166,66 @@
       {
         "position": [
           12.375,
+          -20.875,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      11,
+      {
+        "position": [
+          10.039423,
+          -9.225673,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          5.0,
+          5.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      335,
+      {
+        "position": [
+          25.875,
+          -15.375,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      337,
+      {
+        "position": [
+          17.875,
           -20.875,
           0.0
         ],
@@ -561,11 +262,31 @@
       }
     ],
     [
-      331,
+      314,
       {
         "position": [
-          36.375,
-          -13.375,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      324,
+      {
+        "position": [
+          9.375,
+          -2.375,
           0.0
         ],
         "rotation": [
@@ -601,10 +322,50 @@
       }
     ],
     [
-      339,
+      322,
       {
         "position": [
-          8.375,
+          11.375,
+          -1.375,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      348,
+      {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          50.0,
+          50.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      340,
+      {
+        "position": [
+          15.375,
           -21.375,
           0.0
         ],
@@ -641,11 +402,211 @@
       }
     ],
     [
-      342,
+      341,
+      {
+        "position": [
+          30.875,
+          -19.375,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      332,
+      {
+        "position": [
+          7.375,
+          -13.375,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      0,
+      {
+        "position": [
+          10.234419,
+          -8.798935,
+          17.8
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          10.48,
+          1.0421437,
+          1.0
+        ]
+      }
+    ],
+    [
+      343,
+      {
+        "position": [
+          33.375,
+          -21.375,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      320,
+      {
+        "position": [
+          23.375,
+          -0.375,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      321,
+      {
+        "position": [
+          5.375,
+          -13.375,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      333,
+      {
+        "position": [
+          6.375,
+          -14.375,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      329,
+      {
+        "position": [
+          28.875,
+          -9.375,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      325,
+      {
+        "position": [
+          40.875,
+          -2.375,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      347,
+      {
+        "position": [
+          27.875,
+          -23.375,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      345,
       {
         "position": [
           29.375,
-          -20.375,
+          -22.875,
           0.0
         ],
         "rotation": [
@@ -661,11 +622,11 @@
       }
     ],
     [
-      330,
+      323,
       {
         "position": [
-          9.375,
-          -11.875,
+          34.875,
+          -1.375,
           0.0
         ],
         "rotation": [
@@ -681,11 +642,51 @@
       }
     ],
     [
-      314,
+      349,
       {
         "position": [
+          14.653778,
+          3.7019835,
+          0.0
+        ],
+        "rotation": [
           0.0,
           0.0,
+          0.0
+        ],
+        "scale": [
+          4.2299986,
+          4.2299986,
+          4.2299986
+        ]
+      }
+    ],
+    [
+      339,
+      {
+        "position": [
+          8.375,
+          -21.375,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    ],
+    [
+      328,
+      {
+        "position": [
+          6.875,
+          -4.375,
           0.0
         ],
         "rotation": [
@@ -703,56 +704,14 @@
   ],
   "velocities": [
     [
-      329,
+      330,
       [
         0.0,
         -0.0
       ]
     ],
     [
-      325,
-      [
-        0.0,
-        -0.0
-      ]
-    ],
-    [
-      335,
-      [
-        0.0,
-        -0.0
-      ]
-    ],
-    [
-      321,
-      [
-        0.0,
-        -0.0
-      ]
-    ],
-    [
-      331,
-      [
-        0.0,
-        -0.0
-      ]
-    ],
-    [
-      346,
-      [
-        0.0,
-        -0.0
-      ]
-    ],
-    [
-      332,
-      [
-        0.0,
-        -0.0
-      ]
-    ],
-    [
-      333,
+      341,
       [
         0.0,
         -0.0
@@ -766,28 +725,21 @@
       ]
     ],
     [
-      327,
+      324,
       [
         0.0,
         -0.0
       ]
     ],
     [
-      328,
+      331,
       [
         0.0,
         -0.0
       ]
     ],
     [
-      340,
-      [
-        0.0,
-        -0.0
-      ]
-    ],
-    [
-      344,
+      320,
       [
         0.0,
         -0.0
@@ -801,13 +753,6 @@
       ]
     ],
     [
-      338,
-      [
-        0.0,
-        -0.0
-      ]
-    ],
-    [
       343,
       [
         0.0,
@@ -815,21 +760,49 @@
       ]
     ],
     [
-      330,
+      333,
       [
         0.0,
         -0.0
       ]
     ],
     [
-      324,
+      325,
       [
         0.0,
         -0.0
       ]
     ],
     [
-      337,
+      340,
+      [
+        0.0,
+        -0.0
+      ]
+    ],
+    [
+      335,
+      [
+        0.0,
+        -0.0
+      ]
+    ],
+    [
+      328,
+      [
+        0.0,
+        -0.0
+      ]
+    ],
+    [
+      321,
+      [
+        0.0,
+        -0.0
+      ]
+    ],
+    [
+      326,
       [
         0.0,
         -0.0
@@ -844,6 +817,69 @@
     ],
     [
       334,
+      [
+        0.0,
+        -0.0
+      ]
+    ],
+    [
+      346,
+      [
+        0.0,
+        -0.0
+      ]
+    ],
+    [
+      337,
+      [
+        0.0,
+        -0.0
+      ]
+    ],
+    [
+      347,
+      [
+        0.0,
+        -0.0
+      ]
+    ],
+    [
+      344,
+      [
+        0.0,
+        -0.0
+      ]
+    ],
+    [
+      338,
+      [
+        0.0,
+        -0.0
+      ]
+    ],
+    [
+      327,
+      [
+        0.0,
+        -0.0
+      ]
+    ],
+    [
+      329,
+      [
+        0.0,
+        -0.0
+      ]
+    ],
+    [
+      345,
+      [
+        0.0,
+        -0.0
+      ]
+    ],
+    [
+      332,
       [
         0.0,
         -0.0
@@ -869,41 +905,6 @@
         0.0,
         -0.0
       ]
-    ],
-    [
-      320,
-      [
-        0.0,
-        -0.0
-      ]
-    ],
-    [
-      341,
-      [
-        0.0,
-        -0.0
-      ]
-    ],
-    [
-      347,
-      [
-        0.0,
-        -0.0
-      ]
-    ],
-    [
-      345,
-      [
-        0.0,
-        -0.0
-      ]
-    ],
-    [
-      326,
-      [
-        0.0,
-        -0.0
-      ]
     ]
   ],
   "sprites": [
@@ -911,6 +912,7 @@
       11,
       {
         "texture_id": "brackeys_platformer_assets/sprites/knight.png",
+        "asset_id": null,
         "width": 20.0,
         "height": 20.0,
         "color": [
@@ -938,6 +940,7 @@
       348,
       {
         "texture_id": "assets/brackeys_platformer_assets/sprites/knight.png",
+        "asset_id": null,
         "width": 20.0,
         "height": 20.0,
         "color": [
@@ -964,6 +967,36 @@
   ],
   "colliders": [
     [
+      325,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          2.0,
+          1.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      322,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          11.0,
+          1.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
       326,
       {
         "offset": [
@@ -979,7 +1012,97 @@
       }
     ],
     [
+      337,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          2.0,
+          10.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      336,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          3.0,
+          10.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      331,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          11.0,
+          5.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      339,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          5.0,
+          9.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      335,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          2.0,
+          1.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
       347,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          2.0,
+          1.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      328,
       {
         "offset": [
           0.0,
@@ -1009,67 +1132,7 @@
       }
     ],
     [
-      322,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          11.0,
-          1.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      346,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          1.0,
-          1.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      324,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          7.0,
-          1.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      341,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          4.0,
-          1.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      337,
+      344,
       {
         "offset": [
           0.0,
@@ -1077,22 +1140,7 @@
         ],
         "size": [
           2.0,
-          10.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      11,
-      {
-        "offset": [
-          0.0,
-          -0.02
-        ],
-        "size": [
-          0.16,
-          0.18
+          2.0
         ],
         "width": 0.0,
         "height": 0.0
@@ -1114,7 +1162,22 @@
       }
     ],
     [
-      336,
+      321,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          1.0,
+          25.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      340,
       {
         "offset": [
           0.0,
@@ -1122,7 +1185,22 @@
         ],
         "size": [
           3.0,
-          10.0
+          9.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      323,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          14.0,
+          1.0
         ],
         "width": 0.0,
         "height": 0.0
@@ -1144,37 +1222,7 @@
       }
     ],
     [
-      338,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          5.0,
-          10.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      339,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          5.0,
-          9.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      330,
+      324,
       {
         "offset": [
           0.0,
@@ -1182,21 +1230,6 @@
         ],
         "size": [
           7.0,
-          2.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      325,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          2.0,
           1.0
         ],
         "width": 0.0,
@@ -1219,30 +1252,30 @@
       }
     ],
     [
-      320,
+      338,
       {
         "offset": [
           0.0,
           0.0
         ],
         "size": [
-          37.0,
-          1.0
+          5.0,
+          10.0
         ],
         "width": 0.0,
         "height": 0.0
       }
     ],
     [
-      333,
+      11,
       {
         "offset": [
           0.0,
-          0.0
+          -0.02
         ],
         "size": [
-          1.0,
-          1.0
+          0.16,
+          0.18
         ],
         "width": 0.0,
         "height": 0.0
@@ -1264,44 +1297,14 @@
       }
     ],
     [
-      328,
+      320,
       {
         "offset": [
           0.0,
           0.0
         ],
         "size": [
-          2.0,
-          1.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      321,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          1.0,
-          25.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      335,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          2.0,
+          37.0,
           1.0
         ],
         "width": 0.0,
@@ -1324,66 +1327,6 @@
       }
     ],
     [
-      323,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          14.0,
-          1.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      344,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          2.0,
-          2.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      331,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          11.0,
-          5.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
-      340,
-      {
-        "offset": [
-          0.0,
-          0.0
-        ],
-        "size": [
-          3.0,
-          9.0
-        ],
-        "width": 0.0,
-        "height": 0.0
-      }
-    ],
-    [
       342,
       {
         "offset": [
@@ -1397,12 +1340,72 @@
         "width": 0.0,
         "height": 0.0
       }
+    ],
+    [
+      333,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          1.0,
+          1.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      330,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          7.0,
+          2.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      346,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          1.0,
+          1.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
+    ],
+    [
+      341,
+      {
+        "offset": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          4.0,
+          1.0
+        ],
+        "width": 0.0,
+        "height": 0.0
+      }
     ]
   ],
   "colliders_3d": [],
   "rigidbodies": [
     [
-      335,
+      320,
       {
         "velocity": [
           0.0,
@@ -1416,105 +1419,7 @@
       }
     ],
     [
-      339,
-      {
-        "velocity": [
-          0.0,
-          -0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true,
-        "enable_ccd": false
-      }
-    ],
-    [
-      11,
-      {
-        "velocity": [
-          0.0,
-          -0.0
-        ],
-        "gravity_scale": 1.0,
-        "mass": 1.0,
-        "is_kinematic": false,
-        "freeze_rotation": true,
-        "enable_ccd": true
-      }
-    ],
-    [
-      345,
-      {
-        "velocity": [
-          0.0,
-          -0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true,
-        "enable_ccd": false
-      }
-    ],
-    [
-      321,
-      {
-        "velocity": [
-          0.0,
-          -0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true,
-        "enable_ccd": false
-      }
-    ],
-    [
-      326,
-      {
-        "velocity": [
-          0.0,
-          -0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true,
-        "enable_ccd": false
-      }
-    ],
-    [
-      324,
-      {
-        "velocity": [
-          0.0,
-          -0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true,
-        "enable_ccd": false
-      }
-    ],
-    [
-      328,
-      {
-        "velocity": [
-          0.0,
-          -0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true,
-        "enable_ccd": false
-      }
-    ],
-    [
-      329,
+      333,
       {
         "velocity": [
           0.0,
@@ -1542,49 +1447,7 @@
       }
     ],
     [
-      344,
-      {
-        "velocity": [
-          0.0,
-          -0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true,
-        "enable_ccd": false
-      }
-    ],
-    [
-      322,
-      {
-        "velocity": [
-          0.0,
-          -0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true,
-        "enable_ccd": false
-      }
-    ],
-    [
-      338,
-      {
-        "velocity": [
-          0.0,
-          -0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true,
-        "enable_ccd": false
-      }
-    ],
-    [
-      332,
+      330,
       {
         "velocity": [
           0.0,
@@ -1612,7 +1475,7 @@
       }
     ],
     [
-      342,
+      326,
       {
         "velocity": [
           0.0,
@@ -1626,63 +1489,7 @@
       }
     ],
     [
-      336,
-      {
-        "velocity": [
-          0.0,
-          -0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true,
-        "enable_ccd": false
-      }
-    ],
-    [
-      330,
-      {
-        "velocity": [
-          0.0,
-          -0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true,
-        "enable_ccd": false
-      }
-    ],
-    [
-      337,
-      {
-        "velocity": [
-          0.0,
-          -0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true,
-        "enable_ccd": false
-      }
-    ],
-    [
-      343,
-      {
-        "velocity": [
-          0.0,
-          -0.0
-        ],
-        "gravity_scale": 0.0,
-        "mass": 1.0,
-        "is_kinematic": true,
-        "freeze_rotation": true,
-        "enable_ccd": false
-      }
-    ],
-    [
-      323,
+      335,
       {
         "velocity": [
           0.0,
@@ -1710,7 +1517,7 @@
       }
     ],
     [
-      333,
+      329,
       {
         "velocity": [
           0.0,
@@ -1724,7 +1531,35 @@
       }
     ],
     [
-      341,
+      11,
+      {
+        "velocity": [
+          0.0,
+          -0.0
+        ],
+        "gravity_scale": 1.0,
+        "mass": 1.0,
+        "is_kinematic": false,
+        "freeze_rotation": true,
+        "enable_ccd": true
+      }
+    ],
+    [
+      334,
+      {
+        "velocity": [
+          0.0,
+          -0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      322,
       {
         "velocity": [
           0.0,
@@ -1752,6 +1587,34 @@
       }
     ],
     [
+      328,
+      {
+        "velocity": [
+          0.0,
+          -0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      338,
+      {
+        "velocity": [
+          0.0,
+          -0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
       331,
       {
         "velocity": [
@@ -1766,7 +1629,133 @@
       }
     ],
     [
-      320,
+      336,
+      {
+        "velocity": [
+          0.0,
+          -0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      341,
+      {
+        "velocity": [
+          0.0,
+          -0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      339,
+      {
+        "velocity": [
+          0.0,
+          -0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      337,
+      {
+        "velocity": [
+          0.0,
+          -0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      323,
+      {
+        "velocity": [
+          0.0,
+          -0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      324,
+      {
+        "velocity": [
+          0.0,
+          -0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      321,
+      {
+        "velocity": [
+          0.0,
+          -0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      344,
+      {
+        "velocity": [
+          0.0,
+          -0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      332,
+      {
+        "velocity": [
+          0.0,
+          -0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      342,
       {
         "velocity": [
           0.0,
@@ -1794,7 +1783,21 @@
       }
     ],
     [
-      334,
+      343,
+      {
+        "velocity": [
+          0.0,
+          -0.0
+        ],
+        "gravity_scale": 0.0,
+        "mass": 1.0,
+        "is_kinematic": true,
+        "freeze_rotation": true,
+        "enable_ccd": false
+      }
+    ],
+    [
+      345,
       {
         "velocity": [
           0.0,
@@ -1858,88 +1861,88 @@
   ],
   "scripts": [
     [
-      11,
-      {
-        "script_name": "player_controller",
-        "enabled": true,
-        "parameters": {
-          "dash_direction_x": {
-            "Float": 0.0
-          },
-          "velocity_y": {
-            "Float": 0.0
-          },
-          "dash_timer": {
-            "Float": 0.0
-          },
-          "hud_instance_name": {
-            "String": "celeste_hud"
-          },
-          "dash_duration": {
-            "Float": 0.2
-          },
-          "wall_slide_speed": {
-            "Float": 1.0
-          },
-          "frame_count": {
-            "Int": 0
-          },
-          "elapsed_time": {
-            "Int": 0
-          },
-          "new_vel_x": {
-            "Float": 0.0
-          },
-          "can_dash": {
-            "Bool": false
-          },
-          "dash_y": {
-            "Float": 1.0
-          },
-          "hud_prefab_path": {
-            "String": "projects/Celeste Demo/assets/ui/celeste_hud.uiprefab"
-          },
-          "hud_loaded": {
-            "Bool": true
-          },
-          "is_grounded": {
-            "Bool": false
-          },
-          "current_fps": {
-            "Int": 0
-          },
-          "is_dashing": {
-            "Bool": true
-          },
-          "is_touching_wall": {
-            "Bool": false
-          },
-          "dash_direction_y": {
-            "Float": 0.0
-          },
-          "velocity_x": {
-            "Float": 0.0
-          },
-          "dash_x": {
-            "Float": 1.0
-          },
-          "wall_direction": {
-            "Int": 0
-          }
-        }
-      }
-    ],
-    [
       0,
       {
         "script_name": "camera_follow_simple",
         "enabled": true,
         "parameters": {
-          "offset_y": {
-            "Float": 0.0
-          },
           "target_entity": {
             "Entity": 11
+          },
+          "offset_y": {
+            "Float": 0.0
+          }
+        }
+      }
+    ],
+    [
+      11,
+      {
+        "script_name": "player_controller",
+        "enabled": true,
+        "parameters": {
+          "hud_instance_name": {
+            "String": "celeste_hud"
+          },
+          "can_dash": {
+            "Bool": false
+          },
+          "is_dashing": {
+            "Bool": true
+          },
+          "dash_x": {
+            "Float": 1.0
+          },
+          "dash_duration": {
+            "Float": 0.2
+          },
+          "hud_prefab_path": {
+            "String": "projects/Celeste Demo/assets/ui/celeste_hud.uiprefab"
+          },
+          "velocity_x": {
+            "Float": 0.0
+          },
+          "new_vel_x": {
+            "Float": 0.0
+          },
+          "frame_count": {
+            "Int": 0
+          },
+          "dash_direction_x": {
+            "Float": 0.0
+          },
+          "elapsed_time": {
+            "Int": 0
+          },
+          "is_grounded": {
+            "Bool": false
+          },
+          "dash_y": {
+            "Float": 1.0
+          },
+          "dash_timer": {
+            "Float": 0.0
+          },
+          "current_fps": {
+            "Int": 0
+          },
+          "hud_loaded": {
+            "Bool": true
+          },
+          "dash_direction_y": {
+            "Float": 0.0
+          },
+          "is_touching_wall": {
+            "Bool": false
+          },
+          "velocity_y": {
+            "Float": 0.0
+          },
+          "wall_slide_speed": {
+            "Float": 1.0
+          },
+          "wall_direction": {
+            "Int": 0
           }
         }
       }
@@ -1955,19 +1958,27 @@
   ],
   "active": [
     [
-      349,
+      320,
       true
     ],
     [
-      11,
+      334,
       true
     ],
     [
-      338,
+      343,
       true
     ],
     [
-      322,
+      337,
+      true
+    ],
+    [
+      340,
+      true
+    ],
+    [
+      331,
       true
     ],
     [
@@ -1975,7 +1986,91 @@
       true
     ],
     [
-      319,
+      314,
+      true
+    ],
+    [
+      338,
+      true
+    ],
+    [
+      342,
+      true
+    ],
+    [
+      333,
+      true
+    ],
+    [
+      349,
+      true
+    ],
+    [
+      347,
+      true
+    ],
+    [
+      0,
+      true
+    ],
+    [
+      323,
+      true
+    ],
+    [
+      329,
+      true
+    ],
+    [
+      322,
+      true
+    ],
+    [
+      348,
+      true
+    ],
+    [
+      330,
+      true
+    ],
+    [
+      332,
+      true
+    ],
+    [
+      326,
+      true
+    ],
+    [
+      11,
+      true
+    ],
+    [
+      321,
+      true
+    ],
+    [
+      327,
+      true
+    ],
+    [
+      328,
+      true
+    ],
+    [
+      324,
+      true
+    ],
+    [
+      325,
+      true
+    ],
+    [
+      345,
+      true
+    ],
+    [
+      315,
       true
     ],
     [
@@ -1987,51 +2082,7 @@
       true
     ],
     [
-      333,
-      true
-    ],
-    [
-      347,
-      true
-    ],
-    [
-      315,
-      true
-    ],
-    [
-      327,
-      true
-    ],
-    [
-      348,
-      true
-    ],
-    [
-      326,
-      true
-    ],
-    [
-      314,
-      true
-    ],
-    [
-      343,
-      true
-    ],
-    [
-      329,
-      true
-    ],
-    [
-      320,
-      true
-    ],
-    [
-      325,
-      true
-    ],
-    [
-      0,
+      346,
       true
     ],
     [
@@ -2039,125 +2090,17 @@
       true
     ],
     [
-      334,
-      true
-    ],
-    [
-      346,
-      true
-    ],
-    [
-      324,
-      true
-    ],
-    [
-      337,
-      true
-    ],
-    [
-      331,
-      true
-    ],
-    [
-      340,
-      true
-    ],
-    [
-      345,
-      true
-    ],
-    [
-      330,
-      true
-    ],
-    [
       341,
       true
     ],
     [
-      332,
-      true
-    ],
-    [
-      342,
-      true
-    ],
-    [
-      321,
-      true
-    ],
-    [
-      323,
-      true
-    ],
-    [
-      328,
+      319,
       true
     ]
   ],
   "layers": [
     [
-      338,
-      0
-    ],
-    [
-      332,
-      0
-    ],
-    [
-      334,
-      0
-    ],
-    [
-      329,
-      0
-    ],
-    [
-      345,
-      0
-    ],
-    [
-      347,
-      0
-    ],
-    [
-      348,
-      0
-    ],
-    [
-      336,
-      0
-    ],
-    [
-      11,
-      0
-    ],
-    [
-      346,
-      0
-    ],
-    [
-      321,
-      0
-    ],
-    [
-      343,
-      0
-    ],
-    [
-      341,
-      0
-    ],
-    [
-      324,
-      0
-    ],
-    [
-      349,
-      0
-    ],
-    [
-      319,
+      326,
       0
     ],
     [
@@ -2165,11 +2108,15 @@
       0
     ],
     [
-      314,
+      332,
       0
     ],
     [
-      333,
+      338,
+      0
+    ],
+    [
+      336,
       0
     ],
     [
@@ -2177,19 +2124,15 @@
       0
     ],
     [
-      340,
+      341,
       0
     ],
     [
-      335,
+      347,
       0
     ],
     [
-      320,
-      0
-    ],
-    [
-      0,
+      343,
       0
     ],
     [
@@ -2197,15 +2140,11 @@
       0
     ],
     [
-      326,
+      329,
       0
     ],
     [
-      339,
-      0
-    ],
-    [
-      328,
+      321,
       0
     ],
     [
@@ -2213,19 +2152,23 @@
       0
     ],
     [
-      325,
+      0,
       0
     ],
     [
-      327,
+      324,
+      0
+    ],
+    [
+      346,
+      0
+    ],
+    [
+      339,
       0
     ],
     [
       323,
-      0
-    ],
-    [
-      330,
       0
     ],
     [
@@ -2233,13 +2176,77 @@
       0
     ],
     [
+      325,
+      0
+    ],
+    [
+      334,
+      0
+    ],
+    [
+      335,
+      0
+    ],
+    [
+      11,
+      0
+    ],
+    [
+      340,
+      0
+    ],
+    [
+      330,
+      0
+    ],
+    [
+      327,
+      0
+    ],
+    [
+      345,
+      0
+    ],
+    [
+      314,
+      0
+    ],
+    [
+      319,
+      0
+    ],
+    [
       322,
+      0
+    ],
+    [
+      320,
+      0
+    ],
+    [
+      349,
+      0
+    ],
+    [
+      328,
+      0
+    ],
+    [
+      333,
+      0
+    ],
+    [
+      348,
       0
     ]
   ],
   "parents": [
     [
-      324,
+      333,
+      315
+    ],
+    [
+      345,
       315
     ],
     [
@@ -2247,31 +2254,23 @@
       315
     ],
     [
+      342,
+      315
+    ],
+    [
+      343,
+      315
+    ],
+    [
+      340,
+      315
+    ],
+    [
       335,
       315
     ],
     [
-      327,
-      315
-    ],
-    [
-      336,
-      315
-    ],
-    [
-      330,
-      315
-    ],
-    [
-      322,
-      315
-    ],
-    [
-      333,
-      315
-    ],
-    [
-      325,
+      329,
       315
     ],
     [
@@ -2279,11 +2278,15 @@
       315
     ],
     [
-      323,
+      325,
       315
     ],
     [
       320,
+      315
+    ],
+    [
+      330,
       315
     ],
     [
@@ -2291,39 +2294,15 @@
       314
     ],
     [
-      342,
-      315
-    ],
-    [
-      337,
-      315
-    ],
-    [
-      340,
-      315
-    ],
-    [
-      338,
-      315
-    ],
-    [
-      329,
-      315
-    ],
-    [
       326,
       315
     ],
     [
-      331,
+      323,
       315
     ],
     [
-      319,
-      315
-    ],
-    [
-      332,
+      322,
       315
     ],
     [
@@ -2331,15 +2310,19 @@
       315
     ],
     [
-      345,
+      338,
       315
     ],
     [
-      328,
+      332,
       315
     ],
     [
-      321,
+      331,
+      315
+    ],
+    [
+      324,
       315
     ],
     [
@@ -2347,7 +2330,19 @@
       315
     ],
     [
-      344,
+      327,
+      315
+    ],
+    [
+      321,
+      315
+    ],
+    [
+      336,
+      315
+    ],
+    [
+      319,
       315
     ],
     [
@@ -2355,18 +2350,42 @@
       315
     ],
     [
-      343,
+      337,
+      315
+    ],
+    [
+      328,
+      315
+    ],
+    [
+      344,
       315
     ]
   ],
   "names": [
     [
-      336,
-      "CompositeCollider_3x10"
+      324,
+      "CompositeCollider_7x1"
     ],
     [
-      345,
-      "CompositeCollider_1x2"
+      323,
+      "CompositeCollider_14x1"
+    ],
+    [
+      320,
+      "CompositeCollider_37x1"
+    ],
+    [
+      326,
+      "CompositeCollider_5x1"
+    ],
+    [
+      342,
+      "CompositeCollider_1x1"
+    ],
+    [
+      314,
+      "Grid"
     ],
     [
       321,
@@ -2377,133 +2396,2562 @@
       "Player"
     ],
     [
-      333,
-      "CompositeCollider_1x1"
-    ],
-    [
-      325,
-      "CompositeCollider_2x1"
-    ],
-    [
-      349,
-      "Cube"
-    ],
-    [
-      335,
-      "CompositeCollider_2x1"
-    ],
-    [
-      338,
-      "CompositeCollider_5x10"
-    ],
-    [
-      326,
-      "CompositeCollider_5x1"
-    ],
-    [
-      314,
-      "Grid"
-    ],
-    [
-      337,
-      "CompositeCollider_2x10"
-    ],
-    [
-      327,
-      "CompositeCollider_1x14"
-    ],
-    [
-      328,
-      "CompositeCollider_2x1"
-    ],
-    [
-      346,
-      "CompositeCollider_1x1"
-    ],
-    [
-      344,
-      "CompositeCollider_2x2"
-    ],
-    [
-      342,
-      "CompositeCollider_1x1"
-    ],
-    [
-      315,
-      "Tilemap"
-    ],
-    [
-      339,
-      "CompositeCollider_5x9"
-    ],
-    [
-      340,
-      "CompositeCollider_3x9"
-    ],
-    [
-      331,
-      "CompositeCollider_11x5"
-    ],
-    [
-      347,
-      "CompositeCollider_2x1"
-    ],
-    [
-      323,
-      "CompositeCollider_14x1"
-    ],
-    [
-      319,
-      "LDTK Layer: IntGrid_layer"
-    ],
-    [
-      320,
-      "CompositeCollider_37x1"
-    ],
-    [
-      332,
-      "CompositeCollider_3x1"
-    ],
-    [
       0,
       "Main Camera"
-    ],
-    [
-      334,
-      "CompositeCollider_6x11"
-    ],
-    [
-      330,
-      "CompositeCollider_7x2"
-    ],
-    [
-      322,
-      "CompositeCollider_11x1"
-    ],
-    [
-      341,
-      "CompositeCollider_4x1"
-    ],
-    [
-      329,
-      "CompositeCollider_26x3"
-    ],
-    [
-      324,
-      "CompositeCollider_7x1"
     ],
     [
       343,
       "CompositeCollider_1x3"
     ],
     [
+      334,
+      "CompositeCollider_6x11"
+    ],
+    [
+      328,
+      "CompositeCollider_2x1"
+    ],
+    [
+      335,
+      "CompositeCollider_2x1"
+    ],
+    [
+      319,
+      "LDTK Layer: IntGrid_layer"
+    ],
+    [
+      315,
+      "Tilemap"
+    ],
+    [
+      341,
+      "CompositeCollider_4x1"
+    ],
+    [
+      322,
+      "CompositeCollider_11x1"
+    ],
+    [
+      338,
+      "CompositeCollider_5x10"
+    ],
+    [
+      339,
+      "CompositeCollider_5x9"
+    ],
+    [
+      347,
+      "CompositeCollider_2x1"
+    ],
+    [
+      325,
+      "CompositeCollider_2x1"
+    ],
+    [
       348,
       "Sprite"
+    ],
+    [
+      346,
+      "CompositeCollider_1x1"
+    ],
+    [
+      336,
+      "CompositeCollider_3x10"
+    ],
+    [
+      330,
+      "CompositeCollider_7x2"
+    ],
+    [
+      331,
+      "CompositeCollider_11x5"
+    ],
+    [
+      349,
+      "Cube"
+    ],
+    [
+      329,
+      "CompositeCollider_26x3"
+    ],
+    [
+      332,
+      "CompositeCollider_3x1"
+    ],
+    [
+      345,
+      "CompositeCollider_1x2"
+    ],
+    [
+      327,
+      "CompositeCollider_1x14"
+    ],
+    [
+      344,
+      "CompositeCollider_2x2"
+    ],
+    [
+      337,
+      "CompositeCollider_2x10"
+    ],
+    [
+      340,
+      "CompositeCollider_3x9"
+    ],
+    [
+      333,
+      "CompositeCollider_1x1"
     ]
   ],
   "sprite_sheets": [],
   "animated_sprites": [],
   "tilemaps": [
+    [
+      315,
+      {
+        "name": "New Tilemap",
+        "tileset_id": "tileset_72",
+        "width": 20,
+        "height": 20,
+        "animation_frame_rate": 1,
+        "color": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "tile_anchor": [
+          0.5,
+          0.5
+        ],
+        "orientation": "XY",
+        "offset": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "tiles": [
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          },
+          {
+            "tile_id": 0,
+            "flip_h": false,
+            "flip_v": false,
+            "flip_d": false
+          }
+        ],
+        "z_order": 0,
+        "visible": true,
+        "opacity": 1.0,
+        "parallax_factor": [
+          1.0,
+          1.0
+        ]
+      }
+    ],
     [
       319,
       {
@@ -9100,2460 +11548,15 @@
           1.0
         ]
       }
-    ],
-    [
-      315,
-      {
-        "name": "New Tilemap",
-        "tileset_id": "tileset_72",
-        "width": 20,
-        "height": 20,
-        "animation_frame_rate": 1,
-        "color": [
-          1.0,
-          1.0,
-          1.0,
-          1.0
-        ],
-        "tile_anchor": [
-          0.5,
-          0.5
-        ],
-        "orientation": "XY",
-        "offset": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "rotation": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "scale": [
-          1.0,
-          1.0,
-          1.0
-        ],
-        "tiles": [
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          },
-          {
-            "tile_id": 0,
-            "flip_h": false,
-            "flip_v": false,
-            "flip_d": false
-          }
-        ],
-        "z_order": 0,
-        "visible": true,
-        "opacity": 1.0,
-        "parallax_factor": [
-          1.0,
-          1.0
-        ]
-      }
     ]
   ],
   "tilesets": [
     [
-      319,
+      315,
       {
-        "name": "tileset_9",
+        "name": "tileset_72",
         "texture_path": "Cavernas_by_Adam_Saltsman.png",
-        "texture_id": "tileset_9",
+        "texture_id": "tileset_72",
         "tile_width": 8,
         "tile_height": 8,
         "columns": 12,
@@ -11564,11 +11567,11 @@
       }
     ],
     [
-      315,
+      319,
       {
-        "name": "tileset_72",
+        "name": "tileset_9",
         "texture_path": "Cavernas_by_Adam_Saltsman.png",
-        "texture_id": "tileset_72",
+        "texture_id": "tileset_9",
         "tile_width": 8,
         "tile_height": 8,
         "columns": 12,
@@ -11637,5 +11640,6 @@
   ],
   "maps": [],
   "world_uis": [],
-  "model_3ds": []
+  "model_3ds": [],
+  "ldtk_entities": []
 }

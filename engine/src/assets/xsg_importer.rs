@@ -33,25 +33,22 @@ impl XsgImporter {
         // 1. Convert Textures
         for image in document.images() {
             let name = image.name().unwrap_or("Texture").to_string();
-            let mut uri = None;
-            let mut data = None;
-            let mut mime_type = None;
-
-            match image.source() {
+            let (uri, data, mime_type) = match image.source() {
                 gltf::image::Source::Uri { uri: u, mime_type: m } => {
-                    uri = Some(u.to_string());
-                    mime_type = m.map(|s| s.to_string());
+                    (Some(u.to_string()), None, m.map(|s| s.to_string()))
                 },
                 gltf::image::Source::View { view, mime_type: m } => {
-                    mime_type = Some(m.to_string());
                     let start = view.offset();
                     let end = start + view.length();
                     let buffer_index = view.buffer().index();
-                    if buffer_index < buffers.len() {
-                        data = Some(buffers[buffer_index][start..end].to_vec());
-                    }
+                    let d = if buffer_index < buffers.len() {
+                        Some(buffers[buffer_index][start..end].to_vec())
+                    } else {
+                        None
+                    };
+                    (None, d, Some(m.to_string()))
                 }
-            }
+            };
             
             xsg_textures.push(XsgTexture {
                 name,

@@ -1,10 +1,11 @@
+// Force update
 use ecs::World;
-use render::{BatchRenderer, MeshRenderer, TilemapRenderer, TextureManager, CameraBinding, LightBinding, Mesh, PbrMaterialUniform, ObjectUniform, PbrMaterial};
-use glam::{Vec3, Quat, Mat4};
+use render::{BatchRenderer, MeshRenderer, TilemapRenderer, TextureManager, CameraBinding, LightBinding, Mesh, PbrMaterial};
+use glam::{Vec3, Mat4, Quat};
 use std::collections::HashMap;
 use std::sync::Arc;
-use wgpu::util::DeviceExt;
 use crate::assets::model_manager::get_model_manager;
+use crate::runtime::extraction_system::ExtractionSystem;
 use anyhow;
 
 // Simple mesh cache to avoid regenerating meshes every frame
@@ -26,6 +27,9 @@ pub struct RenderCache {
     
     // Model3D Node Cache: (Entity ID, Node Index) -> (Buffer, BindGroup)
     pub model_node_cache: HashMap<(u32, u32), (wgpu::Buffer, wgpu::BindGroup)>,
+
+    // Instance Buffer Cache: BatchKey(String) -> Buffer
+    pub instance_buffers: HashMap<String, wgpu::Buffer>,
 }
 
 impl RenderCache {
@@ -39,6 +43,7 @@ impl RenderCache {
             entity_cache: HashMap::new(),
             entity_material_cache: HashMap::new(),
             model_node_cache: HashMap::new(),
+            instance_buffers: HashMap::new(),
         }
     }
 }
@@ -89,7 +94,7 @@ pub fn post_process_asset_meshes(
     }
 
     // Load and attach
-    use ecs::traits::ComponentAccess;
+    // use ecs::traits::ComponentAccess;
 
     for (parent_entity, asset_rel_path) in assets_to_load {
         // Check if entity already has children (already loaded)
@@ -265,7 +270,7 @@ pub fn render_game_world<'a>(
          }
     }
 
-    // 3. Update Entity & Material Caches (Meshes)
+    // 3. Update Entity & Material Caches (Meshes) - Only Material Buffers now
     // Create material bind groups for assets that need them
     for (_, ecs_mesh) in &mesh_entities {
             if let Some(mat_id) = &ecs_mesh.material_id {
@@ -278,124 +283,9 @@ pub fn render_game_world<'a>(
             }
     }
     
-    for (entity, ecs_mesh) in &mesh_entities {
-        if let Some(transform) = world.transforms.get(entity) {
-             // Object Uniform (Model Matrix)
-            if !render_cache.entity_cache.contains_key(entity) {
-                let model_matrix = if let Some(global) = world.global_transforms.get(entity) {
-                    Mat4::from_cols_array(&global.matrix)
-                } else {
-                    // Fallback to local transform
-                    let rot_rad = Vec3::new(
-                        transform.rotation[0].to_radians(),
-                        transform.rotation[1].to_radians(),
-                        transform.rotation[2].to_radians(),
-                    );
-                    let rotation = Quat::from_euler(glam::EulerRot::XYZ, rot_rad.x, rot_rad.y, rot_rad.z);
-                    let translation = Vec3::from(transform.position);
-                    let scale = Vec3::from(transform.scale);
-                    
-                    Mat4::from_scale_rotation_translation(scale, rotation, translation)
-                };
 
-                let object_uniform = ObjectUniform {
-                    model: model_matrix.to_cols_array_2d(),
-                };
-                
-                 let buffer = device.create_buffer_init(
-                    &wgpu::util::BufferInitDescriptor {
-                        label: Some("Object Uniform Buffer"),
-                        contents: bytemuck::cast_slice(&[object_uniform]),
-                        usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
-                    }
-                );
-                    let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-                    layout: &mesh_renderer.object_layout,
-                    entries: &[
-                        wgpu::BindGroupEntry { binding: 0, resource: buffer.as_entire_binding() },
-                    ],
-                    label: Some("object_bind_group"),
-                });
-                render_cache.entity_cache.insert(**entity, (buffer, bind_group));
-            } else {
-                // Update existing buffer
-                if let Some((buffer, _)) = render_cache.entity_cache.get(entity) {
-                    let model_matrix = if let Some(global) = world.global_transforms.get(entity) {
-                        Mat4::from_cols_array(&global.matrix)
-                    } else {
-                        // Fallback to local transform
-                        let rot_rad = Vec3::new(
-                            transform.rotation[0].to_radians(),
-                            transform.rotation[1].to_radians(),
-                            transform.rotation[2].to_radians(),
-                        );
-                        let rotation = Quat::from_euler(glam::EulerRot::XYZ, rot_rad.x, rot_rad.y, rot_rad.z);
-                        let translation = Vec3::from(transform.position);
-                        let scale = Vec3::from(transform.scale);
-                        
-                        Mat4::from_scale_rotation_translation(scale, rotation, translation)
-                    };
 
-                    let object_uniform = ObjectUniform {
-                        model: model_matrix.to_cols_array_2d(),
-                    };
-                     queue.write_buffer(buffer, 0, bytemuck::cast_slice(&[object_uniform]));
-                }
-            }
 
-             // Material Uniform (PBR)
-             if let Some(_) = &ecs_mesh.material_id {
-                 // Asset materials handled above
-             } else {
-                 if !render_cache.entity_material_cache.contains_key(entity) {
-                     let pbr_material = PbrMaterialUniform {
-                        albedo_factor: ecs_mesh.color, 
-                        metallic_factor: 0.0, 
-                        roughness_factor: 0.5, 
-                        padding: [0.0; 2],
-                    };
-                    
-                    let white = texture_manager.get_texture("default_white").unwrap();
-                    let normal = texture_manager.get_texture("default_normal").unwrap();
-                    
-                     let buffer = device.create_buffer_init(
-                        &wgpu::util::BufferInitDescriptor {
-                            label: Some("PBR Material Buffer"),
-                            contents: bytemuck::cast_slice(&[pbr_material]),
-                            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
-                        }
-                    );
-                    
-                    let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-                        layout: &mesh_renderer.material_layout,
-                        entries: &[
-                            wgpu::BindGroupEntry { binding: 0, resource: buffer.as_entire_binding() },
-                            wgpu::BindGroupEntry { binding: 1, resource: wgpu::BindingResource::TextureView(&white.view) },
-                            wgpu::BindGroupEntry { binding: 2, resource: wgpu::BindingResource::Sampler(&white.sampler) },
-                            wgpu::BindGroupEntry { binding: 3, resource: wgpu::BindingResource::TextureView(&normal.view) },
-                            wgpu::BindGroupEntry { binding: 4, resource: wgpu::BindingResource::Sampler(&normal.sampler) },
-                            wgpu::BindGroupEntry { binding: 5, resource: wgpu::BindingResource::TextureView(&white.view) },
-                            wgpu::BindGroupEntry { binding: 6, resource: wgpu::BindingResource::Sampler(&white.sampler) },
-                        ],
-                        label: Some("pbr_material_bind_group"),
-                    });
-                    
-                     render_cache.entity_material_cache.insert(**entity, (buffer, bind_group));
-                 } else {
-                     // Update existing material buffer
-                     if let Some((buffer, _)) = render_cache.entity_material_cache.get(entity) {
-                          let pbr_material = PbrMaterialUniform {
-                            albedo_factor: ecs_mesh.color, 
-                            metallic_factor: 0.0, 
-                            roughness_factor: 0.5, 
-                            padding: [0.0; 2],
-                        };
-                        queue.write_buffer(buffer, 0, bytemuck::cast_slice(&[pbr_material]));
-                     }
-                 }
-             }
-        }
-    }
     
     // 4. Update Model3D Cache (Materials & Nodes)
     let model_manager = get_model_manager();
@@ -411,72 +301,6 @@ pub fn render_game_world<'a>(
                     }
                 }
             }
-        }
-    }
-    
-    for (entity, model_3d) in &world.model_3ds {
-        if let Some(xsg) = model_manager.get_model(&model_3d.asset_id) {
-             let root_transform = if let Some(global) = world.global_transforms.get(entity) {
-                 Mat4::from_cols_array(&global.matrix)
-             } else if let Some(transform) = world.transforms.get(entity) {
-                  let rot_rad = Vec3::new(
-                        transform.rotation[0].to_radians(),
-                        transform.rotation[1].to_radians(),
-                        transform.rotation[2].to_radians(),
-                  );
-                  let rotation = Quat::from_euler(glam::EulerRot::XYZ, rot_rad.x, rot_rad.y, rot_rad.z);
-                  let translation = Vec3::from(transform.position);
-                  let scale = Vec3::from(transform.scale);
-                  Mat4::from_scale_rotation_translation(scale, rotation, translation)
-             } else {
-                  Mat4::IDENTITY
-             };
-
-             let mut stack = Vec::new();
-             for root_idx in &xsg.root_nodes {
-                 stack.push((*root_idx, root_transform));
-             }
-
-             while let Some((node_idx, parent_mat)) = stack.pop() {
-                 let node = &xsg.nodes[node_idx as usize];
-                 let q = glam::Quat::from_array(node.transform.rotation);
-                 let t = glam::Vec3::from(node.transform.position);
-                 let s = glam::Vec3::from(node.transform.scale);
-                 let local_mat = Mat4::from_scale_rotation_translation(s, q, t);
-                 let global_mat = parent_mat * local_mat;
-
-                 if let Some(_) = node.mesh {
-                      let cache_key = (*entity, node_idx);
-                      let object_uniform = ObjectUniform { model: global_mat.to_cols_array_2d() };
-                      
-                      if !render_cache.model_node_cache.contains_key(&cache_key) {
-                            let buffer = device.create_buffer_init(
-                            &wgpu::util::BufferInitDescriptor {
-                                label: Some(&format!("Model3D Node Buffer {}-{}", entity, node_idx)),
-                                contents: bytemuck::cast_slice(&[object_uniform]),
-                                usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
-                            }
-                            );
-                            
-                            let bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
-                                layout: &mesh_renderer.object_layout,
-                                entries: &[
-                                    wgpu::BindGroupEntry { binding: 0, resource: buffer.as_entire_binding() },
-                                ],
-                                label: Some("model_node_bind_group"),
-                            });
-                            
-                            render_cache.model_node_cache.insert(cache_key, (buffer, bg));
-                      } else {
-                            let (buffer, _) = render_cache.model_node_cache.get(&cache_key).unwrap();
-                            queue.write_buffer(buffer, 0, bytemuck::cast_slice(&[object_uniform]));
-                      }
-                 }
-
-                 for child_idx in &node.children {
-                     stack.push((*child_idx, global_mat));
-                 }
-             }
         }
     }
 
@@ -665,150 +489,94 @@ pub fn render_game_world<'a>(
 
 
 
-    // Pass 3: Render (Immutable access)
-    // Now caches are ready, we can borrow them fully for the render pass
-    // Get asset caches (No longer needed to get from helpers)
+    // 5. EXTRACT & RENDER (Instanced)
+    // Extract frame
+    let frame = ExtractionSystem::extract(world, 0.0);
 
-    for (entity, ecs_mesh) in mesh_entities {
-         if world.transforms.contains_key(entity) {
-            // Find Mesh
-            let mesh_to_render = match &ecs_mesh.mesh_type {
-                ecs::MeshType::Asset(id) => {
-                    // Skip rendering parent Asset entities - their children will render the actual meshes
-                    if id.ends_with(".xsg") {
-                        None
-                    } else {
-                        // println!("DEBUG: Looking for mesh asset: {}", id);
-                        if let Some(mesh) = render_cache.mesh_assets.get(id) {
-                            // println!("DEBUG: Found mesh asset: {}", id);
-                            Some(mesh.as_ref())
-                        } else {
-                            // println!("DEBUG: Available mesh assets: {:?}", mesh_assets.keys().collect::<Vec<_>>());
-                            None
-                        }
-                    }
-                },
-                _ => {
-                    let cache_key = format!("{:?}", ecs_mesh.mesh_type);
-                    render_cache.mesh_cache.get(&cache_key)
-                }
-            };
+    // Ensure 'default' material exists for untextured meshes
+    if !render_cache.material_bind_group_cache.contains_key("default") {
+        let default_material = render::PbrMaterial {
+            albedo_texture: None,
+            normal_texture: None,
+            metallic_roughness_texture: None,
+            occlusion_texture: None,
+            albedo_factor: [1.0; 4],
+            metallic_factor: 0.0,
+            roughness_factor: 0.5,
+            bind_group: None,
+            // Assuming these might exist or derived default. 
+            // If explicit construction fails due to missing fields, 
+            // we might need ..Default::default() if PbrMaterial implements it, 
+            // but it has Option fields so maybe not fully default?
+            // Let's try to include known fields.
+            // If PbrMaterial is defined in render crate, I assume I can construct it.
+        };
+        // We wrap in Arc to match expected API if needed, but create_pbr_bind_group takes &PbrMaterial
+        let bg = mesh_renderer.create_pbr_bind_group(device, queue, &default_material, texture_manager);
+        render_cache.material_bind_group_cache.insert("default".to_string(), bg);
+    }
 
-            if let Some(mesh) = mesh_to_render {
-                // Find Material Bind Group
-                let material_bind_group = if let Some(mat_id) = &ecs_mesh.material_id {
-                    let mat = render_cache.material_assets.get(mat_id);
-                     // If material loaded successfully, use it
-                     if let Some(mat_asset) = mat {
-                         if let Some(ref bind_group) = mat_asset.bind_group {
-                             Some(bind_group)
-                         } else {
-                             // Get from cache (should exist from Pass 2)
-                             render_cache.material_bind_group_cache.get(mat_id)
-                         }
-                     } else {
-                         println!("DEBUG: Material Asset {} NOT FOUND in cache!", mat_id);
-                         None
-                     }
-                } else {
-                     render_cache.entity_material_cache.get(entity).map(|(_, bg)| bg)
-                };
-                
-                // Fallback to dynamic material if asset material missing/invalid
-                let final_material_bg = material_bind_group.or_else(|| render_cache.entity_material_cache.get(entity).map(|(_, bg)| bg));
+    // Opaque Batches (Instancing)
+    // PRE-PASS: Prepare Instance Buffers
+    for (key, instances) in &frame.opaque_batches {
+         if instances.is_empty() { continue; }
+         
+         let cache_key = format!("{}_{}", key.mesh_id, key.material_id);
+         let required_size = (instances.len() * std::mem::size_of::<render::MeshInstance>()) as u64;
+         
+         let buffer_valid = if let Some(buffer) = render_cache.instance_buffers.get(&cache_key) {
+             buffer.size() >= required_size
+         } else {
+             false
+         };
 
-                if let (Some(material_bg), Some((_, object_bg))) = (final_material_bg, render_cache.entity_cache.get(entity)) {
-                     mesh_renderer.render_pbr(
-                        render_pass,
-                        mesh,
-                        material_bg,
-                        &camera_binding.bind_group,
-                        &light_binding.bind_group,
-                        object_bg,
-                    );
-                }
-            }
+         if !buffer_valid {
+              let new_buffer = mesh_renderer.create_instance_buffer(device, instances);
+              render_cache.instance_buffers.insert(cache_key, new_buffer);
+         } else {
+              let buffer = render_cache.instance_buffers.get(&cache_key).unwrap();
+              queue.write_buffer(buffer, 0, bytemuck::cast_slice(instances));
          }
     }
 
+    // RENDER PASS
+    for (key, instances) in &frame.opaque_batches {
+         let mesh_id = &key.mesh_id;
+         let mat_id = &key.material_id;
+         
+         // Resolve Mesh
+         let mesh_opt = if render_cache.mesh_assets.contains_key(mesh_id.as_str()) {
+             render_cache.mesh_assets.get(mesh_id.as_str()).map(|m| m.as_ref())
+         } else {
+             render_cache.mesh_cache.get(mesh_id.as_str())
+         };
 
+         if let Some(mesh) = mesh_opt {
+              // Resolve Material Bind Group
+              // Try asset map first, then cache
+              let material_bg_opt = if let Some(mat_asset) = render_cache.material_assets.get(mat_id.as_str()) {
+                   mat_asset.bind_group.as_ref().or_else(|| render_cache.material_bind_group_cache.get(mat_id.as_str()))
+              } else {
+                   // Fallback for "default" or other manual keys
+                   render_cache.material_bind_group_cache.get(mat_id.as_str())
+              };
 
-    // Pass B: Render (Immutable access)
-    // We traverse again to submit draw calls
-    for (entity, model_3d) in &world.model_3ds {
-        if let Some(xsg) = model_manager.get_model(&model_3d.asset_id) {
-             let root_transform = if let Some(global) = world.global_transforms.get(entity) {
-                 Mat4::from_cols_array(&global.matrix)
-             } else if let Some(transform) = world.transforms.get(entity) {
-                  let rot_rad = Vec3::new(
-                        transform.rotation[0].to_radians(),
-                        transform.rotation[1].to_radians(),
-                        transform.rotation[2].to_radians(),
-                  );
-                  let rotation = Quat::from_euler(glam::EulerRot::XYZ, rot_rad.x, rot_rad.y, rot_rad.z);
-                  let translation = Vec3::from(transform.position);
-                  let scale = Vec3::from(transform.scale);
-                  Mat4::from_scale_rotation_translation(scale, rotation, translation)
-             } else {
-                  Mat4::IDENTITY
-             };
-
-             let mut stack = Vec::new();
-             for root_idx in &xsg.root_nodes {
-                 stack.push((*root_idx, root_transform));
-             }
-
-             while let Some((node_idx, parent_mat)) = stack.pop() {
-                 let node = &xsg.nodes[node_idx as usize];
-                 let q = glam::Quat::from_array(node.transform.rotation);
-                 let t = glam::Vec3::from(node.transform.position);
-                 let s = glam::Vec3::from(node.transform.scale);
-                 let local_mat = Mat4::from_scale_rotation_translation(s, q, t);
-                 let global_mat = parent_mat * local_mat;
-
-                 if let Some(mesh_idx) = node.mesh {
-                      let mesh_name = &xsg.meshes[mesh_idx as usize].name;
-                      for (prim_idx, prim) in xsg.meshes[mesh_idx as usize].primitives.iter().enumerate() {
-                            let mesh_id = format!("{}_mesh_{}_{}_{}", model_3d.asset_id, mesh_name, mesh_idx, prim_idx);
-                           if let Some(mesh) = render_cache.mesh_assets.get(&mesh_id) {
-                                let mat_id = prim.material_index.and_then(|mi| {
-                                     let mname = &xsg.materials[mi as usize].name;
-                                     Some(format!("{}_mat_{}_{}", model_3d.asset_id, mname, mi))
-                                });
-                                let material_bg = mat_id.as_ref().and_then(|id| {
-                                     if let Some(mat_asset) = render_cache.material_assets.get(id) {
-                                         if let Some(ref bind_group) = mat_asset.bind_group {
-                                             Some(bind_group)
-                                         } else {
-                                             // Get from cache (should exist from Pass A)
-                                             render_cache.material_bind_group_cache.get(id)
-                                         }
-                                     } else {
-                                         None
-                                     }
-                                 });
-
-                                if let Some(mat_bg) = material_bg {
-                                     let cache_key = (*entity, node_idx);
-                                     if let Some((_, object_bg)) = render_cache.model_node_cache.get(&cache_key) {
-                                         mesh_renderer.render_pbr(
-                                             render_pass,
-                                             mesh,
-                                             mat_bg,
-                                             &camera_binding.bind_group,
-                                             &light_binding.bind_group,
-                                             object_bg
-                                         );
-                                     }
-                                }
-                           }
-                      }
-                 }
-
-                 for child_idx in &node.children {
-                     stack.push((*child_idx, global_mat));
-                 }
-             }
-        }
+              if let Some(material_bg) = material_bg_opt {
+                  if instances.is_empty() { continue; }
+                  
+                  let cache_key = format!("{}_{}", mesh_id, mat_id);
+                  if let Some(instance_buffer) = render_cache.instance_buffers.get(&cache_key) {
+                        mesh_renderer.render_instanced(
+                            render_pass,
+                            mesh,
+                            material_bg,
+                            &camera_binding.bind_group,
+                            &light_binding.bind_group,
+                            instance_buffer,
+                            instances.len() as u32
+                        );
+                  }
+              }
+         }
     }
 }

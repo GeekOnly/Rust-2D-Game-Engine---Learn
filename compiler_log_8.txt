@@ -1,0 +1,766 @@
+﻿cargo : warning: unused import: `EcsWorld`
+At line:1 char:1
++ cargo check -p engine 2>&1 | Out-File 
+-Encoding utf8 compiler_log_8.t ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified 
+   : (warning: unused import: `EcsWorld`:  
+  String) [], RemoteException
+    + FullyQualifiedErrorId : NativeComman 
+   dError
+ 
+ --> ecs\src\loaders\tiled_loader.rs:4:21
+  |
+4 | use crate::traits::{EcsWorld, 
+Componen...
+  |                     ^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part 
+of `#[warn(unused)]`) on by default
+
+warning: unused import: `EcsWorld`
+ --> ecs\src\loaders\ldtk_loader.rs:3:21
+  |
+3 | use crate::traits::{EcsWorld, 
+Componen...
+  |                     ^^^^^^^^
+
+warning: variable does not need to be 
+mutable
+   --> 
+ecs\src\loaders\ldtk_loader.rs:242:37
+    |
+242 | ...   let mut transform = 
+Transform:...
+    |           ----^^^^^^^^^
+    |           |
+    |           help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` (part of 
+`#[warn(unused)]`) on by default
+
+warning: `ecs` (lib) generated 3 warnings 
+(run `cargo fix --lib -p ecs` to apply 1 
+suggestion)
+warning: unused imports: 
+`ToonMaterialUniform` and `ToonMaterial`
+ --> render\src\mesh_renderer.rs:2:90
+  |
+2 | ...m, ToonMaterial, 
+ToonMaterialUniform};
+  |       ^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part 
+of `#[warn(unused)]`) on by default
+
+warning: unused import: 
+`wgpu::util::DeviceExt`
+ --> render\src\grid_renderer.rs:2:5
+  |
+2 | use wgpu::util::DeviceExt;
+  |     ^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused variable: `queue`
+   --> render\src\mesh_renderer.rs:499:9
+    |
+499 |         queue: &wgpu::Queue, 
+    |         ^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_queue`
+    |
+    = note: `#[warn(unused_variables)]` 
+(part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `occlusion_view`
+   --> render\src\mesh_renderer.rs:550:12
+    |
+550 | ...   let occlusion_view = 
+material....
+    |           ^^^^^^^^^^^^^^ help: if 
+this is intentional, prefix it with an 
+underscore: `_occlusion_view`
+
+warning: unused variable: 
+`occlusion_sampler`
+   --> render\src\mesh_renderer.rs:551:12
+    |
+551 | ...   let occlusion_sampler = 
+materi...
+    |           ^^^^^^^^^^^^^^^^^ help: if 
+this is intentional, prefix it with an 
+underscore: `_occlusion_sampler`
+
+warning: field `bind_group_layout` is 
+never read
+  --> render\src\sprite_renderer.rs:37:5
+   |
+32 | pub struct SpriteRenderer {
+   |            -------------- field in 
+this struct
+...
+37 |     bind_group_layout: 
+wgpu::BindGrou...
+   |     ^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of 
+`#[warn(unused)]`) on by default
+
+warning: fields `instance_buffer` and 
+`camera_bind_group` are never read
+   --> render\src\batch_renderer.rs:101:5
+    |
+ 93 | pub struct BatchRenderer {
+    |            ------------- fields in 
+this struct
+...
+101 |     instance_buffer: wgpu::Buffer,
+    |     ^^^^^^^^^^^^^^^
+...
+106 |     camera_bind_group: 
+wgpu::BindGroup,
+    |     ^^^^^^^^^^^^^^^^^
+
+warning: function 
+`register_rapier_functions` is never used
+  --> script\src\rapier_bindings.rs:10:8
+   |
+10 | pub fn register_rapier_functions(
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of 
+`#[warn(unused)]`) on by default
+
+warning: function 
+`create_is_grounded_function` is never used
+  --> script\src\rapier_bindings.rs:28:8
+   |
+28 | pub fn create_is_grounded_function() 
+...
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: use of deprecated method 
+`egui::ScrollArea::id_source`: Renamed 
+id_salt
+   --> sprite_editor\src\ui\sprite_editor_w
+indow.rs:594:22
+    |
+594 |                     
+.id_source("sprite_list_scroll")
+    |                      ^^^^^^^^^
+    |
+    = note: `#[warn(deprecated)]` on by 
+default
+
+warning: use of deprecated method 
+`egui::ScrollArea::id_source`: Renamed 
+id_salt
+   --> sprite_editor\src\ui\sprite_editor_w
+indow.rs:609:22
+    |
+609 |                     
+.id_source("properties_scroll")
+    |                      ^^^^^^^^^
+
+warning: use of deprecated associated 
+function `egui::Frame::none`: Use 
+`Frame::NONE` or `Frame::new()` instead.
+   --> sprite_editor\src\ui\sprite_editor_w
+indow.rs:696:30
+    |
+696 |                 egui::Frame::none()
+    |                              ^^^^
+
+warning: use of deprecated associated 
+function `egui::Frame::none`: Use 
+`Frame::NONE` or `Frame::new()` instead.
+   --> sprite_editor\src\ui\sprite_editor_w
+indow.rs:701:30
+    |
+701 |                 egui::Frame::none()
+    |                              ^^^^
+
+warning: use of deprecated method 
+`egui::DragValue::<'a>::clamp_range`: Use 
+`range` instead
+   --> sprite_editor\src\ui\sprite_editor_w
+indow.rs:904:81
+    |
+904 | ...   if 
+ui.add(egui::DragValue::new(&mut width_valu
+e).speed(1.0).clamp_range(1..=self.state.me
+tadata.textur...
+    |                                      
+                             ^^^^^^^^^^^
+
+warning: use of deprecated method 
+`egui::DragValue::<'a>::clamp_range`: Use 
+`range` instead
+   --> sprite_editor\src\ui\sprite_editor_w
+indow.rs:916:82
+    |
+916 | ...   if 
+ui.add(egui::DragValue::new(&mut height_val
+ue).speed(1.0).clamp_range(1..=self.state.m
+etadata.textu...
+    |                                      
+                              ^^^^^^^^^^^
+
+warning: variant `CellSize` is never 
+constructed
+  --> sprite_editor\src\ui\sprite_editor_wi
+ndow.rs:33:5
+   |
+31 | enum AutoSliceMode {
+   |      ------------- variant in this 
+enum
+32 |     Grid,
+33 |     CellSize,
+   |     ^^^^^^^^
+   |
+   = note: `AutoSliceMode` has derived 
+impls for the traits `Clone` and `Debug`, 
+but these are intentionally ignored during 
+dead code analysis
+   = note: `#[warn(dead_code)]` (part of 
+`#[warn(unused)]`) on by default
+
+warning: multiple fields are never read
+   --> sprite_editor\src\ui\sprite_editor_w
+indow.rs:298:5
+    |
+292 | pub struct SpriteEditorWindow {
+    |            ------------------ fields 
+in this struct
+...
+298 |     auto_slice_columns: u32,
+    |     ^^^^^^^^^^^^^^^^^^
+299 |     auto_slice_rows: u32,
+    |     ^^^^^^^^^^^^^^^
+300 |     auto_slice_padding: u32,
+    |     ^^^^^^^^^^^^^^^^^^
+301 |     auto_slice_spacing: u32,
+    |     ^^^^^^^^^^^^^^^^^^
+302 |     auto_slice_mode: AutoSliceMode,
+    |     ^^^^^^^^^^^^^^^
+303 |     auto_slice_cell_width: u32,
+    |     ^^^^^^^^^^^^^^^^^^^^^
+304 |     auto_slice_cell_height: u32,
+    |     ^^^^^^^^^^^^^^^^^^^^^^
+305 |     show_export_dialog: bool,
+306 |     export_format: ExportFormat,
+    |     ^^^^^^^^^^^^^
+
+warning: `render` (lib) generated 7 
+warnings (run `cargo fix --lib -p render` 
+to apply 5 suggestions)
+warning: `script` (lib) generated 2 
+warnings
+warning: `sprite_editor` (lib) generated 8 
+warnings
+    Checking ui v0.1.0 
+(K:\XSGameStudio\2025 Project\Game 
+Engine\Rust 2D Game Engine\ui)
+warning: unused import: `CanvasScaler`
+ --> ui\src\canvas_system.rs:6:21
+  |
+6 | use crate::{Canvas, CanvasScaler};
+  |                     ^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part 
+of `#[warn(unused)]`) on by default
+
+warning: unused import: `UIEventType`
+ --> ui\src\slider_system.rs:6:30
+  |
+6 | use crate::events::{UIEvent, 
+UIEventType, UIEventDispatcher};
+  |                              
+^^^^^^^^^^^
+
+warning: unused import: `UIEventType`
+ --> ui\src\toggle_system.rs:6:30
+  |
+6 | use crate::events::{UIEvent, 
+UIEventType, UIEventDispatcher};
+  |                              
+^^^^^^^^^^^
+
+warning: unused import: `UIEventType`
+ --> ui\src\dropdown_system.rs:6:30
+  |
+6 | use crate::events::{UIEvent, 
+UIEventType, UIEventDispatcher};
+  |                              
+^^^^^^^^^^^
+
+warning: unused import: `LineType`
+ --> ui\src\input_field_system.rs:5:61
+  |
+5 | use crate::{UIInputField, ContentType, 
+CharacterValidation, LineType, UIElement, 
+UIText};
+  |                                        
+                     ^^^^^^^^
+
+warning: unused import: `UIEventType`
+ --> ui\src\input_field_system.rs:6:30
+  |
+6 | use crate::events::{UIEvent, 
+UIEventType, UIEventDispatcher};
+  |                              
+^^^^^^^^^^^
+
+warning: unused variable: 
+`event_dispatcher`
+  --> ui\src\slider_system.rs:40:9
+   |
+40 |         event_dispatcher: 
+&UIEventDispatcher,
+   |         ^^^^^^^^^^^^^^^^ help: if 
+this is intentional, prefix it with an 
+underscore: `_event_dispatcher`
+   |
+   = note: `#[warn(unused_variables)]` 
+(part of `#[warn(unused)]`) on by default
+
+warning: unused variable: 
+`event_dispatcher`
+  --> ui\src\toggle_system.rs:38:9
+   |
+38 |         event_dispatcher: 
+&UIEventDispatcher,
+   |         ^^^^^^^^^^^^^^^^ help: if 
+this is intentional, prefix it with an 
+underscore: `_event_dispatcher`
+
+warning: unused variable: `entity`
+  --> ui\src\toggle_system.rs:71:14
+   |
+71 |         for (entity, toggle) in 
+toggles {
+   |              ^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_entity`
+
+warning: unused variable: 
+`event_dispatcher`
+  --> ui\src\dropdown_system.rs:42:9
+   |
+42 |         event_dispatcher: 
+&UIEventDispatcher,
+   |         ^^^^^^^^^^^^^^^^ help: if 
+this is intentional, prefix it with an 
+underscore: `_event_dispatcher`
+
+warning: unused variable: `template`
+  --> ui\src\dropdown_system.rs:62:45
+   |
+62 | ...                   if let 
+Some(template) = dropdown.template {
+   |                                   
+^^^^^^^^ help: if this is intentional, 
+prefix it with an underscore: `_template`
+
+warning: unused variable: `entity`
+  --> ui\src\dropdown_system.rs:98:14
+   |
+98 |         for (entity, dropdown) in 
+dropdowns {
+   |              ^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_entity`
+
+warning: unused variable: 
+`event_dispatcher`
+  --> ui\src\input_field_system.rs:42:9
+   |
+42 |         event_dispatcher: 
+&UIEventDispatcher,
+   |         ^^^^^^^^^^^^^^^^ help: if 
+this is intentional, prefix it with an 
+underscore: `_event_dispatcher`
+
+warning: unused variable: `entity`
+   --> ui\src\input_field_system.rs:317:14
+    |
+317 |         for (entity, field) in 
+input_fields {
+    |              ^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_entity`
+
+warning: unused variable: 
+`placeholder_element`
+   --> ui\src\input_field_system.rs:326:29
+    |
+326 |                 if let 
+Some(placeholder_element) = 
+texts.get_mut(&placeholder_entity) {
+    |                             
+^^^^^^^^^^^^^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_placeholder_element`
+
+warning: unused variable: `alpha_threshold`
+   --> 
+ui\src\rendering\mask_system.rs:249:65
+    |
+249 |     pub fn check_alpha_mask(&self, 
+entity: Entity, point: Vec2, 
+alpha_threshold: f32) -> bool {
+    |                                      
+                           ^^^^^^^^^^^^^^^ 
+help: if this is intentional, prefix it 
+with an underscore: `_alpha_threshold`
+
+warning: unused variable: `x3`
+   --> ui\src\rendering\nine_slice.rs:149:9
+    |
+149 |     let x3 = rect.x + rect.width;
+    |         ^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_x3`
+
+warning: unused variable: `y3`
+   --> ui\src\rendering\nine_slice.rs:154:9
+    |
+154 |     let y3 = rect.y + rect.height;
+    |         ^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_y3`
+
+warning: unused variable: `batch`
+   --> 
+ui\src\rendering\batch_builder.rs:354:47
+    |
+354 |             let needs_new_batch = if 
+let Some(ref batch) = current_batch {
+    |                                      
+         ^^^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_batch`
+
+warning: unused variable: `sprite`
+   --> ui\src\style_system.rs:123:21
+    |
+123 |         if let Some(ref sprite) = 
+style.button_sprite {
+    |                     ^^^^^^^^^^ help: 
+if this is intentional, prefix it with an 
+underscore: `_sprite`
+
+warning: unused variable: `world`
+  --> ui\src\lua_bindings\animation.rs:18:5
+   |
+18 |     world: &'scope RefCell<&mut 
+World>,
+   |     ^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_world`
+
+warning: unused variable: `notes`
+  --> ui\src\hud_converter.rs:87:49
+   |
+87 |         let (image, text, panel, 
+type_children, notes) = 
+Self::convert_element_type(&element_type);
+   |                                       
+          ^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_notes`
+
+warning: unused variable: `binding`
+   --> ui\src\hud_converter.rs:132:9
+    |
+132 |         binding: &str,
+    |         ^^^^^^^ help: if this is 
+intentional, prefix it with an underscore: 
+`_binding`
+
+warning: field `layout_cache` is never read
+  --> ui\src\layout_system.rs:19:5
+   |
+17 | pub struct LayoutSystem {
+   |            ------------ field in this 
+struct
+18 |     /// Cached layout calculations to 
+avoid redundant work
+19 |     layout_cache: HashMap<Entity, 
+LayoutCache>,
+   |     ^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of 
+`#[warn(unused)]`) on by default
+
+warning: fields `child_positions` and 
+`child_sizes` are never read
+  --> ui\src\layout_system.rs:25:5
+   |
+23 | struct LayoutCache {
+   |        ----------- fields in this 
+struct
+24 |     /// Last calculated positions for 
+children
+25 |     child_positions: HashMap<Entity, 
+Vec2>,
+   |     ^^^^^^^^^^^^^^^
+26 |     /// Last calculated sizes for 
+children
+27 |     child_sizes: HashMap<Entity, 
+Vec2>,
+   |     ^^^^^^^^^^^
+   |
+   = note: `LayoutCache` has derived impls 
+for the traits `Debug` and `Clone`, but 
+these are intentionally ignored during 
+dead code analysis
+
+warning: associated function 
+`lighten_color` is never used
+   --> ui\src\style_system.rs:266:8
+    |
+ 24 | impl StyleSystem {
+    | ---------------- associated function 
+in this implementation
+...
+266 |     fn lighten_color(color: Color, 
+factor: f32) -> Color {
+    |        ^^^^^^^^^^^^^
+
+warning: function `parse_easing` is never 
+used
+   --> 
+ui\src\lua_bindings\animation.rs:320:4
+    |
+320 | fn parse_easing(name: &str) -> 
+EasingFunction {
+    |    ^^^^^^^^^^^^
+
+warning: `ui` (lib) generated 27 warnings 
+(run `cargo fix --lib -p ui` to apply 23 
+suggestions)
+    Checking engine v0.1.0 
+(K:\XSGameStudio\2025 Project\Game 
+Engine\Rust 2D Game Engine\engine)
+warning: unused import: 
+`wgpu::util::DeviceExt`
+ --> 
+engine\src\runtime\render_system.rs:7:5
+  |
+7 | use wgpu::util::DeviceExt; // Kept if 
+used, otherwise remove. Error said unused. 
+Let's remove it if truly unused, but 
+verify usage first. 
+  |     ^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part 
+of `#[warn(unused)]`) on by default
+
+warning: unused import: 
+`render::MeshInstance`
+  --> 
+engine\src\runtime\render_system.rs:11:5
+   |
+11 | use render::MeshInstance;
+   |     ^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: 
+`ecs::traits::ComponentAccess`
+   --> 
+engine\src\runtime\render_system.rs:100:9
+    |
+100 |     use ecs::traits::ComponentAccess;
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: value assigned to `mime_type` is 
+never read
+  --> 
+engine\src\assets\xsg_importer.rs:38:33
+   |
+38 |             let mut mime_type = None;
+   |                                 ^^^^
+   |
+   = help: maybe it is overwritten before 
+being read?
+   = note: `#[warn(unused_assignments)]` 
+(part of `#[warn(unused)]`) on by default
+
+warning: function `render_entities` is 
+never used
+   --> engine\src\runtime\renderer.rs:205:4
+    |
+205 | fn render_entities(
+    |    ^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of 
+`#[warn(unused)]`) on by default
+
+warning: function `render_tilemap_2d` is 
+never used
+   --> engine\src\runtime\renderer.rs:232:4
+    |
+232 | fn render_tilemap_2d(
+    |    ^^^^^^^^^^^^^^^^^
+
+warning: function `render_orthographic` is 
+never used
+   --> engine\src\runtime\renderer.rs:349:4
+    |
+349 | fn render_orthographic(
+    |    ^^^^^^^^^^^^^^^^^^^
+
+warning: function `render_perspective` is 
+never used
+   --> engine\src\runtime\renderer.rs:574:4
+    |
+574 | fn render_perspective(
+    |    ^^^^^^^^^^^^^^^^^^
+
+warning: creating a shared reference to 
+mutable static
+  --> 
+engine\src\assets\model_manager.rs:34:12
+   |
+34 |         if MODEL_MANAGER.is_none() {
+   |            ^^^^^^^^^^^^^^^^^^^^^^^ 
+shared reference to mutable static
+   |
+   = note: for more information, see <https
+://doc.rust-lang.org/edition-guide/rust-202
+4/static-mut-references.html>
+   = note: shared references to mutable 
+statics are dangerous; it's undefined 
+behavior if the static is mutated or if a 
+mutable reference is created for it while 
+the shared reference lives
+   = note: `#[warn(static_mut_refs)]` 
+(part of 
+`#[warn(rust_2024_compatibility)]`) on by 
+default
+
+warning: creating a mutable reference to 
+mutable static
+  --> 
+engine\src\assets\model_manager.rs:37:9
+   |
+37 |         
+MODEL_MANAGER.as_mut().unwrap()
+   |         ^^^^^^^^^^^^^^^^^^^^^^ 
+mutable reference to mutable static
+   |
+   = note: for more information, see <https
+://doc.rust-lang.org/edition-guide/rust-202
+4/static-mut-references.html>
+   = note: mutable references to mutable 
+statics are dangerous; it's undefined 
+behavior if any other pointer to the 
+static is used or if any other reference 
+is created for the static while the 
+mutable reference lives
+
+warning: `engine` (lib) generated 10 
+warnings (run `cargo fix --lib -p engine` 
+to apply 2 suggestions)
+warning: use of deprecated method `winit::e
+vent_loop::EventLoop::<T>::create_window`: 
+use `ActiveEventLoop::create_window` 
+instead
+  --> engine\src\bin\player.rs:92:29
+   |
+92 |     let window = event_loop.create_win
+dow(window_attributes)?;
+   |                             
+^^^^^^^^^^^^^
+   |
+   = note: `#[warn(deprecated)]` on by 
+default
+
+warning: use of deprecated method 
+`winit::event_loop::EventLoop::<T>::run`: 
+use `EventLoop::run_app` instead
+   --> engine\src\bin\player.rs:206:16
+    |
+206 |     event_loop.run(move |event, 
+target| {
+    |                ^^^
+
+warning: use of deprecated method 
+`egui::Context::begin_frame`: Renamed 
+begin_pass
+   --> engine\src\bin\player.rs:308:34
+    |
+308 |                         
+egui_ctx.begin_frame(raw_input);
+    |                                  
+^^^^^^^^^^^
+
+warning: use of deprecated method 
+`egui::Context::end_frame`: Renamed 
+end_pass
+   --> engine\src\bin\player.rs:321:52
+    |
+321 |                         let 
+full_output = egui_ctx.end_frame();
+    |                                      
+              ^^^^^^^^^
+
+error[E0502]: cannot borrow `renderer` as 
+mutable because it is also borrowed as 
+immutable
+   --> engine\src\bin\player.rs:337:35
+    |
+337 |                           let res = 
+renderer.render_with_callback(|device, 
+queue, encoder, view, depth_view, 
+texture_manager, tilemap_renderer, 
+batch_renderer, mesh_renderer, 
+camera_binding, light_binding| {
+    |                                     
+^        -------------------- -------------
+-------------------------------------------
+-------------------------------------------
+---------------------------------------- 
+immutable borrow occurs here
+    |                                     
+|        |
+    |  
+___________________________________|       
+ immutable borrow later used by call
+    | |
+338 | |                             
+egui_renderer.update_buffers(
+339 | |                                 
+device,
+340 | |                                 
+queue,
+...   |
+419 | |                                 
+renderer.size,
+    | |                                 
+------------- first borrow occurs due to 
+use of `renderer.size` in closure
+...   |
+431 | |                             );
+432 | |                         });
+    | |__________________________^ mutable 
+borrow occurs here
+
+warning: unused variable: `max_dim`
+   --> engine\src\bin\player.rs:387:41
+    |
+387 | ...                   let max_dim = 
+screen_width.max(1) as f32;
+    |                           ^^^^^^^ 
+help: if this is intentional, prefix it 
+with an underscore: `_max_dim`
+    |
+    = note: `#[warn(unused_variables)]` 
+(part of `#[warn(unused)]`) on by default
+
+For more information about this error, try 
+`rustc --explain E0502`.
+warning: `engine` (bin "player") generated 
+5 warnings
+error: could not compile `engine` (bin 
+"player") due to 1 previous error; 5 
+warnings emitted

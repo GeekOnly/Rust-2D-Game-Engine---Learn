@@ -20,7 +20,7 @@ pub mod material;
 
 pub use mesh::{Mesh, ModelVertex};
 pub use mesh_generation::generate_mesh;
-pub use mesh_renderer::{MeshRenderer, ObjectUniform};
+pub use mesh_renderer::{MeshRenderer, ObjectUniform, MeshInstance};
 pub use grid_renderer::GridRenderer;
 pub use camera::{CameraBinding, CameraUniform};
 pub use lighting::{LightBinding, LightUniform};

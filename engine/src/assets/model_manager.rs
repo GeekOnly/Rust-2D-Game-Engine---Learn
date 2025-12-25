@@ -31,9 +31,10 @@ static mut MODEL_MANAGER: Option<ModelManager> = None;
 
 pub fn get_model_manager() -> &'static mut ModelManager {
     unsafe {
-        if MODEL_MANAGER.is_none() {
-            MODEL_MANAGER = Some(ModelManager::new());
+        let ptr = std::ptr::addr_of_mut!(MODEL_MANAGER);
+        if (*ptr).is_none() {
+            *ptr = Some(ModelManager::new());
         }
-        MODEL_MANAGER.as_mut().unwrap()
+        (*ptr).as_mut().unwrap()
     }
 }

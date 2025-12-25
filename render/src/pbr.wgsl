@@ -45,6 +45,12 @@ struct VertexInput {
     @location(2) normal: vec3<f32>,
     @location(3) tangent: vec3<f32>,
     @location(4) bitangent: vec3<f32>,
+    // Instance attributes
+    @location(5) model_0: vec4<f32>,
+    @location(6) model_1: vec4<f32>,
+    @location(7) model_2: vec4<f32>,
+    @location(8) model_3: vec4<f32>,
+    @location(9) color: vec4<f32>,
 };
 
 struct VertexOutput {
@@ -54,27 +60,42 @@ struct VertexOutput {
     @location(2) normal: vec3<f32>,
     @location(3) tangent: vec3<f32>,
     @location(4) bitangent: vec3<f32>,
+    @location(5) color: vec4<f32>,
 };
 
-struct ObjectUniform {
-    model: mat4x4<f32>,
-};
-
-@group(3) @binding(0)
-var<uniform> object: ObjectUniform;
+// Object Uniform Removed
 
 @vertex
 fn vs_main(
-    model: VertexInput,
+    in: VertexInput,
 ) -> VertexOutput {
     var out: VertexOutput;
-    let world_pos = object.model * vec4<f32>(model.position, 1.0);
+
+    // Reconstruct model matrix from instance attributes
+    let model_matrix = mat4x4<f32>(
+        in.model_0,
+        in.model_1,
+        in.model_2,
+        in.model_3,
+    );
+
+    let world_pos = model_matrix * vec4<f32>(in.position, 1.0);
     
     out.world_position = world_pos.xyz;
-    out.tex_coords = model.tex_coords;
-    out.normal = (object.model * vec4<f32>(model.normal, 0.0)).xyz; // Basic normal transform (ignores non-uniform scale issues)
-    out.tangent = (object.model * vec4<f32>(model.tangent, 0.0)).xyz;
-    out.bitangent = (object.model * vec4<f32>(model.bitangent, 0.0)).xyz;
+    out.tex_coords = in.tex_coords;
+    
+    // Normal transform (using rotation part of model matrix)
+    let normal_matrix = mat3x3<f32>(
+        model_matrix[0].xyz,
+        model_matrix[1].xyz,
+        model_matrix[2].xyz
+    );
+
+    out.normal = normal_matrix * in.normal;
+    out.tangent = normal_matrix * in.tangent;
+    out.bitangent = normal_matrix * in.bitangent;
+    out.color = in.color;
+    
     out.clip_position = camera.view_proj * world_pos;
     return out;
 }
@@ -114,7 +135,7 @@ fn fresnel_schlick(cos_theta: f32, F0: vec3<f32>) -> vec3<f32> {
 
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
-    let albedo = textureSample(t_albedo, s_albedo, in.tex_coords) * material.albedo_factor;
+    let albedo = textureSample(t_albedo, s_albedo, in.tex_coords) * material.albedo_factor * in.color;
     let metallic_roughness = textureSample(t_metallic_roughness, s_metallic_roughness, in.tex_coords);
     let metallic = metallic_roughness.b * material.metallic_factor;
     let roughness = metallic_roughness.g * material.roughness_factor;
