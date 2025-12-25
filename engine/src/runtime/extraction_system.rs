@@ -24,9 +24,11 @@ impl ExtractionSystem {
         // 2. Extract Meshes (Component)
         for (entity, mesh_component) in &world.meshes {
             if let Some(transform) = world.transforms.get(entity) {
-                // Visibility Check
-                    if let Some(active) = world.active.get(entity) { if !active { continue; } }
-                if let Some(visible) = world.visibles.get(entity) { if !visible.is_visible { continue; } }
+                // Visibility Check (visible by default if component missing)
+                if let Some(active) = world.active.get(entity) { if !active { continue; } }
+                if let Some(visible) = world.visibles.get(entity) {
+                    if !visible.is_visible { continue; }
+                }
 
                 let model_matrix = if let Some(global) = world.global_transforms.get(entity) {
                     glam::Mat4::from_cols_array(&global.matrix)
