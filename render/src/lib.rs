@@ -18,6 +18,8 @@ pub mod grid_renderer;
 pub mod camera;
 pub mod lighting;
 pub mod material;
+pub mod post_process_renderer; // AAA Mobile Post-Processing
+pub mod bloom_renderer; // AAA Mobile Post-Processing - Bloom
 
 pub use mesh::{Mesh, ModelVertex};
 pub use mesh_generation::generate_mesh;
@@ -27,6 +29,8 @@ pub use grid_renderer::GridRenderer;
 pub use camera::{CameraBinding, CameraUniform};
 pub use lighting::{LightBinding, LightUniform};
 pub use material::{PbrMaterial, PbrMaterialUniform, ToonMaterial, ToonMaterialUniform};
+pub use post_process_renderer::{PostProcessRenderer, PostProcessUniforms};
+pub use bloom_renderer::{BloomRenderer, BloomUniforms};
 
 
 pub struct RenderModule {
@@ -41,6 +45,14 @@ pub struct RenderModule {
     pub depth_view: wgpu::TextureView,
     pub scene_depth_texture: wgpu::Texture, // NEW: Copy source/dest
     pub scene_depth_view: wgpu::TextureView, // Bound to LightBinding
+
+    // AAA Mobile Post-Processing
+    pub hdr_texture: wgpu::Texture,
+    pub hdr_view: wgpu::TextureView,
+    pub hdr_sampler: wgpu::Sampler,
+    pub bloom_renderer: BloomRenderer,
+    pub post_process_renderer: PostProcessRenderer,
+
     pub texture_manager: TextureManager,
     pub sprite_renderer: SpriteRenderer,
     pub tilemap_renderer: TilemapRenderer,
@@ -238,6 +250,40 @@ impl RenderModule {
             multiview: None,
         });
 
+        // AAA Mobile Post-Processing: Create HDR Render Target
+        let hdr_texture = device.create_texture(&wgpu::TextureDescriptor {
+            label: Some("HDR Render Target"),
+            size: wgpu::Extent3d {
+                width: size.width,
+                height: size.height,
+                depth_or_array_layers: 1,
+            },
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Rgba16Float, // HDR format
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING,
+            view_formats: &[],
+        });
+        let hdr_view = hdr_texture.create_view(&wgpu::TextureViewDescriptor::default());
+
+        let hdr_sampler = device.create_sampler(&wgpu::SamplerDescriptor {
+            label: Some("HDR Sampler"),
+            address_mode_u: wgpu::AddressMode::ClampToEdge,
+            address_mode_v: wgpu::AddressMode::ClampToEdge,
+            address_mode_w: wgpu::AddressMode::ClampToEdge,
+            mag_filter: wgpu::FilterMode::Linear,
+            min_filter: wgpu::FilterMode::Linear,
+            mipmap_filter: wgpu::FilterMode::Nearest,
+            ..Default::default()
+        });
+
+        // Bloom renderer (downsample/upsample chain)
+        let bloom_renderer = BloomRenderer::new(&device, size.width, size.height);
+
+        // Create Post-Process Renderer
+        let post_process_renderer = PostProcessRenderer::new(&device, surface_format);
+
         let texture_manager = TextureManager::new(Some(&device));
 
         // Initialize 3D bindings (Initialize BEFORE renderers that depend on them)
@@ -274,6 +320,14 @@ impl RenderModule {
             depth_view,
             scene_depth_texture,
             scene_depth_view,
+
+            // AAA Mobile Post-Processing
+            hdr_texture,
+            hdr_view,
+            hdr_sampler,
+            bloom_renderer,
+            post_process_renderer,
+
             texture_manager,
             sprite_renderer,
             tilemap_renderer,
@@ -326,10 +380,78 @@ impl RenderModule {
                 view_formats: &[],
             });
             self.scene_depth_view = self.scene_depth_texture.create_view(&wgpu::TextureViewDescriptor::default());
-            
+
             // LightBinding holds the texture view in the BindGroup, so it must be updated.
             self.light_binding.update_resources(&self.device, &self.scene_depth_view);
+
+            // AAA Mobile: Recreate HDR render target
+            self.hdr_texture = self.device.create_texture(&wgpu::TextureDescriptor {
+                label: Some("HDR Render Target"),
+                size: wgpu::Extent3d {
+                    width: new_size.width,
+                    height: new_size.height,
+                    depth_or_array_layers: 1,
+                },
+                mip_level_count: 1,
+                sample_count: 1,
+                dimension: wgpu::TextureDimension::D2,
+                format: wgpu::TextureFormat::Rgba16Float,
+                usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING,
+                view_formats: &[],
+            });
+            self.hdr_view = self.hdr_texture.create_view(&wgpu::TextureViewDescriptor::default());
+
+            // Recreate bloom mip chain
+            self.bloom_renderer.resize(&self.device, new_size.width, new_size.height);
         }
+    }
+
+    // AAA Mobile Post-Processing: Helper methods
+    pub fn update_post_process_settings(&mut self) {
+        // Update post-process uniforms
+        self.post_process_renderer.update_uniforms(&self.queue);
+
+        // Update bloom uniforms
+        self.bloom_renderer.update_uniforms(&self.queue);
+    }
+
+    pub fn render_bloom(&mut self, encoder: &mut wgpu::CommandEncoder) -> &wgpu::TextureView {
+        // Generate bloom from HDR texture and return the final bloom result
+        self.bloom_renderer.render(&self.device, encoder, &self.hdr_view)
+    }
+
+    pub fn set_exposure(&mut self, exposure: f32) {
+        self.post_process_renderer.uniforms.exposure = exposure;
+    }
+
+    pub fn set_bloom_intensity(&mut self, intensity: f32) {
+        self.post_process_renderer.uniforms.bloom_intensity = intensity;
+    }
+
+    pub fn set_contrast(&mut self, contrast: f32) {
+        self.post_process_renderer.uniforms.contrast = contrast;
+    }
+
+    pub fn set_saturation(&mut self, saturation: f32) {
+        self.post_process_renderer.uniforms.saturation = saturation;
+    }
+
+    pub fn set_vignette(&mut self, strength: f32, smoothness: f32) {
+        self.post_process_renderer.uniforms.vignette_strength = strength;
+        self.post_process_renderer.uniforms.vignette_smoothness = smoothness;
+    }
+
+    pub fn set_chromatic_aberration(&mut self, strength: f32) {
+        self.post_process_renderer.uniforms.chromatic_aberration = strength;
+    }
+
+    // Bloom settings
+    pub fn set_bloom_threshold(&mut self, threshold: f32) {
+        self.bloom_renderer.uniforms.threshold = threshold;
+    }
+
+    pub fn set_bloom_soft_threshold(&mut self, soft_threshold: f32) {
+        self.bloom_renderer.uniforms.soft_threshold = soft_threshold;
     }
 
     pub fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
