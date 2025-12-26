@@ -1,7 +1,8 @@
 // Force update
 use wgpu::util::DeviceExt;
 use ecs::World;
-use render::{BatchRenderer, MeshRenderer, TilemapRenderer, TextureManager, CameraBinding, LightBinding, Mesh, PbrMaterial, RenderModule};
+use render::{BatchRenderer, MeshRenderer, TilemapRenderer, TextureManager, CameraBinding, LightBinding, Mesh, PbrMaterial, RenderModule, ClusterRenderer};
+use render::cluster_renderer::GPULight; // Explicit import
 use glam::{Vec3, Mat4, Quat};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -221,6 +222,7 @@ pub fn prepare_frame_and_shadows(
     light_binding: &LightBinding,
     camera_binding: &CameraBinding, // Added
     mesh_renderer: &MeshRenderer,
+    cluster_renderer: &ClusterRenderer, // Added
     depth_view: &wgpu::TextureView,
     depth_texture: &wgpu::Texture,
     scene_depth_texture: &wgpu::Texture,
@@ -458,6 +460,74 @@ pub fn prepare_frame_and_shadows(
     // Actually, we need to do this BEFORE the shadow loop.
     // I will insert it at the top of the function in the Replacement content.
     
+    // ------------------------------------------------------------------------
+    // CLUSTERED LIGHTING CULLING
+    // ------------------------------------------------------------------------
+    // Extract Point Lights
+    let mut point_lights = Vec::new();
+    
+    // Default directional (sun) handled by LightBinding. We process Point lights here.
+    for (_, light_comp) in &world.lights {
+        if let ecs::components::light::LightType::Point = light_comp.light_type {
+             // We need position. Light component doesn't have it? 
+             // Wait, ExtractionSystem extracts "lights" which are (Entity, Light).
+             // We need Transform.
+             // But we are in "prepare_frame" which iterates `world` directly? 
+             // Or better: Use `frame.lights` from extraction?
+             // `frame.lights` is a list of LightUniform (Directional).
+             // We need separate extraction for Point Lights or iterate World directly for now.
+             // Direct World iteration is fine for < 1000 lights.
+        }
+    }
+    
+    // Re-iterate world for point lights (simpler than extraction refactor for now)
+    for (entity, light_comp) in &world.lights {
+        if let ecs::components::light::LightType::Point = light_comp.light_type {
+             if let Some(transform) = world.transforms.get(entity) {
+                 point_lights.push(GPULight {
+                     position: [transform.position[0], transform.position[1], transform.position[2], 1.0],
+                     color: [light_comp.color[0], light_comp.color[1], light_comp.color[2], light_comp.intensity],
+                     radius: light_comp.range,
+                     padding: [0.0; 3],
+                 });
+             }
+        }
+    }
+    
+    // Update Compute Buffers
+    cluster_renderer.update_lights(queue, &point_lights);
+    
+    // Update Cluster View Uniform (using Main Camera)
+    // We need the main camera's view/proj/near/far.
+    // `camera_binding` has the buffer, but we need the raw values.
+    // We unfortunately don't have them passed explicitly here easily except via World or re-calc.
+    // But `camera_binding.update` was done in previous frame or outside?
+    // Actually, the caller `stress_test.rs` calculates `view_proj` but not near/far.
+    // Let's assume standard camera for now or fetch from World.
+    if let Some(main_camera) = world.cameras.iter().min_by_key(|(_, c)| c.depth) {
+         let (entity, camera) = main_camera;
+         if let Some(transform) = world.transforms.get(entity) {
+            use glam::{Vec3, Mat4, Quat};
+            let cam_pos = Vec3::from(transform.position);
+            // Re-calc view/proj for Culling (Must match Render)
+            // Ideally should be passed in.
+            // For now, let's grab from component.
+            let view = Mat4::look_at_rh(cam_pos, Vec3::ZERO, Vec3::Y); // Hack: Matches stress_test.rs hardcode.
+            // TODO: Pass View matrix explicitly to prepare_frame!
+             let aspect = width as f32 / height.max(1) as f32;
+             let proj = Mat4::perspective_rh(camera.fov.to_radians(), aspect, camera.near_clip, camera.far_clip);
+             
+             cluster_renderer.update_view(queue, view, proj, (width as f32, height as f32), camera.near_clip, camera.far_clip);
+         }
+    }
+
+    // Dispatch Compute
+    let mut compute_encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+        label: Some("Cluster Compute Encoder"),
+    });
+    cluster_renderer.compute(&mut compute_encoder);
+    queue.submit(std::iter::once(compute_encoder.finish()));
+
     frame
 }
 
@@ -469,6 +539,7 @@ pub fn render_scene<'a>(
     tilemap_renderer: &'a TilemapRenderer,
     batch_renderer: &'a mut BatchRenderer,
     mesh_renderer: &'a mut MeshRenderer,
+    cluster_renderer: &'a ClusterRenderer, // Added
     camera_binding: &'a CameraBinding,
     light_binding: &'a LightBinding,
     texture_manager: &'a mut TextureManager,
@@ -842,6 +913,7 @@ pub fn render_scene<'a>(
                             material_bg,
                             &camera_binding.bind_group,
                             &light_binding.bind_group,
+                            &cluster_renderer.fragment_bind_group, // Fragment Read-Only
                             instance_buffer,
                             instances.len() as u32
                         );

@@ -7,6 +7,7 @@ use physics::rapier_backend::RapierPhysicsWorld;
 #[cfg(not(feature = "rapier"))]
 use physics::PhysicsWorld;
 use render::RenderModule;
+use render::cluster_renderer::GPULight;
 
 use winit::{
     event::*,
@@ -335,7 +336,7 @@ fn main() -> Result<()> {
                         let screen_height = renderer.config.height;
                         let renderer_size = renderer.size;
 
-                        let res = renderer.render_with_callback(|device, queue, encoder, view, depth_view, texture_manager, tilemap_renderer, batch_renderer, mesh_renderer, camera_binding, light_binding, depth_texture, scene_depth_texture, _scene_depth_view, config| {
+                        let res = renderer.render_with_callback(|device, queue, encoder, view, depth_view, texture_manager, tilemap_renderer, batch_renderer, mesh_renderer, cluster_renderer, camera_binding, light_binding, depth_texture, scene_depth_texture, _scene_depth_view, config| {
                             egui_renderer.update_buffers(
                                 device,
                                 queue,
@@ -354,6 +355,7 @@ fn main() -> Result<()> {
                                 light_binding,
                                 camera_binding,
                                 mesh_renderer,
+                                cluster_renderer,
                                 depth_view,
                                 depth_texture,
                                 scene_depth_texture,
@@ -361,29 +363,6 @@ fn main() -> Result<()> {
                                 config.height
                             );
 
-                            let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                                label: Some("egui_render"),
-                                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                                    view: view,
-                                    resolve_target: None,
-                                    ops: wgpu::Operations {
-                                        load: wgpu::LoadOp::Clear(wgpu::Color { r: 0.1, g: 0.1, b: 0.1, a: 1.0 }),
-                                        store: wgpu::StoreOp::Store,
-                                    },
-                                    depth_slice: None,
-                                })],
-                                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                                    view: depth_view,
-                                    depth_ops: Some(wgpu::Operations {
-                                        load: wgpu::LoadOp::Clear(1.0), // Standard Z: clear to 1.0 (Matches BatchRenderer)
-                                        store: wgpu::StoreOp::Store,
-                                    }),
-                                    stencil_ops: None,
-                                }),
-                                occlusion_query_set: None,
-                                timestamp_writes: None,
-                            });
-                            
                             // Find Main Camera and Calculate ViewProj
                             let mut view_proj = glam::Mat4::IDENTITY;
                             if let Some(main_camera) = world.cameras.iter()
@@ -415,14 +394,56 @@ fn main() -> Result<()> {
                                         }
                                     };
                                     view_proj = projection * view;
+                                    
+                                    // Update Cluster View
+                                    cluster_renderer.update_view(queue, view, projection, (screen_width as f32, screen_height as f32), camera.near_clip, camera.far_clip);
                                 }
                             } else {
                                 // Fallback default camera
                                 let projection = glam::Mat4::orthographic_rh(-8.8, 8.8, -5.0, 5.0, 50.0, 0.1);
                                 view_proj = projection;
+                                // Default cluster view update?
+                                cluster_renderer.update_view(queue, glam::Mat4::IDENTITY, projection, (screen_width as f32, screen_height as f32), 0.1, 50.0);
                             }
 
-                            // Render Game World (3D / WGPU)
+                            // Update Cluster View
+                            // Note: View update moved into prepare_frame_and_shadows inside render_system.rs?
+                            // Wait, render_system.rs uses 'world' to find main camera.
+                            // But here we calculate 'view_proj' for UI usage later?
+                            // Let's keep the manual view update here IF render_system doesn't do it perfectly, 
+                            // OR redundant is fine (just overwrite).
+                            // actually render_system::prepare_frame_and_shadows DOES update_view now.
+                            // So we can remove this block if we trust render_system.
+                            // However, we still need 'view_proj' for render_scene call.
+                            // So let's keep the calculation but remove the 'cluster_renderer.update_view' call if redundant.
+                            // But wait, render_system uses World to find camera. Here we iterate world to find camera. Same logic.
+                            // So redundant call is fine, or remove.
+                            // The manual "COMPUTE PASS: Light Culling" block MUST go.
+
+
+                            let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                                label: Some("egui_render"),
+                                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                                    view: view,
+                                    resolve_target: None,
+                                    ops: wgpu::Operations {
+                                        load: wgpu::LoadOp::Clear(wgpu::Color { r: 0.1, g: 0.1, b: 0.1, a: 1.0 }),
+                                        store: wgpu::StoreOp::Store,
+                                    },
+                                    depth_slice: None,
+                                })],
+                                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                                    view: depth_view,
+                                    depth_ops: Some(wgpu::Operations {
+                                        load: wgpu::LoadOp::Clear(1.0), // Standard Z: clear to 1.0 (Matches BatchRenderer)
+                                        store: wgpu::StoreOp::Store,
+                                    }),
+                                    stencil_ops: None,
+                                }),
+                                occlusion_query_set: None,
+                                timestamp_writes: None,
+                            });
+                            
                             // Render Game World (3D / WGPU)
                             runtime::render_system::render_scene(
                                 &frame,
@@ -431,6 +452,7 @@ fn main() -> Result<()> {
                                 tilemap_renderer,
                                 batch_renderer,
                                 mesh_renderer,
+                                cluster_renderer, // Passed to render_scene
                                 camera_binding,
                                 light_binding,
                                 texture_manager,

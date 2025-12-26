@@ -800,6 +800,7 @@ impl EditorApp {
             &self.renderer.light_binding,
             &self.scene_camera_binding, // Reuse scene camera binding placeholder
             &self.renderer.mesh_renderer,
+            &self.renderer.cluster_renderer,
             &self.scene_view_renderer.depth_view,
             &self.scene_view_renderer.depth_texture,
             &self.scene_view_renderer.scene_depth_texture,
@@ -867,6 +868,7 @@ impl EditorApp {
                     &self.renderer.tilemap_renderer,
                     &mut self.renderer.batch_renderer,
                     &mut self.renderer.mesh_renderer,
+                    &self.renderer.cluster_renderer,
                     &self.scene_camera_binding, 
                     &self.renderer.light_binding,
                     &mut self.renderer.texture_manager,
@@ -978,6 +980,7 @@ impl EditorApp {
                         &self.renderer.tilemap_renderer,
                         &mut self.renderer.batch_renderer,
                         &mut self.renderer.mesh_renderer,
+                        &self.renderer.cluster_renderer,
                         &self.scene_camera_binding, 
                         &self.renderer.light_binding,
                         &mut self.renderer.texture_manager,

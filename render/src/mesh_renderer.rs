@@ -50,6 +50,7 @@ impl MeshRenderer {
         config: &wgpu::SurfaceConfiguration,
         camera_layout: &wgpu::BindGroupLayout,
         light_layout: &wgpu::BindGroupLayout,
+        cluster_layout: &wgpu::BindGroupLayout, // NEW
     ) -> Self {
         // --- PBR Setup ---
         let pbr_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
@@ -59,6 +60,7 @@ impl MeshRenderer {
 
         let material_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             entries: &[
+                // ... (Entries omitted for brevity, match existing)
                 // Material Uniform
                 wgpu::BindGroupLayoutEntry {
                     binding: 0,
@@ -150,7 +152,7 @@ impl MeshRenderer {
                 camera_layout,
                 light_layout,
                 &material_layout,
-                // &object_layout, // Removed: Instancing uses attributes now
+                cluster_layout, // NEW: Group 3
             ],
             push_constant_ranges: &[],
         });
@@ -441,6 +443,7 @@ impl MeshRenderer {
         material_bind_group: &'a wgpu::BindGroup,
         camera_bind_group: &'a wgpu::BindGroup,
         light_bind_group: &'a wgpu::BindGroup,
+        cluster_bind_group: &'a wgpu::BindGroup, // NEW
         instance_buffer: &'a wgpu::Buffer,
         instance_count: u32,
     ) {
@@ -448,12 +451,12 @@ impl MeshRenderer {
         render_pass.set_bind_group(0, camera_bind_group, &[]);
         render_pass.set_bind_group(1, light_bind_group, &[]);
         render_pass.set_bind_group(2, material_bind_group, &[]);
+        render_pass.set_bind_group(3, cluster_bind_group, &[]); // NEW
         
         render_pass.set_vertex_buffer(0, mesh.vertex_buffer.slice(..));
         render_pass.set_vertex_buffer(1, instance_buffer.slice(..));
         render_pass.set_index_buffer(mesh.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
         
-        render_pass.draw_indexed(0..mesh.num_elements, 0, 0..instance_count);
         render_pass.draw_indexed(0..mesh.num_elements, 0, 0..instance_count);
     }
 

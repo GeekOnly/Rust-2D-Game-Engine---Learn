@@ -49,6 +49,46 @@ var t_metallic_roughness: texture_2d<f32>;
 @group(2) @binding(6)
 var s_metallic_roughness: sampler;
 
+// ----------------------------------------------------------------------------
+// Clustered Lighting Bindings (Group 3)
+// ----------------------------------------------------------------------------
+struct GPULight {
+    position: vec4<f32>,
+    color: vec4<f32>,
+    radius: f32,
+    padding: array<f32, 3>,
+};
+
+struct LightList {
+    lights: array<GPULight>,
+};
+
+struct Cluster {
+    offset: u32,
+    count: u32,
+};
+
+struct ClusterList {
+    data: array<Cluster>,
+};
+
+struct GlobalIndexList {
+    indices: array<u32>,
+};
+
+struct ClusterUniform {
+    inverse_proj: mat4x4<f32>,
+    view: mat4x4<f32>,
+    screen_size: vec2<f32>,
+    near_plane: f32,
+    far_plane: f32,
+};
+
+@group(3) @binding(1) var<storage, read> cluster_lights: LightList;
+@group(3) @binding(2) var<storage, read> clusters: ClusterList;
+@group(3) @binding(3) var<storage, read> global_light_indices: GlobalIndexList;
+@group(3) @binding(4) var<uniform> cluster_uniform: ClusterUniform;
+
 struct VertexInput {
     @location(0) position: vec3<f32>,
     @location(1) tex_coords: vec2<f32>,
@@ -291,6 +331,104 @@ fn contact_shadows(world_pos: vec3<f32>, L: vec3<f32>, uv: vec2<f32>, dither: f3
     return 1.0;
 }
 
+// ----------------------------------------------------------------------------
+// Clustered Lighting
+// ----------------------------------------------------------------------------
+fn cluster_lighting(world_pos: vec3<f32>, N: vec3<f32>, V: vec3<f32>, albedo: vec3<f32>, roughness: f32, metallic: f32, F0: vec3<f32>, frag_coord: vec4<f32>) -> vec3<f32> {
+    // 1. Determine Tile ID
+    let tile_size = 16.0;
+    let tile_x = u32(frag_coord.x / tile_size);
+    let tile_y = u32(frag_coord.y / tile_size);
+    
+    // 2. Determine Z Slice
+    // Use View Space Z
+    let view_pos = cluster_uniform.view * vec4<f32>(world_pos, 1.0);
+    let z_view = -view_pos.z; // Positive distance
+    
+    let z_near = cluster_uniform.near_plane;
+    let z_far = cluster_uniform.far_plane;
+    
+    // Logarithmic: slice = floor( log(z / near) * scale )
+    // scale = slices / log(far/near)
+    let slices = 24.0;
+    // Protect against z < near
+    let z_clamped = max(z_view, z_near);
+    
+    // Logic must match Compute Shader exactly
+    // Compute used: z = near * (far/near)^step
+    // step = log(z/near) / log(far/near)
+    // slice = step * slices
+    
+    let log_ratio = log(z_far / z_near);
+    let slice_raw = (log(z_clamped / z_near) / log_ratio) * slices;
+    let tile_z = u32(clamp(slice_raw, 0.0, slices - 1.0));
+    
+    // Bounds check
+    let grid_w = u32(ceil(cluster_uniform.screen_size.x / tile_size));
+    let grid_h = u32(ceil(cluster_uniform.screen_size.y / tile_size));
+    
+    if (tile_x >= grid_w || tile_y >= grid_h) {
+        return vec3<f32>(0.0);
+    }
+    
+    let cluster_index = tile_x + tile_y * grid_w + tile_z * grid_w * grid_h;
+    
+    // 3. Fetch Lights
+    // Check array bounds for cluster (Compute might have written OOB if not careful, but Frag treats as read)
+    // Actually runtime array? No, read-only buffer.
+    
+    let cluster = clusters.data[cluster_index];
+    let offset = cluster.offset;
+    let count = cluster.count;
+    
+    var radiance_sum = vec3<f32>(0.0);
+    
+    for (var i = 0u; i < count; i++) {
+        let light_index = global_light_indices.indices[offset + i];
+        let light = cluster_lights.lights[light_index];
+        
+        // PBR Logic for Point Light
+        let L_vec = light.position.xyz - world_pos;
+        let dist = length(L_vec);
+        if (dist > light.radius) { continue; }
+        
+        let L = normalize(L_vec);
+        let H = normalize(V + L);
+        
+        // Attenuation (Window function?)
+        // Simple inverse square + radius cutoff
+        let att = 1.0 / (dist * dist + 1.0);
+        let falloff = 1.0 - pow(dist / light.radius, 4.0); // Windowing
+        let attenuation = att * max(falloff, 0.0);
+        
+        let multiplier = 50.0; // Boost intensity for visual check? or Just raw?
+        // Our light.color usually includes intensity? 
+        // light.color is vec4 (rgb, intensity or a?). In compute we use .color.
+        // Assuming light.color.rgb is color, .a is intensity ?
+        let intensity = light.color.a; 
+        
+        let radiance = light.color.rgb * intensity * attenuation * multiplier;
+        
+        // Cook-Torrance
+        let NDF = distribution_ggx(N, H, roughness);
+        let G = geometry_smith(N, V, L, roughness);
+        let F = fresnel_schlick(max(dot(H, V), 0.0), F0);
+        
+        let num = NDF * G * F;
+        let denom = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
+        let specular = num / denom;
+        
+        let kS = F;
+        var kD = vec3<f32>(1.0) - kS;
+        kD = kD * (1.0 - metallic);
+        
+        let NdotL = max(dot(N, L), 0.0);
+        radiance_sum += (kD * albedo / PI + specular) * radiance * NdotL;
+    }
+    
+    return radiance_sum;
+}
+
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let albedo = textureSample(t_albedo, s_albedo, in.tex_coords) * material.albedo_factor * in.color;
@@ -351,11 +489,14 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     kD = kD * (1.0 - metallic);
 
     let NdotL = max(dot(N, L), 0.0);
-    let Lo = (kD * albedo.rgb / PI + specular) * radiance * NdotL;
+    let Lo_sun = (kD * albedo.rgb / PI + specular) * radiance * NdotL;
+
+    // Add Cluster Lighting
+    let Lo_cluster = cluster_lighting(in.world_position, N, V, albedo.rgb, roughness, metallic, F0, in.clip_position);
 
     // Ambient
     let ambient = vec3<f32>(0.03) * albedo.rgb;
-    let color = ambient + Lo;
+    let color = ambient + Lo_sun + Lo_cluster;
 
     // Gamma correction
     let corrected_color = pow(color, vec3<f32>(1.0/2.2));

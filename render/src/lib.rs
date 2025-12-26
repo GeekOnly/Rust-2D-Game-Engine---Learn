@@ -13,6 +13,7 @@ pub use batch_renderer::BatchRenderer;
 pub mod mesh;
 pub mod mesh_generation;
 pub mod mesh_renderer;
+pub mod cluster_renderer; // NEW
 pub mod grid_renderer;
 pub mod camera;
 pub mod lighting;
@@ -21,6 +22,7 @@ pub mod material;
 pub use mesh::{Mesh, ModelVertex};
 pub use mesh_generation::generate_mesh;
 pub use mesh_renderer::{MeshRenderer, ObjectUniform, MeshInstance};
+pub use cluster_renderer::ClusterRenderer; // NEW
 pub use grid_renderer::GridRenderer;
 pub use camera::{CameraBinding, CameraUniform};
 pub use lighting::{LightBinding, LightUniform};
@@ -44,6 +46,7 @@ pub struct RenderModule {
     pub tilemap_renderer: TilemapRenderer,
     pub batch_renderer: BatchRenderer,
     pub mesh_renderer: MeshRenderer,
+    pub cluster_renderer: ClusterRenderer, // NEW
     pub camera_binding: CameraBinding,
     pub light_binding: LightBinding,
 }
@@ -245,11 +248,15 @@ impl RenderModule {
         let tilemap_renderer = TilemapRenderer::new(&device, &config, &camera_binding.bind_group_layout);
         let batch_renderer = BatchRenderer::new(&device, &config);
 
+        // CLUSTER RENDERER (Initialize FIRST)
+        let cluster_renderer = ClusterRenderer::new(&device, &config, &camera_binding);
+
         let mesh_renderer = MeshRenderer::new(
             &device, 
             &config, 
             &camera_binding.bind_group_layout,
-            &light_binding.bind_group_layout
+            &light_binding.bind_group_layout,
+            &cluster_renderer.fragment_bind_group_layout // For PBR Pipeline (Fragment Read-Only)
         );
 
         // Link LightBinding to the RenderModule's scene_depth_view immediately
@@ -272,6 +279,7 @@ impl RenderModule {
             tilemap_renderer,
             batch_renderer,
             mesh_renderer,
+            cluster_renderer,
             camera_binding,
             light_binding,
         })
@@ -325,11 +333,11 @@ impl RenderModule {
     }
 
     pub fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
-        self.render_with_callback(|_, _, _, _, _, _, _, _, _, _, _, _, _, _, _| {})
+        self.render_with_callback(|_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _| {})
     }
 
     pub fn render_with_callback<F>(&mut self, callback: F) -> Result<(), wgpu::SurfaceError>
-    where F: FnOnce(&wgpu::Device, &wgpu::Queue, &mut wgpu::CommandEncoder, &wgpu::TextureView, &wgpu::TextureView, &mut TextureManager, &mut TilemapRenderer, &mut BatchRenderer, &mut MeshRenderer, &mut CameraBinding, &LightBinding, &wgpu::Texture, &wgpu::Texture, &wgpu::TextureView, &wgpu::SurfaceConfiguration)
+    where F: FnOnce(&wgpu::Device, &wgpu::Queue, &mut wgpu::CommandEncoder, &wgpu::TextureView, &wgpu::TextureView, &mut TextureManager, &mut TilemapRenderer, &mut BatchRenderer, &mut MeshRenderer, &mut ClusterRenderer, &mut CameraBinding, &LightBinding, &wgpu::Texture, &wgpu::Texture, &wgpu::TextureView, &wgpu::SurfaceConfiguration)
     {
         let output = self.surface.get_current_texture()?;
         let view = output.texture.create_view(&wgpu::TextureViewDescriptor::default());
@@ -369,7 +377,7 @@ impl RenderModule {
         }
 
         // Callback for overlay (egui) and game render
-        callback(&self.device, &self.queue, &mut encoder, &view, &self.depth_view, &mut self.texture_manager, &mut self.tilemap_renderer, &mut self.batch_renderer, &mut self.mesh_renderer, &mut self.camera_binding, &self.light_binding, &self.depth_texture, &self.scene_depth_texture, &self.scene_depth_view, &self.config);
+        callback(&self.device, &self.queue, &mut encoder, &view, &self.depth_view, &mut self.texture_manager, &mut self.tilemap_renderer, &mut self.batch_renderer, &mut self.mesh_renderer, &mut self.cluster_renderer, &mut self.camera_binding, &self.light_binding, &self.depth_texture, &self.scene_depth_texture, &self.scene_depth_view, &self.config);
         
         self.queue.submit(std::iter::once(encoder.finish()));
         output.present();

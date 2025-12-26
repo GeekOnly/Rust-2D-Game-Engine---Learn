@@ -202,7 +202,7 @@ fn main() -> Result<()> {
                         let screen_height = renderer.config.height;
                         let renderer_size = renderer.size;
 
-                        let res = renderer.render_with_callback(|device, queue, encoder, view, depth_view, texture_manager, tilemap_renderer, batch_renderer, mesh_renderer, camera_binding, light_binding, depth_texture, scene_depth_texture, _scene_depth_view, config| {
+                        let res = renderer.render_with_callback(|device, queue, encoder, view, depth_view, texture_manager, tilemap_renderer, batch_renderer, mesh_renderer, cluster_renderer, camera_binding, light_binding, depth_texture, scene_depth_texture, _scene_depth_view, config| {
                             egui_renderer.update_buffers(
                                 device,
                                 queue,
@@ -279,6 +279,7 @@ fn main() -> Result<()> {
                                 light_binding,
                                 camera_binding,
                                 mesh_renderer,
+                                cluster_renderer,
                                 depth_view,
                                 depth_texture,
                                 scene_depth_texture,
@@ -294,6 +295,7 @@ fn main() -> Result<()> {
                                 tilemap_renderer,
                                 batch_renderer,
                                 mesh_renderer,
+                                cluster_renderer,
                                 camera_binding,
                                 light_binding,
                                 texture_manager,
